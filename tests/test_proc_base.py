@@ -148,17 +148,31 @@ def test_reorder_nus_3d_quadorder():
     assert np.allclose(full_data[15, 13], nus_data[15], atol=1e-7)
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="nmrglue-ng#4: zd_* reject float wide values; upstream #263 has a fix",
-)
 @pytest.mark.parametrize(
     "function",
     [
         ng.proc_base.zd_triangle,
         ng.proc_base.zd_sinebell,
+        ng.proc_base.zd_gaussian,
     ],
 )
-def test_zd_float_width(function):
+@pytest.mark.parametrize("wide", [5, 5.0, np.int64(5), np.float64(5.0)])
+def test_zd_integral_widths(function, wide):
     data = np.ones((8, 16))
-    assert function(data, wide=1.0).shape == data.shape
+    expected = function(data.copy(), wide=5)
+    result = function(data.copy(), wide=wide)
+    np.testing.assert_array_equal(result, expected)
+
+
+@pytest.mark.parametrize(
+    "function",
+    [
+        ng.proc_base.zd_triangle,
+        ng.proc_base.zd_sinebell,
+        ng.proc_base.zd_gaussian,
+    ],
+)
+def test_zd_fractional_width(function):
+    data = np.ones((8, 16))
+    with pytest.raises(ValueError, match="wide must be an integer number of points"):
+        function(data, wide=5.5)

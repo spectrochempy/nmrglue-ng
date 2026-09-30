@@ -31,6 +31,8 @@ NotImplemented exception:
 """
 
 
+import numbers
+
 import numpy as np
 
 # nmrglue modules
@@ -2928,6 +2930,13 @@ def smo(dic, data, n=1, center=False):
     return dic, a
 
 
+def _nmrpipe_zd_width(wide):
+    """Return NMRPipe's discrete ZD width for a non-negative finite value."""
+    if isinstance(wide, numbers.Real) and np.isfinite(wide) and wide >= 0:
+        return int(np.floor(float(wide) + 0.5))
+    return wide
+
+
 def zd(dic, data, wide=1.0, x0=1.0, slope=0, func=0, g=1):
     """
     Zero diagonal band.
@@ -2938,8 +2947,10 @@ def zd(dic, data, wide=1.0, x0=1.0, slope=0, func=0, g=1):
         Dictionary of NMRPipe parameters.
     data : ndarray
         Array of NMR data.
-    wide : int
-        Width of the diagonal band in points.
+    wide : float
+        Width of the diagonal band in points. For triangle, sine bell, and
+        Gaussian windows, non-negative finite values use NMRPipe's effective
+        discrete width ``floor(wide + 0.5)``.
     x0 : int
         Starting location of the diagonal band in points.
     slope : float
@@ -2972,10 +2983,13 @@ def zd(dic, data, wide=1.0, x0=1.0, slope=0, func=0, g=1):
     if func == 0:
         data = p.zd_boxcar(data, wide, x0 - 1, slope)
     elif func == 1:
+        wide = _nmrpipe_zd_width(wide)
         data = p.zd_triangle(data, wide, x0 - 1, slope)
     elif func == 2:
+        wide = _nmrpipe_zd_width(wide)
         data = p.zd_sinebell(data, wide, x0 - 1, slope)
     elif func == 3:
+        wide = _nmrpipe_zd_width(wide)
         data = p.zd_gaussian(data, wide, x0 - 1, slope, g)
     else:
         raise ValueError("func parameter must be 0, 1, 2 or 3")

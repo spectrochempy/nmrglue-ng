@@ -7,7 +7,9 @@ units of points unless otherwise noted.
 
 # TODO determine which of these work on N-dimension and which assume 2D
 
+import numbers
 from itertools import product
+
 import numpy as np
 import scipy.signal
 import scipy.linalg
@@ -2584,6 +2586,17 @@ def zd_boxcar(data, wide=1, x0=0.0, slope=1.0):
     return zd(data, window, x0=x0, slope=slope)
 
 
+def _normalize_zd_width(wide):
+    """Return an integer ZD width without truncating fractional values."""
+    if isinstance(wide, numbers.Integral):
+        return int(wide)
+    if isinstance(wide, numbers.Real):
+        if np.isfinite(wide) and float(wide).is_integer():
+            return int(wide)
+        raise ValueError("wide must be an integer number of points")
+    raise TypeError("wide must be an integer number of points")
+
+
 def zd_triangle(data, wide=1.0, x0=0.0, slope=1.0):
     """
     Zero diagonal band with triangle function
@@ -2592,8 +2605,9 @@ def zd_triangle(data, wide=1.0, x0=0.0, slope=1.0):
     ----------
     data : ndarray
         Array of NMR data.
-    wide : int
-        Diagonal band half width in points.
+    wide : int or integral float
+        Discrete diagonal band half width in points. Fractional values are
+        invalid.
     x0 : int
         Starting location of diagonal band in points.
     slope : float
@@ -2605,6 +2619,7 @@ def zd_triangle(data, wide=1.0, x0=0.0, slope=1.0):
         Array of NMR data with diagonal band set to zero.
 
     """
+    wide = _normalize_zd_width(wide)
     window = np.append(np.linspace(1, 0, wide + 1),
                        np.linspace(0, 1, wide + 1)[1:])
     return zd(data, window, x0=x0, slope=slope)
@@ -2618,8 +2633,9 @@ def zd_sinebell(data, wide=1.0, x0=0.0, slope=1.0):
     ----------
     data : ndarray
         Array of NMR data.
-    wide : int
-        Diagonal band half width in points.
+    wide : int or integral float
+        Discrete diagonal band half width in points. Fractional values are
+        invalid.
     x0 : int
         Starting location of diagonal band in points.
     slope : float
@@ -2631,6 +2647,7 @@ def zd_sinebell(data, wide=1.0, x0=0.0, slope=1.0):
         Array of NMR data with diagonal band set to zero.
 
     """
+    wide = _normalize_zd_width(wide)
     window = 1 - np.sin(np.linspace(0, pi, 2 * wide + 1))
     return zd(data, window, x0=x0, slope=slope)
 
@@ -2643,8 +2660,9 @@ def zd_gaussian(data, wide=1.0, x0=0.0, slope=1.0, g=1):
     ----------
     data : ndarray
         Array of NMR data.
-    wide : int
-        Diagonal band half width in points.
+    wide : int or integral float
+        Discrete diagonal band half width in points. Fractional values are
+        invalid.
     x0 : int
         Starting location of diagonal band in points.
     slope : float
@@ -2658,6 +2676,7 @@ def zd_gaussian(data, wide=1.0, x0=0.0, slope=1.0, g=1):
         Array of NMR data with diagonal band set to zero.
 
     """
+    wide = _normalize_zd_width(wide)
     tln2 = np.sqrt(2 * np.log(2))
     window = 1 - scipy.signal.windows.gaussian(2 * wide + 1, g / tln2)
     return zd(data, window, x0=x0, slope=slope)
