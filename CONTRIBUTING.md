@@ -187,6 +187,11 @@ git diff --check
 git status --short
 ```
 
+Every pull request with user- or developer-visible changes must update the
+`Unreleased` section of `CHANGELOG.md`. A purely internal change may instead
+state `Changelog: not required` in the pull request description, with a brief
+reason.
+
 ## Relationship With Upstream nmrglue
 
 The historical upstream project remains
