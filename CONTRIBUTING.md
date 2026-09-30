@@ -188,9 +188,11 @@ git status --short
 ```
 
 Every pull request with user- or developer-visible changes must update the
-`Unreleased` section of `CHANGELOG.md`. A purely internal change may instead
-state `Changelog: not required` in the pull request description, with a brief
-reason.
+`Unreleased` section of `CHANGELOG.md`. Changelog entries should reference
+the corresponding pull request using `(#NNN)`; the number must identify the
+pull request, not an issue. When multiple pull requests materially contribute
+to one entry, reference each of them. A purely internal change may instead state
+`Changelog: not required` in the pull request description, with a brief reason.
 
 ## Relationship With Upstream nmrglue
 
