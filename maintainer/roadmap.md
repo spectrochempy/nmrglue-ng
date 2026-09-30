@@ -2,6 +2,12 @@
 
 This roadmap is intentionally short and living. Detailed evidence belongs in dated files under `maintainer/audits/`.
 
+## NMRPipe 13 differential baseline
+
+41/46 historical comparisons pass unchanged against NMRPipe 13.0. Detailed
+results and classifications are recorded in
+[`2026-09-nmrpipe-13-compatibility.md`](audits/2026-09-nmrpipe-13-compatibility.md).
+
 ## P0 — First independent release
 
 - [x] Establish independent project identity and preserve upstream attribution.
@@ -11,12 +17,14 @@ This roadmap is intentionally short and living. Detailed evidence belongs in dat
 - [ ] Establish independent documentation and Read the Docs deployment.
 - [ ] Define reproducible test-data infrastructure and provenance.
 - [ ] Review critical inherited defects before the first release.
+- [ ] Define the integer/float width contract and resolve the `zd_*` defect (#4).
 
 ## P1 — Scientific reliability
 
 - [ ] Secure `data_nd` copy and negative-axis behavior.
 - [ ] Fix and validate Varian low-memory I/O defects.
-- [ ] Resolve the current `zd_*` NumPy compatibility defect.
+- [ ] Correct SAVE `FDPIPECOUNT` metadata compatibility (#6).
+- [ ] Specify and implement HT `ps90-180` with scientific validation (#7).
 - [ ] Specify observation/reference/carrier-frequency semantics and ppm conversion.
 - [ ] Resolve Bruker processing-parameter source selection.
 - [ ] Consolidate JCAMP-DX behavior against documented and real-world fixtures.
