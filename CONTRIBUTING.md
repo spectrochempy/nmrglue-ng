@@ -21,8 +21,8 @@ Large redesigns and general style rewrites are not initial project goals.
 
 ## Development Setup
 
-The repository currently uses `setup.py`; it does not yet use
-`pyproject.toml`. A development environment can be created with:
+The repository uses `pyproject.toml` with setuptools as its build backend. A
+development environment can be created with:
 
 ```bash
 python -m venv .venv
