@@ -142,9 +142,14 @@ As the project develops, contribution and maintenance practices may evolve to ma
 Installation
 ============
 
-``nmrglue-ng`` is currently under development.
+``nmrglue-ng`` is currently under development and has not yet been published
+as an independent release on PyPI or conda. It can be installed directly from
+the source repository; see `INSTALL.txt <INSTALL.txt>`_ for current user and
+development instructions.
 
-Installation and release instructions will be added once the first independent release is prepared.
+The distribution is named ``nmrglue-ng``, while the Python import remains::
+
+    import nmrglue as ng
 
 Citation and attribution
 ========================
