@@ -10,32 +10,34 @@ original nmrglue project and are preserved for attribution and continuity.
 ### Added
 
 - Add an explicit self-contained test profile and classify tests requiring
-  external datasets, optional dependencies, or NMRPipe.
+  external datasets, optional dependencies, or NMRPipe. (#5)
 - Add maintainer audits and a living development roadmap, including an
-  NMRPipe compatibility baseline.
+  NMRPipe compatibility baseline. (#2, #8)
 
 ### Changed
 
-- Modernize packaging with `pyproject.toml`.
+- Modernize packaging with `pyproject.toml`. (#3)
 - Rename the distribution to `nmrglue-ng` while preserving the `nmrglue`
-  Python import.
-- Update source installation instructions for the independent project.
+  Python import. (#3)
+- Update source installation instructions for the independent project. (#11)
 
 ### Fixed
 
+- Fix `pipe_proc.save()` to write NMRPipe-compatible `FDPIPECOUNT` metadata. (#13)
 - Fix ZD processing with integral floating-point widths and reproduce
-  NMRPipe's fractional-width convention in `pipe_proc.zd()`.
+  NMRPipe's fractional-width convention in `pipe_proc.zd()`. (#9)
 
 ### Documentation
 
 - Add contribution guidance for testing, scientific changes, and file-format
-  work.
+  work. (#1)
+- Establish the nmrglue-ng changelog policy. (#12)
 
 ### Maintenance
 
-- Remove the obsolete Travis CI configuration.
+- Remove the obsolete Travis CI configuration. (#11)
 - Replace the historical `TODO.txt` with tracked issues and the maintainer
-  roadmap.
+  roadmap. (#11)
 
 ---
 

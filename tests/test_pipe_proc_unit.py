@@ -11,6 +11,36 @@ FUNCTIONS = {
 }
 
 
+def test_save_writes_nonpipeline_header_and_preserves_data(tmp_path):
+    udic = ng.fileiobase.create_blank_udic(1)
+    udic[0]["size"] = 8
+    udic[0]["complex"] = False
+    dic = ng.pipe.create_dic(udic)
+    data = np.array(
+        [-3.0, -1.0, 0.5, 2.0, 4.0, 7.0, 1.5, -0.5], dtype="float32"
+    )
+    before = dic.copy()
+    filename = tmp_path / "save.ft1"
+
+    returned_dic, returned_data = ng.pipe_proc.save(
+        dic, data, filename, overwrite=True
+    )
+    saved_dic, saved_data = ng.pipe.read(filename)
+
+    assert before["FDPIPEFLAG"] == 0.0
+    assert before["FDPIPECOUNT"] == 0.0
+    assert saved_dic["FDPIPEFLAG"] == 0.0
+    assert saved_dic["FDPIPECOUNT"] == 0.0
+    assert returned_dic is dic
+    assert returned_dic["FDPIPEFLAG"] == before["FDPIPEFLAG"]
+    assert returned_dic["FDPIPECOUNT"] == before["FDPIPECOUNT"]
+    assert returned_data is data
+    assert saved_data.dtype == data.dtype
+    assert saved_data.shape == data.shape
+    np.testing.assert_array_equal(saved_data, data)
+    np.testing.assert_array_equal(returned_data, data)
+
+
 @pytest.mark.parametrize("func", FUNCTIONS)
 @pytest.mark.parametrize(
     ("wide", "effective_width"),
