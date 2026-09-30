@@ -1,6 +1,46 @@
-0.13 (Unreleased)
-=================
+# Changelog
 
+All notable changes to nmrglue-ng are documented in this file.
+
+nmrglue-ng is an independent continuation of nmrglue. Entries before the
+nmrglue-ng section below belong to the historical nmrglue project and are
+preserved for attribution and continuity.
+
+## Unreleased
+
+### Added
+
+- Add an explicit self-contained test profile and classify tests requiring
+  external datasets, optional dependencies, or NMRPipe.
+- Add maintainer audits and a living development roadmap, including an
+  NMRPipe compatibility baseline.
+
+### Changed
+
+- Modernize packaging with `pyproject.toml`.
+- Rename the distribution to `nmrglue-ng` while preserving the `nmrglue`
+  Python import.
+- Update source installation instructions for the independent project.
+
+### Fixed
+
+- Fix ZD processing with integral floating-point widths and reproduce
+  NMRPipe's fractional-width convention in `pipe_proc.zd()`.
+
+### Documentation
+
+- Add contribution guidance for testing, scientific changes, and file-format
+  work.
+
+### Maintenance
+
+- Remove the obsolete Travis CI configuration.
+- Replace the historical `TODO.txt` with tracked issues and the maintainer
+  roadmap.
+
+---
+
+## Historical nmrglue changelog
 
 0.12 (2026-08-16)
 =================
