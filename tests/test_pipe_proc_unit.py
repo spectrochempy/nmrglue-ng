@@ -41,6 +41,46 @@ def test_save_writes_nonpipeline_header_and_preserves_data(tmp_path):
     np.testing.assert_array_equal(returned_data, data)
 
 
+@pytest.mark.parametrize(
+    ("data", "expected"),
+    [
+        (
+            [1.0, 2.0, 4.0, 8.0, 16.0],
+            [
+                1.0 - 12.242127j,
+                2.0 - 5.3340144j,
+                4.0 - 5.8728495j,
+                8.0 - 6.950515j,
+                16.0 + 5.830447j,
+            ],
+        ),
+        (
+            [1.0, 2.0, 4.0, 8.0, 16.0, 32.0],
+            [
+                1.0 - 25.333336j,
+                2.0 - 7.333332j,
+                4.0 - 14.666667j,
+                8.0 - 7.6666665j,
+                16.0 - 15.333332j,
+                32.0 + 12.666667j,
+            ],
+        ),
+    ],
+)
+@pytest.mark.parametrize(
+    "dtype", ["float32", "float64", "complex64", "complex128"]
+)
+def test_ht_ps90_180_matches_mirror_image_reference(data, expected, dtype):
+    data = np.asarray(data, dtype=dtype)
+    dic = ng.pipe.create_empty_dic()
+
+    _, result = ng.pipe_proc.ht(dic, data, mode="ps90-180")
+
+    assert result.shape == data.shape
+    assert result.dtype == np.dtype("complex64")
+    np.testing.assert_allclose(result, expected, rtol=1e-6, atol=1e-6)
+
+
 @pytest.mark.parametrize("func", FUNCTIONS)
 @pytest.mark.parametrize(
     ("wide", "effective_width"),
