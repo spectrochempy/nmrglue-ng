@@ -23,6 +23,7 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ### Fixed
 
+- Fix `pipe_proc.save()` to write NMRPipe-compatible `FDPIPECOUNT` metadata.
 - Fix ZD processing with integral floating-point widths and reproduce
   NMRPipe's fractional-width convention in `pipe_proc.zd()`.
 
