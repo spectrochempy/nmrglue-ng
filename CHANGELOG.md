@@ -23,7 +23,7 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ### Fixed
 
-- Implement NMRPipe-compatible `HT -ps90-180` mirror-image processing.
+- Implement NMRPipe-compatible `HT -ps90-180` mirror-image processing. (#15)
 - Restore linear-prediction QR solving with current SciPy. (#14)
 - Fix `pipe_proc.save()` to write NMRPipe-compatible `FDPIPECOUNT` metadata. (#13)
 - Fix ZD processing with integral floating-point widths and reproduce
