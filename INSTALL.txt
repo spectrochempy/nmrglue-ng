@@ -2,29 +2,51 @@
 Installation Guide
 ==================
 
-Where to get nmrglue
---------------------
+Status
+------
 
-Downloads for all platforms are available at
-`<https://github.com/jjhelmus/nmrglue/releases>`_.  Tar files are available
-for UNIX-like systems (Linux or OSX) and a binary installer for Windows.
+``nmrglue-ng`` is under development and has not yet been published as an
+independent release on PyPI or conda. Install it from the source repository as
+described below.
+
+The distribution is named ``nmrglue-ng``. The Python package and import name
+remain ``nmrglue`` for compatibility with existing code.
 
 Requirements
 ------------
 
-nmrglue requires `numpy <http://numpy.scipy.org>`_ and
-`scipy <http://www.scipy.org>`_ to be installed.  Please see the install
-instructions for these packages for details.
+``nmrglue-ng`` requires Python 3.10 or newer. Runtime dependencies and their
+supported versions are declared in ``pyproject.toml``, which is the source of
+truth for packaging metadata.
 
-Unix/OSX Installation
+Installing from source
+----------------------
+
+Using a virtual environment is recommended but not required. For example::
+
+    python -m venv .venv
+    source .venv/bin/activate
+
+Clone and install the project with::
+
+    git clone https://github.com/spectrochempy/nmrglue-ng.git
+    cd nmrglue-ng
+    python -m pip install .
+
+Development installation
+------------------------
+
+Install the project in editable mode with its test dependencies::
+
+    python -m pip install -e ".[test]"
+
+Documentation dependencies are available through the ``docs`` extra::
+
+    python -m pip install -e ".[docs]"
+
+Importing the package
 ---------------------
 
-After installing the above dependencies download and extract the source
-distribution and run::
+The installed distribution is imported with::
 
-    $ python setup.py install
-
-Windows Installation
---------------------
-
-Download the binary installer and run it.
+    import nmrglue as ng

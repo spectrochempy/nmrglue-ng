@@ -4,20 +4,21 @@ This roadmap is intentionally short and living. Detailed evidence belongs in dat
 
 ## NMRPipe 13 differential baseline
 
-41/46 historical comparisons pass unchanged against NMRPipe 13.0. Detailed
-results and classifications are recorded in
+42/46 historical comparisons now pass against NMRPipe 13.0 after resolving ZD
+in #9. The four remaining differences are JMOD, HT6, TP9, and SAVE. The
+original 41/46 baseline and detailed classifications are recorded in
 [`2026-09-nmrpipe-13-compatibility.md`](audits/2026-09-nmrpipe-13-compatibility.md).
 
 ## P0 — First independent release
 
 - [x] Establish independent project identity and preserve upstream attribution.
 - [x] Add contribution governance.
-- [ ] Establish independent packaging: distribution `nmrglue-ng`, import `nmrglue`.
+- [x] Establish independent packaging: distribution `nmrglue-ng`, import `nmrglue`.
 - [x] Define and enforce the self-contained CI test contract.
 - [ ] Establish independent documentation and Read the Docs deployment.
 - [ ] Define reproducible test-data infrastructure and provenance.
 - [ ] Review critical inherited defects before the first release.
-- [ ] Define the integer/float width contract and resolve the `zd_*` defect (#4).
+- [x] Define the integer/float width contract and resolve the `zd_*` defect (#4).
 
 ## P1 — Scientific reliability
 
@@ -25,6 +26,7 @@ results and classifications are recorded in
 - [ ] Fix and validate Varian low-memory I/O defects.
 - [ ] Correct SAVE `FDPIPECOUNT` metadata compatibility (#6).
 - [ ] Specify and implement HT `ps90-180` with scientific validation (#7).
+- [ ] Restore and validate the `proc_lp` QR solver (#10).
 - [ ] Specify observation/reference/carrier-frequency semantics and ppm conversion.
 - [ ] Resolve Bruker processing-parameter source selection.
 - [ ] Consolidate JCAMP-DX behavior against documented and real-world fixtures.
