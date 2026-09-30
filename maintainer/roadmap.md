@@ -7,7 +7,7 @@ This roadmap is intentionally short and living. Detailed evidence belongs in dat
 - [x] Establish independent project identity and preserve upstream attribution.
 - [x] Add contribution governance.
 - [ ] Establish independent packaging: distribution `nmrglue-ng`, import `nmrglue`.
-- [ ] Define and enforce the self-contained CI test contract.
+- [x] Define and enforce the self-contained CI test contract.
 - [ ] Establish independent documentation and Read the Docs deployment.
 - [ ] Define reproducible test-data infrastructure and provenance.
 - [ ] Review critical inherited defects before the first release.

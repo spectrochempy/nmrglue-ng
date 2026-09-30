@@ -1,5 +1,6 @@
 import numpy as np
 import nmrglue as ng
+import pytest
 
 
 def test_reorder_nus_data_2d():
@@ -145,3 +146,19 @@ def test_reorder_nus_3d_quadorder():
     assert np.allclose(full_data[15, 12], nus_data[13], atol=1e-7)
     assert np.allclose(full_data[14, 13], nus_data[14], atol=1e-7)
     assert np.allclose(full_data[15, 13], nus_data[15], atol=1e-7)
+
+
+@pytest.mark.xfail(
+    strict=True,
+    reason="nmrglue-ng#4: zd_* reject float wide values; upstream #263 has a fix",
+)
+@pytest.mark.parametrize(
+    "function",
+    [
+        ng.proc_base.zd_triangle,
+        ng.proc_base.zd_sinebell,
+    ],
+)
+def test_zd_float_width(function):
+    data = np.ones((8, 16))
+    assert function(data, wide=1.0).shape == data.shape

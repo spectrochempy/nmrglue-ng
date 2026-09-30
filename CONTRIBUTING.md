@@ -28,8 +28,7 @@ development environment can be created with:
 python -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
-python -m pip install -e .
-python -m pip install pytest
+python -m pip install -e '.[test]'
 ```
 
 On Windows, activate the environment with the appropriate script under
@@ -47,18 +46,23 @@ possible.
 
 ## Running Tests
 
-The test suite currently has three practical categories.
+The test suite distinguishes external requirements with three pytest markers:
+
+- `dataset` requires files under the repository's external `data/` directory;
+- `external_software` requires non-Python software such as NMRPipe;
+- `optional_dependency` requires an optional Python package.
 
 ### Self-contained tests
 
-The standard GitHub Actions workflow currently runs:
+Run every test that needs neither external datasets nor external software with:
 
 ```bash
-python -m pytest --pyargs nmrglue
+python -m pytest -m "not dataset and not external_software"
 ```
 
-This exercises the tests shipped inside the `nmrglue` package. It does not run
-the complete repository test suite.
+This is the standard CI profile. It collects tests from both `tests/` and the
+tests shipped inside `nmrglue`, including strict expected failures that track
+known autonomous defects.
 
 Run focused tests for the code you change as well. For example:
 
@@ -69,23 +73,31 @@ python -m pytest tests/test_peakpick.py
 
 ### Dataset-dependent tests
 
-Many tests under `tests/` expect an external `data/` directory at the
-repository root. Running the complete configured suite with:
+Run the tests marked as requiring the external `data/` directory with:
 
 ```bash
-python -m pytest
+python -m pytest -m dataset
 ```
 
-will currently fail when those datasets are not installed. Until dataset
-handling is formalized, state clearly which fixtures you used and which tests
-could not run. Do not describe the standard CI as full-suite coverage.
+When `data/` is absent, these tests are skipped with an explicit reason. When
+it is present, the tests run normally so missing or invalid individual files
+remain visible as failures. The project does not yet provide automated dataset
+installation.
 
 ### External-software tests
 
-Some processing comparisons require NMRPipe or other external NMR software.
-If your change relies on those tests, document the software and version used.
-A missing external program must be distinguished from a failure in
-`nmrglue-ng` itself.
+NMRPipe comparison tests use the `external_software` marker. Run them with:
+
+```bash
+python -m pytest -m external_software
+```
+
+They are skipped explicitly unless `nmrPipe` and `/bin/csh` are available.
+Document the external software and version used when reporting their results.
+
+Tests that use an optional Python package also carry the
+`optional_dependency` marker and skip explicitly when that package is absent.
+Optional dependencies are not installed by the standard test profile.
 
 ## Test Data
 
