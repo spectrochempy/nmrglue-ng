@@ -5,6 +5,9 @@
 *.swp
 *.*~
 
+# Local agent instructions
+AGENTS.md
+
 # Documentation intermediates
 doc/source/reference/generated
 doc/build
