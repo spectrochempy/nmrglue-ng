@@ -72,6 +72,8 @@ Validated in nmrglue-ng but intentionally not yet ported upstream:
 
 - JCAMP-DX `dicstructure` / nested-block autonomous tests (#22).
 - CSDM synthetic conversion tests (#23).
+- SIMPSON reader error-path autonomous test (#24).
+- RNMRTK generated file-I/O tests (#25).
 
 Do not prepare additional upstream PRs until #279–#282 receive meaningful
 maintainer feedback. Resume upstream work from the then-current
