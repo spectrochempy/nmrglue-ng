@@ -4,9 +4,12 @@ This roadmap is intentionally short and living. Detailed evidence belongs in dat
 
 ## NMRPipe 13 differential baseline
 
-42/46 historical comparisons now pass against NMRPipe 13.0 after resolving ZD
-in #9. The four remaining differences are JMOD, HT6, TP9, and SAVE. The
-original 41/46 baseline and detailed classifications are recorded in
+44/47 historical comparisons now pass against NMRPipe 13.0 after resolving ZD
+in #9, SAVE in #13, and HT `ps90-180` in #15. HT4 is now genuinely collected,
+so the denominator increased from 46 to 47. The remaining differences are
+JMOD, HT6, and TP9; they retain their NMRPipe-version or historical-test
+classifications rather than being treated as confirmed bugs. The original
+41/46 baseline and detailed classifications are recorded in
 [`2026-09-nmrpipe-13-compatibility.md`](audits/2026-09-nmrpipe-13-compatibility.md).
 
 ## P0 — First independent release
@@ -16,7 +19,12 @@ original 41/46 baseline and detailed classifications are recorded in
 - [x] Establish independent packaging: distribution `nmrglue-ng`, import `nmrglue`.
 - [x] Define and enforce the self-contained CI test contract.
 - [ ] Establish independent documentation and Read the Docs deployment.
-- [ ] Define reproducible test-data infrastructure and provenance.
+- [ ] Migrate high-value tests to existing packaged/generated fixtures.
+- [ ] Define the residual release-critical external dataset.
+- [ ] Clear provenance and redistribution rights for release-critical data.
+- [ ] Add a versioned manifest with sizes and SHA-256 checksums.
+- [ ] Add an explicit checksum-verifying test-data fetcher.
+- [ ] Add scheduled/manual dataset validation.
 - [ ] Review critical inherited defects before the first release.
 - [x] Define the integer/float width contract and resolve the `zd_*` defect (#4).
 
@@ -24,9 +32,9 @@ original 41/46 baseline and detailed classifications are recorded in
 
 - [ ] Secure `data_nd` copy and negative-axis behavior.
 - [ ] Fix and validate Varian low-memory I/O defects.
-- [ ] Correct SAVE `FDPIPECOUNT` metadata compatibility (#6).
-- [ ] Specify and implement HT `ps90-180` with scientific validation (#7).
-- [ ] Restore and validate the `proc_lp` QR solver (#10).
+- [x] Correct SAVE `FDPIPECOUNT` metadata compatibility (#6).
+- [x] Specify and implement HT `ps90-180` with scientific validation (#7).
+- [x] Restore and validate the `proc_lp` QR solver (#10).
 - [ ] Specify observation/reference/carrier-frequency semantics and ppm conversion.
 - [ ] Resolve Bruker processing-parameter source selection.
 - [ ] Consolidate JCAMP-DX behavior against documented and real-world fixtures.
