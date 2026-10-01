@@ -21,7 +21,7 @@ classifications rather than being treated as confirmed bugs. The original
 - [ ] Establish independent documentation and Read the Docs deployment.
 - [ ] Migrate high-value tests to existing packaged/generated fixtures
   (12 NMRPipe path/bytes API, 3 Bruker text-parser, 2 JCAMP-DX block-structure,
-  and 3 CSDM conversion tests migrated).
+  3 CSDM conversion, and 1 SIMPSON error-path test migrated).
 - [ ] Define the residual release-critical external dataset.
 - [ ] Clear provenance and redistribution rights for release-critical data.
 - [ ] Add a versioned manifest with sizes and SHA-256 checksums.

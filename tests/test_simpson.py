@@ -1,6 +1,5 @@
 import nmrglue.fileio.simpson as simpson
 import numpy as np
-from numpy.testing import assert_allclose, assert_raises
 import os.path
 
 from setup import DATA_DIR
@@ -107,26 +106,3 @@ def test_2d_freq():
 
     # rawbin should be close except for first point along each vector
     assert np.allclose(rawbin_data[:, 1:], text_data[:, 1:])
-
-
-def test_exceptions_read():
-    """ raising exceptions due to missing read parameters """
-
-    # missing spe parameter
-    assert_raises(
-        ValueError, simpson.read, os.path.join(DD_1D, '1d_rawbin.fid'))
-
-    # missing ndim parameter
-    assert_raises(
-        ValueError, simpson.read, os.path.join(DD_1D, '1d_rawbin.fid'),
-        spe=False)
-
-    # missing NP/NI parameter
-    assert_raises(
-        ValueError, simpson.read, os.path.join(DD_2D, '2d_raw.fid'),
-        spe=False, ndim=2)
-
-    # bad ftype
-    assert_raises(
-        ValueError, simpson.read, os.path.join(DD_1D, '1d_rawbin.fid'),
-        ftype='a')
