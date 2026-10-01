@@ -20,7 +20,7 @@ classifications rather than being treated as confirmed bugs. The original
 - [x] Define and enforce the self-contained CI test contract.
 - [ ] Establish independent documentation and Read the Docs deployment.
 - [ ] Migrate high-value tests to existing packaged/generated fixtures
-  (12 NMRPipe path and bytes API tests migrated).
+  (12 NMRPipe path/bytes API and 3 Bruker text-parser tests migrated).
 - [ ] Define the residual release-critical external dataset.
 - [ ] Clear provenance and redistribution rights for release-critical data.
 - [ ] Add a versioned manifest with sizes and SHA-256 checksums.
