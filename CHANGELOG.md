@@ -37,7 +37,7 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ### Maintenance
 
-- Run JCAMP-DX block-structure tests without the external historical dataset.
+- Run JCAMP-DX block-structure tests without the external historical dataset. (#22)
 - Run Bruker JCAMP and pulse-program tests without the external historical
   dataset. (#21)
 - Run NMRPipe path and bytes file-I/O tests against packaged fixtures instead
