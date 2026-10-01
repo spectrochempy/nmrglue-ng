@@ -37,6 +37,8 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ### Maintenance
 
+- Run 10 RNMRTK file-I/O tests against independently generated fixtures while
+  retaining two real 3D references in the external dataset.
 - Run the SIMPSON reader error-path test without the external historical dataset. (#24)
 - Run CSDM conversion tests without the external historical dataset. (#23)
 - Run JCAMP-DX block-structure tests without the external historical dataset. (#22)
