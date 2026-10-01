@@ -33,9 +33,9 @@ DATASET_TESTS = {
 }
 
 OPTIONAL_DEPENDENCIES = {
-    "tests/test_convert.py::test_csdm_1d": "csdmpy",
-    "tests/test_convert.py::test_csdm_2d": "csdmpy",
-    "tests/test_convert.py::test_csdm_3d": "csdmpy",
+    "nmrglue/fileio/tests/test_convert_csdm.py::test_csdm_1d": "csdmpy",
+    "nmrglue/fileio/tests/test_convert_csdm.py::test_csdm_2d": "csdmpy",
+    "nmrglue/fileio/tests/test_convert_csdm.py::test_csdm_3d": "csdmpy",
     "tests/test_rs2d.py::test_rs2d": "xmltodict",
 }
 
