@@ -53,3 +53,26 @@ classifications rather than being treated as confirmed bugs. The original
 ## Upstream policy
 
 Generic, reproducible fixes that do not depend on the independent direction of nmrglue-ng should be considered for contribution back to `jjhelmus/nmrglue`. Upstream issues or pull requests are proposed separately and are never opened automatically.
+
+
+### Deferred upstream contributions
+
+Wait for maintainer feedback on the currently open upstream PRs before
+submitting additional test-maintenance contributions.
+
+Currently open upstream:
+
+- #279 — `proc_lp`: replace removed `scipy.linalg.pinv2`.
+- #280 — implement NMRPipe-compatible `HT -ps90-180`.
+- #281 — migrate NMRPipe file-I/O tests to packaged fixtures.
+- #282 — make Bruker JCAMP/pulse-program tests self-contained.
+
+Validated in nmrglue-ng but intentionally not yet ported upstream:
+
+- JCAMP-DX `dicstructure` / nested-block autonomous tests (#22).
+- CSDM synthetic conversion tests (#23).
+
+Do not prepare additional upstream PRs until #279–#282 receive meaningful
+maintainer feedback. Resume upstream work from the then-current
+`jjhelmus/nmrglue:master`, reconciling intervening upstream changes before
+preparing each contribution.
