@@ -31,6 +31,8 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ### Documentation
 
+- Define the minimal release-critical external test-data corpus and separate
+  extended and historical validation profiles.
 - Add contribution guidance for testing, scientific changes, and file-format
   work. (#1)
 - Establish the nmrglue-ng changelog policy. (#12)

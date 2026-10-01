@@ -23,7 +23,8 @@ classifications rather than being treated as confirmed bugs. The original
   (12 NMRPipe path/bytes API, 3 Bruker text-parser, 2 JCAMP-DX block-structure,
   3 CSDM conversion, 1 SIMPSON error-path, and 10 RNMRTK file-I/O tests
   migrated; 31 total).
-- [ ] Define the residual release-critical external dataset.
+- [x] Define the residual release-critical external dataset: 16 logical groups
+  protecting 42 tests ([audit](audits/2026-10-release-critical-dataset.md)).
 - [ ] Clear provenance and redistribution rights for release-critical data.
 - [ ] Add a versioned manifest with sizes and SHA-256 checksums.
 - [ ] Add an explicit checksum-verifying test-data fetcher.
