@@ -38,7 +38,7 @@ original nmrglue project and are preserved for attribution and continuity.
 ### Maintenance
 
 - Run Bruker JCAMP and pulse-program tests without the external historical
-  dataset.
+  dataset. (#21)
 - Run NMRPipe path and bytes file-I/O tests against packaged fixtures instead
   of the external historical dataset.
 - Remove the obsolete Travis CI configuration. (#11)
