@@ -132,6 +132,23 @@ The v0.5 archive was not downloaded during this audit. Its extracted size,
 physical file count, duplicates, and per-family sizes remain unknown. It is
 not a canonical modern corpus merely because it is publicly downloadable.
 
+### Local test-data setup (2026-10-02)
+
+For local test execution only, the archive was obtained separately and not
+republished:
+
+- URL: `https://github.com/jjhelmus/nmrglue/releases/download/v0.5/test_data_v0.5-dev.zip`
+- SHA-256: `dbff258fe08a19f1cd08f44b731d3d19e20e54fbb1415d904cd6d03f25209dae`
+- Extracted to a directory adjacent to the nmrglue-ng checkout; symlinked as
+  `data/` (gitignored) for test execution.
+
+This local arrangement is not a managed dataset, not versioned, and not a
+replacement for the manifest/fetcher work listed in the implementation
+sequence. It enables local execution of dataset tests whose fixtures are
+present in the archive; some reference fixtures require external generation.
+The `bruker_3d/fid` reference was generated locally with NMRPipe for #16 but
+is absent from the archive and remains unmanaged.
+
 ## Provenance and redistribution
 
 The audit used four conservative states:

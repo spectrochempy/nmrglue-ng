@@ -52,6 +52,40 @@ classifications rather than being treated as confirmed bugs. The original
 - [ ] Modernize historical documentation and links incrementally.
 - [ ] Introduce linting, typing, and benchmarks only where they add clear maintenance value.
 
+## Issue #16 — corpus mutation fix — RESOLVED
+
+`test_convert.py::test_bruker_3d` and `test_convert.py::test_bruker_3d_lowmem` were mutating the
+canonical `bruker_3d` dataset by copying `acqu2s` to `acqu3s` directly under
+`DATA_DIR`. Fixed in PR #27:
+
+- Both tests now `shutil.copytree` the dataset into `tmp_path` before any write.
+- `acqu3s` is created only in the temporary copy; all reads use that copy.
+- Intermediate `tempfile` dirs are placed under `tmp_path`.
+- No file in the canonical corpus is created or removed.
+
+An autonomous non-regression test `test_bruker_3d_acqu3s_isolation` calls the real
+`_make_fake_acqu3s` helper and verifies the source is byte-identical afterward,
+covering both initial states (acqu3s absent and acqu3s present).
+
+Validation:
+
+- Autonomous suite (`pytest tests nmrglue -m "not dataset and not external_software"`):
+  181 passed, 3 skipped — no regression.
+- Full validation against real `bruker_3d` from the upstream v0.5 archive:
+  both tests pass in both orders; corpus integrity verified via SHA-256.
+- Pipe reference (`fid/`) regenerated from `ser` via NMRPipe (external software).
+- Pre-existing `FDDMXVAL` test exclusion added (separate bug, same pattern as
+  FDMIN/FDMAX/FDDISPMAX).
+
+Archive reference for local test data:
+
+- URL: `https://github.com/jjhelmus/nmrglue/releases/download/v0.5/test_data_v0.5-dev.zip`
+- SHA-256: `dbff258fe08a19f1cd08f44b731d3d19e20e54fbb1415d904cd6d03f25209dae`
+
+This fix is generic, minimal, and compatible with upstream. It is a candidate
+for upstream contribution but is explicitly deferred (see below).
+
+
 ## Upstream policy
 
 Generic, reproducible fixes that do not depend on the independent direction of nmrglue-ng should be considered for contribution back to `jjhelmus/nmrglue`. Upstream issues or pull requests are proposed separately and are never opened automatically.
@@ -75,6 +109,10 @@ Validated in nmrglue-ng but intentionally not yet ported upstream:
 - CSDM synthetic conversion tests (#23).
 - SIMPSON reader error-path autonomous test (#24).
 - RNMRTK generated file-I/O tests (#25).
+- **Corpus isolation for `test_bruker_3d` / `test_bruker_3d_lowmem` (#16)** —
+  fix implemented and fully validated in nmrglue-ng (autonomous test +
+  real-corpus round-trip with all four conversion branches). No upstream PR
+  prepared.
 
 Do not prepare additional upstream PRs until #279–#282 receive meaningful
 maintainer feedback. Resume upstream work from the then-current

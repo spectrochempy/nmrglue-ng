@@ -341,6 +341,12 @@ Issue #16 blocks activation of:
 They modify the canonical `bruker_3d` directory by creating and deleting
 `acqu3s`, which is incompatible with a read-only, checksummed corpus.
 
+**Status (2026-10-02):** resolved by PR #27 once merged; see
+[`2026-10-issue-16-corpus-mutation-fix.md`](2026-10-issue-16-corpus-mutation-fix.md).
+Code fix, autonomous test, and full real-corpus validation (all four conversion
+branches via NMRPipe-generated `fid/`) confirmed. Corpus integrity verified.
+NMRPipe remains a reproducibility/CI constraint for these tests.
+
 Issue #17 blocks trustworthy numerical validation in:
 
 - `test_bruker_with_test_data.py::test_read_pdata_1d`;
