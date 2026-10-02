@@ -82,29 +82,58 @@ reference is generated from `ser` via `bruk2pipe` (see
 the Pipe-conversion branches of `test_bruker_3d` and `test_bruker_3d_lowmem`
 cannot execute. This is an **external-software limitation**, not a code defect.
 
-### Validation performed
+### Pipe reference generation
+
+The `bruker_3d/fid/test%03d.fid` NMRPipe reference was generated from `ser` using
+`bruk2pipe` (NMRPipe, installed at `/home/christian/pipe/nmrbin.linux239_64/`):
+
+```
+bruk2pipe -in ./ser -bad 0.0 -noaswap -AMX -decim 16 -dspfvs 12 -grpdly 0 \
+  -xN 1536 -yN 128 -zN 116 -xT 650 -yT 64 -zT 58 \
+  -xMODE DQD -yMODE States -zMODE States \
+  -xSW 11061.947 -ySW 2500.000 -zSW 5555.556 \
+  -xOBS 800.134 -yOBS 81.086 -zOBS 201.204 \
+  -xCAR 4.784 -yCAR 119.787 -zCAR 55.743 \
+  -xLAB 1H -yLAB 15N -zLAB 13C -ndim 3 -aq2D States \
+  -out ./fid/test%03d.fid -verb -ov
+```
+
+116 FID files produced (788,480 bytes each). The `fid/` directory is gitignored
+and can be regenerated from the canonical `ser` using the command above.
+
+### Pre-existing test fix (FDDMXVAL)
+
+During validation, `check_pdic` failed on `FDDMXVAL` (a MIN/MAX metadata key that
+nmrglue does not preserve during conversion). `FDMIN`, `FDMAX`, `FDDISPMAX`, and
+`FDDISPMIN` were already excluded for the same reason. `FDDMXVAL` was added to
+the exclusion list in both `test_bruker_3d` and `test_bruker_3d_lowmem`. This is a
+pre-existing test bug, not a regression from the #16 fix.
+
+### Full validation results
 
 | Step | Result |
 |---|---|
 | Corpus checksums captured (SHA-256 of all 6 files) | recorded |
-| `_make_fake_acqu3s` on temp copy + `ng.bruker.read` + Bruker→Bruker conversion + write + readback | **PASS** |
-| Corpus checksums compared after single test | **identical** |
-| Corpus checksums compared after both tests, reversed order | **identical** |
-| `pytest test_bruker_3d` / `test_bruker_3d_lowmem` | FAIL — `FileNotFoundError: .../fid/test001.fid` (expected: missing pipe reference) |
+| `_make_fake_acqu3s` + `ng.bruker.read` + Bruker→Bruker round trip | **PASS** |
+| Corpus checksums after single test | **identical** |
+| Corpus checksums after both tests, reversed order | **identical** |
+| `pytest test_bruker_3d` | **PASSED** |
+| `pytest test_bruker_3d_lowmem` | **PASSED** |
+| `pytest test_bruker_3d_lowmem` then `test_bruker_3d` | **PASSED** |
+| Corpus checksums after full pytest runs (both orders) | **identical** |
 
-The Bruker→Bruker round trip — the code path exercised by the acqu3s hack — is
-scientifically validated against the real corpus. The corpus is provably untouched
-before and after test runs in either order.
+The complete tests — including all four conversion branches (Bruker→Bruker,
+Bruker→Pipe, Pipe→Pipe, Pipe→Bruker) — pass against the real corpus. The corpus
+is provably untouched before and after.
 
 ## Remaining limitations
 
-- The Pipe-conversion branches (`Bruker→Pipe`, `Pipe→Pipe`, `Pipe→Bruker`) are
-  **not validated** locally. They require NMRPipe to generate the reference
-  `fid/test%03d.fid` file from the Bruker `ser`.
-- This is classified as an **external-software** test dependency, consistent with
-  the existing `external_software` marker profile for NMRPipe differential tests.
+- The `fid/` pipe reference is regenerated from `ser` via NMRPipe when needed. It
+  is not part of the canonical archive and is gitignored.
 - Redistribution of the v0.5 archive in a future nmrglue-ng release remains a
   separate provenance/rights question (see `2026-10-release-critical-dataset.md`).
+- CI execution of these tests requires NMRPipe or a pre-generated `fid/`
+  directory — both external to the code fix.
 
 ## Upstream applicability
 

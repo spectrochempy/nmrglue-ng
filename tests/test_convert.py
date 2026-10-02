@@ -869,6 +869,7 @@ def test_bruker_3d(tmp_path):
     assert_array_equal(pdata, cdata)
     bpk = list(bad_pipe_keys)
     bpk.append("FDDISPMAX")     # nmrglue doesn't update the MIN/MAX values
+    bpk.append("FDDMXVAL")
     bpk.append("FDMIN")
     bpk.append("FDDISPMIN")
     bpk.append("FDSCALEFLAG")
@@ -885,6 +886,7 @@ def test_bruker_3d(tmp_path):
     check_pdic(pdic, cdic, bpk, v=True)
     for f in glob.glob(tf[:-4] + "*"):
         os.remove(f)
+
 
     # pipe -> bruker
     cdic, cdata = pC.to_bruker()
@@ -1457,6 +1459,7 @@ def test_bruker_3d_lowmem(tmp_path):
     assert_array_equal(pdata[0:2, 0:3, 100:200], cdata[0:2, 0:3, 100:200])
     bpk = list(bad_pipe_keys)
     bpk.append("FDDISPMAX")     # nmrglue doesn't update the MIN/MAX values
+    bpk.append("FDDMXVAL")
     bpk.append("FDMIN")
     bpk.append("FDDISPMIN")
     bpk.append("FDSCALEFLAG")

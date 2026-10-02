@@ -71,9 +71,11 @@ Validation:
 
 - Autonomous suite (`pytest tests nmrglue -m "not dataset and not external_software"`):
   181 passed, 3 skipped — no regression.
-- Bruker→Bruker round trip validated against real `bruker_3d` from the upstream
-  v0.5 archive. Corpus integrity verified before and after in both test orders.
-- Pipe branches require NMRPipe (external software) — not a #16 concern.
+- Full validation against real `bruker_3d` from the upstream v0.5 archive:
+  both tests pass in both orders; corpus integrity verified via SHA-256.
+- Pipe reference (`fid/`) regenerated from `ser` via NMRPipe (external software).
+- Pre-existing `FDDMXVAL` test exclusion added (separate bug, same pattern as
+  FDMIN/FDMAX/FDDISPMAX).
 
 Archive reference for local test data:
 
