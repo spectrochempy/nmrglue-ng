@@ -170,6 +170,42 @@ bad_rnmrtk2pipe_keys = [
     "FDCOMMENT", "FD2DPHASE", "FDFILECOUNT"]
 
 
+def _make_fake_acqu3s(dst_dir):
+    """Copy acqu2s to acqu3s in dst_dir and rewrite 3D-specific parameters.
+
+    This is a hack until a complete 3D Bruker dataset is added for testing.
+    dst_dir must already contain an acqu2s file; acqu3s is written there.
+    """
+    acqu3s = os.path.join(dst_dir, "acqu3s")
+    shutil.copy2(os.path.join(dst_dir, "acqu2s"), acqu3s)
+    out_name = acqu3s + ".tmp"
+    with open(acqu3s) as f, open(out_name, 'w') as out:
+        for line in f:
+            line = sub("##ORIGIN= .+",
+                       "##ORIGIN= Fake acqu3s file generated for testing",
+                       line)
+            line = sub(r"\$BF1.+",
+                       "$BF1= 201.192849",
+                       line)
+            line = sub(r"\$NUC1.+",
+                       "$NUC1= <13C>",
+                       line)
+            line = sub(r"\$O1.+",
+                       "$O1= 10663.220997003",
+                       line)
+            line = sub(r"\$SFO1.+",
+                       "$SFO1= 201.203512220997",
+                       line)
+            line = sub(r"\$SW=.+",
+                       "$SW=27.611626113",
+                       line)
+            line = sub(r"\$SW_h.+",
+                       "$SW_h= 5555.556152",
+                       line)
+            out.write(line)
+    os.rename(out_name, acqu3s)
+
+
 # tests
 
 
@@ -779,50 +815,25 @@ def test_bruker_2d_rnmrtk():
     shutil.rmtree(td)
 
 
-def test_bruker_3d():
+def test_bruker_3d(tmp_path):
     """ 3D time bruker, pipe <-> bruker, pipe """
 
-    # copy the acqu2s file to acqu3s and modify it for testing.
-    # this is a hack until more complete datasets can be added for testing
-    acqu3s = os.path.join(DATA_DIR, "bruker_3d", "acqu3s")
-    shutil.copy2(os.path.join(DATA_DIR, "bruker_3d", "acqu2s"), acqu3s)
-    with open(acqu3s) as f:
-        out_name = acqu3s + ".tmp"
-        out = open(out_name, 'w')
-        for line in f:
-            line = sub("##ORIGIN= .+",
-                       "##ORIGIN= Fake acqu3s file generated for testing",
-                       line)
-            line = sub(r"\$BF1.+",
-                       "$BF1= 201.192849",
-                       line)
-            line = sub(r"\$NUC1.+",
-                       "$NUC1= <13C>",
-                       line)
-            line = sub(r"\$O1.+",
-                       "$O1= 10663.220997003",
-                       line)
-            line = sub(r"\$SFO1.+",
-                       "$SFO1= 201.203512220997",
-                       line)
-            line = sub(r"\$SW=.+",
-                       "$SW=27.611626113",
-                       line)
-            line = sub(r"\$SW_h.+",
-                       "$SW_h= 5555.556152",
-                       line)
-            out.write(line)
-        out.close()
-        os.rename(out_name, acqu3s)
+    # Copy the canonical bruker_3d dataset into the test's temporary
+    # directory so that the fake acqu3s file never touches DATA_DIR.
+    src_3d = os.path.join(DATA_DIR, "bruker_3d")
+    dst_3d = tmp_path / "bruker_3d"
+    shutil.copytree(src_3d, dst_3d)
+
+    _make_fake_acqu3s(str(dst_3d))
 
     # prepare Bruker converter
-    bdic, bdata = ng.bruker.read(os.path.join(DATA_DIR, "bruker_3d"))
+    bdic, bdata = ng.bruker.read(str(dst_3d))
     ubdic = ng.bruker.guess_udic(bdic, bdata)
     bC = ng.convert.converter()
     bC.from_bruker(bdic, bdata, ubdic)
 
     # prepare Pipe converter
-    pdic, pdata = ng.pipe.read(os.path.join(DATA_DIR, "bruker_3d", "fid",
+    pdic, pdata = ng.pipe.read(os.path.join(str(dst_3d), "fid",
                                             "test%03d.fid"))
     updic = ng.pipe.guess_udic(pdic, pdata)
     pC = ng.convert.converter()
@@ -833,7 +844,7 @@ def test_bruker_3d():
     assert_array_equal(bdata, cdata)
     check_dic(bdic, cdic, bad_bruker_keys, v=True)
     # write and readback
-    td = tempfile.mkdtemp(dir=".")
+    td = tempfile.mkdtemp(dir=str(tmp_path))
     ng.bruker.write(td, cdic, cdata)
     rdic, rdata = ng.bruker.read(td)
     assert_array_equal(bdata, rdata)
@@ -845,7 +856,7 @@ def test_bruker_3d():
     assert_array_equal(pdata, cdata)
     # check_pdic(pdic,cdic)   # XXX don't check dictionary
     # write and readback
-    tf = tempfile.mktemp(dir=".") + "%03d"
+    tf = tempfile.mktemp(dir=str(tmp_path)) + "%03d"
     ng.pipe.write(tf, cdic, cdata)
     rdic, rdata = ng.pipe.read(tf)
     assert_array_equal(pdata, rdata)
@@ -867,7 +878,7 @@ def test_bruker_3d():
     bpk.append("FDF2TDSIZE")
     check_pdic(pdic, cdic, bpk, v=True)
     # write and readback
-    tf = tempfile.mktemp(dir=".") + "%03d"
+    tf = tempfile.mktemp(dir=str(tmp_path)) + "%03d"
     ng.pipe.write(tf, cdic, cdata)
     rdic, rdata = ng.pipe.read(tf)
     assert_array_equal(pdata, rdata)
@@ -880,14 +891,12 @@ def test_bruker_3d():
     assert_array_equal(bdata, cdata)
     check_dic(bdic, cdic, bad_bruker_keys)
     # write and readback
-    td = tempfile.mkdtemp(dir=".")
+    td = tempfile.mkdtemp(dir=str(tmp_path))
     ng.bruker.write(td, cdic, cdata)
     rdic, rdata = ng.bruker.read(td)
     assert_array_equal(bdata, rdata)
     check_dic(bdic, cdic, bad_bruker_keys)
     shutil.rmtree(td)
-
-    os.remove(acqu3s)
 
 
 def test_bruker_3d_rnmrtk():
@@ -1394,52 +1403,26 @@ def test_bruker_2d_lowmem():
     shutil.rmtree(td)
 
 
-def test_bruker_3d_lowmem():
+def test_bruker_3d_lowmem(tmp_path):
     """ 3D time bruker, pipe <-> bruker, pipe low memory"""
 
-    # copy the acqu2s file to acqu3s and modify it for testing.
-    # this is a hack until more complete datasets can be added for testing
-    acqu3s = os.path.join(DATA_DIR, "bruker_3d", "acqu3s")
-    shutil.copy2(os.path.join(DATA_DIR, "bruker_3d", "acqu2s"), acqu3s)
-    with open(acqu3s) as f:
-        out_name = acqu3s + ".tmp"
-        out = open(out_name, 'w')
-        for line in f:
-            line = sub("##ORIGIN= .+",
-                       "##ORIGIN= Fake acqu3s file generated for testing",
-                       line)
-            line = sub(r"\$BF1.+",
-                       "$BF1= 201.192849",
-                       line)
-            line = sub(r"\$NUC1.+",
-                       "$NUC1= <13C>",
-                       line)
-            line = sub(r"\$O1.+",
-                       "$O1= 10663.220997003",
-                       line)
-            line = sub(r"\$SFO1.+",
-                       "$SFO1= 201.203512220997",
-                       line)
-            line = sub(r"\$SW=.+",
-                       "$SW=27.611626113",
-                       line)
-            line = sub(r"\$SW_h.+",
-                       "$SW_h= 5555.556152",
-                       line)
-            out.write(line)
-        out.close()
-        os.rename(out_name, acqu3s)
+    # Copy the canonical bruker_3d dataset into the test's temporary
+    # directory so that the fake acqu3s file never touches DATA_DIR.
+    src_3d = os.path.join(DATA_DIR, "bruker_3d")
+    dst_3d = tmp_path / "bruker_3d"
+    shutil.copytree(src_3d, dst_3d)
+
+    _make_fake_acqu3s(str(dst_3d))
 
     # prepare Bruker converter
-    bdic, bdata = ng.bruker.read_lowmem(
-        os.path.join(DATA_DIR, "bruker_3d"))
+    bdic, bdata = ng.bruker.read_lowmem(str(dst_3d))
     ubdic = ng.bruker.guess_udic(bdic, bdata)
     bC = ng.convert.converter()
     bC.from_bruker(bdic, bdata, ubdic)
 
     # prepare Pipe converter
     pdic, pdata = ng.pipe.read_lowmem(
-        os.path.join(DATA_DIR, "bruker_3d", "fid", "test%03d.fid"))
+        os.path.join(str(dst_3d), "fid", "test%03d.fid"))
     updic = ng.pipe.guess_udic(pdic, pdata)
     pC = ng.convert.converter()
     pC.from_pipe(pdic, pdata, updic)
@@ -1449,7 +1432,7 @@ def test_bruker_3d_lowmem():
     assert_array_equal(bdata[0:2, 0:3, 100:200], cdata[0:2, 0:3, 100:200])
     check_dic(bdic, cdic, bad_bruker_keys, v=True)
     # write and readback
-    td = tempfile.mkdtemp(dir=".")
+    td = tempfile.mkdtemp(dir=str(tmp_path))
     ng.bruker.write_lowmem(td, cdic, cdata)
     rdic, rdata = ng.bruker.read_lowmem(td)
     assert_array_equal(bdata[0:2, 0:3, 100:200], rdata[0:2, 0:3, 100:200])
@@ -1461,7 +1444,7 @@ def test_bruker_3d_lowmem():
     assert_array_equal(pdata[0:2, 0:3, 100:200], cdata[0:2, 0:3, 100:200])
     # check_pdic(pdic,cdic)   # XXX don't check dictionary
     # write and readback
-    tf = tempfile.mktemp(dir=".") + "%03d"
+    tf = tempfile.mktemp(dir=str(tmp_path)) + "%03d"
     ng.pipe.write_lowmem(tf, cdic, cdata)
     rdic, rdata = ng.pipe.read_lowmem(tf)
     assert_array_equal(pdata[0:2, 0:3, 100:200], rdata[0:2, 0:3, 100:200])
@@ -1483,7 +1466,7 @@ def test_bruker_3d_lowmem():
     bpk.append("FDF2TDSIZE")
     check_pdic(pdic, cdic, bpk, v=True)
     # write and readback
-    tf = tempfile.mktemp(dir=".") + "%03d"
+    tf = tempfile.mktemp(dir=str(tmp_path)) + "%03d"
     ng.pipe.write_lowmem(tf, cdic, cdata)
     rdic, rdata = ng.pipe.read_lowmem(tf)
     assert_array_equal(pdata[0:2, 0:3, 100:200], rdata[0:2, 0:3, 100:200])
@@ -1496,14 +1479,50 @@ def test_bruker_3d_lowmem():
     assert_array_equal(bdata[0:2, 0:3, 100:200], cdata[0:2, 0:3, 100:200])
     check_dic(bdic, cdic, bad_bruker_keys)
     # write and readback
-    td = tempfile.mkdtemp(dir=".")
+    td = tempfile.mkdtemp(dir=str(tmp_path))
     ng.bruker.write_lowmem(td, cdic, cdata)
     rdic, rdata = ng.bruker.read_lowmem(td)
     assert_array_equal(bdata[0:2, 0:3, 100:200], rdata[0:2, 0:3, 100:200])
     check_dic(bdic, cdic, bad_bruker_keys)
     shutil.rmtree(td)
 
-    os.remove(acqu3s)
+
+def test_bruker_3d_acqu3s_isolation(tmp_path):
+    """Non-regression: _make_fake_acqu3s must never touch the source directory.
+
+    Exercises the actual helper used by test_bruker_3d and test_bruker_3d_lowmem,
+    so a regression in that helper is caught here. Covers two initial states:
+    acqu3s absent and acqu3s already present. The source acqu2s (and any
+    pre-existing acqu3s) must remain byte-identical.
+    """
+    acqu2s_content = (
+        "##ORIGIN= original acqu2s\n"
+        "##$BF1= 100.1\n"
+        "##$NUC1= <1H>\n"
+        "##$O1= 5000.0\n"
+        "##$SFO1= 100.2\n"
+        "##$SW=10.0\n"
+        "##$SW_h= 1000.0\n"
+    )
+    acqu3s_existing = (
+        "##ORIGIN= existing acqu3s\n"
+        "##$BF1= 200.1\n"
+    )
+
+    for with_acqu3s in (False, True):
+        src = tmp_path / ("src_yes" if with_acqu3s else "src_no")
+        src.mkdir()
+        (src / "acqu2s").write_text(acqu2s_content)
+        if with_acqu3s:
+            (src / "acqu3s").write_text(acqu3s_existing)
+        dst = tmp_path / ("dst_yes" if with_acqu3s else "dst_no")
+        shutil.copytree(src, dst)
+        _make_fake_acqu3s(str(dst))
+        assert (src / "acqu2s").read_text() == acqu2s_content
+        if with_acqu3s:
+            assert (src / "acqu3s").read_text() == acqu3s_existing
+        else:
+            assert not (src / "acqu3s").exists()
 
 
 def test_agilent_2d_lowmem():
