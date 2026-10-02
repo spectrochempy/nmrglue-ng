@@ -145,8 +145,9 @@ republished:
 This local arrangement is not a managed dataset, not versioned, and not a
 replacement for the manifest/fetcher work listed in the implementation
 sequence. It enables local execution of dataset tests whose fixtures are
-present in the archive; fixtures requiring external software (NMRPipe) to
-generate remain unavailable locally.
+present in the archive; some reference fixtures require external generation.
+The `bruker_3d/fid` reference was generated locally with NMRPipe for #16 but
+is absent from the archive and remains unmanaged.
 
 ## Provenance and redistribution
 

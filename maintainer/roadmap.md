@@ -56,7 +56,7 @@ classifications rather than being treated as confirmed bugs. The original
 
 `test_convert.py::test_bruker_3d` and `test_convert.py::test_bruker_3d_lowmem` were mutating the
 canonical `bruker_3d` dataset by copying `acqu2s` to `acqu3s` directly under
-`DATA_DIR`. Fixed and merged via PR #27:
+`DATA_DIR`. Fixed in PR #27:
 
 - Both tests now `shutil.copytree` the dataset into `tmp_path` before any write.
 - `acqu3s` is created only in the temporary copy; all reads use that copy.
@@ -110,8 +110,9 @@ Validated in nmrglue-ng but intentionally not yet ported upstream:
 - SIMPSON reader error-path autonomous test (#24).
 - RNMRTK generated file-I/O tests (#25).
 - **Corpus isolation for `test_bruker_3d` / `test_bruker_3d_lowmem` (#16)** —
-  fix implemented and autonomously validated in nmrglue-ng; real-corpus
-  validation pending data availability. No upstream PR prepared.
+  fix implemented and fully validated in nmrglue-ng (autonomous test +
+  real-corpus round-trip with all four conversion branches). No upstream PR
+  prepared.
 
 Do not prepare additional upstream PRs until #279–#282 receive meaningful
 maintainer feedback. Resume upstream work from the then-current

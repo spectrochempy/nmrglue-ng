@@ -1,6 +1,6 @@
 # Issue #16 — corpus mutation fix status — 2026-10-02
 
-**Status: RESOLVED — closed by PR #27.**
+**Status: RESOLVED by PR #27 once merged.**
 
 ## Summary
 
@@ -74,15 +74,11 @@ The upstream v0.5 test archive was obtained locally (not republished):
 acqu     acqu2    acqu2s   acqus    pulseprogram    ser (91 MB)
 ```
 
-### Files **not** present (require NMRPipe to generate)
+### Pipe reference (not in archive)
 
-The archive does not contain `bruker_3d/fid/test%03d.fid`. This NMRPipe-format
-reference is generated from `ser` via `bruk2pipe` (see
-`conversion_scripts/bruker2pipe_3d.com`). NMRPipe is not installed locally, so
-the Pipe-conversion branches of `test_bruker_3d` and `test_bruker_3d_lowmem`
-cannot execute. This is an **external-software limitation**, not a code defect.
-
-### Pipe reference generation
+The archive does not contain `bruker_3d/fid/`. This NMRPipe-format reference was
+generated locally from `ser` via `bruk2pipe` (see
+`conversion_scripts/bruker2pipe_3d.com`):
 
 The `bruker_3d/fid/test%03d.fid` NMRPipe reference was generated from `ser` using
 `bruk2pipe` (NMRPipe, installed at `/home/christian/pipe/nmrbin.linux239_64/`):
@@ -128,12 +124,13 @@ is provably untouched before and after.
 
 ## Remaining limitations
 
-- The `fid/` pipe reference is regenerated from `ser` via NMRPipe when needed. It
-  is not part of the canonical archive and is gitignored.
+- The `fid/` pipe reference is not part of the canonical archive; it is
+  regenerated locally from `ser` via NMRPipe and gitignored. It is absent from
+  the v0.5 archive and remains unmanaged.
+- CI execution of these tests requires NMRPipe or a pre-generated `fid/`
+  directory — both external to the code fix and a reproducibility concern.
 - Redistribution of the v0.5 archive in a future nmrglue-ng release remains a
   separate provenance/rights question (see `2026-10-release-critical-dataset.md`).
-- CI execution of these tests requires NMRPipe or a pre-generated `fid/`
-  directory — both external to the code fix.
 
 ## Upstream applicability
 
@@ -147,10 +144,9 @@ Issue #16 is **resolved**:
 
 - [x] Code fix implemented.
 - [x] Autonomous non-regression test added and passing.
-- [x] Bruker→Bruker round trip validated against real `bruker_3d` corpus.
+- [x] Full test (all four conversion branches) validated against real `bruker_3d`
+      corpus with NMRPipe-generated `fid/` reference.
 - [x] Corpus integrity verified byte-identical after test runs in both orders.
-- [ ] Full test (including Pipe branches) requires NMRPipe — external-software
-      dependency, not a #16 concern.
 
 The "BLOCKER BEFORE MANIFEST" entry #3 ("Resolve #16 so all corpus access is
 read-only") is satisfied: the fix guarantees read-only corpus access by
