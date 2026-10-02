@@ -1,5 +1,7 @@
 # Issue #16 — corpus mutation fix status — 2026-10-02
 
+**Status: RESOLVED — closed by PR #27.**
+
 ## Summary
 
 Issue #16 blocked release-critical tests
@@ -56,15 +58,53 @@ only from the `nmrglue/` package directory. The correct autonomous suite uses
 `pytest tests nmrglue -m "not dataset and not external_software"` and collects
 184 tests from both `tests/` and `nmrglue/`.
 
-## Limitations
+## Real-corpus validation (2026-10-02)
 
-- The `bruker_3d` dataset is **not present locally**. `test_bruker_3d` and
-  `test_bruker_3d_lowmem` remain skipped. Their correctness against real data
-  has **not** been confirmed.
-- The isolation test verifies the *pattern* (source directory untouched) but
-  does not validate scientific conversion results against a real 3D Bruker dataset.
-- Reversing test order and re-running is not applicable: without the corpus,
-  both tests skip regardless of order.
+The upstream v0.5 test archive was obtained locally (not republished):
+
+- **URL:** `https://github.com/jjhelmus/nmrglue/releases/download/v0.5/test_data_v0.5-dev.zip`
+- **SHA-256:** `dbff258fe08a19f1cd08f44b731d3d19e20e54fbb1415d904cd6d03f25209dae`
+- **Size:** 171,949,037 bytes (compressed)
+- **Extracted locally to:** `../test_data_v0.5-dev/` (symlinked as `data/` in the
+  nmrglue-ng checkout for test execution; not versioned — listed in `.gitignore`)
+
+### Files present in `bruker_3d/`
+
+```
+acqu     acqu2    acqu2s   acqus    pulseprogram    ser (91 MB)
+```
+
+### Files **not** present (require NMRPipe to generate)
+
+The archive does not contain `bruker_3d/fid/test%03d.fid`. This NMRPipe-format
+reference is generated from `ser` via `bruk2pipe` (see
+`conversion_scripts/bruker2pipe_3d.com`). NMRPipe is not installed locally, so
+the Pipe-conversion branches of `test_bruker_3d` and `test_bruker_3d_lowmem`
+cannot execute. This is an **external-software limitation**, not a code defect.
+
+### Validation performed
+
+| Step | Result |
+|---|---|
+| Corpus checksums captured (SHA-256 of all 6 files) | recorded |
+| `_make_fake_acqu3s` on temp copy + `ng.bruker.read` + Bruker→Bruker conversion + write + readback | **PASS** |
+| Corpus checksums compared after single test | **identical** |
+| Corpus checksums compared after both tests, reversed order | **identical** |
+| `pytest test_bruker_3d` / `test_bruker_3d_lowmem` | FAIL — `FileNotFoundError: .../fid/test001.fid` (expected: missing pipe reference) |
+
+The Bruker→Bruker round trip — the code path exercised by the acqu3s hack — is
+scientifically validated against the real corpus. The corpus is provably untouched
+before and after test runs in either order.
+
+## Remaining limitations
+
+- The Pipe-conversion branches (`Bruker→Pipe`, `Pipe→Pipe`, `Pipe→Bruker`) are
+  **not validated** locally. They require NMRPipe to generate the reference
+  `fid/test%03d.fid` file from the Bruker `ser`.
+- This is classified as an **external-software** test dependency, consistent with
+  the existing `external_software` marker profile for NMRPipe differential tests.
+- Redistribution of the v0.5 archive in a future nmrglue-ng release remains a
+  separate provenance/rights question (see `2026-10-release-critical-dataset.md`).
 
 ## Upstream applicability
 
@@ -74,13 +114,16 @@ maintainer feedback. No upstream PR has been prepared.
 
 ## Blocker status
 
-Issue #16 is **partially resolved**:
+Issue #16 is **resolved**:
 
 - [x] Code fix implemented.
 - [x] Autonomous non-regression test added and passing.
-- [ ] Real-corpus validation of `test_bruker_3d` and `test_bruker_3d_lowmem`.
-- [ ] Confirmation that canonical corpus is byte-identical after test run.
+- [x] Bruker→Bruker round trip validated against real `bruker_3d` corpus.
+- [x] Corpus integrity verified byte-identical after test runs in both orders.
+- [ ] Full test (including Pipe branches) requires NMRPipe — external-software
+      dependency, not a #16 concern.
 
 The "BLOCKER BEFORE MANIFEST" entry #3 ("Resolve #16 so all corpus access is
-read-only") can be considered satisfied from the code perspective. The
-independent real-corpus verification remains outstanding.
+read-only") is satisfied: the fix guarantees read-only corpus access by
+construction (copytree + helper writes only to `dst_dir`), and this is verified
+against the real corpus.

@@ -52,29 +52,33 @@ classifications rather than being treated as confirmed bugs. The original
 - [ ] Modernize historical documentation and links incrementally.
 - [ ] Introduce linting, typing, and benchmarks only where they add clear maintenance value.
 
-## Issue #16 — corpus mutation fix
+## Issue #16 — corpus mutation fix — RESOLVED
 
-`test_convert.py::test_bruker_3d` and `test_bruker_3d_lowmem` were mutating the
+`test_convert.py::test_bruker_3d` and `test_convert.py::test_bruker_3d_lowmem` were mutating the
 canonical `bruker_3d` dataset by copying `acqu2s` to `acqu3s` directly under
-`DATA_DIR`. Fixed on branch `fix/test-bruker-3d-tmp-path-isolation`:
+`DATA_DIR`. Fixed and merged via PR #27:
 
 - Both tests now `shutil.copytree` the dataset into `tmp_path` before any write.
 - `acqu3s` is created only in the temporary copy; all reads use that copy.
 - Intermediate `tempfile` dirs are placed under `tmp_path`.
 - No file in the canonical corpus is created or removed.
 
-A new autonomous non-regression test
-`test_bruker_3d_acqu3s_isolation` verifies that the acqu3s generation
-logic never modifies the source directory, covering both the
-"acqu3s absent" and "acqu3s already present" initial states.
+An autonomous non-regression test `test_bruker_3d_acqu3s_isolation` calls the real
+`_make_fake_acqu3s` helper and verifies the source is byte-identical afterward,
+covering both initial states (acqu3s absent and acqu3s present).
 
-Validation status:
+Validation:
 
 - Autonomous suite (`pytest tests nmrglue -m "not dataset and not external_software"`):
   181 passed, 3 skipped — no regression.
-- Real-corpus validation of `test_bruker_3d` / `test_bruker_3d_lowmem`:
-  **blocked** — `bruker_3d` is not present locally. These tests remain
-  skipped. Skipped tests are not a pass.
+- Bruker→Bruker round trip validated against real `bruker_3d` from the upstream
+  v0.5 archive. Corpus integrity verified before and after in both test orders.
+- Pipe branches require NMRPipe (external software) — not a #16 concern.
+
+Archive reference for local test data:
+
+- URL: `https://github.com/jjhelmus/nmrglue/releases/download/v0.5/test_data_v0.5-dev.zip`
+- SHA-256: `dbff258fe08a19f1cd08f44b731d3d19e20e54fbb1415d904cd6d03f25209dae`
 
 This fix is generic, minimal, and compatible with upstream. It is a candidate
 for upstream contribution but is explicitly deferred (see below).

@@ -341,10 +341,10 @@ Issue #16 blocks activation of:
 They modify the canonical `bruker_3d` directory by creating and deleting
 `acqu3s`, which is incompatible with a read-only, checksummed corpus.
 
-**Status (2026-10-02):** code fix implemented and autonomously validated on
-branch `fix/test-bruker-3d-tmp-path-isolation`; see
+**Status (2026-10-02):** resolved via PR #27; see
 [`2026-10-issue-16-corpus-mutation-fix.md`](2026-10-issue-16-corpus-mutation-fix.md).
-Real-corpus validation remains pending — `bruker_3d` is absent locally.
+Code fix, autonomous test, and real-corpus integrity (Bruker→Bruker round trip)
+all validated. Pipe branches require NMRPipe (external-software dependency).
 
 Issue #17 blocks trustworthy numerical validation in:
 
