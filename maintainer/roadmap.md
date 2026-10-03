@@ -14,6 +14,9 @@ classifications rather than being treated as confirmed bugs. The original
 
 ## P0 — First independent release
 
+The `nmrglue-ng-release` skill audits the gates below; it never publishes and
+never declares readiness while an item is open.
+
 - [x] Establish independent project identity and preserve upstream attribution.
 - [x] Add contribution governance.
 - [x] Establish independent packaging: distribution `nmrglue-ng`, import `nmrglue`.
@@ -90,6 +93,13 @@ for upstream contribution but is explicitly deferred (see below).
 
 Generic, reproducible fixes that do not depend on the independent direction of nmrglue-ng should be considered for contribution back to `jjhelmus/nmrglue`. Upstream issues or pull requests are proposed separately and are never opened automatically.
 
+The upstream contribution procedure itself is **not** documented here. It is
+governed by `AGENTS.md` and by the `nmrglue-ng-dev` skill for the assessment
+step, and by a separate, local-only policy in the `jjhelmus/nmrglue` working
+clone for the audit, portage, and review steps. Independent development in
+`nmrglue-ng` and generic upstream contribution stay separate activities: a fix
+is developed, validated, and merged here first, and only then assessed for
+portability.
 
 ### Deferred upstream contributions
 
@@ -103,6 +113,12 @@ Currently open upstream:
 - #281 — migrate NMRPipe file-I/O tests to packaged fixtures.
 - #282 — make Bruker JCAMP/pulse-program tests self-contained.
 
+Do not prepare additional upstream PRs until #279–#282 receive meaningful
+maintainer feedback. When that feedback arrives, resume upstream work from the
+then-current `jjhelmus/nmrglue:master`, reconciling intervening upstream
+changes before preparing each contribution. Do not reuse an old local
+`upstream/master` snapshot for a portage.
+
 Validated in nmrglue-ng but intentionally not yet ported upstream:
 
 - JCAMP-DX `dicstructure` / nested-block autonomous tests (#22).
@@ -113,8 +129,3 @@ Validated in nmrglue-ng but intentionally not yet ported upstream:
   fix implemented and fully validated in nmrglue-ng (autonomous test +
   real-corpus round-trip with all four conversion branches). No upstream PR
   prepared.
-
-Do not prepare additional upstream PRs until #279–#282 receive meaningful
-maintainer feedback. Resume upstream work from the then-current
-`jjhelmus/nmrglue:master`, reconciling intervening upstream changes before
-preparing each contribution.
