@@ -195,9 +195,13 @@ The implementer's self-verification is **not** an independent review.
 
 A separate review in a fresh session is required for any change affecting
 scientific computation, file-format reading or writing, the public API, test
-infrastructure, packaging, CI, or release process. A separate review is not
-required for pure documentation edits or for test-only additions that verify
-existing behavior. See the `nmrglue-ng-review` skill.
+infrastructure, packaging, CI, or release process. It is also required for
+any modification to an existing assertion, tolerance, scientific expected
+value, fixture, marker or skip, or corpus-management behavior.
+
+A separate review is not required for pure documentation edits or for a
+test-only addition that verifies existing behavior without changing any of
+those validation semantics. See the `nmrglue-ng-review` skill.
 
 ---
 

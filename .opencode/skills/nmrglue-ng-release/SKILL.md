@@ -51,9 +51,15 @@ against the repository, not against this document.
 | G5 | **Independent documentation** and a working documentation build | `doc/`, `.readthedocs.yml`, and an actual build/deployment record |
 | G6 | **Version and artifact coherence** | version source, `CHANGELOG.md`, and any built artifact agree |
 
-**Stop rule:** if any of G1–G6 is open, report the release as **blocked**, list
-the open gates with their evidence, and stop. Do not proceed to a "probably
-fine" verdict, and do not create a tag or branch to "start preparing".
+**Verdict lock:** if any of G1–G6 is open, set the final verdict to
+**BLOCKED** and list the open gates with their evidence. Continue every
+remaining step as a **read-only audit** so the report is complete: changelog,
+version and artifacts, CI, additional blockers, and the validation record
+still matter to the maintainer's next decision.
+
+Do not proceed to a "probably fine" verdict, and do not create a tag or branch
+to "start preparing". An open P0 gate can never be offset by a green CI run or
+a complete changelog.
 
 Never announce a release as ready while a P0 gate is blocking.
 
@@ -203,8 +209,10 @@ Exact commands, exact counts, skips with reasons, corpus integrity
 Ordered, concrete, and naming who must decide what
 ```
 
-State the verdict from the gates. Never soften "blocked" into "nearly ready"
-to be agreeable, and never present a partially validated state as a green one.
+State the verdict from the gates. If any P0 gate is open, the verdict is
+**BLOCKED** even after the later audit steps finish. Never soften "blocked"
+into "nearly ready" to be agreeable, and never present a partially validated
+state as a green one.
 
 ---
 

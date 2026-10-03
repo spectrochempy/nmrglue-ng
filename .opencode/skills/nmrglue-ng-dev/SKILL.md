@@ -93,13 +93,17 @@ task, report it and stop.
 Branch from an updated `master`:
 
 ```bash
-git fetch origin master:master
-git checkout -b <type>/<short-topic> master
+git fetch origin
+git switch master
+git merge --ff-only origin/master
+git switch -c <type>/<short-topic>
 ```
 
 Use a dedicated branch for every task. Conventional prefixes: `fix/`, `feat/`,
 `test/`, `docs/`, `chore/`, `refactor/`, `perf/`. Never reuse an unrelated
-existing branch. Never mix two independent defects in one branch.
+existing branch. Never mix two independent defects in one branch. If switching
+to `master` would overwrite a pre-existing local modification, stop and report
+the conflict; never discard or stash it to make the sequence succeed.
 
 ---
 

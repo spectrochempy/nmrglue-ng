@@ -104,8 +104,11 @@ format, verify explicitly:
 | **Endianness and dtype** | Integer vs float widths, byte order, `float32` vs `float64`. |
 | **Provenance of a changed expectation** | If a test value changed, the justification must be independent of the code under test. A value adjusted to match new output is a defect, not a fix. |
 
-Recompute at least one key expected value yourself, by hand or with an
+When the change makes a scientific claim or changes a scientific value,
+recompute at least one key expected value yourself, by hand or with an
 independent calculation. Do not accept a number because the code produced it.
+For a non-scientific change, state why no scientific value needs independent
+recomputation.
 
 ### 4. Verify the tests were really run
 
@@ -254,7 +257,7 @@ The review is complete when:
 * the full diff has been read;
 * the need has been reconstructed independently;
 * every scientific claim has been checked against its stated source, with at
-  least one value recomputed;
+  least one value recomputed when the change makes such a claim;
 * the tests actually run are identified, and every skip is listed;
 * corpus integrity and maintainer documents have been checked;
 * each finding is classified as introduced, pre-existing, or out of scope;
