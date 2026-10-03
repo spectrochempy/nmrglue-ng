@@ -38,8 +38,10 @@ def test_1d_integrate():
     # plt.show()
 
     # Test with a single integral region
-    assert integrate(data, uc, (4, 6)) - 1.0 <= np.finfo(float).eps
-    assert integrate(data, uc, (7, 9)) - 2.0 <= np.finfo(float).eps
+    # Summing the discretized spectrum accumulates float64 rounding error.
+    tolerance = data.size * np.finfo(float).eps
+    assert abs(integrate(data, uc, (4, 6)) - 1.0) <= tolerance
+    assert abs(integrate(data, uc, (7, 9)) - 2.0) <= tolerance
 
     # Test with multiple integral regions:
     limits = [(4, 6), (7, 9)]

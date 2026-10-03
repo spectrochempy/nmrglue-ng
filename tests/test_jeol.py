@@ -28,9 +28,9 @@ def test_1d_complex_1_udic():
     dic, data = ng.jeol.read(os.path.join(JEOLDATA, f"{basename}.jdf"))
     udic = ng.jeol.guess_udic(dic, data)
     assert udic["ndim"] == 1
-    assert udic[0]["sw"] - 39556.962025316454 < 0.0001
-    assert udic[0]["obs"] - 125.76529768332652 < 0.0001
-    assert udic[0]["car"] - 12576.529768332653 < 0.0001
+    assert abs(udic[0]["sw"] - 39556.962025316454) < 0.0001
+    assert abs(udic[0]["obs"] - 125.76529768332652) < 0.0001
+    assert abs(udic[0]["car"] - 12576.529768332653) < 0.0001
     assert udic[0]["size"] == 65536
     assert udic[0]["label"] == "Carbon13"
     assert udic[0]["encoding"] == "complex"
@@ -82,15 +82,15 @@ def test_2d_cc_1_udic():
     dic, data = ng.jeol.read(os.path.join(JEOLDATA, f"{basename}.jdf"))
     udic = ng.jeol.guess_udic(dic, data)
     assert udic["ndim"] == 2
-    assert udic[0]["sw"] - 6262.5250501002 < 1e-4
-    assert udic[0]["obs"] - 500.15991520961256 < 1e-4
-    assert udic[0]["car"] - 2500.7995760480626 < 1e-4
+    assert abs(udic[0]["sw"] - 6262.5250501002) < 1e-4
+    assert abs(udic[0]["obs"] - 500.15991520961256) < 1e-4
+    assert abs(udic[0]["car"] - 2500.7995760480626) < 1e-4
     assert udic[0]["size"] == 2048
     assert udic[0]["label"] == "Proton"
     assert udic[0]["encoding"] == "complex"
-    assert udic[1]["sw"] - 5002.000800320128 < 1e-4
-    assert udic[1]["obs"] - 500.15991520961256 < 1e-4
-    assert udic[1]["car"] - 2500.7995760480626 < 1e-4
+    assert abs(udic[1]["sw"] - 5002.000800320128) < 1e-4
+    assert abs(udic[1]["obs"] - 500.15991520961256) < 1e-4
+    assert abs(udic[1]["car"] - 2500.7995760480626) < 1e-4
     assert udic[1]["size"] == 4096
     assert udic[1]["label"] == "Proton"
     assert udic[1]["encoding"] == "complex"

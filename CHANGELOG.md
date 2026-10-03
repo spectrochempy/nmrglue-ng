@@ -23,6 +23,8 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ### Fixed
 
+- Make numerical tolerance assertions symmetric in dataset and autonomous
+  tests. (Related to #17)
 - Implement NMRPipe-compatible `HT -ps90-180` mirror-image processing. (#15)
 - Restore linear-prediction QR solving with current SciPy. (#14)
 - Fix `pipe_proc.save()` to write NMRPipe-compatible `FDPIPECOUNT` metadata. (#13)
