@@ -47,6 +47,20 @@ never declares readiness while an item is open.
 - [ ] Consolidate JCAMP-DX behavior against documented and real-world fixtures.
 - [ ] Investigate NMRPipe/JRES dimensional metadata behavior.
 
+## Issue #17 — symmetric numerical tolerances — IN VALIDATION
+
+The direct one-sided proximity assertions in the Bruker processed-data, JEOL
+`udic`, `vdlist`, and synthetic integration tests were converted to symmetric
+absolute-error checks without changing expected values. Dataset and `vdlist`
+tolerances are unchanged. The integration test used an invalid one-epsilon
+bound once symmetry exposed its accumulated float64 summation error; its new
+bound is `data.size * eps`. The expected integrals remain unchanged. The local
+v0.5 corpus has the Bruker raw groups but lacks the processed-data and JEOL
+groups, so the release-critical dataset assertions remain unvalidated
+until those groups are available. The audit retained the Tecmag sign checks
+and Spinsolve interval bounds because they are intentional one-sided
+properties, not proximity checks. Issue #18 remains separate and untouched.
+
 ## P2 — Broader maintenance
 
 - [ ] Expand CI to representative Linux, macOS, and Windows jobs.
