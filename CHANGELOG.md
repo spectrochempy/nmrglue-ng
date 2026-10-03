@@ -39,6 +39,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ### Maintenance
 
+- Version the agent workflow in the repository: a root `AGENTS.md` with
+  permanent rules, plus `nmrglue-ng-dev`, `nmrglue-ng-review`, and
+  `nmrglue-ng-release` OpenCode skills. (#28)
 - Run 10 RNMRTK file-I/O tests against independently generated fixtures while
   retaining two real 3D references in the external dataset. (#25)
 - Run the SIMPSON reader error-path test without the external historical dataset. (#24)

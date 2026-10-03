@@ -5,9 +5,6 @@
 *.swp
 *.*~
 
-# Local agent instructions
-AGENTS.md
-
 # Documentation intermediates
 doc/source/reference/generated
 doc/build
@@ -70,3 +67,15 @@ examples/jbnmr_examples/s7-s9_s3e_processing/procpar
 .project
 .pydevproject
 *.prefs
+
+# Open code
+.opencode/*
+!.opencode/rules.md
+!.opencode/skills/
+.opencode/skills/*
+!.opencode/skills/*/
+.opencode/skills/*/*
+!.opencode/skills/*/SKILL.md
+# If a skill needs versioned scripts, references, or templates, add narrow
+# exceptions here; do not broadly unignore local OpenCode state.
+opencode.json
