@@ -5,25 +5,135 @@ on:
     branches: master
   pull_request:
     branches: master
+  workflow_dispatch:
+  schedule:
+    - cron: "23 4 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    name: ${{ matrix.check-name }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
     strategy:
       matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+        include:
+          - {os: ubuntu-latest, python-version: "3.10", check-name: "build (3.10)"}
+          - {os: ubuntu-latest, python-version: "3.11", check-name: "build (3.11)"}
+          - {os: ubuntu-latest, python-version: "3.12", check-name: "build (3.12)"}
+          - {os: ubuntu-latest, python-version: "3.13", check-name: "build (3.13)"}
+          - {os: ubuntu-latest, python-version: "3.14", check-name: "build (3.14)"}
+          - {os: windows-latest, python-version: "3.14", check-name: "Windows (3.14)"}
+          - {os: macos-latest, python-version: "3.14", check-name: "macOS (3.14)"}
       fail-fast: false
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v7
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v7
       with:
         python-version: ${{ matrix.python-version }}
+        cache: pip
+        cache-dependency-path: pyproject.toml
     - name: Install
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install '.[test]'
+      run: python -m pip install ".[test]"
     - name: Test with pytest
-      run: |
+      run: >-
         python -m pytest -m "not dataset and not external_software"
+        --strict-markers --strict-config -ra
+        --junitxml="${{ runner.temp }}/autonomous.xml"
+    - name: Retain test report
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: autonomous-${{ matrix.os }}-py${{ matrix.python-version }}
+        path: ${{ runner.temp }}/autonomous.xml
+        retention-days: 7
+        if-no-files-found: warn
+
+  csdm:
+    name: CSDM conversion (3.13)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+    - uses: actions/checkout@v7
+    - uses: actions/setup-python@v7
+      with:
+        python-version: "3.13"
+        cache: pip
+        cache-dependency-path: pyproject.toml
+    - name: Install with CSDM support
+      run: python -m pip install ".[test]" csdmpy astropy matplotlib
+    - name: Verify dependency import
+      run: python -c "import csdmpy"
+    - name: Test CSDM conversion
+      run: >-
+        python -m pytest nmrglue/fileio/tests/test_convert_csdm.py
+        --strict-markers --strict-config -ra
+        --junitxml="${{ runner.temp }}/csdm.xml"
+    - name: Require executed CSDM tests
+      run: python .github/scripts/check_test_report.py "${{ runner.temp }}/csdm.xml"
+    - name: Retain test report
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: csdm-py3.13
+        path: ${{ runner.temp }}/csdm.xml
+        retention-days: 7
+        if-no-files-found: warn
+
+  packaging:
+    name: Installed wheel (3.13)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+    - uses: actions/checkout@v7
+    - uses: actions/setup-python@v7
+      with:
+        python-version: "3.13"
+        cache: pip
+        cache-dependency-path: pyproject.toml
+    - name: Install build tools
+      run: python -m pip install build twine
+    - name: Build sdist and wheel from sdist
+      run: python -m build --outdir "${{ runner.temp }}/dist"
+    - name: Check distribution metadata
+      run: python -m twine check --strict "${{ runner.temp }}"/dist/*
+    - name: Install wheel in a fresh environment
+      run: |
+        python -m venv "${{ runner.temp }}/wheel-env"
+        "${{ runner.temp }}/wheel-env/bin/python" -m pip install "${{ runner.temp }}"/dist/*.whl pytest packaging
+        "${{ runner.temp }}/wheel-env/bin/python" -m pip check
+    - name: Validate CI report tests from sdist
+      working-directory: ${{ runner.temp }}
+      run: |
+        mkdir "${{ runner.temp }}/sdist"
+        tar -xzf "${{ runner.temp }}"/dist/*.tar.gz -C "${{ runner.temp }}/sdist"
+        "${{ runner.temp }}/wheel-env/bin/python" -I -m pytest "${{ runner.temp }}"/sdist/*/tests/test_ci_validation.py --strict-markers --strict-config -ra --junitxml="${{ runner.temp }}/sdist.xml"
+    - name: Require executed sdist tests
+      run: python "${{ runner.temp }}"/sdist/*/.github/scripts/check_test_report.py "${{ runner.temp }}/sdist.xml"
+    - name: Validate installed package outside checkout
+      working-directory: ${{ runner.temp }}
+      run: >-
+        "${{ runner.temp }}/wheel-env/bin/python" -I
+        "${{ github.workspace }}/.github/scripts/check_installed_wheel.py"
+        "${{ runner.temp }}/wheel.xml"
+    - name: Require executed packaged tests
+      run: python .github/scripts/check_test_report.py "${{ runner.temp }}/wheel.xml"
+    - name: Retain distribution and test report
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: distribution-py3.13
+        path: |
+          ${{ runner.temp }}/dist/*
+          ${{ runner.temp }}/wheel.xml
+          ${{ runner.temp }}/sdist.xml
+        retention-days: 7
+        if-no-files-found: warn

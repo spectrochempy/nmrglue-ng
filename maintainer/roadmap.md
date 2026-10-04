@@ -69,6 +69,19 @@ properties, not proximity checks. Issue #18 remains separate and untouched.
 - [ ] Modernize historical documentation and links incrementally.
 - [ ] Introduce linting, typing, and benchmarks only where they add clear maintenance value.
 
+### CI validation expansion — in validation
+
+The proposed workflow retains Linux Python 3.10–3.14 and adds Windows/macOS
+Python 3.14, a Linux CSDM job requiring executed tests without skips, and an
+isolated sdist-to-wheel installation check using packaged NMRPipe/Bruker tests.
+The sdist includes the CI report test and its helper; packaging validation runs
+that test from the extracted archive to protect their distribution contract.
+JUnit reports, weekly/manual runs, and pip caching make these profiles easier
+to inspect and reproduce. Cross-platform acceptance remains pending actual
+GitHub Actions runs and independent review; the checklist above stays open.
+Pre-commit is a separate follow-up. External dataset and NMRPipe executable
+validation still require their own infrastructure and evidence.
+
 ## Issue #16 — corpus mutation fix — RESOLVED
 
 `test_convert.py::test_bruker_3d` and `test_convert.py::test_bruker_3d_lowmem` were mutating the
