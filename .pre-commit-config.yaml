@@ -1,0 +1,54 @@
+default_language_version:
+  python: python3
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: |
+          (?x)(
+            ^examples/|
+            ^doc/|
+            ^nmrglue/fileio/tests/data/|
+            ^nmrglue/fileio/tests/bruker_test_data/|
+            ^tests/pipe_proc_tests/|
+            \.(fid|ft2|ft3|ft4|ser|acqus|procs|jdf|ucsf|par|sec|1r|2r|in|com|tab|png|zip|txt|dat|jdx)$
+          )
+      - id: end-of-file-fixer
+        exclude: |
+          (?x)(
+            ^examples/|
+            ^doc/|
+            ^nmrglue/fileio/tests/data/|
+            ^nmrglue/fileio/tests/bruker_test_data/|
+            ^tests/pipe_proc_tests/|
+            \.(fid|ft2|ft3|ft4|ser|acqus|procs|jdf|ucsf|par|sec|1r|2r|in|com|tab|png|zip|txt|dat|jdx)$
+          )
+      - id: mixed-line-ending
+        args: [--fix=lf]
+        exclude: |
+          (?x)(
+            ^examples/|
+            ^doc/|
+            ^nmrglue/fileio/tests/data/|
+            ^nmrglue/fileio/tests/bruker_test_data/|
+            ^tests/pipe_proc_tests/|
+            \.(fid|ft2|ft3|ft4|ser|acqus|procs|jdf|ucsf|par|sec|1r|2r|in|com|tab|png|zip|txt|dat|jdx)$
+          )
+      - id: check-yaml
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: check-ast
+        files: \.py$
+        exclude: |
+          (?x)(
+            ^examples/|
+            ^doc/
+          )
+      - id: check-added-large-files
+        args: ['--enforce-all']
+        exclude: |
+          (?x)(
+            ^tests/pipe_proc_tests/
+          )

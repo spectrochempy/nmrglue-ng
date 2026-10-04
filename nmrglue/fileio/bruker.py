@@ -1589,7 +1589,7 @@ def read_binary(filename, shape=(1), cplex=True, big=True, isfloat=False, estima
     except ValueError:
         try:
             data = data.reshape(-1, shape[-1])
-            if estimated_dims and (estimated_dims > 2): 
+            if estimated_dims and (estimated_dims > 2):
                 warn(
                     "Data is inconsistent with acquistion parameters. "
                     "This usually happens with partially acquired datasets with dims >2. "
@@ -1598,7 +1598,7 @@ def read_binary(filename, shape=(1), cplex=True, big=True, isfloat=False, estima
             return dic, data
         except ValueError:
             warn(f"{data.shape} cannot be shaped into {shape} or a consistent 2D array. A 1D array will be returned.")
-        
+
         return dic, data
 
 
@@ -2722,7 +2722,7 @@ def read_vdlist(dirc, fname='vdlist'):
 
     Raises
     ------
-    FileNotFoundError 
+    FileNotFoundError
         if the vdlist file is absent
 
     """
@@ -2733,7 +2733,7 @@ def read_vdlist(dirc, fname='vdlist'):
             f"The 'vdlist' file ({fname}) was not found in the directory: {dirc}. Please ensure"
             " that you have provided the 'acqu' directory, not the 'pdata' directory."
         )
-        
+
     # Read vdlist file
     with open(vdlist_file, 'r') as f:
         vdlist = f.readlines()
