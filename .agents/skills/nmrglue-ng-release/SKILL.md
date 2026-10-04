@@ -44,7 +44,7 @@ against the repository, not against this document.
 
 | # | Gate | Evidence to look for |
 |---|---|---|
-| G1 | **Provenance and redistribution rights** for the release-critical corpus | `maintainer/roadmap.md` P0 item; `maintainer/audits/2026-10-release-critical-dataset.md` § *Provenance and rights* |
+| G1 | **Provenance and redistribution rights** for the release-critical corpus | `maintainer/roadmap.md` P0 item; recorded local evidence if available |
 | G2 | **Versioned manifest** with sizes and SHA-256 checksums | a tracked manifest file; roadmap P0 item |
 | G3 | **Checksum-verifying test-data fetcher** | a script or documented command that downloads and verifies; roadmap P0 item |
 | G4 | **Dataset validation** run and recorded | recorded result for the release-critical dataset profile |
@@ -67,9 +67,8 @@ Never announce a release as ready while a P0 gate is blocking.
 
 ## Step 2 — Release-critical dataset rule
 
-The dataset release rule is documented in
-`maintainer/audits/2026-10-release-critical-dataset.md` (§ *Release rule*).
-Verify each clause against a recorded result; do not restate the audit as if
+Verify each clause against a recorded result; local audit notes may provide
+evidence but are not shared repository material. Do not restate an audit as if
 it were a fresh validation.
 
 A release may proceed only when the autonomous suite is green, all
@@ -93,7 +92,8 @@ Read `CHANGELOG.md`:
 
 * every entry since the last release is present under `Unreleased`;
 * entries explain what changed and why it matters to a user or contributor;
-* no implementation-journal entries (those belong in `maintainer/audits/`);
+* no implementation-journal entries (local implementation notes belong in
+  ignored `maintainer/audits/`);
 * no duplicate or near-duplicate entries for the same work;
 * pull-request references `(#NNN)` identify pull requests, not issues.
 

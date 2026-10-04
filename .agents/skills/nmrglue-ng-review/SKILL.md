@@ -11,7 +11,7 @@ metadata:
 Use this skill when asked to perform a **separate review** of an nmrglue-ng
 implementation.
 
-This review runs in a **new OpenCode session, or by another agent**, without
+This review runs in a **new independent session or by another agent**, without
 the implementation history. If you participated in writing the code, you are
 the implementer, not the reviewer — say so and decline.
 
@@ -149,12 +149,11 @@ Then audit the report against reality:
 
 ### 6. Verify maintainer documents
 
-* Does the change touch `maintainer/roadmap.md`, a dated
-  `maintainer/audits/` entry, or `CHANGELOG.md` `Unreleased`?
+* Does the change touch `maintainer/roadmap.md` or `CHANGELOG.md` `Unreleased`?
 * Is a `CHANGELOG.md` entry required? For user- or developer-visible changes:
   yes. If the PR claims `Changelog: not required`, judge whether the reason
   holds.
-* Are audits treated as historical snapshots rather than rewritten?
+* Are local `maintainer/audits/` notes absent from the diff?
 * Is the change free of several independent defects in one PR?
 
 ### 7. Search for counter-examples

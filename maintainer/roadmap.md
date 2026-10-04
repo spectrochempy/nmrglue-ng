@@ -1,6 +1,8 @@
 # nmrglue-ng roadmap
 
-This roadmap is intentionally short and living. Detailed evidence belongs in dated files under `maintainer/audits/`.
+This roadmap is intentionally short and living. It records shared decisions and
+evidence that must remain available to all contributors. Local audit notes may
+be kept under the ignored `maintainer/audits/` directory.
 
 ## NMRPipe 13 differential baseline
 
@@ -8,9 +10,7 @@ This roadmap is intentionally short and living. Detailed evidence belongs in dat
 in #9, SAVE in #13, and HT `ps90-180` in #15. HT4 is now genuinely collected,
 so the denominator increased from 46 to 47. The remaining differences are
 JMOD, HT6, and TP9; they retain their NMRPipe-version or historical-test
-classifications rather than being treated as confirmed bugs. The original
-41/46 baseline and detailed classifications are recorded in
-[`2026-09-nmrpipe-13-compatibility.md`](audits/2026-09-nmrpipe-13-compatibility.md).
+classifications rather than being treated as confirmed bugs.
 
 ## P0 — First independent release
 
@@ -27,7 +27,7 @@ never declares readiness while an item is open.
   3 CSDM conversion, 1 SIMPSON error-path, and 10 RNMRTK file-I/O tests
   migrated; 31 total).
 - [x] Define the residual release-critical external dataset: 16 logical groups
-  protecting 42 tests ([audit](audits/2026-10-release-critical-dataset.md)).
+  protecting 42 tests.
 - [ ] Clear provenance and redistribution rights for release-critical data.
 - [ ] Add a versioned manifest with sizes and SHA-256 checksums.
 - [ ] Add an explicit checksum-verifying test-data fetcher.

@@ -61,9 +61,8 @@ Read, in this order:
 
 1. `AGENTS.md`
 2. `CONTRIBUTING.md`
-3. the relevant `maintainer/` document (`roadmap.md`, or a dated
-   `maintainer/audits/` entry for the topic)
-4. `.opencode/skills/` — only the sections you need
+3. `maintainer/roadmap.md`
+4. `.agents/skills/` — only the sections you need
 
 ---
 
@@ -242,11 +241,8 @@ structure: heading levels, table syntax, list indentation, code fences closed.
 Update the relevant maintainer document when the task produces a decision or
 durable knowledge that must outlive it:
 
-* `maintainer/roadmap.md` — priorities and status changed;
-* a new dated `maintainer/audits/` file — a substantive assessment;
-* prefer editing an existing document over creating a new one;
-* audits are historical snapshots: never rewrite one to reflect a later
-  state, add a new dated file instead.
+* `maintainer/roadmap.md` — priorities or a shared decision changed;
+* `maintainer/audits/` is local and ignored; it is never added to a PR.
 
 `CHANGELOG.md` `Unreleased` must be updated for every user- or
 developer-visible change, referencing the pull request number as `(#NNN)`.
@@ -331,8 +327,8 @@ Never claim a check passed that was not run. Never report a skip as a pass.
 ## Handoff to separate review
 
 When a separate review is required (see `AGENTS.md`), do **not** launch
-another session or model. Produce a short prompt usable as-is in a new
-OpenCode session, containing:
+another independent session or agent. Produce a short prompt usable as-is by
+an independent reviewer, containing:
 
 1. **Need** — the original problem statement.
 2. **Branch / commit** — branch name and commit to examine.
