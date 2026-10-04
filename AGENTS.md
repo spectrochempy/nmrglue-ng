@@ -5,9 +5,11 @@
 This document defines the permanent rules and authorization limits for
 AI-assisted development in `nmrglue-ng`.
 
-Procedural details live in the project's OpenCode skills, in
-`CONTRIBUTING.md`, and in `maintainer/`. Load the relevant skill before
-starting work.
+Procedural details live in the project's shared skills at `.agents/skills/`,
+in `CONTRIBUTING.md`, and in `maintainer/`. This is the common location for
+OpenCode and Codex; load the relevant skill before starting work.
+`opencode.json` configures OpenCode to load this shared directory. Discovery,
+available tools, permissions, and runtime behavior remain tool-specific.
 
 **Read `CONTRIBUTING.md` at the start of each session.**
 
@@ -133,9 +135,9 @@ scientific correctness. Any incompatible change must be explicitly
 identified, justified, tested, documented, and accompanied by migration
 guidance when needed.
 
-Update the relevant maintainer documents (`maintainer/roadmap.md`, a dated
-`maintainer/audits/` entry) when a decision or durable knowledge must survive
-the task. Prefer editing an existing document over creating a new one.
+Update `maintainer/roadmap.md` when a shared decision or durable knowledge
+must survive the task. Each maintainer may keep separate local assessment notes
+under `maintainer/audits/`; that ignored directory is never part of a PR.
 
 ---
 
@@ -212,10 +214,10 @@ Load the relevant skill before starting work:
 | Skill | When to load |
 |---|---|
 | `nmrglue-ng-dev` | Any development, bug fix, refactor, or test change |
-| `nmrglue-ng-review` | Separate review in a new session (see skill) |
+| `nmrglue-ng-review` | Separate review by an independent session or agent (see skill) |
 | `nmrglue-ng-release` | Release readiness audit (never publishes) |
 
-**For other agents:** skills are in `.opencode/skills/` — read the relevant
+**For other agents:** skills are in `.agents/skills/` — read the relevant
 `SKILL.md` directly.
 
 ---
@@ -226,4 +228,4 @@ Load the relevant skill before starting work:
 * `CHANGELOG.md` — user- and developer-visible change log (`Unreleased`)
 * `maintainer/README.md` — maintainer material scope
 * `maintainer/roadmap.md` — living roadmap, upstream contribution policy
-* `maintainer/audits/` — dated technical assessments (historical snapshots)
+* `maintainer/audits/` — ignored local assessment notes
