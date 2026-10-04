@@ -26,7 +26,7 @@ original nmrglue project and are preserved for attribution and continuity.
 - Fix `write_fid_lowmem()` header correction: add the missing `correct`
   parameter and derive all structural file-header fields (`np`, `nblocks`,
   `ntraces`, `ebytes`, `tbytes`, `bbytes`) from the physical data layout.
-  Adapted from upstream jjhelmus/nmrglue#268.
+  Adapted from upstream jjhelmus/nmrglue#268. (#37)
 - Fix Varian multi-trace block-header reading: `get_block_ntraces()` referenced
   an undefined `file` variable when `read_blockhead=True`. Adapted from
   upstream jjhelmus/nmrglue#270. (#36)
