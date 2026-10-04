@@ -67,7 +67,11 @@ properties, not proximity checks. Issue #18 remains separate and untouched.
 - [ ] Define optional dependency extras where appropriate.
 - [ ] Increase autonomous coverage of processing modules and examples.
 - [ ] Modernize historical documentation and links incrementally.
-- [ ] Introduce linting, typing, and benchmarks only where they add clear maintenance value.
+- [ ] Introduce linting, typing, and benchmarks only where they add clear
+  maintenance value. Ruff linting/formatting remain deferred pending a
+  separate audit.
+- [x] Introduce minimal pre-commit structural and text-hygiene hooks with
+  CI enforcement (#35).
 
 ### CI validation expansion — validated (#34)
 
@@ -86,8 +90,20 @@ unchanged assertions. Independent review confirmed the CI/sdist changes and
 the final Windows correction as ready to merge. Scheduled/manual triggering,
 branch-protection requirements, and cancellation behavior are separate from
 the evidence supplied by this successful PR run.
-Pre-commit is a separate follow-up. External dataset and NMRPipe executable
-validation still require their own infrastructure and evidence.
+External dataset and NMRPipe executable validation still require their own
+infrastructure and evidence.
+
+### Pre-commit introduction — validated
+
+A minimal pre-commit configuration now covers trailing whitespace, final
+newlines, line endings, YAML/TOML syntax, merge conflicts, Python AST
+validation, and a large-file guard. Historical examples, documentation, and
+binary/text fixtures are explicitly excluded so hooks never modify scientific
+data. A CI `quality` job runs `pre-commit run --all-files` on Python 3.13.
+Ruff linting (137 existing violations) and formatting (106 files to
+reformat) remain deferred: introducing them requires a separate, reviewed
+mechanical change. The existing `.codespellrc` is preserved but codespell is
+not part of the pre-commit configuration.
 
 ## Issue #16 — corpus mutation fix — RESOLVED
 

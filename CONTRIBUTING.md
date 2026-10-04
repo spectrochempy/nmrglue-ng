@@ -102,13 +102,14 @@ Optional dependencies are not installed by the standard test profile.
 ### Continuous integration
 
 The CI workflow runs on pull requests and pushes to `master`, weekly, and on
-manual dispatch. It has three validation profiles:
+manual dispatch. It has four validation profiles:
 
 | Profile | Environment | Contract |
 |---|---|---|
 | Autonomous | Linux Python 3.10–3.14; Windows/macOS Python 3.14 | The standard self-contained suite; optional packages are not installed. |
 | CSDM | Linux Python 3.13 with `csdmpy` | Existing synthetic CSDM conversion tests must execute and pass, with no skips. |
 | Distribution | Linux Python 3.13, fresh virtual environment | Build an sdist and a wheel from that sdist, check metadata, run CI report tests from the extracted sdist, then verify installed imports and packaged NMRPipe/Bruker tests outside the checkout. |
+| Pre-commit | Linux Python 3.13 | Run the configured hooks on all tracked files; structural and text-hygiene checks must pass. |
 
 The existing Linux check names `build (3.10)` through `build (3.14)` are
 preserved. New check requirements must be configured separately in repository
@@ -150,6 +151,36 @@ environment's Python (`-I -m pytest`). It checks the resulting `sdist.xml` with
 the extracted helper and retains that report alongside `wheel.xml`. This
 focused check guarantees the CI report test's source-distribution dependency;
 it does not claim that the complete repository test suite runs from the sdist.
+
+### Pre-commit
+
+The repository uses [pre-commit](https://pre-commit.com) with a minimal
+configuration in `.pre-commit-config.yaml`. Hooks cover trailing whitespace,
+final newlines, line endings, YAML/TOML syntax, merge conflicts, Python AST
+validation, and a large-file guard. Ruff linting and formatting are not yet
+enabled; a separate future change will introduce them after an audit of the
+existing codebase.
+
+The CI `quality` job runs `pre-commit run --all-files` on Python 3.13. Run the
+same command locally before opening a pull request:
+
+```bash
+python -m pip install pre-commit
+pre-commit run --all-files
+```
+
+The first run downloads hook environments; subsequent runs are fast. The
+configuration deliberately excludes historical example scripts under
+`examples/`, documentation under `doc/`, binary and text fixtures under
+`nmrglue/fileio/tests/data/`, `nmrglue/fileio/tests/bruker_test_data/`, and
+`tests/pipe_proc_tests/`, and common binary or data extensions (`.fid`,
+`.ft2`, `.ft3`, `.ft4`, `.ser`, `.acqus`, `.procs`, `.jdf`, `.ucsf`, `.par`,
+`.sec`, `.1r`, `.2r`, `.in`, `.com`, `.tab`, `.png`, `.zip`, `.txt`, `.dat`,
+`.jdx`). These exclusions prevent hooks from modifying scientific fixtures or
+historical example material.
+
+The existing `.codespellrc` is preserved but codespell is not part of the
+pre-commit configuration; it remains an optional manual check.
 
 ## Test Data
 

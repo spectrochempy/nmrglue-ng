@@ -1,7 +1,7 @@
 #!/bin/csh
 
 # nmrpipe_1d_time.fid
-# 1D time containing 1 - 1j, 2 - 2j, 0, 0, ... 
+# 1D time containing 1 - 1j, 2 - 2j, 0, 0, ...
 simTimeND                \
   -xN                32  \
   -xT                16  \

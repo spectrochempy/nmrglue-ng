@@ -7,7 +7,7 @@ from setup import DATA_DIR
 
 
 def test_rs2d():
-    '''RS2D read: format testset. Expects to find the provided test cases under 
+    '''RS2D read: format testset. Expects to find the provided test cases under
     data/rs2d/Installer_data'''
 
     # case tuple is:

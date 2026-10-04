@@ -137,3 +137,19 @@ jobs:
           ${{ runner.temp }}/sdist.xml
         retention-days: 7
         if-no-files-found: warn
+
+  quality:
+    name: Pre-commit (3.13)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+    - uses: actions/checkout@v7
+    - uses: actions/setup-python@v7
+      with:
+        python-version: "3.13"
+        cache: pip
+        cache-dependency-path: pyproject.toml
+    - name: Install pre-commit
+      run: python -m pip install pre-commit
+    - name: Run pre-commit
+      run: pre-commit run --all-files

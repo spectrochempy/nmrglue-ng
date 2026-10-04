@@ -332,7 +332,7 @@ class unit_conversion():
 
 def update_uc(uc, **kwargs):
     """
-    Updates the unit_conversion object with new parameters 
+    Updates the unit_conversion object with new parameters
     and returns a new unit_conversion object
 
     Parameters
@@ -348,7 +348,7 @@ def update_uc(uc, **kwargs):
     Raises
     ------
     TypeError
-        If the provided uc is not a unit conversion object 
+        If the provided uc is not a unit conversion object
     TypeError
         If the parameter to update is not a valid parameter.
 
@@ -358,10 +358,10 @@ def update_uc(uc, **kwargs):
 
     if not kwargs:
         return uc
-    
+
     params = ('size', 'cplx', 'sw', 'obs', 'car')
     new_params = {p: uc.__getattribute__(f'_{p}') for p in params}
-    
+
     for k, v in kwargs.items():
         if k in params:
             new_params[k] = v

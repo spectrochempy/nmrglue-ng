@@ -2700,13 +2700,13 @@ def expand_nus(data, shape, nuslist, aqorder=None, quadrature_order=None, allow_
         nuslist
     aqorder : list | None
         the order in which indirect dimensions are acquired.
-        defaults to [1, 0] for 3D and [2, 1, 0] for 4D datasets. 
-        All other possibilities compatible with the dimension are 
-        allowed, for eg, [0, 1] for 3D, and [0, 1, 2], [0, 2, 1], 
-        [2, 0, 1], [1, 0, 2], [1, 2, 0] for 4D data.  
+        defaults to [1, 0] for 3D and [2, 1, 0] for 4D datasets.
+        All other possibilities compatible with the dimension are
+        allowed, for eg, [0, 1] for 3D, and [0, 1, 2], [0, 2, 1],
+        [2, 0, 1], [1, 0, 2], [1, 2, 0] for 4D data.
     quadrature_order : list | None
         ordering of quadrature points. by default, this uses
-        the order from itertools.product, which seems to be 
+        the order from itertools.product, which seems to be
         fine most of the common acquistions. For example, for a 2D dataset,
         this will be [(0,), (1,)], for 3D, this will be [(0, 0), (0, 1), (1, 0), (1, 1)]
         and for 4D [(0, 0, 0), (0, 0, 1), (0, 1, 0), (0, 1, 1), (1, 0, 0), (1, 0, 1),
