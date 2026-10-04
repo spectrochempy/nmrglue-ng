@@ -195,9 +195,49 @@ new external dataset should have documented:
 
 Do not commit large datasets to Git when a small fixture is sufficient. Do not
 add automatic multi-gigabyte downloads to the standard CI. If data must remain
-external, document how contributors can obtain and verify it. The project does
-not yet provide a complete managed dataset infrastructure, so proposals should
-not assume one exists.
+external, document how contributors can obtain and verify it.
+
+### Test-data manifest and verification
+
+The release-critical external corpus is documented in
+`maintainer/testdata-manifest.toml`, which is tracked in Git. The data comes
+from the upstream nmrglue v0.5 release archive and is distributed under the
+project's BSD-3-Clause license. No separate data license was specified by the
+upstream project; the repository license applies to its release assets by
+default. JEOL data was never published upstream (PR #228 added code and tests
+only); the tests skip when `data/jeol/` is absent.
+
+The manifest records, for each logical group:
+
+- format and provenance;
+- redistribution status (`CLEAR`, `UNKNOWN`, `POTENTIALLY_RESTRICTED`,
+  or `LIKELY_CLEAR`);
+- every file with its SHA-256 checksum and size;
+- groups that are not yet available locally.
+
+Two scripts support this manifest:
+
+```bash
+# Regenerate the manifest from the current data/ directory
+python scripts/generate_testdata_manifest.py
+
+# Verify local data against the manifest
+python scripts/verify_testdata.py
+```
+
+The verifier checks that every file listed in the manifest exists with the
+expected checksum and size, and reports missing, extra, or corrupted files.
+Run it after obtaining or modifying the corpus.
+
+The archive reference for the upstream v0.5 test data is:
+
+- URL: `https://github.com/jjhelmus/nmrglue/releases/download/v0.5/test_data_v0.5-dev.zip`
+- SHA-256: `dbff258fe08a19f1cd08f44b731d3d19e20e54fbb1415d904cd6d03f25209dae`
+
+Several release-critical groups (JEOL, Sparky/UCSF, RNMRTK, JCAMP-DX, SIMPSON
+encoding sets) are not yet available in the local corpus. Their acquisition is
+blocked on provenance/rights resolution or external generation. See the
+`[missing.*]` sections in the manifest and `maintainer/roadmap.md`.
 
 ## Bug Fixes
 

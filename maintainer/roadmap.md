@@ -29,9 +29,23 @@ never declares readiness while an item is open.
 - [x] Define the residual release-critical external dataset: 16 logical groups
   protecting 42 tests.
 - [ ] Clear provenance and redistribution rights for release-critical data.
-- [ ] Add a versioned manifest with sizes and SHA-256 checksums.
+  Assessment: the corpus comes from the upstream nmrglue v0.5 release under
+  the project's BSD-3-Clause license. No separate data license was specified;
+  the repository license applies to release assets by default. 11 local groups
+  are now marked BSD-3-Clause. JEOL data was never published upstream (PR #228
+  added code+tests only; maintainer asked about data but no resolution was
+  recorded) — marked NOT_AVAILABLE. Missing groups (Sparky, RNMRTK, JCAMP-DX,
+  SIMPSON encoding sets) need acquisition or regeneration.
+- [x] Add a versioned manifest with sizes and SHA-256 checksums.
+  `maintainer/testdata-manifest.toml` tracks 145 files across 11 local
+  groups; regeneration and verification scripts provided.
 - [ ] Add an explicit checksum-verifying test-data fetcher.
+  `scripts/verify_testdata.py` verifies local data against the manifest.
+  A download fetcher remains to be designed once redistribution rights are
+  established for the missing groups.
 - [ ] Add scheduled/manual dataset validation.
+  CI dataset job requires the corpus to be reproducibly obtainable; blocked
+  on rights resolution for missing groups.
 - [ ] Review critical inherited defects before the first release.
 - [x] Define the integer/float width contract and resolve the `zd_*` defect (#4).
 
