@@ -26,7 +26,7 @@ original nmrglue project and are preserved for attribution and continuity.
 - Fix `data_nd` copy (`NameError` from a broken `__fcopy__` call) and
   negative-axis handling in `swapaxes`/`transpose`, aligning the base class
   with NumPy axis semantics and fixing incompatible `__fcopy__` hooks in the
-  Bruker and RNMRTK subclasses. Adapted from upstream jjhelmus/nmrglue#272.
+  Bruker and RNMRTK subclasses. Adapted from upstream jjhelmus/nmrglue#272. (#33)
 - Make numerical tolerance assertions symmetric in dataset and autonomous
   tests. (#29)
 - Implement NMRPipe-compatible `HT -ps90-180` mirror-image processing. (#15)
