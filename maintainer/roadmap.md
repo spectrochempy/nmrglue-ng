@@ -77,8 +77,12 @@ isolated sdist-to-wheel installation check using packaged NMRPipe/Bruker tests.
 The sdist includes the CI report test and its helper; packaging validation runs
 that test from the extracted archive to protect their distribution contract.
 JUnit reports, weekly/manual runs, and pip caching make these profiles easier
-to inspect and reproduce. Cross-platform acceptance remains pending actual
-GitHub Actions runs and independent review; the checklist above stays open.
+to inspect and reproduce. PR #34 at `31edd4e` passed all five Linux checks,
+macOS, CSDM, and distribution validation. Windows exposed a pre-existing
+`os.rename` overwrite failure in the Bruker test helper. The follow-up uses
+`os.replace` with the same temporary paths and unchanged assertions; hosted
+Windows confirmation and review of this correction remain pending. The
+checklist above stays open.
 Pre-commit is a separate follow-up. External dataset and NMRPipe executable
 validation still require their own infrastructure and evidence.
 

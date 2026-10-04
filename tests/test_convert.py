@@ -203,7 +203,7 @@ def _make_fake_acqu3s(dst_dir):
                        "$SW_h= 5555.556152",
                        line)
             out.write(line)
-    os.rename(out_name, acqu3s)
+    os.replace(out_name, acqu3s)
 
 
 # tests
