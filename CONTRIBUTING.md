@@ -200,20 +200,29 @@ external, document how contributors can obtain and verify it.
 ### Test-data manifest and verification
 
 The release-critical external corpus is documented in
-`maintainer/testdata-manifest.toml`, which is tracked in Git. The data comes
-from the upstream nmrglue v0.5 release archive and is distributed under the
-project's BSD-3-Clause license. No separate data license was specified by the
-upstream project; the repository license applies to its release assets by
-default. JEOL data was never published upstream (PR #228 added code and tests
-only); the tests skip when `data/jeol/` is absent.
+`maintainer/testdata-manifest.toml`, which is tracked in Git. Both scripts
+require Python >= 3.11 (for `tomllib`); on Python 3.10, install `tomli`.
+
+The data comes from the upstream nmrglue v0.5 release archive. The repository
+has a BSD-3-Clause license, but no explicit data license was specified for
+release assets. Redistribution status for each group is therefore recorded as
+`UNRESOLVED` pending explicit rights evidence. JEOL test data was not found
+in the nmrglue repository, the v0.5 release archive, or the local corpus;
+PR #228 added code and tests only. Tests referencing `data/jeol/` fail with
+`FileNotFoundError` when the data is absent (the conftest skip checks for
+the `data/` directory, not `data/jeol/` specifically).
 
 The manifest records, for each logical group:
 
 - format and provenance;
-- redistribution status (`CLEAR`, `UNKNOWN`, `POTENTIALLY_RESTRICTED`,
-  or `LIKELY_CLEAR`);
-- every file with its SHA-256 checksum and size;
-- groups that are not yet available locally.
+- repository license and redistribution status (`UNRESOLVED`,
+  `NOT_AVAILABLE`, or `CLEAR`);
+- evidence supporting the redistribution assessment;
+- availability (`complete`, `partial`, or `not_available`) and missing
+  components;
+- every file with its SHA-256 checksum, size, and provenance class
+  (`original` from the v0.5 archive, or `derived` from local generation);
+- groups that are not present in the local corpus.
 
 Two scripts support this manifest:
 
@@ -225,19 +234,19 @@ python scripts/generate_testdata_manifest.py
 python scripts/verify_testdata.py
 ```
 
-The verifier checks that every file listed in the manifest exists with the
-expected checksum and size, and reports missing, extra, or corrupted files.
-Run it after obtaining or modifying the corpus.
+The verifier validates manifest structure, rejects empty manifests, checks
+every listed file against its expected checksum and size, detects extra files
+not in the manifest, and confronts declared counters with actual entries.
 
 The archive reference for the upstream v0.5 test data is:
 
 - URL: `https://github.com/jjhelmus/nmrglue/releases/download/v0.5/test_data_v0.5-dev.zip`
 - SHA-256: `dbff258fe08a19f1cd08f44b731d3d19e20e54fbb1415d904cd6d03f25209dae`
 
-Several release-critical groups (JEOL, Sparky/UCSF, RNMRTK, JCAMP-DX, SIMPSON
-encoding sets) are not yet available in the local corpus. Their acquisition is
-blocked on provenance/rights resolution or external generation. See the
-`[missing.*]` sections in the manifest and `maintainer/roadmap.md`.
+Several release-critical groups are not present in the local corpus or are
+only partially available. See the `[missing.*]` sections and the
+`availability` / `missing_components` fields in the manifest, and
+`maintainer/roadmap.md`.
 
 ## Bug Fixes
 
