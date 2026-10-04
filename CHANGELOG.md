@@ -52,7 +52,7 @@ original nmrglue project and are preserved for attribution and continuity.
   Bruker test helper so the Windows isolation test can run. (#34)
 - Introduce a minimal pre-commit configuration with structural and
   text-hygiene hooks, explicit fixture exclusions, and a CI quality job.
-  Ruff linting/formatting remain a separate future follow-up.
+  Ruff linting/formatting remain a separate future follow-up. (#35)
 - Version the agent workflow in the repository: a root `AGENTS.md` with
   permanent rules, plus `nmrglue-ng-dev`, `nmrglue-ng-review`, and
   `nmrglue-ng-release` OpenCode skills. (#28)
