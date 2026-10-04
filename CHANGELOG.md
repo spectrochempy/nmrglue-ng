@@ -11,7 +11,7 @@ original nmrglue project and are preserved for attribution and continuity.
 
 - Add a versioned test-data manifest (`data/manifest.toml`) with SHA-256
   checksums, sizes, provenance, and redistribution status for the
-  release-critical corpus. Include generation and verification scripts.
+  release-critical corpus. Include generation and verification scripts. (#39)
 - Add an explicit self-contained test profile and classify tests requiring
   external datasets, optional dependencies, or NMRPipe. (#5)
 - Add maintainer audits and a living development roadmap, including an
