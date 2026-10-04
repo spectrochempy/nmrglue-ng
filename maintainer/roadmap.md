@@ -37,7 +37,7 @@ never declares readiness while an item is open.
 
 ## P1 — Scientific reliability
 
-- [ ] Secure `data_nd` copy and negative-axis behavior.
+- [x] Secure `data_nd` copy and negative-axis behavior.
 - [ ] Fix and validate Varian low-memory I/O defects.
 - [x] Correct SAVE `FDPIPECOUNT` metadata compatibility (#6).
 - [x] Specify and implement HT `ps90-180` with scientific validation (#7).
