@@ -41,9 +41,8 @@ never declares readiness while an item is open.
 - [x] Fix and validate Varian low-memory I/O defects.
   Multi-trace block-header reading fixed (#36, upstream #270).
   `write_fid_lowmem` structural header correction fixed (#37, upstream #268).
-  Remaining follow-up: `write_fid_lowmem` repeats `dic["blockheader"][0]`
-  instead of using the current block's header, unlike `write_fid()`. Pre-existing
-  P2 identified during #37 review; separate correction needed.
+  Block-header repetition fixed: `write_fid_lowmem` now uses each block's own
+  header instead of always `dic["blockheader"][0]`, matching `write_fid()`.
 - [x] Correct SAVE `FDPIPECOUNT` metadata compatibility (#6).
 - [x] Specify and implement HT `ps90-180` with scientific validation (#7).
 - [x] Restore and validate the `proc_lp` QR solver (#10).

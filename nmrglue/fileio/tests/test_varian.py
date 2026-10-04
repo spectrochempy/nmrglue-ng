@@ -182,3 +182,35 @@ def test_write_fid_lowmem_can_preserve_header_dimensions(tmp_path):
     header = read_raw_file_header(path)
     for key in HEADER_NAMES:
         assert header[key] == original[key]
+
+
+def read_blockheader_indices(path, nblocks):
+    """Decode the block index from each block header in a Varian file."""
+    with path.open("rb") as f:
+        f.read(FILE_HEADER.size)
+        indices = []
+        for _ in range(nblocks):
+            header = f.read(BLOCK_HEADER_SIZE)
+            indices.append(struct.unpack(">4hl4f", header)[2])
+            f.read(32)
+    return indices
+
+
+def test_write_fid_lowmem_uses_per_block_headers(tmp_path):
+    """Distinct block headers are written per block, not repeated from index 0."""
+    shape = (2, 4)
+    data = make_data(shape)
+    dic = make_file_dic(shape)
+    dic["blockheader"] = [
+        varian.make_blockheader(dic, 1),
+        varian.make_blockheader(dic, 2),
+    ]
+    lowmem_path = tmp_path / "lowmem.fid"
+    regular_path = tmp_path / "regular.fid"
+
+    varian.write_fid_lowmem(lowmem_path, copy.deepcopy(dic), data, torder="f")
+    varian.write_fid(regular_path, copy.deepcopy(dic), data, torder="f")
+
+    assert read_blockheader_indices(lowmem_path, 2) == [1, 2]
+    assert read_blockheader_indices(regular_path, 2) == [1, 2]
+    assert lowmem_path.read_bytes() == regular_path.read_bytes()
