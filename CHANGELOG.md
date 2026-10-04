@@ -23,6 +23,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ### Fixed
 
+- Fix Varian multi-trace block-header reading: `get_block_ntraces()` referenced
+  an undefined `file` variable when `read_blockhead=True`. Adapted from
+  upstream jjhelmus/nmrglue#270.
 - Fix `data_nd` copy (`NameError` from a broken `__fcopy__` call) and
   negative-axis handling in `swapaxes`/`transpose`, aligning the base class
   with NumPy axis semantics and fixing incompatible `__fcopy__` hooks in the

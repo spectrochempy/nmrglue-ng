@@ -39,6 +39,8 @@ never declares readiness while an item is open.
 
 - [x] Secure `data_nd` copy and negative-axis behavior.
 - [ ] Fix and validate Varian low-memory I/O defects.
+  Multi-trace block-header reading fixed (upstream #270). `write_fid_lowmem`
+  header correction (upstream #268) remains.
 - [x] Correct SAVE `FDPIPECOUNT` metadata compatibility (#6).
 - [x] Specify and implement HT `ps90-180` with scientific validation (#7).
 - [x] Restore and validate the `proc_lp` QR solver (#10).
