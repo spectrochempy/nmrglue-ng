@@ -63,11 +63,31 @@ properties, not proximity checks. Issue #18 remains separate and untouched.
 
 ## P2 — Broader maintenance
 
-- [ ] Expand CI to representative Linux, macOS, and Windows jobs.
+- [x] Expand CI to representative Linux, macOS, and Windows jobs (#34).
 - [ ] Define optional dependency extras where appropriate.
 - [ ] Increase autonomous coverage of processing modules and examples.
 - [ ] Modernize historical documentation and links incrementally.
 - [ ] Introduce linting, typing, and benchmarks only where they add clear maintenance value.
+
+### CI validation expansion — validated (#34)
+
+The workflow retains Linux Python 3.10–3.14 and adds Windows/macOS
+Python 3.14, a Linux CSDM job requiring executed tests without skips, and an
+isolated sdist-to-wheel installation check using packaged NMRPipe/Bruker tests.
+The sdist includes the CI report test and its helper; packaging validation runs
+that test from the extracted archive to protect their distribution contract.
+JUnit reports, weekly/manual runs, and pip caching make these profiles easier
+to inspect and reproduce. PR #34 at `40cd743` passed all nine hosted checks:
+five Linux versions, Windows, macOS, CSDM, and distribution validation
+([run 37234329307](https://github.com/spectrochempy/nmrglue-ng/actions/runs/37234329307)).
+Windows exposed a pre-existing `os.rename` overwrite failure in the Bruker
+test helper; `os.replace` resolved it with the same temporary paths and
+unchanged assertions. Independent review confirmed the CI/sdist changes and
+the final Windows correction as ready to merge. Scheduled/manual triggering,
+branch-protection requirements, and cancellation behavior are separate from
+the evidence supplied by this successful PR run.
+Pre-commit is a separate follow-up. External dataset and NMRPipe executable
+validation still require their own infrastructure and evidence.
 
 ## Issue #16 — corpus mutation fix — RESOLVED
 

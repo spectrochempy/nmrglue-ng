@@ -99,6 +99,58 @@ Tests that use an optional Python package also carry the
 `optional_dependency` marker and skip explicitly when that package is absent.
 Optional dependencies are not installed by the standard test profile.
 
+### Continuous integration
+
+The CI workflow runs on pull requests and pushes to `master`, weekly, and on
+manual dispatch. It has three validation profiles:
+
+| Profile | Environment | Contract |
+|---|---|---|
+| Autonomous | Linux Python 3.10–3.14; Windows/macOS Python 3.14 | The standard self-contained suite; optional packages are not installed. |
+| CSDM | Linux Python 3.13 with `csdmpy` | Existing synthetic CSDM conversion tests must execute and pass, with no skips. |
+| Distribution | Linux Python 3.13, fresh virtual environment | Build an sdist and a wheel from that sdist, check metadata, run CI report tests from the extracted sdist, then verify installed imports and packaged NMRPipe/Bruker tests outside the checkout. |
+
+The existing Linux check names `build (3.10)` through `build (3.14)` are
+preserved. New check requirements must be configured separately in repository
+branch protection after their first successful runs.
+
+All pytest invocations use strict marker/configuration validation and `-ra` to
+report skips. JUnit reports are retained for seven days, including after test
+failures; the packaging job also retains its distributions. Reports can be
+absent if installation or collection fails before they are produced. These
+profiles do not validate the external corpus or NMRPipe executable comparisons.
+
+To reproduce the CSDM job in a disposable development environment:
+
+```bash
+python -m pip install '.[test]' csdmpy astropy matplotlib
+python -c "import csdmpy"
+python -m pytest nmrglue/fileio/tests/test_convert_csdm.py --strict-markers --strict-config -ra --junitxml=csdm.xml
+python .github/scripts/check_test_report.py csdm.xml
+```
+
+Astropy and Matplotlib are explicit CI dependencies because CSDMpy 0.7.0
+imports them without declaring them in its runtime requirements. They remain
+optional for nmrglue-ng.
+
+For installed-wheel validation, build with `python -m build` (without separate
+`--sdist --wheel` flags, so the wheel is built from the sdist), run
+`python -m twine check --strict dist/*`, and install the wheel plus pytest and
+packaging into a fresh virtual environment. From a temporary directory outside
+the checkout, use that environment's Python with `-I` to run the absolute path to
+`.github/scripts/check_installed_wheel.py`, passing an absolute JUnit output
+path. The script runs packaged tests in its own temporary working directory
+next to the report. Run `check_test_report.py` on that report as well to reject
+empty or skipped validation.
+
+The sdist explicitly includes `tests/test_ci_validation.py` and its helper
+`.github/scripts/check_test_report.py`. The packaging job also extracts the
+sdist outside the checkout and executes that test file with the fresh
+environment's Python (`-I -m pytest`). It checks the resulting `sdist.xml` with
+the extracted helper and retains that report alongside `wheel.xml`. This
+focused check guarantees the CI report test's source-distribution dependency;
+it does not claim that the complete repository test suite runs from the sdist.
+
 ## Test Data
 
 Prefer the smallest fixture that demonstrates the required behavior. Every

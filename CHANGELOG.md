@@ -45,6 +45,11 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ### Maintenance
 
+- Expand autonomous CI to Windows and macOS, exercise optional CSDM conversion,
+  and validate sdist-derived wheels in an isolated installation. Include and
+  exercise the CI report test and its helper in the sdist. Retain test reports
+  and add weekly/manual validation. Use cross-platform file replacement in the
+  Bruker test helper so the Windows isolation test can run. (#34)
 - Version the agent workflow in the repository: a root `AGENTS.md` with
   permanent rules, plus `nmrglue-ng-dev`, `nmrglue-ng-review`, and
   `nmrglue-ng-release` OpenCode skills. (#28)
