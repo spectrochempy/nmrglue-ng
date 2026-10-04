@@ -1045,7 +1045,7 @@ def write_fid_lowmem(filename, dic, data, torder='f', repack=False,
             if repack:
                 bh = dic2blockheader(repack_blockheader(dic["blockheader"][0]))
             else:
-                bh = dic2blockheader(dic["blockheader"][0])
+                bh = dic2blockheader(dic["blockheader"][ntrace])
 
             tup = t2i(data.shape[:-1], ntrace)
             trace = np.array(interleave_data(data[tup]), dtype=dt)
