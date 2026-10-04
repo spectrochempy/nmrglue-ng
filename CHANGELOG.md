@@ -24,7 +24,7 @@ original nmrglue project and are preserved for attribution and continuity.
 ### Fixed
 
 - Fix `write_fid_lowmem()` to use each block's own header instead of repeating
-  the first block header, matching `write_fid()` behavior.
+  the first block header, matching `write_fid()` behavior. (#38)
 - Fix `write_fid_lowmem()` header correction: add the missing `correct`
   parameter and derive all structural file-header fields (`np`, `nblocks`,
   `ntraces`, `ebytes`, `tbytes`, `bbytes`) from the physical data layout.
