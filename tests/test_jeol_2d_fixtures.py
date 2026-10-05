@@ -1,9 +1,9 @@
-"""Autonomous tests for JEOL 2D reader using packaged CENAPTNMR fixture.
+"""Autonomous tests for JEOL 2D reader using packaged CENAPTNMR fixtures.
 
 Source: nmrXiv CENAPTNMR project P33 (doi:10.57992/nmrxiv.p33), CC0 1.0.
 Sample: (-)-Epicatechin 400 MHz in DMSO-d6.
 Directory: (-)-Epicatechin 400 MHz in DMSOd6 NMR data/
-Original file: EpiCatechin_2880ug200uL_DMSOd6_HSQC_400MHz_Jeol.jdf
+Original files: EpiCatechin_2880ug200uL_DMSOd6_{HSQC,COSY,HMBC}_400MHz_Jeol.jdf
 """
 
 import os
@@ -20,12 +20,14 @@ DATA_DIR = os.path.join(
 )
 
 HSQC_JDF = os.path.join(DATA_DIR, "epicatechin_hsqc.jdf")
+COSY_JDF = os.path.join(DATA_DIR, "epicatechin_cosy.jdf")
+HMBC_JDF = os.path.join(DATA_DIR, "epicatechin_hmbc.jdf")
 
-# Reference values decoded independently from the JDF binary.
-# Submatrix size is 32x32; interior points at boundaries distinguish
+# Reference values decoded independently from each JDF binary.
+# HSQC: submatrix size 32x32; interior points at boundaries distinguish
 # correct submatrix reordering from a simple reshape.
 # atol=1e-12 ensures values near zero are still validated.
-REFERENCES = {
+HSQC_REFERENCES = {
     (0, 0): complex(-5.050323944963172e-09, 3.5653795334153503e-09),
     (0, 32): complex(0.008414949347426837, 0.004781845031130792),
     (32, 0): complex(4.620134065195179e-09, -2.203621699232194e-09),
@@ -35,32 +37,55 @@ REFERENCES = {
     (-1, -1): complex(0.010997792545297659, 0.013005593413259567),
 }
 
+COSY_REFERENCES = {
+    (0, 0): complex(-7.537155207052352e-07, 2.561132283040064e-07),
+    (-1, -1): complex(-4.993196699058739, -0.5408737688172018),
+}
 
-class TestJEOL2DHSQC:
-    """Tests for 2D JEOL HSQC data."""
+HMBC_REFERENCES = {
+    (0, 0): complex(-2.025988170987633e-09, -6.127570486879564e-10),
+    (-1, -1): complex(0.005758069347642383, 0.009595761176026063),
+}
 
-    def test_read_2d(self):
-        """2D JEOL HSQC reads successfully."""
-        dic, data = ng.jeol.read(HSQC_JDF)
-        assert data.ndim == 2
-        assert data.shape == (64, 1024)
-        assert data.dtype == np.complex128
+EXPERIMENTS = [
+    ("HSQC", HSQC_JDF, (64, 1024), HSQC_REFERENCES),
+    ("COSY", COSY_JDF, (256, 1280), COSY_REFERENCES),
+    ("HMBC", HMBC_JDF, (128, 2048), HMBC_REFERENCES),
+]
 
-    @pytest.mark.parametrize("row,col", sorted(REFERENCES.keys()))
-    def test_reference_point(self, row, col):
-        """Each reference point matches independently decoded values."""
-        dic, data = ng.jeol.read(HSQC_JDF)
-        expected = REFERENCES[(row, col)]
-        assert np.isclose(data[row, col].real, expected.real, rtol=1e-6, atol=1e-12)
-        assert np.isclose(data[row, col].imag, expected.imag, rtol=1e-6, atol=1e-12)
 
-    def test_data_finite(self):
-        """All data values are finite."""
-        dic, data = ng.jeol.read(HSQC_JDF)
-        assert np.all(np.isfinite(data))
+@pytest.mark.parametrize("name,path,expected_shape,refs", EXPERIMENTS, ids=["hsqc", "cosy", "hmbc"])
+def test_read_2d(name, path, expected_shape, refs):
+    """2D JEOL experiment reads successfully with correct shape."""
+    dic, data = ng.jeol.read(path)
+    assert data.ndim == 2
+    assert data.shape == expected_shape
+    assert data.dtype == np.complex128
+    assert "header" in dic
+    assert "parameters" in dic
 
-    def test_dic_structure(self):
-        """Dictionary contains header and parameters."""
-        dic, data = ng.jeol.read(HSQC_JDF)
-        assert "header" in dic
-        assert "parameters" in dic
+
+@pytest.mark.parametrize("name,path,expected_shape,refs", EXPERIMENTS, ids=["hsqc", "cosy", "hmbc"])
+def test_reference_points(name, path, expected_shape, refs):
+    """Reference points match independently decoded values."""
+    dic, data = ng.jeol.read(path)
+    for (row, col), expected in refs.items():
+        assert np.isclose(data[row, col].real, expected.real, rtol=1e-6, atol=1e-12), f"{name}[{row},{col}].real"
+        assert np.isclose(data[row, col].imag, expected.imag, rtol=1e-6, atol=1e-12), f"{name}[{row},{col}].imag"
+
+
+@pytest.mark.parametrize("name,path,expected_shape,refs", EXPERIMENTS, ids=["hsqc", "cosy", "hmbc"])
+def test_data_finite(name, path, expected_shape, refs):
+    """All data values are finite."""
+    dic, data = ng.jeol.read(path)
+    assert np.all(np.isfinite(data))
+
+
+def test_experiments_distinct():
+    """The three 2D experiment types contain different data."""
+    _, hsqc = ng.jeol.read(HSQC_JDF)
+    _, cosy = ng.jeol.read(COSY_JDF)
+    _, hmbc = ng.jeol.read(HMBC_JDF)
+    assert not np.array_equal(hsqc, cosy)
+    assert not np.array_equal(hsqc, hmbc)
+    assert not np.array_equal(cosy, hmbc)
