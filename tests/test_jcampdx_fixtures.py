@@ -627,3 +627,27 @@ class TestJCAMPDXXYFormats:
         finally:
             import os
             os.remove(path)
+
+    def test_compact_pairs_multi_per_segment(self):
+        """Multiple compact XY pairs in one semicolon segment are preserved.
+
+        Regression for: "15,420 16,1201; 17,9" must not be treated as
+        European decimals — each space-separated token has exactly one comma.
+        """
+        content = (
+            "##TITLE=Test Multi Pairs\n"
+            "##JCAMPDX=5.0\n"
+            "##DATATYPE=NMR SPECTRUM\n"
+            "##XYPOINTS=(XY..XY)\n"
+            "15,420 16,1201; 17,9\n"
+            "##END=\n"
+        )
+        path = self._write_jcamp(content)
+        try:
+            dic, data = ng.jcampdx.read(path)
+            assert data is not None
+            assert data.shape == (1, 3, 2)
+            assert np.allclose(data[0], [[15.0, 420.0], [16.0, 1201.0], [17.0, 9.0]])
+        finally:
+            import os
+            os.remove(path)

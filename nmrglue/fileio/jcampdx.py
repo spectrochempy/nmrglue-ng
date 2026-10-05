@@ -509,23 +509,26 @@ def _parse_data(datastring):
             data = _parse_affn_pac(datalines)
     elif is_xy_pair_header and headerline == '(XY..XY)':
         # Coordinate list: commas separate X and Y. Try parsing as-is first;
-        # fall back to comma-to-dot when semicolon-separated segments each
-        # contain more than 2 comma-separated values (European decimal format
-        # uses semicolons as row separators and commas as decimal points).
+        # fall back to comma-to-dot when a semicolon segment contains a
+        # space-separated token with more than one comma (European decimal
+        # format writes decimals without spaces, e.g. "1,0 10,5").
         data = _parse_xy_xy(datalines)
         header_end = datastring.find('\n')
         data_part = datastring[header_end:] if header_end != -1 else datastring
         if ';' in data_part and ',' in data_part and '.' not in data_part:
-            # Check if any semicolon segment has >2 comma-separated values
             segments = [s.strip() for s in data_part.split(';') if s.strip()]
+            european = False
             for seg in segments:
-                n_commas = seg.count(',')
-                if n_commas > 1:
-                    # More than one comma per segment: European decimals
-                    datastring = re.sub(r'(\d),(\d)', r'\1.\2', datastring)
-                    datalines = datastring.split("\n")[1:]
-                    data = _parse_xy_xy(datalines)
+                for token in seg.split():
+                    if token.count(',') > 1:
+                        european = True
+                        break
+                if european:
                     break
+            if european:
+                datastring = re.sub(r'(\d),(\d)', r'\1.\2', datastring)
+                datalines = datastring.split("\n")[1:]
+                data = _parse_xy_xy(datalines)
     elif is_xy_pair_header and headerline == '(X..XY)':
         # Mixed format: X values then XY pairs; commas may be European
         # decimal separators in the X values and XY pair data
