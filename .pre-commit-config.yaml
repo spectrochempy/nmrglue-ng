@@ -50,5 +50,6 @@ repos:
         args: ['--enforce-all']
         exclude: |
           (?x)(
+            ^nmrglue/fileio/tests/data/|
             ^tests/pipe_proc_tests/
           )

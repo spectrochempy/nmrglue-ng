@@ -66,6 +66,14 @@ never declares readiness while an item is open.
 - [ ] Consolidate JCAMP-DX behavior against documented and real-world fixtures.
 - [ ] Investigate NMRPipe/JRES dimensional metadata behavior.
 
+### JEOL fixtures — added
+
+Four packaged JEOL fixtures with 17 autonomous reader tests including
+numerical reference values. Fluorine/phosphorus from jeol-data-test commit
+70bf716 (MIT); Rutin 1H/13C from Harvard Dataverse doi:10.7910/DVN/ZAZDNM
+(CC0 1.0). External-data JEOL tests (cyclosporine etc.) remain
+dataset-dependent; their data was never published.
+
 ## Issue #17 — symmetric numerical tolerances — IN VALIDATION
 
 The direct one-sided proximity assertions in the Bruker processed-data, JEOL
