@@ -37,6 +37,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ### Fixed
 
+- Mark empty JEOL placeholder tests (test_1d_real, test_2d_rr) as explicitly
+  skipped with documented reasons. Real-axis JEOL data is not available in
+  any sourced dataset. (#18)
 - Fix `write_fid_lowmem()` to use each block's own header instead of repeating
   the first block header, matching `write_fid()` behavior. (#38)
 - Fix `write_fid_lowmem()` header correction: add the missing `correct`
