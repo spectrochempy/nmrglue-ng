@@ -68,10 +68,11 @@ never declares readiness while an item is open.
 
 ### JEOL fixtures — added
 
-Four packaged JEOL fixtures (fluorine, phosphorus, Rutin 1H/13C) added with
-11 autonomous reader tests. Source: cheminfo/jeol-data-test (MIT), original
-Harvard Dataverse doi:10.7910/DVN/ZAZDNM (CC0 1.0). External-data JEOL tests
-(cyclosporine etc.) remain dataset-dependent; their data was never published.
+Four packaged JEOL fixtures with 17 autonomous reader tests including
+numerical reference values. Fluorine/phosphorus from jeol-data-test commit
+70bf716 (MIT); Rutin 1H/13C from Harvard Dataverse doi:10.7910/DVN/ZAZDNM
+(CC0 1.0). External-data JEOL tests (cyclosporine etc.) remain
+dataset-dependent; their data was never published.
 
 ## Issue #17 — symmetric numerical tolerances — IN VALIDATION
 
