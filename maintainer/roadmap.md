@@ -66,6 +66,16 @@ never declares readiness while an item is open.
 - [ ] Consolidate JCAMP-DX behavior against documented and real-world fixtures.
 - [ ] Investigate NMRPipe/JRES dimensional metadata behavior.
 
+### Bruker pdata fixtures — added
+
+Three packaged Bruker experiments with raw and processed data:
+- 1D sucrose standard (nmrXiv P52, CC0)
+- 2D HSQC Ginsenoside Rg1 with all 4 quadrature components (CENAPTNMR, CC0)
+- 2D COSY Gossypol with 2rr (CENAPTNMR, CC0)
+
+22 autonomous tests cover `read()` and `read_pdata()` for 1D and 2D data,
+including `all_components=True` for the HSQC experiment.
+
 ### JEOL fixtures — added
 
 Four packaged JEOL fixtures with 17 autonomous reader tests including

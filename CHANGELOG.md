@@ -9,6 +9,10 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ### Added
 
+- Add packaged Bruker raw and processed data fixtures with autonomous reader
+  tests. 1D sucrose standard from nmrXiv P52 (CC0 1.0); 2D HSQC and COSY from
+  nmrXiv CENAPTNMR dataset (CC0 1.0). Covers `read()` and `read_pdata()` for
+  1D and 2D experiments including all quadrature components.
 - Add packaged JEOL test fixtures with autonomous reader tests. Fluorine and
   phosphorus from cheminfo/jeol-data-test commit 70bf716 (MIT); Rutin 1H/13C
   from Harvard Dataverse doi:10.7910/DVN/ZAZDNM (CC0 1.0). (#40)
