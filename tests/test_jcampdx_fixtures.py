@@ -603,3 +603,27 @@ class TestJCAMPDXXYFormats:
         finally:
             import os
             os.remove(path)
+
+    def test_compact_pairs_semicolon(self):
+        """Compact XY pairs separated by semicolons preserve delimiters.
+
+        Regression for: comma-to-dot fallback must not destroy valid
+        coordinate pairs like "15,420; 16,1201".
+        """
+        content = (
+            "##TITLE=Test Compact Semicolon\n"
+            "##JCAMPDX=5.0\n"
+            "##DATATYPE=NMR SPECTRUM\n"
+            "##XYPOINTS=(XY..XY)\n"
+            "15,420; 16,1201\n"
+            "##END=\n"
+        )
+        path = self._write_jcamp(content)
+        try:
+            dic, data = ng.jcampdx.read(path)
+            assert data is not None
+            assert data.shape == (1, 2, 2)
+            assert np.allclose(data[0], [[15.0, 420.0], [16.0, 1201.0]])
+        finally:
+            import os
+            os.remove(path)

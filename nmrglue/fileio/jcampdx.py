@@ -508,16 +508,24 @@ def _parse_data(datastring):
         else:
             data = _parse_affn_pac(datalines)
     elif is_xy_pair_header and headerline == '(XY..XY)':
-        # Coordinate list: commas separate X and Y. However, European
-        # instruments may use commas as decimal separators with semicolons
-        # as row separators (e.g. "1,0, 10,5; 2,0, 20,5"). Detect this
-        # pattern and normalize before parsing.
+        # Coordinate list: commas separate X and Y. Try parsing as-is first;
+        # fall back to comma-to-dot when semicolon-separated segments each
+        # contain more than 2 comma-separated values (European decimal format
+        # uses semicolons as row separators and commas as decimal points).
+        data = _parse_xy_xy(datalines)
         header_end = datastring.find('\n')
         data_part = datastring[header_end:] if header_end != -1 else datastring
         if ';' in data_part and ',' in data_part and '.' not in data_part:
-            datastring = re.sub(r'(\d),(\d)', r'\1.\2', datastring)
-            datalines = datastring.split("\n")[1:]
-        data = _parse_xy_xy(datalines)
+            # Check if any semicolon segment has >2 comma-separated values
+            segments = [s.strip() for s in data_part.split(';') if s.strip()]
+            for seg in segments:
+                n_commas = seg.count(',')
+                if n_commas > 1:
+                    # More than one comma per segment: European decimals
+                    datastring = re.sub(r'(\d),(\d)', r'\1.\2', datastring)
+                    datalines = datastring.split("\n")[1:]
+                    data = _parse_xy_xy(datalines)
+                    break
     elif is_xy_pair_header and headerline == '(X..XY)':
         # Mixed format: X values then XY pairs; commas may be European
         # decimal separators in the X values and XY pair data
