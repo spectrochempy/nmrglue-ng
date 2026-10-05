@@ -11,7 +11,7 @@ original nmrglue project and are preserved for attribution and continuity.
 
 - Add packaged JEOL test fixtures (fluorine, phosphorus, Rutin 1H/13C) with
   autonomous reader tests. Data from cheminfo/jeol-data-test (MIT), original
-  Harvard Dataverse doi:10.7910/DVN/ZAZDNM (CC0 1.0).
+  Harvard Dataverse doi:10.7910/DVN/ZAZDNM (CC0 1.0). (#40)
 - Add a versioned test-data manifest (`maintainer/testdata-manifest.toml`)
   with SHA-256 checksums, sizes, provenance classes, availability, and
   redistribution status for the release-critical corpus. Include generation
