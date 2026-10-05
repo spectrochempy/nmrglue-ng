@@ -229,8 +229,15 @@ def _detect_format(dataline):
     Detects and returns digit format:
     0  Normal
     1  Pseudodigits
+    2  Coordinate list (XY..XY)
     -1 Error
     '''
+    # check for coordinate list first
+    # values may be signed, and writers commonly indent pair lines
+    xy_re = re.compile(r'^\s*[+-]?[0-9.]+(?:[eE][+-]?\d+)?\s*,\s*'
+                       r'[+-]?[0-9.]+(?:[eE][+-]?\d+)?')
+    if re.search(xy_re, dataline):
+        return 2
 
     # regexp to find & skip the first value of line, that never begins
     # with a pseudodigit in any format
@@ -450,6 +457,24 @@ def _parse_variable_list(headerline):
     return match.group(1), match.group(2)
 
 
+def _parse_xy_xy(datalines):
+    '''
+    Parses datalines in coordinate list format (XY..XY),
+    where each line contains comma-separated X,Y pairs.
+    '''
+    pts = []
+    xy_pair_re = re.compile(
+        r"([+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?)\s*,\s*"
+        r"([+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?)"
+    )
+    for dataline in datalines:
+        for match in xy_pair_re.finditer(dataline):
+            x = float(match.group(1))
+            y = float(match.group(2))
+            pts.append([x, y])
+    return [pts]
+
+
 def _parse_data(datastring):
     '''
     Creates numpy array from datalines
@@ -464,13 +489,65 @@ def _parse_data(datastring):
         datatype = "R"
 
     datalines = datalines[1:]  # get rid of the header line (e.g. (X++(Y..Y)))
-    mode = _detect_format(datalines[0])
-    if mode == 1:
-        data = _parse_pseudo(datalines)
-    elif mode == 0:
-        data = _parse_affn_pac(datalines)
+    if not datalines:
+        return None  # a table declared with no values, e.g. an empty PEAKTABLE
+
+    # Determine the parsing strategy from the declared header format.
+    # Headers like (X++(Y..Y)) or (X++(R..R)) declare AFFN data; commas in
+    # such data are either decimal separators or value delimiters, never
+    # XY-pair separators. Only (XY..XY) and (X..XY) headers use coordinate
+    # pair semantics.
+    is_affn_header = '++' in headerline
+    is_xy_pair_header = headerline in ('(XY..XY)', '(X..XY)')
+
+    if is_affn_header:
+        # AFFN declared: commas are value delimiters, parse directly
+        mode = _detect_format(datalines[0])
+        if mode == 1:
+            data = _parse_pseudo(datalines)
+        else:
+            data = _parse_affn_pac(datalines)
+    elif is_xy_pair_header and headerline == '(XY..XY)':
+        # Coordinate list: commas separate X and Y. Never apply comma-to-dot
+        # normalization here — the format is intrinsically ambiguous with
+        # European decimal writing, and preserving XY delimiters takes
+        # priority. European decimals are handled by the (X..XY) header.
+        data = _parse_xy_xy(datalines)
+    elif is_xy_pair_header and headerline == '(X..XY)':
+        # Mixed format: X values then XY pairs; commas may be European
+        # decimal separators in the X values and XY pair data
+        header_end = datastring.find('\n')
+        data_part = datastring[header_end:] if header_end != -1 else datastring
+        if ',' in data_part and '.' not in data_part:
+            datastring = re.sub(r'(\d),(\d)', r'\1.\2', datastring)
+            datalines = datastring.split("\n")[1:]
+        mode = _detect_format(datalines[0])
+        if mode == 2:
+            data = _parse_xy_xy(datalines)
+        else:
+            data = _parse_affn_pac(datalines)
     else:
-        return None
+        # (X..XY) or undeclared format: detect and parse
+        mode = _detect_format(datalines[0])
+        if mode == 2 and headerline != '(X++(Y..Y))':
+            data = _parse_xy_xy(datalines)
+        else:
+            # apply comma-to-dot for non-XY data
+            header_end = datastring.find('\n')
+            data_part = datastring[header_end:] if header_end != -1 else datastring
+            if ',' in data_part and '.' not in data_part:
+                datastring = re.sub(r'(\d),(\d)', r'\1.\2', datastring)
+                datalines = datastring.split("\n")[1:]
+            mode = _detect_format(datalines[0])
+            if mode == 1:
+                data = _parse_pseudo(datalines)
+            elif mode == 0:
+                data = _parse_affn_pac(datalines)
+            elif mode == 2:
+                data = _parse_xy_xy(datalines)
+            else:
+                return None
+
     if data is None:
         return None
     return np.asarray(data, dtype="float64"), datatype
@@ -591,19 +668,55 @@ def getdataarray(dic, show_all_data=False):
         except KeyError:
             warn("XYDATA not found ")
 
+    if data is None:  # PEAKTABLE
+        try:
+            valuelist = dic["PEAKTABLE"]
+            if len(valuelist) > 1:
+                warn("Multiple PEAKTABLE arrays in JCAMP-DX file, "
+                     "returning first one only")
+            parseret = _parse_data(valuelist[0])
+            if parseret is not None:
+                data, datatype = parseret
+        except KeyError:
+            pass
+
+    if data is None:  # XYPOINTS
+        try:
+            valuelist = dic["XYPOINTS"]
+            if len(valuelist) > 1:
+                warn("Multiple XYPOINTS arrays in JCAMP-DX file, "
+                     "returning first one only")
+            parseret = _parse_data(valuelist[0])
+            if parseret is not None:
+                data, datatype = parseret
+        except KeyError:
+            pass
+
     if data is None:
         return None
 
     # apply YFACTOR to data if available
     # (NTUPLES data was already scaled per-table above)
     if not is_ntuples:
-        try:
-            yfactor = float(dic["YFACTOR"][0])
-            data = data * yfactor
-        except (ValueError, IndexError):
-            warn("YFACTOR not applied, parsing failed")
-        except KeyError:
-            pass
+        if data.ndim == 3 and data.shape[-1] == 2:
+            # (XY..XY) pairs carry their own X values, which XFACTOR scales;
+            # YFACTOR scales only the Y column
+            for column, factorkey in ((0, "XFACTOR"), (1, "YFACTOR")):
+                try:
+                    factor = float(dic[factorkey][0])
+                    data[..., column] = data[..., column] * factor
+                except (ValueError, IndexError):
+                    warn(f"{factorkey} not applied, parsing failed")
+                except KeyError:
+                    pass
+        else:
+            try:
+                yfactor = float(dic["YFACTOR"][0])
+                data = data * yfactor
+            except (ValueError, IndexError):
+                warn("YFACTOR not applied, parsing failed")
+            except KeyError:
+                pass
 
     return data
 

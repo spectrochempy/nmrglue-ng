@@ -289,9 +289,362 @@ class TestJCAMPDXSynthetic:
         path = self._write_jcamp(content)
         try:
             dic, data = ng.jcampdx.read(path)
+            assert data is not None
             assert np.allclose(data, [7.0, 8.0])
             assert dic["DATATYPE"][0] == "NMR SPECTRUM"
             assert "_datatype_NDNMRSPECTRUM" in dic
+        finally:
+            import os
+            os.remove(path)
+
+    def test_affn_commas_not_xy_pairs(self):
+        """AFFN data with commas is not misread as XY pairs.
+
+        Regression for: (X++(Y..Y)) data with comma-separated values
+        must be parsed as AFFN, not as coordinate pairs.
+        """
+        content = (
+            "##TITLE=Test AFFN Commas\n"
+            "##JCAMPDX=5.0\n"
+            "##DATATYPE=NMR SPECTRUM\n"
+            "##DATA CLASS=XYDATA\n"
+            "##XYDATA=(X++(Y..Y))\n"
+            "0,10,20,30\n"
+            "##END=\n"
+        )
+        path = self._write_jcamp(content)
+        try:
+            dic, data = ng.jcampdx.read(path)
+            assert data is not None
+            assert np.allclose(data, [10.0, 20.0, 30.0])
+        finally:
+            import os
+            os.remove(path)
+
+    def test_ntuples_commas_not_xy_pairs(self):
+        """NTUPLES data with commas is not misread as XY pairs."""
+        content = (
+            "##TITLE=Test NTUPLES Commas\n"
+            "##JCAMPDX=5.0\n"
+            "##DATATYPE=NMR SPECTRUM\n"
+            "##DATA CLASS=NTUPLES\n"
+            "##SYMBOL=X,R\n"
+            "##FACTOR=1,2\n"
+            "##DATA TABLE=(X++(R..R)), PROFILE\n"
+            "0,10,20,30\n"
+            "##END=\n"
+        )
+        path = self._write_jcamp(content)
+        try:
+            dic, data = ng.jcampdx.read(path)
+            assert data is not None
+            assert np.allclose(data, [20.0, 40.0, 60.0])
+        finally:
+            import os
+            os.remove(path)
+
+    def test_leading_zero_decimals(self):
+        """Decimals without leading zero are handled in XY pairs."""
+        content = (
+            "##TITLE=Test Leading Zero\n"
+            "##JCAMPDX=5.0\n"
+            "##DATATYPE=NMR SPECTRUM\n"
+            "##XYPOINTS=(XY..XY)\n"
+            "-.5, 2\n"
+            "1, .5\n"
+            "##END=\n"
+        )
+        path = self._write_jcamp(content)
+        try:
+            dic, data = ng.jcampdx.read(path)
+            assert data is not None
+            assert data.shape == (1, 2, 2)
+            assert np.allclose(data[0], [[-0.5, 2.0], [1.0, 0.5]])
+        finally:
+            import os
+            os.remove(path)
+
+    def test_xy_no_space_between_pairs(self):
+        """Compact XY pairs without spaces between them are preserved.
+
+        Regression for: "15,420,16,1201;17,9" must not be treated as
+        European decimals — commas are X/Y delimiters in (XY..XY) format.
+        """
+        content = (
+            "##TITLE=Test No Space\n"
+            "##JCAMPDX=5.0\n"
+            "##DATATYPE=NMR SPECTRUM\n"
+            "##XYPOINTS=(XY..XY)\n"
+            "15,420,16,1201;17,9\n"
+            "##END=\n"
+        )
+        path = self._write_jcamp(content)
+        try:
+            dic, data = ng.jcampdx.read(path)
+            assert data is not None
+            assert data.shape == (1, 3, 2)
+            assert np.allclose(data[0], [[15.0, 420.0], [16.0, 1201.0], [17.0, 9.0]])
+        finally:
+            import os
+            os.remove(path)
+
+
+class TestJCAMPDXXYFormats:
+    """Tests for JCAMP-DX coordinate list and extended formats.
+
+    Adapted from upstream jjhelmus/nmrglue#262.
+    """
+
+    @staticmethod
+    def _write_jcamp(content):
+        import tempfile
+        fd, path = tempfile.mkstemp(suffix=".jdx")
+        with open(fd, "w") as f:
+            f.write(content)
+        return path
+
+    def test_xy_coordinate_format(self):
+        """(XY..XY) coordinate list format is parsed."""
+        content = (
+            "##TITLE=Test XY\n"
+            "##JCAMPDX=5.0\n"
+            "##DATATYPE=NMR SPECTRUM\n"
+            "##DATA CLASS=XYDATA\n"
+            "##XYDATA=(X..XY)\n"
+            "1.0, 10.0; 2.0, 20.0; 3.0, 30.0\n"
+            "##END=\n"
+        )
+        path = self._write_jcamp(content)
+        try:
+            dic, data = ng.jcampdx.read(path)
+            assert data.shape == (1, 3, 2)
+            assert np.allclose(data[0], [[1.0, 10.0], [2.0, 20.0], [3.0, 30.0]])
+        finally:
+            import os
+            os.remove(path)
+
+    def test_peakttable(self):
+        """PEAKTABLE blocks are parsed."""
+        content = (
+            "##TITLE=Test PEAKTABLE\n"
+            "##JCAMPDX=5.0\n"
+            "##DATATYPE=NMR SPECTRUM\n"
+            "##PEAKTABLE=(XY..XY)\n"
+            "1.0, 100.0\n"
+            "2.0, 200.0\n"
+            "##END=\n"
+        )
+        path = self._write_jcamp(content)
+        try:
+            dic, data = ng.jcampdx.read(path)
+            assert data.shape == (1, 2, 2)
+            assert np.allclose(data[0], [[1.0, 100.0], [2.0, 200.0]])
+        finally:
+            import os
+            os.remove(path)
+
+    def test_xypoints(self):
+        """XYPOINTS blocks are parsed."""
+        content = (
+            "##TITLE=Test XYPOINTS\n"
+            "##JCAMPDX=5.0\n"
+            "##DATATYPE=NMR SPECTRUM\n"
+            "##XYPOINTS=(XY..XY)\n"
+            "1.5, 150.0\n"
+            "2.5, 250.0\n"
+            "##END=\n"
+        )
+        path = self._write_jcamp(content)
+        try:
+            dic, data = ng.jcampdx.read(path)
+            assert data.shape == (1, 2, 2)
+            assert np.allclose(data[0], [[1.5, 150.0], [2.5, 250.0]])
+        finally:
+            import os
+            os.remove(path)
+
+    def test_comma_decimal_separator(self):
+        """Comma decimal separators are handled."""
+        content = (
+            "##TITLE=Test Comma\n"
+            "##JCAMPDX=5.0\n"
+            "##DATATYPE=NMR SPECTRUM\n"
+            "##DATA CLASS=XYDATA\n"
+            "##XYDATA=(X..XY)\n"
+            "1,0, 10,5; 2,0, 20,5\n"
+            "##END=\n"
+        )
+        path = self._write_jcamp(content)
+        try:
+            dic, data = ng.jcampdx.read(path)
+            assert data.shape == (1, 2, 2)
+            assert np.allclose(data[0], [[1.0, 10.5], [2.0, 20.5]])
+        finally:
+            import os
+            os.remove(path)
+
+    def test_scientific_notation(self):
+        """Scientific notation in XY pairs is handled."""
+        content = (
+            "##TITLE=Test Scientific\n"
+            "##JCAMPDX=5.0\n"
+            "##DATATYPE=NMR SPECTRUM\n"
+            "##XYPOINTS=(XY..XY)\n"
+            "1.5e3, 2.0E-1\n"
+            "##END=\n"
+        )
+        path = self._write_jcamp(content)
+        try:
+            dic, data = ng.jcampdx.read(path)
+            assert data.shape == (1, 1, 2)
+            assert np.allclose(data[0], [[1500.0, 0.2]])
+        finally:
+            import os
+            os.remove(path)
+
+    def test_xy_pairs_indented_and_signed(self):
+        """(XY..XY) pairs with leading whitespace or signs."""
+        cases = [
+            (" 199.9, 1097735\n 199.95, 1097736\n",
+             [[199.9, 1097735.0], [199.95, 1097736.0]]),
+            (" 27, 1248 28, 2067\n 29, 5538\n",
+             [[27.0, 1248.0], [28.0, 2067.0], [29.0, 5538.0]]),
+            ("-1.5, 20\n-1.4, -21\n", [[-1.5, 20.0], [-1.4, -21.0]]),
+        ]
+        for lines, expected in cases:
+            content = (
+                "##TITLE=Test\n##JCAMPDX=5.0\n"
+                "##DATATYPE=NMR SPECTRUM\n##DATA CLASS=XYDATA\n"
+                "##XYDATA=(XY..XY)\n" + lines + "##END=\n"
+            )
+            path = self._write_jcamp(content)
+            try:
+                dic, data = ng.jcampdx.read(path)
+                assert data.shape == (1, len(expected), 2)
+                assert np.allclose(data[0], expected)
+            finally:
+                import os
+                os.remove(path)
+
+    def test_empty_table(self):
+        """A table with no values gives no data, not an error."""
+        content = (
+            "##TITLE=Test\n##JCAMPDX=5.0\n"
+            "##DATATYPE=NMR SPECTRUM\n##DATA CLASS=PEAKTABLE\n"
+            "##NPOINTS=0\n##PEAKTABLE=(XY..XY)\n##END=\n"
+        )
+        path = self._write_jcamp(content)
+        try:
+            dic, data = ng.jcampdx.read(path)
+            assert data is None
+        finally:
+            import os
+            os.remove(path)
+
+    def test_xy_pairs_factors(self):
+        """XFACTOR scales X and YFACTOR scales Y of (XY..XY) pairs."""
+        content = (
+            "##TITLE=Test\n##JCAMPDX=5.0\n##DATATYPE=NMR SPECTRUM\n"
+            "##XFACTOR=10\n##YFACTOR=2\n"
+            "##XYDATA=(XY..XY)\n1, 5\n2, 6\n##END=\n"
+        )
+        path = self._write_jcamp(content)
+        try:
+            dic, data = ng.jcampdx.read(path)
+            assert np.allclose(data[0], [[10.0, 10.0], [20.0, 12.0]])
+        finally:
+            import os
+            os.remove(path)
+
+    def test_compact_integer_pairs(self):
+        """Compact integer coordinate pairs preserve comma delimiters.
+
+        Regression for: comma-to-dot normalization must not rewrite the
+        X/Y separator in (XY..XY) data like "15,420 16,1201".
+        """
+        content = (
+            "##TITLE=Test Compact\n"
+            "##JCAMPDX=5.0\n"
+            "##DATATYPE=NMR SPECTRUM\n"
+            "##DATA CLASS=XYDATA\n"
+            "##XYDATA=(XY..XY)\n"
+            "15,420 16,1201\n"
+            "##END=\n"
+        )
+        path = self._write_jcamp(content)
+        try:
+            dic, data = ng.jcampdx.read(path)
+            assert data is not None
+            assert data.shape == (1, 2, 2)
+            assert np.allclose(data[0], [[15.0, 420.0], [16.0, 1201.0]])
+        finally:
+            import os
+            os.remove(path)
+
+    def test_compact_pairs_peakttable(self):
+        """Compact integer pairs in PEAKTABLE also preserve delimiters."""
+        content = (
+            "##TITLE=Test Compact PEAKTABLE\n"
+            "##JCAMPDX=5.0\n"
+            "##DATATYPE=NMR SPECTRUM\n"
+            "##PEAKTABLE=(XY..XY)\n"
+            "15,420 16,1201\n"
+            "##END=\n"
+        )
+        path = self._write_jcamp(content)
+        try:
+            dic, data = ng.jcampdx.read(path)
+            assert data is not None
+            assert data.shape == (1, 2, 2)
+            assert np.allclose(data[0], [[15.0, 420.0], [16.0, 1201.0]])
+        finally:
+            import os
+            os.remove(path)
+
+    def test_compact_pairs_semicolon(self):
+        """Compact XY pairs separated by semicolons preserve delimiters.
+
+        Regression for: comma-to-dot fallback must not destroy valid
+        coordinate pairs like "15,420; 16,1201".
+        """
+        content = (
+            "##TITLE=Test Compact Semicolon\n"
+            "##JCAMPDX=5.0\n"
+            "##DATATYPE=NMR SPECTRUM\n"
+            "##XYPOINTS=(XY..XY)\n"
+            "15,420; 16,1201\n"
+            "##END=\n"
+        )
+        path = self._write_jcamp(content)
+        try:
+            dic, data = ng.jcampdx.read(path)
+            assert data is not None
+            assert data.shape == (1, 2, 2)
+            assert np.allclose(data[0], [[15.0, 420.0], [16.0, 1201.0]])
+        finally:
+            import os
+            os.remove(path)
+
+    def test_compact_pairs_multi_per_segment(self):
+        """Multiple compact XY pairs in one semicolon segment are preserved.
+
+        Regression for: "15,420 16,1201; 17,9" must not be treated as
+        European decimals — each space-separated token has exactly one comma.
+        """
+        content = (
+            "##TITLE=Test Multi Pairs\n"
+            "##JCAMPDX=5.0\n"
+            "##DATATYPE=NMR SPECTRUM\n"
+            "##XYPOINTS=(XY..XY)\n"
+            "15,420 16,1201; 17,9\n"
+            "##END=\n"
+        )
+        path = self._write_jcamp(content)
+        try:
+            dic, data = ng.jcampdx.read(path)
+            assert data is not None
+            assert data.shape == (1, 3, 2)
+            assert np.allclose(data[0], [[15.0, 420.0], [16.0, 1201.0], [17.0, 9.0]])
         finally:
             import os
             os.remove(path)
