@@ -22,9 +22,8 @@ http://www.jcamp-dx.org/protocols.html
 
 Notes:
     * Writing NMR data in JCAMP-DX format is not currently supported.
-    * Multi-dimensional JCAMP-files are not currently supported.
-      See http://www.jcamp-dx.org/ndnmr-index.html#2dnmr%20testfiles
-
+    * Multidimensional NTUPLES spectra are read as sets of 1D pages;
+      guess_udic describes the direct dimension only.
 """
 
 
