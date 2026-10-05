@@ -364,29 +364,26 @@ class TestJCAMPDXSynthetic:
             import os
             os.remove(path)
 
-    def test_xy_header_european_decimals(self):
-        """European decimals with (XY..XY) header are handled.
+    def test_xy_no_space_between_pairs(self):
+        """Compact XY pairs without spaces between them are preserved.
 
-        Commas in "(XY..XY)" data with European decimal values and
-        semicolon row separators need disambiguation between decimal
-        separators and X/Y delimiters.
+        Regression for: "15,420,16,1201;17,9" must not be treated as
+        European decimals — commas are X/Y delimiters in (XY..XY) format.
         """
         content = (
-            "##TITLE=Test XY European\n"
+            "##TITLE=Test No Space\n"
             "##JCAMPDX=5.0\n"
             "##DATATYPE=NMR SPECTRUM\n"
             "##XYPOINTS=(XY..XY)\n"
-            "1,0, 10,5; 2,0, 20,5\n"
+            "15,420,16,1201;17,9\n"
             "##END=\n"
         )
         path = self._write_jcamp(content)
         try:
             dic, data = ng.jcampdx.read(path)
             assert data is not None
-            # Semicolon-separated rows with European decimals should be
-            # parsed as two XY pairs after comma-to-dot conversion
-            assert data.shape == (1, 2, 2)
-            assert np.allclose(data[0], [[1.0, 10.5], [2.0, 20.5]])
+            assert data.shape == (1, 3, 2)
+            assert np.allclose(data[0], [[15.0, 420.0], [16.0, 1201.0], [17.0, 9.0]])
         finally:
             import os
             os.remove(path)
