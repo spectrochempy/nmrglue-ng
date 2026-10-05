@@ -9,6 +9,10 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ### Added
 
+- Add JCAMP-DX nD NTUPLES support: read multidimensional spectra as sets of
+  1D pages, scale each page by its own dependent-variable factor, and prefer
+  1D sections when both 1D and nD are present. Adapted from upstream
+  jjhelmus/nmrglue#260. Add 2D JCAMP-DX fixture and tests.
 - Add packaged JEOL 2D and JCAMP-DX test fixtures with autonomous reader tests.
   Data from nmrXiv CENAPTNMR project P33 (doi:10.57992/nmrxiv.p33), CC0 1.0.
   Covers JEOL 2D HSQC/COSY/HMBC, JEOL 1D Beta-Pinene, and JCAMP-DX 1D

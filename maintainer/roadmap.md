@@ -64,6 +64,9 @@ never declares readiness while an item is open.
 - [ ] Specify observation/reference/carrier-frequency semantics and ppm conversion.
 - [ ] Resolve Bruker processing-parameter source selection.
 - [ ] Consolidate JCAMP-DX behavior against documented and real-world fixtures.
+  nD NTUPLES reading implemented (adapted from upstream #260). Remaining:
+  XY..XY format, PEAKTABLE, comma decimal separators (upstream #262),
+  read_blocks (upstream #277), read_err parameter (upstream #259).
 - [ ] Investigate NMRPipe/JRES dimensional metadata behavior.
 
 ### Bruker pdata fixtures — added
