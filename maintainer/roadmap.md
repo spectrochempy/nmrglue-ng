@@ -76,6 +76,12 @@ Three packaged Bruker experiments with raw and processed data:
 22 autonomous tests cover `read()` and `read_pdata()` for 1D and 2D data,
 including `all_components=True` for the HSQC experiment.
 
+### JEOL 2D and JCAMP-DX fixtures — added
+
+One JEOL 2D HSQC and two JCAMP-DX 1D fixtures from nmrXiv CENAPTNMR P33
+(CC0 1.0). 10 autonomous tests cover `jeol.read()` for 2D data and
+`jcampdx.read()` for 1D data with numerical reference values.
+
 ### JEOL fixtures — added
 
 Four packaged JEOL fixtures with 17 autonomous reader tests including
