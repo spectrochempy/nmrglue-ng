@@ -42,6 +42,18 @@ These JEOL JDF files are packaged test fixtures for the nmrglue JEOL reader.
 | Experiment | HSQC 2D |
 | Directory | `(-)-Epicatechin 400 MHz in DMSOd6 NMR data /` |
 
+### Group 4 — Beta-Pinene 1H
+
+| Field | Value |
+|---|---|
+| File | `betapinene_1h.jdf` |
+| Source | [nmrXiv CENAPTNMR project P33](https://nmrxiv.org/project/P33) |
+| DOI | [10.57992/nmrxiv.p33](https://doi.org/10.57992/nmrxiv.p33) |
+| License | **CC0 1.0** |
+| Sample | (-)-beta-Pinene 6782 µg / 200 µL CDCl3, 400 MHz |
+| Experiment | 1H 1D |
+| Directory | `(-)-beta-Pinene 60_400_900 MHz in CDCl3 NMR data /` |
+
 ## SHA-256 checksums
 
 | File | SHA-256 |
@@ -51,6 +63,7 @@ These JEOL JDF files are packaged test fixtures for the nmrglue JEOL reader.
 | `Rutin_*_qHNMR_*.jdf` | `bb76e9d4a8bb9dd66b8ddbaeffcee10ce3635f615861caa75630a46453e0cf71` |
 | `Rutin_*_13CNMR_*.jdf` | `c870bd413d4be6b31c17d7e8995a63bfef031777c26bad61aa2ff48e1eb43e46` |
 | `epicatechin_hsqc.jdf` | `eaa28b4b1fe05f95a41ace4f69f33ee6f31f26f392d3aea1d94bf3978b153625` |
+| `betapinene_1h.jdf` | `eb6ae9f4b68929f10c6def69ec9d3428dc3537d24d82fd77dda7cb39d9aba7e2` |
 
 ## MIT License (cheminfo/jeol-data-test)
 

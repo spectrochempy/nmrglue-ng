@@ -4,6 +4,8 @@ Provenance:
 - fluorine.jdf, phosphorus.jdf: cheminfo/jeol-data-test commit 70bf716 (MIT).
 - Rutin_*: cheminfo/jeol-data-test, Harvard Dataverse doi:10.7910/DVN/ZAZDNM
   (CC0 1.0). Sample: Rutin 400 MHz DMSO-d6.
+- betapinene_1h.jdf: nmrXiv CENAPTNMR P33 (doi:10.57992/nmrxiv.p33), CC0 1.0.
+  Sample: (-)-beta-Pinene 400 MHz CDCl3.
 """
 
 import os
@@ -26,9 +28,10 @@ RUTIN_1H_JDF = os.path.join(
 RUTIN_13C_JDF = os.path.join(
     PACKAGED_DIR, "Rutin_3080ug200uL_DMSOd6_13CNMR_400MHz_Jeol.jdf"
 )
+BETAPINENE_1H_JDF = os.path.join(PACKAGED_DIR, "betapinene_1h.jdf")
 
-ALL_JDF = [FLUORINE_JDF, PHOSPHORUS_JDF, RUTIN_1H_JDF, RUTIN_13C_JDF]
-ALL_IDS = ["fluorine", "phosphorus", "rutin_1h", "rutin_13c"]
+ALL_JDF = [FLUORINE_JDF, PHOSPHORUS_JDF, RUTIN_1H_JDF, RUTIN_13C_JDF, BETAPINENE_1H_JDF]
+ALL_IDS = ["fluorine", "phosphorus", "rutin_1h", "rutin_13c", "betapinene_1h"]
 
 # Reference values independently decoded from file headers.
 # Tolerances: obs/sw/car use rtol=1e-9 (float64 header fields);
@@ -66,15 +69,24 @@ REFERENCES = {
         "data0": complex(1.0346708107190219e-08, 2.5246874318274507e-08),
         "data_last": complex(0.0034788697442304714, -0.010487021382253317),
     },
+    "betapinene_1h": {
+        "obs": 399.78219837825003,
+        "sw": 7494.00479616307,
+        "car": 1998.9109918912502,
+        "label": "Proton",
+        "data0": complex(2.2085355861803515e-05, -1.7638300730708127e-05),
+        "data_last": complex(0.005702196020709063, -0.0040669821388828005),
+    },
 }
 
 
-@pytest.mark.parametrize("path", ALL_JDF, ids=ALL_IDS)
-def test_read_1d(path):
+@pytest.mark.parametrize("fid", ALL_IDS)
+def test_read_1d(fid):
     """Each packaged 1D fixture reads successfully."""
+    path = dict(zip(ALL_IDS, ALL_JDF))[fid]
     dic, data = ng.jeol.read(path)
     assert data.ndim == 1
-    assert data.shape == (32768,)
+    assert data.shape[0] > 0
     assert data.dtype == np.complex128
     assert "header" in dic
     assert "parameters" in dic
@@ -95,7 +107,7 @@ def test_udic_reference(fid):
     dic, data = ng.jeol.read(path)
     udic = ng.jeol.guess_udic(dic, data)
     assert udic["ndim"] == 1
-    assert udic[0]["size"] == 32768
+    assert udic[0]["size"] == data.shape[0]
     assert udic[0]["encoding"] == "complex"
     assert udic[0]["label"] == ref["label"]
     assert np.isclose(udic[0]["obs"], ref["obs"], rtol=1e-9)

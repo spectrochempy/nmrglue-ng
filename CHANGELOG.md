@@ -11,7 +11,8 @@ original nmrglue project and are preserved for attribution and continuity.
 
 - Add packaged JEOL 2D and JCAMP-DX test fixtures with autonomous reader tests.
   Data from nmrXiv CENAPTNMR project P33 (doi:10.57992/nmrxiv.p33), CC0 1.0.
-  Covers JEOL 2D HSQC and JCAMP-DX 1D 1H/13C reading. (#42)
+  Covers JEOL 2D HSQC, JEOL 1D Beta-Pinene, and JCAMP-DX 1D 1H/13C from
+  Epicatechin, Beta-Pinene, and Caffeic acid. (#42, #44)
 - Add packaged Bruker raw and processed data fixtures with autonomous reader
   tests. 1D sucrose standard from nmrXiv P52 (CC0 1.0); 2D HSQC and COSY from
   nmrXiv CENAPTNMR dataset (CC0 1.0). Covers `read()` and `read_pdata()` for
