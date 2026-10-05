@@ -11,7 +11,7 @@ original nmrglue project and are preserved for attribution and continuity.
 
 - Add JCAMP-DX coordinate list (XY..XY) format, PEAKTABLE/XYPOINTS parsing,
   comma decimal separators, and XFACTOR/YFACTOR scaling for coordinate pairs.
-  Adapted from upstream jjhelmus/nmrglue#262. Add 10 synthetic tests. (#47)
+  Adapted from upstream jjhelmus/nmrglue#262. Add 14 synthetic tests. (#47)
 - Add JCAMP-DX nD NTUPLES support: read multidimensional spectra as sets of
   1D pages, scale each page by its own dependent-variable factor, and prefer
   1D sections when both 1D and nD are present. Adapted from upstream

@@ -292,6 +292,7 @@ class TestJCAMPDXSynthetic:
             assert data is not None
             assert np.allclose(data, [7.0, 8.0])
             assert dic["DATATYPE"][0] == "NMR SPECTRUM"
+            assert "_datatype_NDNMRSPECTRUM" in dic
         finally:
             import os
             os.remove(path)
@@ -364,16 +365,17 @@ class TestJCAMPDXSynthetic:
             os.remove(path)
 
     def test_xy_header_european_decimals(self):
-        """European decimals with (X..XY) header are handled.
+        """European decimals with (XY..XY) header are handled.
 
-        Commas in "(X..XY)" data with European decimal values need
-        disambiguation between decimal separators and X/Y delimiters.
+        Commas in "(XY..XY)" data with European decimal values and
+        semicolon row separators need disambiguation between decimal
+        separators and X/Y delimiters.
         """
         content = (
             "##TITLE=Test XY European\n"
             "##JCAMPDX=5.0\n"
             "##DATATYPE=NMR SPECTRUM\n"
-            "##XYPOINTS=(X..XY)\n"
+            "##XYPOINTS=(XY..XY)\n"
             "1,0, 10,5; 2,0, 20,5\n"
             "##END=\n"
         )
@@ -381,8 +383,8 @@ class TestJCAMPDXSynthetic:
         try:
             dic, data = ng.jcampdx.read(path)
             assert data is not None
-            # The semicolon-separated values with European decimals
-            # should be parsed as two XY pairs after comma-to-dot conversion
+            # Semicolon-separated rows with European decimals should be
+            # parsed as two XY pairs after comma-to-dot conversion
             assert data.shape == (1, 2, 2)
             assert np.allclose(data[0], [[1.0, 10.5], [2.0, 20.5]])
         finally:

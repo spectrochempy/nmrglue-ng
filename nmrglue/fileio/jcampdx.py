@@ -508,7 +508,15 @@ def _parse_data(datastring):
         else:
             data = _parse_affn_pac(datalines)
     elif is_xy_pair_header and headerline == '(XY..XY)':
-        # Coordinate list: commas separate X and Y, do not rewrite them
+        # Coordinate list: commas separate X and Y. However, European
+        # instruments may use commas as decimal separators with semicolons
+        # as row separators (e.g. "1,0, 10,5; 2,0, 20,5"). Detect this
+        # pattern and normalize before parsing.
+        header_end = datastring.find('\n')
+        data_part = datastring[header_end:] if header_end != -1 else datastring
+        if ';' in data_part and ',' in data_part and '.' not in data_part:
+            datastring = re.sub(r'(\d),(\d)', r'\1.\2', datastring)
+            datalines = datastring.split("\n")[1:]
         data = _parse_xy_xy(datalines)
     elif is_xy_pair_header and headerline == '(X..XY)':
         # Mixed format: X values then XY pairs; commas may be European
