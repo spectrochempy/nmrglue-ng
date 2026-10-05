@@ -3,6 +3,7 @@
 Source: nmrXiv CENAPTNMR project P33 (doi:10.57992/nmrxiv.p33), CC0 1.0.
 Sample: (-)-Epicatechin 400 MHz in DMSO-d6.
 Directory: (-)-Epicatechin 400 MHz in DMSOd6 NMR data/
+Original file: EpiCatechin_2880ug200uL_DMSOd6_HSQC_400MHz_Jeol.jdf
 """
 
 import os
@@ -20,6 +21,20 @@ DATA_DIR = os.path.join(
 
 HSQC_JDF = os.path.join(DATA_DIR, "epicatechin_hsqc.jdf")
 
+# Reference values decoded independently from the JDF binary.
+# Submatrix size is 32x32; interior points at boundaries distinguish
+# correct submatrix reordering from a simple reshape.
+# atol=1e-12 ensures values near zero are still validated.
+REFERENCES = {
+    (0, 0): complex(-5.050323944963172e-09, 3.5653795334153503e-09),
+    (0, 32): complex(0.008414949347426837, 0.004781845031130792),
+    (32, 0): complex(4.620134065195179e-09, -2.203621699232194e-09),
+    (32, 32): complex(-0.04451286247176576, -0.032451003426983635),
+    (1, 33): complex(0.016227229038634525, -0.0026962399809283707),
+    (33, 1): complex(2.7001365553112083e-07, 1.8242492177960163e-07),
+    (-1, -1): complex(0.010997792545297659, 0.013005593413259567),
+}
+
 
 class TestJEOL2DHSQC:
     """Tests for 2D JEOL HSQC data."""
@@ -31,13 +46,13 @@ class TestJEOL2DHSQC:
         assert data.shape == (64, 1024)
         assert data.dtype == np.complex128
 
-    def test_reference_points(self):
-        """Data corners match independently decoded reference values."""
+    @pytest.mark.parametrize("row,col", sorted(REFERENCES.keys()))
+    def test_reference_point(self, row, col):
+        """Each reference point matches independently decoded values."""
         dic, data = ng.jeol.read(HSQC_JDF)
-        assert np.isclose(data[0, 0].real, -5.050323944963172e-09, rtol=1e-6)
-        assert np.isclose(data[0, 0].imag, 3.5653795334153503e-09, rtol=1e-6)
-        assert np.isclose(data[-1, -1].real, 0.010997792545297659, rtol=1e-6)
-        assert np.isclose(data[-1, -1].imag, 0.013005593413259567, rtol=1e-6)
+        expected = REFERENCES[(row, col)]
+        assert np.isclose(data[row, col].real, expected.real, rtol=1e-6, atol=1e-12)
+        assert np.isclose(data[row, col].imag, expected.imag, rtol=1e-6, atol=1e-12)
 
     def test_data_finite(self):
         """All data values are finite."""

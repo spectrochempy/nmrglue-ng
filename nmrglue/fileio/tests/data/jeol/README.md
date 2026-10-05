@@ -11,6 +11,7 @@ These JEOL JDF files are packaged test fixtures for the nmrglue JEOL reader.
 | Files | `fluorine.jdf`, `phosphorus.jdf` |
 | Source | [cheminfo/jeol-data-test](https://github.com/cheminfo/jeol-data-test) |
 | Revision | [`70bf716`](https://github.com/cheminfo/jeol-data-test/commit/70bf71612900fd158c3e482af86f48655ca86352) |
+| Source revision | `a1e6e83` |
 | Added | May 2023 |
 | Header date | 2023-05-07 (`MSC007_001`) |
 | License | MIT (see below) |
@@ -22,6 +23,7 @@ These JEOL JDF files are packaged test fixtures for the nmrglue JEOL reader.
 |---|---|
 | Files | `Rutin_3080ug200uL_DMSOd6_qHNMR_400MHz_Jeol.jdf`, `Rutin_3080ug200uL_DMSOd6_13CNMR_400MHz_Jeol.jdf` |
 | Source | [cheminfo/jeol-data-test](https://github.com/cheminfo/jeol-data-test) |
+| Source revision | `a1e6e83` |
 | Original data | Harvard Dataverse |
 | DOI | [10.7910/DVN/ZAZDNM](https://doi.org/10.7910/DVN/ZAZDNM) |
 | Original license | CC0 1.0 (public domain dedication) |
