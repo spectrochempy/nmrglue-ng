@@ -25,8 +25,6 @@ SELF_CONTAINED_EXCEPTIONS = {
     "tests/test_bruker_with_test_data.py::test_read_nuslist",
     "tests/test_bruker_with_test_data.py::test_read_vdlist",
     "tests/test_convert.py::test_bruker_3d_acqu3s_isolation",
-    "tests/test_jeol.py::test_1d_real",
-    "tests/test_jeol.py::test_2d_rr",
 }
 
 DATASET_TESTS = {

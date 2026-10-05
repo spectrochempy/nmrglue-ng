@@ -102,7 +102,9 @@ v0.5 corpus has the Bruker raw groups but lacks the processed-data and JEOL
 groups, so the release-critical dataset assertions remain unvalidated
 until those groups are available. The audit retained the Tecmag sign checks
 and Spinsolve interval bounds because they are intentional one-sided
-properties, not proximity checks. Issue #18 remains separate and untouched.
+properties, not proximity checks. Issue #18 is resolved: empty JEOL placeholder
+tests (test_1d_real, test_2d_rr) are explicitly skipped with documented
+reasons; real-axis JEOL data is not available in any sourced dataset.
 
 ## P2 — Broader maintenance
 

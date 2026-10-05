@@ -3,12 +3,18 @@
 import os
 
 import numpy as np
+import pytest
 import nmrglue as ng
 
 from setup import DATA_DIR
 JEOLDATA = os.path.join(DATA_DIR, "jeol")
 
 
+@pytest.mark.skip(reason=(
+    "No JEOL fixture with a real axis is available. The original cyclosporine "
+    "data was never published; CENAPTNMR (P33) and jeol-data-test fixtures "
+    "are all complex. Real-axis JEOL data is rare and not yet sourced."
+))
 def test_1d_real():
     """data with a real dimension"""
 
@@ -62,6 +68,12 @@ def test_1d_complex_4():
     assert np.allclose(jdata, pdata, rtol=1e-7)
 
 
+@pytest.mark.skip(reason=(
+    "No JEOL fixture with two real dimensions is available. The original "
+    "cyclosporine data was never published; CENAPTNMR (P33) and "
+    "jeol-data-test fixtures are all complex. Real-axis 2D JEOL data is "
+    "rare and not yet sourced."
+))
 def test_2d_rr():
     """data with two real dimensions"""
 
