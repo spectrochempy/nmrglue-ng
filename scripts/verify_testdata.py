@@ -134,6 +134,17 @@ def main():
             f"but groups sum to {actual_total_size}"
         )
 
+    # Validate the full size chain: file sizes -> group totals -> global total
+    for gname, gdata in groups.items():
+        files = gdata.get("files", {})
+        file_sizes_sum = sum(f.get("size", 0) for f in files.values())
+        group_total = gdata.get("total_size", 0)
+        if file_sizes_sum != group_total:
+            structural_errors.append(
+                f"GROUP SIZE MISMATCH: {gname} declares total_size={group_total} "
+                f"but files sum to {file_sizes_sum}"
+            )
+
     if structural_errors:
         for e in structural_errors:
             print(f"STRUCTURAL: {e}", file=sys.stderr)

@@ -233,24 +233,28 @@ def should_exclude(name: str) -> bool:
 def classify_file(rel_path: str, group_name: str) -> str:
     """Classify a file by its exact relative path.
 
-    Returns 'original' for files present in the v0.5 archive,
-    'derived' for locally generated references matching known patterns,
+    Returns 'original' for files whose relative path matches an entry in the
+    v0.5 archive (group_name/filename at the top level of the group),
+    'derived' for locally generated references matching a known derived
+    pattern (applied to the relative path within the group),
     or 'unknown' for unrecognized files.
     """
-    # Build the exact archive path: group_name/filename
-    parts = rel_path.split("/")
-    if len(parts) < 2:
+    prefix = f"{group_name}/"
+    if not rel_path.startswith(prefix):
         return "unknown"
-    fname = parts[-1]
-    archive_path = f"{group_name}/{fname}"
+    group_rel = rel_path[len(prefix):]
+
     archive_files = ARCHIVE_FILES.get(group_name, [])
-    if fname in archive_files:
+    if group_rel in archive_files:
         return "original"
+
     derived = DERIVED_FILES.get(group_name, {})
     if derived:
         pattern = derived.get("pattern", "")
-        if pattern and fname.startswith("test") and fname.endswith(".fid"):
-            return "derived"
+        if pattern:
+            import fnmatch
+            if fnmatch.fnmatch(group_rel, pattern):
+                return "derived"
     return "unknown"
 
 

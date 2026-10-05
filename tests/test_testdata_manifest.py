@@ -10,6 +10,7 @@ import pytest
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+import generate_testdata_manifest
 import verify_testdata
 
 
@@ -172,3 +173,47 @@ class TestFileVerification:
             groups={"grp": make_group(files={"grp/f.bin": make_file_entry(b"x")})}
         )
         assert run_verify(tmp_path / "m.toml", data_dir, manifest) == 0
+
+
+class TestSizeChain:
+    def test_group_total_mismatch_fails(self, tmp_path):
+        """Group total_size inconsistent with sum of file sizes must fail."""
+        data_dir = tmp_path / "data"
+        (data_dir / "grp").mkdir(parents=True)
+        (data_dir / "grp" / "f.bin").write_bytes(b"x")
+        # File is 1 byte, but group declares total_size=999
+        group = make_group(files={"grp/f.bin": make_file_entry(b"x")}, total_size=999)
+        # Global total matches the (wrong) group total, so only the
+        # file->group chain check catches the inconsistency.
+        manifest = make_manifest(groups={"grp": group}, total_size=999)
+        assert run_verify(tmp_path / "m.toml", data_dir, manifest) == 1
+
+    def test_consistent_size_chain_passes(self, tmp_path):
+        data_dir = tmp_path / "data"
+        (data_dir / "grp").mkdir(parents=True)
+        (data_dir / "grp" / "f.bin").write_bytes(b"xy")
+        manifest = make_manifest(
+            groups={"grp": make_group(files={"grp/f.bin": make_file_entry(b"xy")})}
+        )
+        assert run_verify(tmp_path / "m.toml", data_dir, manifest) == 0
+
+
+class TestClassifyFile:
+    def test_archive_top_level_file_is_original(self):
+        assert generate_testdata_manifest.classify_file("agilent_1d/fid", "agilent_1d") == "original"
+        assert generate_testdata_manifest.classify_file("bruker_3d/ser", "bruker_3d") == "original"
+
+    def test_derived_pattern_matches_relative_path(self):
+        assert generate_testdata_manifest.classify_file("bruker_3d/fid/test001.fid", "bruker_3d") == "derived"
+        assert generate_testdata_manifest.classify_file("bruker_3d/fid/test116.fid", "bruker_3d") == "derived"
+
+    def test_same_basename_in_wrong_path_is_unknown(self):
+        # "fid" exists in archive for agilent_1d, but not under generated/
+        assert generate_testdata_manifest.classify_file("agilent_1d/generated/fid", "agilent_1d") == "unknown"
+
+    def test_similar_name_in_wrong_path_is_unknown(self):
+        # "test999.fid" looks derived but is not under fid/
+        assert generate_testdata_manifest.classify_file("bruker_3d/unrelated/test999.fid", "bruker_3d") == "unknown"
+
+    def test_unknown_group_file_is_unknown(self):
+        assert generate_testdata_manifest.classify_file("agilent_1d/new-reference.bin", "agilent_1d") == "unknown"
