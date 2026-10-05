@@ -195,9 +195,58 @@ new external dataset should have documented:
 
 Do not commit large datasets to Git when a small fixture is sufficient. Do not
 add automatic multi-gigabyte downloads to the standard CI. If data must remain
-external, document how contributors can obtain and verify it. The project does
-not yet provide a complete managed dataset infrastructure, so proposals should
-not assume one exists.
+external, document how contributors can obtain and verify it.
+
+### Test-data manifest and verification
+
+The release-critical external corpus is documented in
+`maintainer/testdata-manifest.toml`, which is tracked in Git. Both scripts
+require Python >= 3.11 (for `tomllib`); on Python 3.10, install `tomli`.
+
+The data comes from the upstream nmrglue v0.5 release archive. The repository
+has a BSD-3-Clause license, but no explicit data license was specified for
+release assets. Redistribution status for each group is therefore recorded as
+`UNRESOLVED` pending explicit rights evidence. JEOL test data was not found
+in the nmrglue repository, the v0.5 release archive, or the local corpus;
+PR #228 added code and tests only. Tests referencing `data/jeol/` fail with
+`FileNotFoundError` when the data is absent (the conftest skip checks for
+the `data/` directory, not `data/jeol/` specifically).
+
+The manifest records, for each logical group:
+
+- format and provenance;
+- repository license and redistribution status (`UNRESOLVED`,
+  `NOT_AVAILABLE`, or `CLEAR`);
+- evidence supporting the redistribution assessment;
+- availability (`complete`, `partial`, or `not_available`) and missing
+  components;
+- every file with its SHA-256 checksum, size, and provenance class
+  (`original` from the v0.5 archive, or `derived` from local generation);
+- groups that are not present in the local corpus.
+
+Two scripts support this manifest:
+
+```bash
+# Regenerate the manifest from the current data/ directory
+python scripts/generate_testdata_manifest.py
+
+# Verify local data against the manifest
+python scripts/verify_testdata.py
+```
+
+The verifier validates manifest structure, rejects empty manifests, checks
+every listed file against its expected checksum and size, detects extra files
+not in the manifest, and confronts declared counters with actual entries.
+
+The archive reference for the upstream v0.5 test data is:
+
+- URL: `https://github.com/jjhelmus/nmrglue/releases/download/v0.5/test_data_v0.5-dev.zip`
+- SHA-256: `dbff258fe08a19f1cd08f44b731d3d19e20e54fbb1415d904cd6d03f25209dae`
+
+Several release-critical groups are not present in the local corpus or are
+only partially available. See the `[missing.*]` sections and the
+`availability` / `missing_components` fields in the manifest, and
+`maintainer/roadmap.md`.
 
 ## Bug Fixes
 

@@ -29,9 +29,24 @@ never declares readiness while an item is open.
 - [x] Define the residual release-critical external dataset: 16 logical groups
   protecting 42 tests.
 - [ ] Clear provenance and redistribution rights for release-critical data.
-- [ ] Add a versioned manifest with sizes and SHA-256 checksums.
+  Manifest records redistribution_status=UNRESOLVED for all local groups:
+  the v0.5 release asset has no explicit data license, and the repository
+  BSD-3-Clause license scope for contributed data is unconfirmed. JEOL data
+  not found in examined sources (repository, release archive, local corpus).
+  Missing groups (Sparky, RNMRTK, JCAMP-DX, SIMPSON encoding sets) need
+  acquisition or regeneration. 116 Bruker 3D files are locally generated
+  NMRPipe references, not in the release archive.
+- [x] Add a versioned manifest with sizes and SHA-256 checksums.
+  `maintainer/testdata-manifest.toml` tracks 145 files across 11 local
+  groups with provenance classes, availability, and evidence fields.
+  Regeneration and verification scripts provided (Python >= 3.11).
 - [ ] Add an explicit checksum-verifying test-data fetcher.
+  `scripts/verify_testdata.py` verifies local data against the manifest.
+  A download fetcher remains to be designed once redistribution rights are
+  established for the missing groups.
 - [ ] Add scheduled/manual dataset validation.
+  CI dataset job requires the corpus to be reproducibly obtainable; blocked
+  on rights resolution for missing groups.
 - [ ] Review critical inherited defects before the first release.
 - [x] Define the integer/float width contract and resolve the `zd_*` defect (#4).
 
