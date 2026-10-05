@@ -7,12 +7,12 @@ These JCAMP-DX files are packaged test fixtures for the nmrglue JCAMP-DX reader.
 All files from [nmrXiv CENAPTNMR project P33](https://nmrxiv.org/project/P33),
 DOI [10.57992/nmrxiv.p33](https://doi.org/10.57992/nmrxiv.p33), **CC0 1.0**.
 
-| File | Sample | Experiment |
+| File | Sample | Original filename |
 |---|---|---|
-| `epicatechin_1h.jdx` | (-)-Epicatechin 2880 µg / 200 µL DMSO-d6, 400 MHz | 1H 1D |
-| `epicatechin_13c.jdx` | (-)-Epicatechin 2880 µg / 200 µL DMSO-d6, 400 MHz | 13C 1D |
-| `betapinene_1h_60mhz.jdx` | (-)-beta-Pinene 100000 µg / 700 µL CDCl3, 60 MHz | 1H 1D |
-| `caffeicacid_13c.jdx` | Caffeic acid 3080 µg / 200 µL DMSO-d6, 400 MHz | 13C 1D |
+| `epicatechin_1h.jdx` | [S192](https://nmrxiv.org/sample/S192) (-)-Epicatechin 400 MHz DMSO-d6 | `EpiCatechin_2880ug200uL_DMSOd6_1H_400MHz_JDX.jdx` |
+| `epicatechin_13c.jdx` | [S192](https://nmrxiv.org/sample/S192) (-)-Epicatechin 400 MHz DMSO-d6 | `EpiCatechin_2880ug200uL_DMSOd6_13C_400MHz_JDX.jdx` |
+| `betapinene_1h_60mhz.jdx` | [S195](https://nmrxiv.org/sample/S195) (-)-beta-Pinene 60 MHz CDCl3 | `BetaPinene_100000ug700uL_CDCl3_1HNMR_60MHz_JDX.jdx` |
+| `caffeicacid_13c.jdx` | [S189](https://nmrxiv.org/sample/S189) Caffeic acid 400 MHz DMSO-d6 | `CaffeicAcid_3080ug200uL_DMSOd6_13CNMR_400MHz_JDX.jdx` |
 
 ## SHA-256 checksums
 

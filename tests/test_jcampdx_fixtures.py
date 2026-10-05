@@ -24,29 +24,35 @@ JDX_PINENE_1H = os.path.join(DATA_DIR, "betapinene_1h_60mhz.jdx")
 JDX_CAFFEIC_13C = os.path.join(DATA_DIR, "caffeicacid_13c.jdx")
 
 # Reference values decoded independently from the JCAMP-DX SQZ/DIF data.
+# Intermediate references at index 50000 distinguish correct decoding from
+# truncation or sign errors.
 REFERENCES = {
     "epic_1h": {
         "size": 104858,
         0: -0.00016932092497646685,
         1: -0.0001770019275771338,
+        50000: -0.00017971286967148682,
         -1: -0.000156669861869486,
     },
     "epic_13c": {
         "size": 104858,
         0: 1.5481548475971462e-06,
         1: 2.4166319572248136e-06,
+        50000: -1.4348752246022332e-06,
         -1: -2.1523128369033497e-06,
     },
     "pinene_1h": {
         "size": 65536,
         0: 0.03146649637602431,
         1: 0.03175891230194292,
+        50000: 0.04514223830268161,
         -1: 0.03105541891495032,
     },
     "caffeic_13c": {
         "size": 52430,
         0: -1.8542965080818778e-06,
         1: -3.1787940138546475e-06,
+        25000: -9.933731293295773e-07,
         -1: 2.847669637411455e-06,
     },
 }
@@ -69,11 +75,13 @@ class TestJCAMPDX1D:
 
     @pytest.mark.parametrize("fid", ALL_IDS)
     def test_reference_points(self, fid):
-        """First, second, and last points match reference values."""
+        """All declared reference points match decoded values."""
         path = dict(zip(ALL_IDS, ALL_JDX))[fid]
         dic, data = ng.jcampdx.read(path)
         refs = REFERENCES[fid]
-        for idx in [0, 1, -1]:
+        for idx in refs:
+            if idx == "size":
+                continue
             assert np.isclose(data[idx], refs[idx], rtol=1e-6), f"data[{idx}] for {fid}"
 
     @pytest.mark.parametrize("fid", ALL_IDS)

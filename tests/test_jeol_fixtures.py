@@ -38,6 +38,7 @@ ALL_IDS = ["fluorine", "phosphorus", "rutin_1h", "rutin_13c", "betapinene_1h"]
 # data points use rtol=1e-12, atol=1e-15 (complex128 raw values).
 REFERENCES = {
     "fluorine": {
+        "size": 32768,
         "obs": 470.3635083723063,
         "sw": 120192.30769230769,
         "car": -47036.35083723063,
@@ -46,6 +47,7 @@ REFERENCES = {
         "data_last": complex(0.9854882215952051, -7.403006410224372),
     },
     "phosphorus": {
+        "size": 32768,
         "obs": 202.35776576271843,
         "sw": 100806.45161290323,
         "car": 0.0,
@@ -54,6 +56,7 @@ REFERENCES = {
         "data_last": complex(1.2426289372795047, 1.1737636211514353),
     },
     "rutin_1h": {
+        "size": 32768,
         "obs": 399.78219837825003,
         "sw": 10016.02564102564,
         "car": 3598.0397854042494,
@@ -62,6 +65,7 @@ REFERENCES = {
         "data_last": complex(-0.013827245303944658, 0.015472459899770677),
     },
     "rutin_13c": {
+        "size": 32768,
         "obs": 100.52530332516541,
         "sw": 31565.656565656565,
         "car": 10052.53033251654,
@@ -70,6 +74,7 @@ REFERENCES = {
         "data_last": complex(0.0034788697442304714, -0.010487021382253317),
     },
     "betapinene_1h": {
+        "size": 65536,
         "obs": 399.78219837825003,
         "sw": 7494.00479616307,
         "car": 1998.9109918912502,
@@ -82,11 +87,12 @@ REFERENCES = {
 
 @pytest.mark.parametrize("fid", ALL_IDS)
 def test_read_1d(fid):
-    """Each packaged 1D fixture reads successfully."""
+    """Each packaged 1D fixture reads successfully with correct size."""
     path = dict(zip(ALL_IDS, ALL_JDF))[fid]
+    ref = REFERENCES[fid]
     dic, data = ng.jeol.read(path)
     assert data.ndim == 1
-    assert data.shape[0] > 0
+    assert data.shape == (ref["size"],)
     assert data.dtype == np.complex128
     assert "header" in dic
     assert "parameters" in dic
@@ -107,7 +113,7 @@ def test_udic_reference(fid):
     dic, data = ng.jeol.read(path)
     udic = ng.jeol.guess_udic(dic, data)
     assert udic["ndim"] == 1
-    assert udic[0]["size"] == data.shape[0]
+    assert udic[0]["size"] == ref["size"]
     assert udic[0]["encoding"] == "complex"
     assert udic[0]["label"] == ref["label"]
     assert np.isclose(udic[0]["obs"], ref["obs"], rtol=1e-9)
