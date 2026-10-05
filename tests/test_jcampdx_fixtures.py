@@ -22,6 +22,7 @@ JDX_EPIC_1H = os.path.join(DATA_DIR, "epicatechin_1h.jdx")
 JDX_EPIC_13C = os.path.join(DATA_DIR, "epicatechin_13c.jdx")
 JDX_PINENE_1H = os.path.join(DATA_DIR, "betapinene_1h_60mhz.jdx")
 JDX_CAFFEIC_13C = os.path.join(DATA_DIR, "caffeicacid_13c.jdx")
+JDX_PINENE_COSY = os.path.join(DATA_DIR, "betapinene_cosy_400mhz.jdx")
 
 # Reference values decoded independently from the JCAMP-DX SQZ/DIF data.
 # Intermediate references at index 50000 distinguish correct decoding from
@@ -97,3 +98,200 @@ class TestJCAMPDX1D:
         path = dict(zip(ALL_IDS, ALL_JDX))[fid]
         dic, data = ng.jcampdx.read(path)
         assert isinstance(dic, dict)
+
+
+class TestJCAMPDX2D:
+    """Tests for 2D JCAMP-DX NTUPLES data (nD NMR SPECTRUM)."""
+
+    def test_read_nd_show_all_data(self):
+        """2D JCAMP-DX reads all pages with show_all_data=True."""
+        dic, data = ng.jcampdx.read(JDX_PINENE_COSY, show_all_data=True)
+        assert isinstance(data, dict)
+        assert "real" in data
+        assert "imaginary" in data
+        assert len(data["real"]) == 128
+        assert len(data["imaginary"]) == 0
+
+    def test_read_nd_pages_shape(self):
+        """Each page has the correct shape."""
+        dic, data = ng.jcampdx.read(JDX_PINENE_COSY, show_all_data=True)
+        for page in data["real"]:
+            assert page.shape == (3278,)
+            assert page.dtype == np.float64
+
+    def test_read_nd_reference_points(self):
+        """First and last points of first and last pages match references."""
+        dic, data = ng.jcampdx.read(JDX_PINENE_COSY, show_all_data=True)
+        assert np.isclose(data["real"][0][0], 6.70497e-07, rtol=1e-5)
+        assert np.isclose(data["real"][0][-1], 1.18323e-06, rtol=1e-5)
+        assert np.isclose(data["real"][-1][0], 9.031989e-07, rtol=1e-5)
+
+    def test_read_nd_data_finite(self):
+        """All page data values are finite."""
+        dic, data = ng.jcampdx.read(JDX_PINENE_COSY, show_all_data=True)
+        for page in data["real"]:
+            assert np.all(np.isfinite(page))
+
+    def test_read_nd_default_returns_first(self):
+        """Default read returns only the first real page."""
+        dic, data = ng.jcampdx.read(JDX_PINENE_COSY, show_all_data=False)
+        assert isinstance(data, np.ndarray)
+        assert data.shape == (3278,)
+        assert np.isclose(data[0], 6.70497e-07, rtol=1e-5)
+
+
+class TestJCAMPDXSynthetic:
+    """Synthetic JCAMP-DX tests adapted from upstream jjhelmus/nmrglue#260."""
+
+    # NTUPLES data whose dependent variable is declared as Y (not R/I),
+    # as written by JEOL/MestReNova and Bruker for 2D spectra.
+    _NTUPLES_Y_TEMPLATE = (
+        "##TITLE=Test NTUPLES with Y symbol\n"
+        "##JCAMPDX=6.0\n"
+        "##DATATYPE=NMR SPECTRUM\n"
+        "##DATA CLASS=NTUPLES\n"
+        "##NUM DIM=2\n"
+        "##NTUPLES=NMR SPECTRUM\n"
+        "##VAR_NAME=FREQUENCY1, FREQUENCY2, SPECTRUM\n"
+        "##SYMBOL=F1, F2, Y\n"
+        "##VAR_TYPE=INDEPENDENT, INDEPENDENT, DEPENDENT\n"
+        "##VAR_FORM=AFFN, AFFN, ASDF\n"
+        "%s"
+        "##PAGE=F1=1\n"
+        "##DATA TABLE=(F2++(Y..Y)), PROFILE\n"
+        "1.0 10 20\n"
+        "##PAGE=F1=2\n"
+        "##DATA TABLE=(F2++(Y..Y)), PROFILE\n"
+        "1.0 30 40\n"
+        "##END=\n"
+    )
+
+    @staticmethod
+    def _write_jcamp(content):
+        import tempfile
+        fd, path = tempfile.mkstemp(suffix=".jdx")
+        with open(fd, "w") as f:
+            f.write(content)
+        return path
+
+    def test_ntuples_symbol_factor(self):
+        """NTUPLES FACTOR is picked by the table's own dependent symbol."""
+        path = self._write_jcamp(self._NTUPLES_Y_TEMPLATE % "##FACTOR=1, 1, 2.0\n")
+        try:
+            _, data_all = ng.jcampdx.read(path, show_all_data=True)
+            assert isinstance(data_all, dict)
+            assert len(data_all["real"]) == 2
+            assert data_all["imaginary"] == []
+            assert np.allclose(data_all["real"][0], [20.0, 40.0])
+            assert np.allclose(data_all["real"][1], [60.0, 80.0])
+            _, data = ng.jcampdx.read(path, show_all_data=False)
+            assert np.allclose(data, [20.0, 40.0])
+        finally:
+            import os
+            os.remove(path)
+
+    def test_ntuples_symbol_factor_missing(self):
+        """NTUPLES data is left unscaled with a warning if FACTOR is absent."""
+        path = self._write_jcamp(self._NTUPLES_Y_TEMPLATE % "##FACTOR=1, 1\n")
+        try:
+            import pytest as _pytest
+            with _pytest.warns(UserWarning, match="no FACTOR found for symbol Y"):
+                _, data_all = ng.jcampdx.read(path, show_all_data=True)
+            assert np.allclose(data_all["real"][0], [10.0, 20.0])
+            assert np.allclose(data_all["real"][1], [30.0, 40.0])
+        finally:
+            import os
+            os.remove(path)
+
+    def test_read_nd_spectrum(self):
+        """nD NMR SPECTRUM sections are found and scaled."""
+        content = (
+            "##TITLE=Test nD NTUPLES\n"
+            "##JCAMPDX=6.0\n"
+            "##DATATYPE=nD NMR SPECTRUM\n"
+            "##DATA CLASS=NTUPLES\n"
+            "##NUM DIM=2\n"
+            "##.OBSERVE FREQUENCY=100.0\n"
+            "##.OBSERVE NUCLEUS=^1H\n"
+            "##NTUPLES=nD NMR SPECTRUM\n"
+            "##VAR_NAME=FREQUENCY1, FREQUENCY2, SPECTRUM\n"
+            "##SYMBOL=F1, F2, Y\n"
+            "##VAR_TYPE=INDEPENDENT, INDEPENDENT, DEPENDENT\n"
+            "##VAR_FORM=AFFN, AFFN, ASDF\n"
+            "##UNITS=HZ, HZ, ARBITRARY UNITS\n"
+            "##FIRST=500, 400, 10\n"
+            "##LAST=100, 200, 40\n"
+            "##FACTOR=1, 1, 2.0\n"
+            "##PAGE=F1=500\n"
+            "##DATA TABLE=(F2++(Y..Y)), PROFILE\n"
+            "1.0 10 20\n"
+            "##PAGE=F1=100\n"
+            "##DATA TABLE=(F2++(Y..Y)), PROFILE\n"
+            "1.0 30 40\n"
+            "##END=\n"
+        )
+        path = self._write_jcamp(content)
+        try:
+            import pytest as _pytest
+            dic, data_all = ng.jcampdx.read(path, show_all_data=True)
+            assert len(data_all["real"]) == 2
+            assert np.allclose(data_all["real"][0], [20.0, 40.0])
+            assert np.allclose(data_all["real"][1], [60.0, 80.0])
+            assert dic["DATATYPE"][0] == "nD NMR SPECTRUM"
+            with _pytest.warns(UserWarning, match="direct dimension only"):
+                udic = ng.jcampdx.guess_udic(dic, data_all)
+            assert udic[0]["size"] == 2
+            assert udic[0]["sw"] == 200.0
+            assert udic[0]["obs"] == 100.0
+            assert udic[0]["label"] == "1H"
+        finally:
+            import os
+            os.remove(path)
+
+    def test_prefers_1d_over_nd(self):
+        """A 1D section wins over an nD one in the same file."""
+        nd_section = (
+            "##TITLE=The nD part\n"
+            "##JCAMPDX=6.0\n"
+            "##DATATYPE=nD NMR SPECTRUM\n"
+            "##DATA CLASS=NTUPLES\n"
+            "##NUM DIM=2\n"
+            "##NTUPLES=nD NMR SPECTRUM\n"
+            "##VAR_NAME=FREQUENCY1, FREQUENCY2, SPECTRUM\n"
+            "##SYMBOL=F1, F2, Y\n"
+            "##VAR_TYPE=INDEPENDENT, INDEPENDENT, DEPENDENT\n"
+            "##VAR_FORM=AFFN, AFFN, ASDF\n"
+            "##FACTOR=1, 1, 2.0\n"
+            "##PAGE=F1=1\n"
+            "##DATA TABLE=(F2++(Y..Y)), PROFILE\n"
+            "1.0 10 20\n"
+            "##END=\n"
+        )
+        content = (
+            "##TITLE=Both\n"
+            "##JCAMPDX=6.0\n"
+            "##DATATYPE=LINK\n"
+            "##BLOCKS=2\n"
+            + nd_section +
+            "##TITLE=The 1D part\n"
+            "##JCAMPDX=5.0\n"
+            "##DATATYPE=NMR SPECTRUM\n"
+            "##DATA CLASS=XYDATA\n"
+            "##FIRSTX=1\n"
+            "##LASTX=2\n"
+            "##XUNITS=HZ\n"
+            "##YFACTOR=1\n"
+            "##XYDATA=(X++(Y..Y))\n"
+            "1.0 7 8\n"
+            "##END=\n"
+            "##END=\n"
+        )
+        path = self._write_jcamp(content)
+        try:
+            dic, data = ng.jcampdx.read(path)
+            assert np.allclose(data, [7.0, 8.0])
+            assert dic["DATATYPE"][0] == "NMR SPECTRUM"
+            assert "_datatype_NDNMRSPECTRUM" in dic
+        finally:
+            import os
+            os.remove(path)
