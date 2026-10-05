@@ -463,3 +463,48 @@ class TestJCAMPDXXYFormats:
         finally:
             import os
             os.remove(path)
+
+    def test_compact_integer_pairs(self):
+        """Compact integer coordinate pairs preserve comma delimiters.
+
+        Regression for: comma-to-dot normalization must not rewrite the
+        X/Y separator in (XY..XY) data like "15,420 16,1201".
+        """
+        content = (
+            "##TITLE=Test Compact\n"
+            "##JCAMPDX=5.0\n"
+            "##DATATYPE=NMR SPECTRUM\n"
+            "##DATA CLASS=XYDATA\n"
+            "##XYDATA=(XY..XY)\n"
+            "15,420 16,1201\n"
+            "##END=\n"
+        )
+        path = self._write_jcamp(content)
+        try:
+            dic, data = ng.jcampdx.read(path)
+            assert data is not None
+            assert data.shape == (1, 2, 2)
+            assert np.allclose(data[0], [[15.0, 420.0], [16.0, 1201.0]])
+        finally:
+            import os
+            os.remove(path)
+
+    def test_compact_pairs_peakttable(self):
+        """Compact integer pairs in PEAKTABLE also preserve delimiters."""
+        content = (
+            "##TITLE=Test Compact PEAKTABLE\n"
+            "##JCAMPDX=5.0\n"
+            "##DATATYPE=NMR SPECTRUM\n"
+            "##PEAKTABLE=(XY..XY)\n"
+            "15,420 16,1201\n"
+            "##END=\n"
+        )
+        path = self._write_jcamp(content)
+        try:
+            dic, data = ng.jcampdx.read(path)
+            assert data is not None
+            assert data.shape == (1, 2, 2)
+            assert np.allclose(data[0], [[15.0, 420.0], [16.0, 1201.0]])
+        finally:
+            import os
+            os.remove(path)

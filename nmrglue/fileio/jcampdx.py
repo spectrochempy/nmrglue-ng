@@ -479,11 +479,6 @@ def _parse_data(datastring):
     '''
     Creates numpy array from datalines
     '''
-    header_end = datastring.find('\n')
-    data_part = datastring[header_end:] if header_end != -1 else datastring
-    if ',' in data_part and '.' not in data_part:
-        datastring = re.sub(r'(\d),(\d)', r'\1.\2', datastring)
-
     datalines = datastring.split("\n")
     headerline = datalines[0]
 
@@ -496,18 +491,31 @@ def _parse_data(datastring):
     datalines = datalines[1:]  # get rid of the header line (e.g. (X++(Y..Y)))
     if not datalines:
         return None  # a table declared with no values, e.g. an empty PEAKTABLE
+
+    # detect format before any comma-to-dot normalization
     mode = _detect_format(datalines[0])
-    if mode == 1:
-        data = _parse_pseudo(datalines)
-    elif mode == 0:
-        data = _parse_affn_pac(datalines)
-    elif mode == 2:
-        if headerline == '(X++(Y..Y))':
-            data = _parse_affn_pac(datalines)
-        else:
-            data = _parse_xy_xy(datalines)
+
+    if mode == 2 and headerline != '(X..XY)':
+        # (XY..XY) coordinate list: commas separate X and Y, do not rewrite
+        data = _parse_xy_xy(datalines)
     else:
-        return None
+        # (X..XY) or normal AFFN: comma may be a European decimal separator
+        header_end = datastring.find('\n')
+        data_part = datastring[header_end:] if header_end != -1 else datastring
+        if ',' in data_part and '.' not in data_part:
+            datastring = re.sub(r'(\d),(\d)', r'\1.\2', datastring)
+            datalines = datastring.split("\n")[1:]
+
+        mode = _detect_format(datalines[0])
+        if mode == 1:
+            data = _parse_pseudo(datalines)
+        elif mode == 0:
+            data = _parse_affn_pac(datalines)
+        elif mode == 2:
+            data = _parse_xy_xy(datalines)
+        else:
+            return None
+
     if data is None:
         return None
     return np.asarray(data, dtype="float64"), datatype
