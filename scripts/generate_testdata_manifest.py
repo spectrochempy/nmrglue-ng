@@ -231,15 +231,27 @@ def should_exclude(name: str) -> bool:
 
 
 def classify_file(rel_path: str, group_name: str) -> str:
-    """Classify a file as 'original' (from v0.5 archive) or 'derived'."""
-    fname = rel_path.split("/")[-1]
+    """Classify a file by its exact relative path.
+
+    Returns 'original' for files present in the v0.5 archive,
+    'derived' for locally generated references matching known patterns,
+    or 'unknown' for unrecognized files.
+    """
+    # Build the exact archive path: group_name/filename
+    parts = rel_path.split("/")
+    if len(parts) < 2:
+        return "unknown"
+    fname = parts[-1]
+    archive_path = f"{group_name}/{fname}"
     archive_files = ARCHIVE_FILES.get(group_name, [])
     if fname in archive_files:
         return "original"
     derived = DERIVED_FILES.get(group_name, {})
-    if derived and fname.startswith("test") and fname.endswith(".fid"):
-        return "derived"
-    return "original"
+    if derived:
+        pattern = derived.get("pattern", "")
+        if pattern and fname.startswith("test") and fname.endswith(".fid"):
+            return "derived"
+    return "unknown"
 
 
 def compute_group(root: Path, group_dir: Path, group_name: str) -> dict:
