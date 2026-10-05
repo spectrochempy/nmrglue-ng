@@ -464,8 +464,8 @@ def _parse_xy_xy(datalines):
     '''
     pts = []
     xy_pair_re = re.compile(
-        r"([+-]?\d+\.?\d*(?:[eE][+-]?\d+)?)\s*,\s*"
-        r"([+-]?\d+\.?\d*(?:[eE][+-]?\d+)?)"
+        r"([+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?)\s*,\s*"
+        r"([+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?)"
     )
     for dataline in datalines:
         for match in xy_pair_re.finditer(dataline):
@@ -492,29 +492,58 @@ def _parse_data(datastring):
     if not datalines:
         return None  # a table declared with no values, e.g. an empty PEAKTABLE
 
-    # detect format before any comma-to-dot normalization
-    mode = _detect_format(datalines[0])
+    # Determine the parsing strategy from the declared header format.
+    # Headers like (X++(Y..Y)) or (X++(R..R)) declare AFFN data; commas in
+    # such data are either decimal separators or value delimiters, never
+    # XY-pair separators. Only (XY..XY) and (X..XY) headers use coordinate
+    # pair semantics.
+    is_affn_header = '++' in headerline
+    is_xy_pair_header = headerline in ('(XY..XY)', '(X..XY)')
 
-    if mode == 2 and headerline != '(X..XY)':
-        # (XY..XY) coordinate list: commas separate X and Y, do not rewrite
+    if is_affn_header:
+        # AFFN declared: commas are value delimiters, parse directly
+        mode = _detect_format(datalines[0])
+        if mode == 1:
+            data = _parse_pseudo(datalines)
+        else:
+            data = _parse_affn_pac(datalines)
+    elif is_xy_pair_header and headerline == '(XY..XY)':
+        # Coordinate list: commas separate X and Y, do not rewrite them
         data = _parse_xy_xy(datalines)
-    else:
-        # (X..XY) or normal AFFN: comma may be a European decimal separator
+    elif is_xy_pair_header and headerline == '(X..XY)':
+        # Mixed format: X values then XY pairs; commas may be European
+        # decimal separators in the X values and XY pair data
         header_end = datastring.find('\n')
         data_part = datastring[header_end:] if header_end != -1 else datastring
         if ',' in data_part and '.' not in data_part:
             datastring = re.sub(r'(\d),(\d)', r'\1.\2', datastring)
             datalines = datastring.split("\n")[1:]
-
         mode = _detect_format(datalines[0])
-        if mode == 1:
-            data = _parse_pseudo(datalines)
-        elif mode == 0:
-            data = _parse_affn_pac(datalines)
-        elif mode == 2:
+        if mode == 2:
             data = _parse_xy_xy(datalines)
         else:
-            return None
+            data = _parse_affn_pac(datalines)
+    else:
+        # (X..XY) or undeclared format: detect and parse
+        mode = _detect_format(datalines[0])
+        if mode == 2 and headerline != '(X++(Y..Y))':
+            data = _parse_xy_xy(datalines)
+        else:
+            # apply comma-to-dot for non-XY data
+            header_end = datastring.find('\n')
+            data_part = datastring[header_end:] if header_end != -1 else datastring
+            if ',' in data_part and '.' not in data_part:
+                datastring = re.sub(r'(\d),(\d)', r'\1.\2', datastring)
+                datalines = datastring.split("\n")[1:]
+            mode = _detect_format(datalines[0])
+            if mode == 1:
+                data = _parse_pseudo(datalines)
+            elif mode == 0:
+                data = _parse_affn_pac(datalines)
+            elif mode == 2:
+                data = _parse_xy_xy(datalines)
+            else:
+                return None
 
     if data is None:
         return None

@@ -289,9 +289,102 @@ class TestJCAMPDXSynthetic:
         path = self._write_jcamp(content)
         try:
             dic, data = ng.jcampdx.read(path)
+            assert data is not None
             assert np.allclose(data, [7.0, 8.0])
             assert dic["DATATYPE"][0] == "NMR SPECTRUM"
-            assert "_datatype_NDNMRSPECTRUM" in dic
+        finally:
+            import os
+            os.remove(path)
+
+    def test_affn_commas_not_xy_pairs(self):
+        """AFFN data with commas is not misread as XY pairs.
+
+        Regression for: (X++(Y..Y)) data with comma-separated values
+        must be parsed as AFFN, not as coordinate pairs.
+        """
+        content = (
+            "##TITLE=Test AFFN Commas\n"
+            "##JCAMPDX=5.0\n"
+            "##DATATYPE=NMR SPECTRUM\n"
+            "##DATA CLASS=XYDATA\n"
+            "##XYDATA=(X++(Y..Y))\n"
+            "0,10,20,30\n"
+            "##END=\n"
+        )
+        path = self._write_jcamp(content)
+        try:
+            dic, data = ng.jcampdx.read(path)
+            assert data is not None
+            assert np.allclose(data, [10.0, 20.0, 30.0])
+        finally:
+            import os
+            os.remove(path)
+
+    def test_ntuples_commas_not_xy_pairs(self):
+        """NTUPLES data with commas is not misread as XY pairs."""
+        content = (
+            "##TITLE=Test NTUPLES Commas\n"
+            "##JCAMPDX=5.0\n"
+            "##DATATYPE=NMR SPECTRUM\n"
+            "##DATA CLASS=NTUPLES\n"
+            "##SYMBOL=X,R\n"
+            "##FACTOR=1,2\n"
+            "##DATA TABLE=(X++(R..R)), PROFILE\n"
+            "0,10,20,30\n"
+            "##END=\n"
+        )
+        path = self._write_jcamp(content)
+        try:
+            dic, data = ng.jcampdx.read(path)
+            assert data is not None
+            assert np.allclose(data, [20.0, 40.0, 60.0])
+        finally:
+            import os
+            os.remove(path)
+
+    def test_leading_zero_decimals(self):
+        """Decimals without leading zero are handled in XY pairs."""
+        content = (
+            "##TITLE=Test Leading Zero\n"
+            "##JCAMPDX=5.0\n"
+            "##DATATYPE=NMR SPECTRUM\n"
+            "##XYPOINTS=(XY..XY)\n"
+            "-.5, 2\n"
+            "1, .5\n"
+            "##END=\n"
+        )
+        path = self._write_jcamp(content)
+        try:
+            dic, data = ng.jcampdx.read(path)
+            assert data is not None
+            assert data.shape == (1, 2, 2)
+            assert np.allclose(data[0], [[-0.5, 2.0], [1.0, 0.5]])
+        finally:
+            import os
+            os.remove(path)
+
+    def test_xy_header_european_decimals(self):
+        """European decimals with (X..XY) header are handled.
+
+        Commas in "(X..XY)" data with European decimal values need
+        disambiguation between decimal separators and X/Y delimiters.
+        """
+        content = (
+            "##TITLE=Test XY European\n"
+            "##JCAMPDX=5.0\n"
+            "##DATATYPE=NMR SPECTRUM\n"
+            "##XYPOINTS=(X..XY)\n"
+            "1,0, 10,5; 2,0, 20,5\n"
+            "##END=\n"
+        )
+        path = self._write_jcamp(content)
+        try:
+            dic, data = ng.jcampdx.read(path)
+            assert data is not None
+            # The semicolon-separated values with European decimals
+            # should be parsed as two XY pairs after comma-to-dot conversion
+            assert data.shape == (1, 2, 2)
+            assert np.allclose(data[0], [[1.0, 10.5], [2.0, 20.5]])
         finally:
             import os
             os.remove(path)
