@@ -921,3 +921,20 @@ class TestJCAMPDXGuessUdic:
         complexdata = ng.jcampdx.get_complex_array(rawdata)
         udic = ng.jcampdx.guess_udic(dic, complexdata)
         assert udic[0]["complex"] is True
+
+    def test_read_as_complex(self, tmp_path):
+        """read(as_complex=True) returns complex128 array for FID."""
+        path = tmp_path / "fid.jdx"
+        path.write_text(self._FID_FILE)
+        dic, data = ng.jcampdx.read(str(path), as_complex=True)
+        assert isinstance(data, np.ndarray)
+        assert data.dtype == np.complex128
+        assert len(data) == 4
+
+    def test_read_as_complex_spectrum(self, tmp_path):
+        """read(as_complex=True) returns unchanged data for spectrum."""
+        path = tmp_path / "spectrum.jdx"
+        path.write_text(self._SPECTRUM_FILE)
+        dic, data_default = ng.jcampdx.read(str(path))
+        dic, data_complex = ng.jcampdx.read(str(path), as_complex=True)
+        assert np.allclose(data_default, data_complex)

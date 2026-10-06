@@ -783,7 +783,7 @@ def getdataarray(dic, show_all_data=False):
     return data
 
 
-def read(filename, show_all_data=False, read_err=None):
+def read(filename, show_all_data=False, read_err=None, as_complex=False):
     """
     Read JCAMP-DX file
 
@@ -801,6 +801,10 @@ def read(filename, show_all_data=False, read_err=None):
         ``errors`` parameter. Valid values include 'strict', 'ignore',
         'replace', 'backslashreplace', etc. Defaults to None which uses
         'replace'.
+    as_complex : bool, optional
+        If True and data is NTUPLES with separate real and imaginary
+        arrays, return a single complex128 array instead of a list
+        [real, imaginary]. Default is False for backward compatibility.
 
     Returns
     -------
@@ -812,7 +816,8 @@ def read(filename, show_all_data=False, read_err=None):
     data : ndarray or dict
         Array of NMR data, or a list of NMR data arrays in order
         [real, imaginary]. When show_all_data=True and data is NTUPLES,
-        a dict with keys 'real' and 'imaginary' is returned.
+        a dict with keys 'real' and 'imaginary' is returned. When
+        as_complex=True and data has separate R/I, a complex128 array.
     """
 
     if os.path.isfile(filename) is not True:
@@ -867,6 +872,9 @@ def read(filename, show_all_data=False, read_err=None):
 
     # clean main dic from possible empty entries
     dic = {key: value for key, value in dic.items() if value}
+
+    if as_complex and isinstance(data, list) and len(data) == 2:
+        data = get_complex_array(data)
 
     return dic, data
 
