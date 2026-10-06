@@ -349,6 +349,16 @@ def test_read_jcamp_explicit_encoding():
         os.remove(temp_path)
 
 
+def test_read_jcamp_unknown_encoding():
+    """an unknown explicit encoding falls back to the detected encoding."""
+    temp_path = _write_temp(_real_acqus_bytes())
+    try:
+        dic = ng.bruker.read_jcamp(temp_path, encoding="not-a-codec")
+        assert dic["LOCKED"] is True
+    finally:
+        os.remove(temp_path)
+
+
 def test_read_jcamp_utf8_bom():
     """a byte order mark does not hide the first record."""
     import warnings

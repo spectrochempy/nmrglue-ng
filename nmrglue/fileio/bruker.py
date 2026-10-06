@@ -2271,7 +2271,7 @@ def read_jcamp(filename, encoding=None):
         try:
             text = raw.decode(enc)
             break
-        except UnicodeDecodeError:
+        except (LookupError, UnicodeDecodeError):
             continue
 
     if enc == 'latin-1' and enc != codecs_to_try[0]:
