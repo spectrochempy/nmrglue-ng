@@ -9,6 +9,11 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ### Added
 
+- Add optional `remove_carrier` parameter to `bruker.remove_digital_filter()`
+  and `bruker.rm_dig_filter()`. When True, subtracts the mean of each row
+  along the last axis before digital filter removal, which removes the spike
+  at the centre of the spectrum caused by the receiver DC offset. Default is
+  False, preserving backward compatibility with upstream nmrglue.
 - Add JCAMP-DX coordinate list (XY..XY) format, PEAKTABLE/XYPOINTS parsing,
   comma decimal separators, and XFACTOR/YFACTOR scaling for coordinate pairs.
   Adapted from upstream jjhelmus/nmrglue#262. Add 16 synthetic tests. (#47)

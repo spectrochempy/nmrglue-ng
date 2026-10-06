@@ -2007,7 +2007,8 @@ bruker_dsp_table = {
 }
 
 
-def remove_digital_filter(dic, data, truncate=True, post_proc=False):
+def remove_digital_filter(dic, data, truncate=True, post_proc=False,
+                          remove_carrier=False):
     """
     Remove the digital filter from Bruker data.
 
@@ -2025,6 +2026,11 @@ def remove_digital_filter(dic, data, truncate=True, post_proc=False):
         True if the digital filter is to be removed post processing, i.e after
         fourier transformation. The corrected FID will not be returned, only a
         corrected spectrum in the frequency dimension will be returned
+    remove_carrier : bool, optional
+        True to remove the carrier (DC) offset from the FID before digital
+        filter removal.  This subtracts the mean of each row along the last
+        axis, which removes the spike at the centre of the spectrum caused by
+        the receiver DC offset.  False (default) leaves the data unchanged.
 
     Returns
     -------
@@ -2052,11 +2058,13 @@ def remove_digital_filter(dic, data, truncate=True, post_proc=False):
     else:
         grpdly = dic['acqus']['GRPDLY']
 
-    return rm_dig_filter(data, decim, dspfvs, grpdly, truncate, post_proc)
+    return rm_dig_filter(data, decim, dspfvs, grpdly, truncate, post_proc,
+                         remove_carrier)
 
 
 def rm_dig_filter(
-        data, decim, dspfvs, grpdly=0, truncate_grpdly=True, post_proc=False):
+        data, decim, dspfvs, grpdly=0, truncate_grpdly=True, post_proc=False,
+        remove_carrier=False):
     """
     Remove the digital filter from Bruker data.
 
@@ -2081,6 +2089,11 @@ def rm_dig_filter(
         fourier transformation. The corrected time domain data will not be
         returned, only the corrected spectrum in the frequency dimension will
         be returned
+    remove_carrier : bool, optional
+        True to remove the carrier (DC) offset from the FID before digital
+        filter removal.  This subtracts the mean of each row along the last
+        axis, which removes the spike at the centre of the spectrum caused by
+        the receiver DC offset.  False (default) leaves the data unchanged.
 
     Returns
     -------
@@ -2145,6 +2158,9 @@ def rm_dig_filter(
 
     if truncate_grpdly:     # truncate the phase
         phase = np.floor(phase)
+
+    if remove_carrier:
+        data = data - data.mean(axis=-1, keepdims=True)
 
     # and the number of points to remove (skip) and add to the beginning
     skip = int(np.floor(phase + 2.))    # round up two integers
