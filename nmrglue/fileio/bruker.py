@@ -2008,7 +2008,7 @@ bruker_dsp_table = {
 
 
 def remove_digital_filter(dic, data, truncate=True, post_proc=False,
-                          remove_carrier=False):
+                          remove_dc_offset=False):
     """
     Remove the digital filter from Bruker data.
 
@@ -2026,16 +2026,24 @@ def remove_digital_filter(dic, data, truncate=True, post_proc=False,
         True if the digital filter is to be removed post processing, i.e after
         fourier transformation. The corrected FID will not be returned, only a
         corrected spectrum in the frequency dimension will be returned
-    remove_carrier : bool, optional
-        True to remove the carrier (DC) offset from the FID before digital
+    remove_dc_offset : bool, optional
+        True to remove the receiver DC offset from the FID before digital
         filter removal.  This subtracts the mean of each row along the last
         axis, which removes the spike at the centre of the spectrum caused by
         the receiver DC offset.  False (default) leaves the data unchanged.
+        Cannot be used with ``post_proc=True``.
 
     Returns
     -------
     ndata : ndarray
         Array of NMR data with digital filter removed
+
+    Raises
+    ------
+    ValueError
+        If ``remove_dc_offset=True`` and ``post_proc=True`` (the DC offset
+        removal applies to the time-domain FID, not to an already-transformed
+        spectrum).
 
     See Also
     ---------
@@ -2059,12 +2067,12 @@ def remove_digital_filter(dic, data, truncate=True, post_proc=False,
         grpdly = dic['acqus']['GRPDLY']
 
     return rm_dig_filter(data, decim, dspfvs, grpdly, truncate, post_proc,
-                         remove_carrier)
+                         remove_dc_offset)
 
 
 def rm_dig_filter(
         data, decim, dspfvs, grpdly=0, truncate_grpdly=True, post_proc=False,
-        remove_carrier=False):
+        remove_dc_offset=False):
     """
     Remove the digital filter from Bruker data.
 
@@ -2089,16 +2097,24 @@ def rm_dig_filter(
         fourier transformation. The corrected time domain data will not be
         returned, only the corrected spectrum in the frequency dimension will
         be returned
-    remove_carrier : bool, optional
-        True to remove the carrier (DC) offset from the FID before digital
+    remove_dc_offset : bool, optional
+        True to remove the receiver DC offset from the FID before digital
         filter removal.  This subtracts the mean of each row along the last
         axis, which removes the spike at the centre of the spectrum caused by
         the receiver DC offset.  False (default) leaves the data unchanged.
+        Cannot be used with ``post_proc=True``.
 
     Returns
     -------
     ndata : ndarray
         Array of NMR data with digital filter removed.
+
+    Raises
+    ------
+    ValueError
+        If ``remove_dc_offset=True`` and ``post_proc=True`` (the DC offset
+        removal applies to the time-domain FID, not to an already-transformed
+        spectrum).
 
     See Also
     --------
@@ -2142,6 +2158,12 @@ def rm_dig_filter(
     # uncorrected
     # -----------------------------------------------------------------------
 
+    if remove_dc_offset and post_proc:
+        raise ValueError(
+            "remove_dc_offset=True cannot be used with post_proc=True; "
+            "the DC offset removal applies to the time-domain FID"
+        )
+
     if grpdly > 0:  # use group delay value if provided (not 0 or -1)
         phase = grpdly
 
@@ -2159,7 +2181,7 @@ def rm_dig_filter(
     if truncate_grpdly:     # truncate the phase
         phase = np.floor(phase)
 
-    if remove_carrier:
+    if remove_dc_offset:
         data = data - data.mean(axis=-1, keepdims=True)
 
     # and the number of points to remove (skip) and add to the beginning
