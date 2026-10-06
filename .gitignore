@@ -12,6 +12,7 @@ doc/build
 # build directories
 build
 dist
+*.egg-info
 
 # data and sandbox
 data

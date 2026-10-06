@@ -176,6 +176,15 @@ def test_data_nd_swapaxes_rejects_invalid_axis(axes):
         DummyDataND().swapaxes(*axes)
 
 
+@pytest.mark.parametrize("axis", [0.5, 0.0])
+def test_data_nd_swapaxes_rejects_float_axis(axis):
+    data = DummyDataND(fshape=(2, 3))
+    with pytest.raises(TypeError):
+        data.swapaxes(axis, 1)
+    with pytest.raises(TypeError):
+        data.swapaxes(1, axis)
+
+
 @pytest.mark.parametrize(
     "axes, expected_order",
     [
@@ -271,6 +280,12 @@ def test_data_nd_transpose_rejects_float_axis():
     data = DummyDataND(fshape=(5,))
     with pytest.raises(TypeError):
         data.transpose(0.5)
+
+    data2d = DummyDataND(fshape=(3, 4))
+    with pytest.raises(TypeError):
+        data2d.transpose(0.5, 1)
+    with pytest.raises(TypeError):
+        data2d.transpose(1, 0.5)
 
 
 def test_data_nd_transpose_2d_does_not_regress():
