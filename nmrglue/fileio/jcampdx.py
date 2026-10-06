@@ -40,7 +40,7 @@ def _getkey(keystr):
             .replace("-", "").replace("_", "").replace("/", ""))
 
 
-def _parsejcampdx(filename):
+def _parsejcampdx(filename, read_err=None):
     '''
     Actual JCAMP-DX reading. Returns a list of data sections i.e. "blocks",
     each of them being a dictionary of JCAMP-DX tags
@@ -54,7 +54,8 @@ def _parsejcampdx(filename):
     # when encountering ##END, push the ready dict to another list
     readyblocklist = []
 
-    filein = open(filename, 'r', encoding="utf-8-sig", errors="replace")
+    errors = "replace" if read_err is None else read_err
+    filein = open(filename, 'r', encoding="utf-8-sig", errors=errors)
 
     currentkey = None
     currentvaluestrings = []
@@ -151,7 +152,7 @@ def _parsejcampdx(filename):
     return readyblocklist
 
 
-def _readrawdic(filename):
+def _readrawdic(filename, read_err=None):
     '''
     Reads entire JCAMP-DX file to dictionary, from which actual
     data is parsed later. Return value is a dictionary of different
@@ -160,7 +161,7 @@ def _readrawdic(filename):
     '''
 
     # parse file to list of "blocks" i.e. separate data sections
-    blocklist = _parsejcampdx(filename)
+    blocklist = _parsejcampdx(filename, read_err)
 
     # clean whitespace from entries, and remove empty entries
     cleandiclist = []
@@ -721,7 +722,7 @@ def getdataarray(dic, show_all_data=False):
     return data
 
 
-def read(filename, show_all_data=False):
+def read(filename, show_all_data=False, read_err=None):
     """
     Read JCAMP-DX file
 
@@ -734,6 +735,11 @@ def read(filename, show_all_data=False):
         with keys 'real' and 'imaginary', each containing a list of
         numpy arrays. If False (default), return only the first real
         and imaginary arrays.
+    read_err : str, optional
+        Error handling for character decoding, passed to open() as the
+        ``errors`` parameter. Valid values include 'strict', 'ignore',
+        'replace', 'backslashreplace', etc. Defaults to None which uses
+        'replace'.
 
     Returns
     -------
@@ -754,7 +760,7 @@ def read(filename, show_all_data=False):
     # first read everything (including data array) to "raw" dictionary,
     # in which data values are read as raw strings including whitespace
     # and newlines
-    dic = _readrawdic(filename)
+    dic = _readrawdic(filename, read_err)
 
     # select the relevant data section, taking the first section of the most
     # preferred DATATYPE that yields data. Non-typed sections are tried
