@@ -994,15 +994,21 @@ def get_complex_array(data):
     Returns
     -------
     complexdata : ndarray or None
-        Complex array, or None if data is not a list of two arrays.
+        Complex array, or None if data is not a list of two compatible arrays.
     """
     if not isinstance(data, list) or len(data) != 2:
         warn("data is not list of arrays [real, imag]")
         return None
 
-    complexdata = np.empty((len(data[0]), ), dtype='complex128')
-    complexdata.real = data[0][:]
-    complexdata.imag = data[1][:]
+    real, imag = data
+    if (not isinstance(real, np.ndarray) or not isinstance(imag, np.ndarray)
+            or real.shape != imag.shape):
+        warn("data arrays must be ndarrays of the same shape")
+        return None
+
+    complexdata = np.empty(len(real), dtype='complex128')
+    complexdata.real = real[:]
+    complexdata.imag = imag[:]
     return complexdata
 
 
@@ -1073,13 +1079,26 @@ def guess_udic(dic, data):
         warn('No data, cannot set udic size')
 
     # detect FID vs processed
-    is_processed = True
+    is_processed = None
     try:
         datatype = dic["DATATYPE"][0]
         if datatype.strip().upper().replace(" ", "") == "NMRFID":
             is_processed = False
+        else:
+            is_processed = True
     except KeyError:
         pass
+    if is_processed is None:
+        try:
+            ntuples = dic["NTUPLES"][0]
+            if "FID" in ntuples.strip().upper():
+                is_processed = False
+            else:
+                is_processed = True
+        except KeyError:
+            pass
+    if is_processed is None:
+        is_processed = True
 
     # "sw" and "car"
     firstx, lastx, isppm = _find_firstx_lastx(dic)

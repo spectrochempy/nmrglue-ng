@@ -867,6 +867,14 @@ class TestJCAMPDXGuessUdic:
         """get_complex_array returns None for invalid input."""
         assert ng.jcampdx.get_complex_array([np.array([1.0])]) is None
         assert ng.jcampdx.get_complex_array(np.array([1.0])) is None
+        # mismatched shapes: broadcasting would silently succeed
+        assert ng.jcampdx.get_complex_array(
+            [np.array([1.0, 2.0]), np.array([3.0])]
+        ) is None
+        # None element
+        assert ng.jcampdx.get_complex_array(
+            [np.array([1.0, 2.0]), None]
+        ) is None
 
     def test_guess_udic_fid_sw(self, tmp_path):
         """guess_udic computes correct sw for FID data (Nyquist)."""
@@ -938,3 +946,34 @@ class TestJCAMPDXGuessUdic:
         dic, data_default = ng.jcampdx.read(str(path))
         dic, data_complex = ng.jcampdx.read(str(path), as_complex=True)
         assert np.allclose(data_default, data_complex)
+
+    def test_guess_udic_fid_no_datatype(self, tmp_path):
+        """guess_udic detects FID via NTUPLES when DATATYPE is absent."""
+        content = (
+            "##TITLE=Test FID No Datatype\n"
+            "##JCAMPDX=6.0\n"
+            "##DATA CLASS=NTUPLES\n"
+            "##NTUPLES=NMR FID\n"
+            "##.OBSERVE FREQUENCY=400.13\n"
+            "##VAR_NAME=TIME,FID/REAL\n"
+            "##SYMBOL=X,R\n"
+            "##UNITS=SECONDS,ARBITRARY UNITS\n"
+            "##FIRST=0\n"
+            "##LAST=1\n"
+            "##NPOINTS=2\n"
+            "##FACTOR=1\n"
+            "##PAGE=N=1\n"
+            "##DATA TABLE=(X++(R..R)),XYDATA\n"
+            "0 100\n"
+            "1 200\n"
+            "##END NTUPLES=NMR FID\n"
+            "##END=\n"
+        )
+        path = tmp_path / "fid_no_dt.jdx"
+        path.write_text(content)
+        dic, data = ng.jcampdx.read(str(path))
+        udic = ng.jcampdx.guess_udic(dic, data)
+        assert udic[0]["time"] is True
+        assert udic[0]["freq"] is False
+        # sw = npoints / aqtime = 2 / 1.0 = 2.0
+        assert abs(udic[0]["sw"] - 2.0) < 0.01
