@@ -977,3 +977,18 @@ class TestJCAMPDXGuessUdic:
         assert udic[0]["freq"] is False
         # sw = npoints / aqtime = 2 / 1.0 = 2.0
         assert abs(udic[0]["sw"] - 2.0) < 0.01
+
+    def test_guess_udic_imag_only(self):
+        """guess_udic handles [None, imag] without crashing."""
+        dic = {
+            "NTUPLES": ["NMR FID"],
+            "DATACLASS": ["NTUPLES"],
+            "SYMBOL": ["X,I"],
+            "FIRST": ["0,10"],
+            "LAST": ["1,20"],
+            "UNITS": ["SECONDS,ARBITRARY UNITS"],
+        }
+        data = [None, np.array([1.0, 2.0])]
+        udic = ng.jcampdx.guess_udic(dic, data)
+        assert udic[0]["size"] == 2
+        assert abs(udic[0]["sw"] - 2.0) < 0.01

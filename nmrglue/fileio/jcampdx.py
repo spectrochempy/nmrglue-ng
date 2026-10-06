@@ -1070,7 +1070,10 @@ def guess_udic(dic, data):
         pages = data.get("real") or data.get("imaginary") or [None]
         data = pages[0]
     if isinstance(data, list):
-        npoints = len(data[0])
+        for elem in data:
+            if elem is not None:
+                npoints = len(elem)
+                break
     elif data is not None:
         npoints = len(data)
     if npoints is not None:
