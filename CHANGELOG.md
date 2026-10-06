@@ -26,6 +26,11 @@ original nmrglue project and are preserved for attribution and continuity.
   re-referenced spectra was displaced by up to 2 ppm. Add `pdata` parameter:
   pass `pdata=True` for data read with `read_pdata()` to use processing
   parameters for axis computation. Default behavior unchanged. (#48)
+- Fix `data_nd.transpose()` raising `TypeError` on 1-D arrays when called as
+  `transpose()` or `transpose(0)`. The unpacking guard now skips unwrapping
+  for scalar integer arguments (including `np.int64` and similar), matching
+  NumPy semantics. A float passed as the sole argument continues to raise
+  `TypeError`; multi-argument float truncation remains tracked in #32. (#31)
 
 ### Added
 

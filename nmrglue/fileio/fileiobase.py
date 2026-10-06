@@ -4,6 +4,7 @@ used by multiple nmrglue.fileio modules.
 """
 
 
+import numbers
 import os
 import string
 import sys
@@ -767,7 +768,7 @@ class data_nd:
         if axes == ():    # default is to switch order of axes
             axes = range(self.ndim)[::-1]
 
-        if len(axes) == 1:    # if a single tuple is given unpack
+        if len(axes) == 1 and not isinstance(axes[0], numbers.Integral):
             axes = axes[0]
 
         try:    # convert to integers

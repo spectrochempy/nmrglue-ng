@@ -215,6 +215,7 @@ def test_data_nd_transpose_does_not_mutate_source():
         (3, 0, 1),
         (0, 3, 1),
         (0, 0, 1),
+        (0,),
         (0, 1),
         (0, 1, 2, 3),
     ],
@@ -222,6 +223,66 @@ def test_data_nd_transpose_does_not_mutate_source():
 def test_data_nd_transpose_rejects_invalid_axes(axes):
     with pytest.raises(ValueError):
         DummyDataND(fshape=(2, 3, 4)).transpose(*axes)
+
+
+@pytest.mark.parametrize(
+    "call_form",
+    ["no_args", "single_int", "single_np_int64", "single_tuple"],
+)
+def test_data_nd_transpose_1d(call_form):
+    data = DummyDataND(fshape=(5,))
+    expected = np.arange(5)
+
+    if call_form == "no_args":
+        transposed = data.transpose()
+    elif call_form == "single_int":
+        transposed = data.transpose(0)
+    elif call_form == "single_np_int64":
+        transposed = data.transpose(np.int64(0))
+    else:
+        transposed = data.transpose((0,))
+
+    assert transposed.order == (0,)
+    assert transposed.shape == (5,)
+    assert_array_equal(transposed[:], expected)
+
+
+def test_data_nd_transpose_1d_accepts_sequence_axes():
+    data = DummyDataND(fshape=(5,))
+
+    assert data.transpose(np.array([0])).order == (0,)
+    assert data.transpose(range(1)).order == (0,)
+
+
+def test_data_nd_transpose_2d_accepts_sequence_axes():
+    data = DummyDataND(fshape=(3, 4))
+    expected = np.arange(12).reshape(3, 4)
+
+    r = data.transpose(np.array([1, 0]))
+    assert r.order == (1, 0)
+    assert_array_equal(r[:], expected.transpose(1, 0))
+
+    r = data.transpose(range(2))
+    assert r.order == (0, 1)
+    assert_array_equal(r[:], expected)
+
+
+def test_data_nd_transpose_rejects_float_axis():
+    data = DummyDataND(fshape=(5,))
+    with pytest.raises(TypeError):
+        data.transpose(0.5)
+
+
+def test_data_nd_transpose_2d_does_not_regress():
+    data = DummyDataND(fshape=(3, 4))
+    expected = np.arange(12).reshape(3, 4)
+
+    assert data.transpose().order == (1, 0)
+    assert_array_equal(data.transpose()[:], expected.transpose())
+    assert data.transpose(1, 0).order == (1, 0)
+    assert_array_equal(data.transpose(1, 0)[:], expected.transpose(1, 0))
+    assert data.transpose((1, 0)).order == (1, 0)
+    assert_array_equal(data.transpose((1, 0))[:], expected.transpose((1, 0)))
 
 
 def test_data_nd_slicing_after_transform():

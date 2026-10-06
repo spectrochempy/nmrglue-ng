@@ -73,8 +73,8 @@ validation of subsequent commits.
   processing `OFFSET = 7.99684` (about -2 ppm). **Recommendation pending
   maintainer triage:** block release on this silent axis error; validate the
   raw/processed metadata precedence and axis sampling convention independently.
-  Issues #31 (1D transpose failure) and #32 (float axes silently accepted) also
-  reproduce and need explicit release disposition.
+  Issues #31 (1D transpose failure, now fixed) and #32 (float axes silently
+  accepted) also reproduce and need explicit release disposition.
 - **Issue #48 investigation (2026-10-06)**: root cause confirmed in
   `add_axis_to_udic()` (`bruker.py:123-141`). When both `acqus` and `procs` are
   present, `sw` comes from acquisition (`SW_h`) but `car` is derived from
@@ -134,6 +134,23 @@ requirement has been waived by this audit.
 - [ ] Investigate NMRPipe/JRES dimensional metadata behavior.
 
 ## Upstream contribution status (2026-10)
+
+Local issues #31 (1D transpose) and #32 (float axes in swapaxes) were reproduced
+on upstream `5e2f095` on 2026-10-06. Two issue drafts are prepared in
+`audits/2026-10-06-data-nd-upstream-drafts.md`; neither has been published.
+They concern cases distinct from upstream #271/PR #272. Await explicit
+maintainer approval of each exact public text before submission; preparation
+does not authorize publication.
+
+Bruker processed-axis issue
+[#285](https://github.com/jjhelmus/nmrglue/issues/285) opened on explicit
+maintainer request (2026-10-06), following PR #55 here. Reproduced against
+fresh upstream `master` at `5e2f095`: direct first point 5.99683966 ppm versus
+processing OFFSET 7.99684 ppm; omitting `acqus` only in memory restores
+7.99684 ppm. The issue links original CC0 nmrXiv S208 data and offers a
+focused opt-in fix. No upstream PR prepared; awaiting feedback on the approach.
+This specific issue authorization does not change the general contribution
+pause. Local evidence: `audits/2026-10-06-bruker-upstream-issue.md`.
 
 9 PRs submitted on jjhelmus/nmrglue (#268, #270, #272, #275, #278-#282).
 None have received maintainer feedback as of 2026-10-06.
