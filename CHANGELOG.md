@@ -10,8 +10,8 @@ original nmrglue project and are preserved for attribution and continuity.
 ### Added
 
 - Add `read_err` parameter to `jcampdx.read()` for configurable character
-  decoding error handling. Adapted from upstream jjhelmus/nmrglue#259.
-  Add 3 synthetic tests. (#48)
+  decoding error handling. Adapted from upstream jjhelmus/nmrglue#259
+  (harivyasi). Add 3 synthetic tests. (#49)
 - Add JCAMP-DX coordinate list (XY..XY) format, PEAKTABLE/XYPOINTS parsing,
   comma decimal separators, and XFACTOR/YFACTOR scaling for coordinate pairs.
   Adapted from upstream jjhelmus/nmrglue#262. Add 16 synthetic tests. (#47)
