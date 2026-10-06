@@ -74,7 +74,7 @@ validation of subsequent commits.
   maintainer triage:** block release on this silent axis error; validate the
   raw/processed metadata precedence and axis sampling convention independently.
   Issues #31 (1D transpose failure, now fixed) and #32 (float axes silently
-  accepted) also reproduce and need explicit release disposition.
+  accepted, now fixed) also reproduce and need explicit release disposition.
 - **Issue #48 investigation (2026-10-06)**: root cause confirmed in
   `add_axis_to_udic()` (`bruker.py:123-141`). When both `acqus` and `procs` are
   present, `sw` comes from acquisition (`SW_h`) but `car` is derived from
@@ -136,11 +136,9 @@ requirement has been waived by this audit.
 ## Upstream contribution status (2026-10)
 
 Local issues #31 (1D transpose) and #32 (float axes in swapaxes) were reproduced
-on upstream `5e2f095` on 2026-10-06. Two issue drafts are prepared in
-`audits/2026-10-06-data-nd-upstream-drafts.md`; neither has been published.
-They concern cases distinct from upstream #271/PR #272. Await explicit
-maintainer approval of each exact public text before submission; preparation
-does not authorize publication.
+on upstream `5e2f095` on 2026-10-06. Issue drafts prepared in
+`audits/2026-10-06-data-nd-upstream-drafts.md`. #31 published as upstream #286.
+#32 draft ready; awaiting maintainer approval before submission.
 
 Bruker processed-axis issue
 [#285](https://github.com/jjhelmus/nmrglue/issues/285) opened on explicit

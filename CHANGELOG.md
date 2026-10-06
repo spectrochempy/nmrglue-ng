@@ -29,8 +29,11 @@ original nmrglue project and are preserved for attribution and continuity.
 - Fix `data_nd.transpose()` raising `TypeError` on 1-D arrays when called as
   `transpose()` or `transpose(0)`. The unpacking guard now skips unwrapping
   for scalar integer arguments (including `np.int64` and similar), matching
-  NumPy semantics. A float passed as the sole argument continues to raise
-  `TypeError`; multi-argument float truncation remains tracked in #32. (#31)
+  NumPy semantics. (#31)
+- Fix `data_nd.swapaxes()` and `data_nd.transpose()` silently accepting
+  floating-point axis arguments (e.g. `swapaxes(0.5, 1)` truncated to axis 0).
+  Both methods now use `operator.index` to validate axis types, matching NumPy.
+  (#32)
 
 ### Added
 
