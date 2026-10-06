@@ -804,3 +804,120 @@ class TestJCAMPDXReadBlocks:
         assert "$PROCESSED" not in blocks[0]
         assert "ENDNTUPLES" not in blocks[1]
         assert blocks[2]["$INTEGRALS"] == ["(X Y)"]
+
+
+class TestJCAMPDXGuessUdic:
+    """Tests for guess_udic() FID handling and get_complex_array() (upstream #231)."""
+
+    _FID_FILE = (
+        "##TITLE=Test FID\n"
+        "##JCAMPDX=6.0\n"
+        "##DATA TYPE=NMR FID\n"
+        "##DATA CLASS=NTUPLES\n"
+        "##NTUPLES=NMR FID\n"
+        "##.OBSERVE FREQUENCY=400.13\n"
+        "##.OBSERVE NUCLEUS=^1H\n"
+        "##VAR_NAME=TIME,FID/REAL,FID/IMAG\n"
+        "##SYMBOL=X,R,I\n"
+        "##UNITS=SECONDS,ARBITRARY UNITS,ARBITRARY UNITS\n"
+        "##FIRST=0,100,50\n"
+        "##LAST=0.6815317,-10,-20\n"
+        "##NPOINTS=4\n"
+        "##FACTOR=1,1,1\n"
+        "##PAGE=N=1\n"
+        "##DATA TABLE=(X++(R..R)),XYDATA\n"
+        "0 100\n"
+        "0.17 200\n"
+        "0.34 150\n"
+        "0.51 -10\n"
+        "##DATA TABLE=(X++(I..I)),XYDATA\n"
+        "0 50\n"
+        "0.17 60\n"
+        "0.34 70\n"
+        "0.51 -20\n"
+        "##END NTUPLES=NMR FID\n"
+        "##END=\n"
+    )
+
+    _SPECTRUM_FILE = (
+        "##TITLE=Test Spectrum\n"
+        "##JCAMPDX=5.0\n"
+        "##DATA TYPE=NMR SPECTRUM\n"
+        "##.OBSERVE FREQUENCY=400.13\n"
+        "##.OBSERVE NUCLEUS=^1H\n"
+        "##FIRSTX=0\n"
+        "##LASTX=10.0\n"
+        "##XUNITS=PPM\n"
+        "##NPOINTS=4\n"
+        "##XYDATA=(X++(Y..Y))\n"
+        "0 100 200 300\n"
+        "##END=\n"
+    )
+
+    def test_get_complex_array(self):
+        """get_complex_array combines R and I into complex array."""
+        real = np.array([1.0, 2.0, 3.0])
+        imag = np.array([4.0, 5.0, 6.0])
+        result = ng.jcampdx.get_complex_array([real, imag])
+        assert result.dtype == np.complex128
+        assert np.allclose(result.real, real)
+        assert np.allclose(result.imag, imag)
+
+    def test_get_complex_array_invalid(self):
+        """get_complex_array returns None for invalid input."""
+        assert ng.jcampdx.get_complex_array([np.array([1.0])]) is None
+        assert ng.jcampdx.get_complex_array(np.array([1.0])) is None
+
+    def test_guess_udic_fid_sw(self, tmp_path):
+        """guess_udic computes correct sw for FID data (Nyquist)."""
+        path = tmp_path / "fid.jdx"
+        path.write_text(self._FID_FILE)
+        dic, data = ng.jcampdx.read(str(path))
+        # FID data comes as list [R, I]
+        assert isinstance(data, list)
+        npoints = len(data[0])
+        assert npoints == 4
+        udic = ng.jcampdx.guess_udic(dic, data)
+        # sw = npoints / acquisition_time = 4 / 0.6815317
+        expected_sw = 4 / 0.6815317
+        assert abs(udic[0]["sw"] - expected_sw) < 0.1
+
+    def test_guess_udic_fid_flags(self, tmp_path):
+        """guess_udic sets time/freq/complex flags for FID."""
+        path = tmp_path / "fid.jdx"
+        path.write_text(self._FID_FILE)
+        dic, data = ng.jcampdx.read(str(path))
+        udic = ng.jcampdx.guess_udic(dic, data)
+        assert udic[0]["time"] is True
+        assert udic[0]["freq"] is False
+        assert udic[0]["complex"] is False
+
+    def test_guess_udic_spectrum_flags(self, tmp_path):
+        """guess_udic sets time/freq/complex flags for spectrum."""
+        path = tmp_path / "spectrum.jdx"
+        path.write_text(self._SPECTRUM_FILE)
+        dic, data = ng.jcampdx.read(str(path))
+        udic = ng.jcampdx.guess_udic(dic, data)
+        assert udic[0]["time"] is False
+        assert udic[0]["freq"] is True
+        assert udic[0]["complex"] is False
+
+    def test_guess_udic_spectrum_car(self, tmp_path):
+        """guess_udic computes car for processed spectrum."""
+        path = tmp_path / "spectrum.jdx"
+        path.write_text(self._SPECTRUM_FILE)
+        dic, data = ng.jcampdx.read(str(path))
+        udic = ng.jcampdx.guess_udic(dic, data)
+        # car = (lastx + firstx) / 2 in Hz
+        # PPM: firstx=0, lastx=10, obs=400.13 -> Hz: 0, 4001.3
+        expected_car = (0 + 4001.3) / 2
+        assert abs(udic[0]["car"] - expected_car) < 1.0
+
+    def test_guess_udic_complex_array(self, tmp_path):
+        """guess_udic detects complex data from get_complex_array()."""
+        path = tmp_path / "fid.jdx"
+        path.write_text(self._FID_FILE)
+        dic, rawdata = ng.jcampdx.read(str(path))
+        complexdata = ng.jcampdx.get_complex_array(rawdata)
+        udic = ng.jcampdx.guess_udic(dic, complexdata)
+        assert udic[0]["complex"] is True

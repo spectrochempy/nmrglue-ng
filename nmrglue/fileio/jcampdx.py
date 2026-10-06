@@ -971,6 +971,33 @@ def _find_firstx_lastx(dic):
     return firstx, lastx, isppm
 
 
+def get_complex_array(data):
+    """
+    Combine separate real and imaginary arrays into a single complex array.
+
+    JCAMP-DX FID data are read as two separate arrays for real and imaginary
+    parts. This function returns them combined as a single complex128 array.
+
+    Parameters
+    ----------
+    data : list of ndarray
+        List of two arrays [real, imaginary].
+
+    Returns
+    -------
+    complexdata : ndarray or None
+        Complex array, or None if data is not a list of two arrays.
+    """
+    if not isinstance(data, list) or len(data) != 2:
+        warn("data is not list of arrays [real, imag]")
+        return None
+
+    complexdata = np.empty((len(data[0]), ), dtype='complex128')
+    complexdata.real = data[0][:]
+    complexdata.imag = data[1][:]
+    return complexdata
+
+
 def guess_udic(dic, data):
     """
     Guess parameters of universal dictionary from dic, data pair.
@@ -1024,37 +1051,62 @@ def guess_udic(dic, data):
         pass
 
     # "size"
+    npoints = None
     if isinstance(data, dict):
-        # show_all_data form: every page has the same length, so measure the
-        # first one that is present
         pages = data.get("real") or data.get("imaginary") or [None]
         data = pages[0]
     if isinstance(data, list):
-        data = data[0]  # if list [R,I]
-    if data is not None:
-        udic[0]["size"] = len(data)
+        npoints = len(data[0])
+    elif data is not None:
+        npoints = len(data)
+    if npoints is not None:
+        udic[0]["size"] = npoints
     else:
         warn('No data, cannot set udic size')
 
-    # "sw"
-    # get firstx, lastx and unit
+    # detect FID vs processed
+    is_processed = True
+    try:
+        datatype = dic["DATATYPE"][0]
+        if datatype.strip().upper().replace(" ", "") == "NMRFID":
+            is_processed = False
+    except KeyError:
+        pass
+
+    # "sw" and "car"
     firstx, lastx, isppm = _find_firstx_lastx(dic)
 
-    # ppm data: convert to Hz
-    if isppm:
-        if obs_freq:
-            firstx = firstx * obs_freq
-            lastx = lastx * obs_freq
-        else:
-            firstx, lastx = (None, None)
-            warn('Data is in ppm but have no frequency, cannot set udic sweep')
-
     if firstx is not None and lastx is not None:
-        udic[0]["sw"] = abs(lastx - firstx)
+        if is_processed:
+            # ppm data: convert to Hz
+            if isppm:
+                if obs_freq:
+                    firstx = firstx * obs_freq
+                    lastx = lastx * obs_freq
+                else:
+                    firstx, lastx = (None, None)
+                    warn('Data is in ppm but base frequency is unknown, '
+                         'cannot set udic spectral width')
+            if firstx is not None and lastx is not None:
+                udic[0]["sw"] = abs(lastx - firstx)
+                udic[0]["car"] = (lastx + firstx) / 2
+        else:
+            # FID: sw = npoints / acquisition_time (Nyquist)
+            if npoints:
+                aqtime = lastx - firstx
+                if aqtime > 0:
+                    udic[0]["sw"] = npoints / aqtime
     else:
-        warn('Cannot set udic sweep')
+        warn('No data ranges found from JCAMP, cannot set udic sw')
 
-    # keys not found in standard&required JCAMP-DX keys and thus left default:
-    # car, complex, encoding
+    # "time" and "freq"
+    udic[0]["freq"] = is_processed
+    udic[0]["time"] = not is_processed
+
+    # "complex" — JCAMP R&I are separate arrays, so default False
+    udic[0]["complex"] = False
+    if not isinstance(data, list):
+        if hasattr(data, 'dtype') and data.dtype == "complex128":
+            udic[0]["complex"] = True
 
     return udic
