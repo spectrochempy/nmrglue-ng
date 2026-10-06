@@ -21,6 +21,11 @@ original nmrglue project and are preserved for attribution and continuity.
   `bruker.remove_digital_filter()` and `bruker.rm_dig_filter()` instead of
   raising `ValueError`. Older Bruker files may report `DSPFVS < 10`; the
   lookup table starts at 10, so clamping makes these files readable. (#51)
+- Fix `bruker.guess_udic()` ignoring processing parameters (OFFSET/SF/SW_p)
+  for processed data when acquisition headers are present. The direct axis of
+  re-referenced spectra was displaced by up to 2 ppm. Add `pdata` parameter:
+  pass `pdata=True` for data read with `read_pdata()` to use processing
+  parameters for axis computation. Default behavior unchanged. (#48)
 
 ### Added
 
