@@ -52,7 +52,7 @@ def create_data(data):
 
 # universal dictionary functions
 
-def guess_udic(dic, data, strip_fake=False):
+def guess_udic(dic, data, strip_fake=False, pdata=None):
     """
     Guess parameters of universal dictionary from dic, data pair.
 
@@ -68,6 +68,10 @@ def guess_udic(dic, data, strip_fake=False):
         width and carrier frequencies is changed to values that are incorrect
         but instead can are intended to trick the normal unit_conversion object
         into producing the correct result.
+    pdata : bool or None, optional
+        True if data was read using `bruker.read_pdata`, False for raw data
+        read using `bruker.read`. None (default) auto-detects: acquisition
+        parameters take priority when both are present (backward compatible).
 
     Returns
     -------
@@ -86,13 +90,13 @@ def guess_udic(dic, data, strip_fake=False):
 
         # try to add additional parameter from acqus dictionary keys
         try:
-            add_axis_to_udic(udic, dic, b_dim, strip_fake)
+            add_axis_to_udic(udic, dic, b_dim, strip_fake, pdata)
         except:
             warn("Failed to determine udic parameters for dim: %i" % (b_dim))
     return udic
 
 
-def add_axis_to_udic(udic, dic, udim, strip_fake):
+def add_axis_to_udic(udic, dic, udim, strip_fake, pdata=None):
     """
     Add axis parameters to a udic.
 
@@ -105,6 +109,8 @@ def add_axis_to_udic(udic, dic, udim, strip_fake):
     dim : int
         Universal dictionary dimension to update.
     strip_fake: bool
+        See `bruker.guess_udic`
+    pdata : bool or None
         See `bruker.guess_udic`
 
     """
@@ -120,7 +126,19 @@ def add_axis_to_udic(udic, dic, udim, strip_fake):
     if pro_file == "proc1s":
         pro_file = "procs"
 
-    if acq_file in dic:
+    # Determine axis parameters: processed data uses procs (OFFSET/SF/SW_p),
+    # raw data uses acqus (O1/SFO1/SW_h).  When pdata is None and both are
+    # present, acquisition parameters keep priority for backward compatibility.
+    use_proc_axis = False
+    if pdata is True:
+        use_proc_axis = True
+    elif pdata is None:
+        # auto: use procs only when acqus is absent
+        use_proc_axis = (acq_file not in dic)
+
+    if use_proc_axis and pro_file in dic:
+        sw = dic[pro_file]["SW_p"]
+    elif acq_file in dic:
         if b_dim == 0:
             sw = dic[acq_file]["SW_h"]
         else:
@@ -137,14 +155,12 @@ def add_axis_to_udic(udic, dic, udim, strip_fake):
 
     try:
         obs = dic[pro_file]["SF"]
-        if acq_file in dic:
+        if use_proc_axis and pro_file in dic:
+            car = dic[pro_file]["OFFSET"] * obs - sw / 2
+        elif acq_file in dic:
             car = (dic[acq_file]["SFO1"] - obs) * 1e6
         else:
-            # we should be able to use the 'OFFSET' parameter in procNs to
-            # calculate 'car'. But this is slightly off (~ 5E-3 Hz)
-            # most likely because the procs file does not store the OFFSET
-            # to a high precision. Hence the value in acquNs is given priority
-            car = dic[pro_file]["OFFSET"]*obs - sw/2
+            car = dic[pro_file]["OFFSET"] * obs - sw / 2
 
     except KeyError:
         warn('The chemical shift referencing was not corrected for "sr".')

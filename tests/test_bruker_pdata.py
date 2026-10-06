@@ -22,6 +22,7 @@ import numpy as np
 import pytest
 
 import nmrglue as ng
+from nmrglue.fileio import fileiobase
 
 
 DATA_DIR = os.path.join(
@@ -217,3 +218,103 @@ class TestBruker2DCOSY:
         """All 2D COSY processed data values are finite."""
         pdic, pdata = ng.bruker.read_pdata(COSY_PDATA_DIR)
         assert np.all(np.isfinite(pdata))
+
+
+class TestBrukerProcessedAxes:
+    """Regression tests for issue #48: processed axes use procs parameters.
+
+    When pdata=True, guess_udic derives axes from procs/procNs
+    (OFFSET, SF, SW_p) rather than acqus (SFO1, O1, SW_h).
+    Expected values are derived from the fixture's procs parameters:
+        first point = OFFSET (ppm)
+        last point  = OFFSET - (SI-1) * SW_p / (SI * SF) (ppm)
+    """
+
+    def test_hsqc_direct_first_point(self):
+        """HSQC direct first point matches procs OFFSET."""
+        pdic, pdata = ng.bruker.read_pdata(HSQC_PDATA_DIR)
+        udic = ng.bruker.guess_udic(pdic, pdata, pdata=True)
+        uc = fileiobase.uc_from_udic(udic, 1)
+        first, _ = uc.ppm_limits()
+        assert np.isclose(first, pdic["procs"]["OFFSET"], atol=1e-4)
+
+    def test_hsqc_direct_last_point(self):
+        """HSQC direct last point matches OFFSET-derived value."""
+        pdic, pdata = ng.bruker.read_pdata(HSQC_PDATA_DIR)
+        udic = ng.bruker.guess_udic(pdic, pdata, pdata=True)
+        uc = fileiobase.uc_from_udic(udic, 1)
+        _, last = uc.ppm_limits()
+        p = pdic["procs"]
+        expected = p["OFFSET"] - (p["SI"] - 1) * p["SW_p"] / (p["SI"] * p["SF"])
+        assert np.isclose(last, expected, atol=1e-4)
+
+    def test_hsqc_indirect_first_point(self):
+        """HSQC indirect first point matches proc2s OFFSET."""
+        pdic, pdata = ng.bruker.read_pdata(HSQC_PDATA_DIR)
+        udic = ng.bruker.guess_udic(pdic, pdata, pdata=True)
+        uc = fileiobase.uc_from_udic(udic, 0)
+        first, _ = uc.ppm_limits()
+        assert np.isclose(first, pdic["proc2s"]["OFFSET"], atol=1e-4)
+
+    def test_hsqc_indirect_last_point(self):
+        """HSQC indirect last point matches OFFSET-derived value."""
+        pdic, pdata = ng.bruker.read_pdata(HSQC_PDATA_DIR)
+        udic = ng.bruker.guess_udic(pdic, pdata, pdata=True)
+        uc = fileiobase.uc_from_udic(udic, 0)
+        _, last = uc.ppm_limits()
+        p = pdic["proc2s"]
+        expected = p["OFFSET"] - (p["SI"] - 1) * p["SW_p"] / (p["SI"] * p["SF"])
+        assert np.isclose(last, expected, atol=1e-4)
+
+    def test_cosy_direct_first_point(self):
+        """COSY direct first point matches procs OFFSET."""
+        pdic, pdata = ng.bruker.read_pdata(COSY_PDATA_DIR)
+        udic = ng.bruker.guess_udic(pdic, pdata, pdata=True)
+        uc = fileiobase.uc_from_udic(udic, 1)
+        first, _ = uc.ppm_limits()
+        assert np.isclose(first, pdic["procs"]["OFFSET"], atol=1e-4)
+
+    def test_cosy_indirect_first_point(self):
+        """COSY indirect first point matches proc2s OFFSET."""
+        pdic, pdata = ng.bruker.read_pdata(COSY_PDATA_DIR)
+        udic = ng.bruker.guess_udic(pdic, pdata, pdata=True)
+        uc = fileiobase.uc_from_udic(udic, 0)
+        first, _ = uc.ppm_limits()
+        assert np.isclose(first, pdic["proc2s"]["OFFSET"], atol=1e-4)
+
+    def test_1d_pdata_first_point(self):
+        """1D processed first point matches procs OFFSET."""
+        pdic, pdata = ng.bruker.read_pdata(PDATA_DIR)
+        udic = ng.bruker.guess_udic(pdic, pdata, pdata=True)
+        uc = fileiobase.uc_from_udic(udic, 0)
+        first, _ = uc.ppm_limits()
+        assert np.isclose(first, pdic["procs"]["OFFSET"], atol=1e-4)
+
+    def test_raw_data_axis_unchanged(self):
+        """Raw data axis uses acqus parameters (backward compat)."""
+        dic, data = ng.bruker.read(HSQC_DIR)
+        udic = ng.bruker.guess_udic(dic, data)
+        uc = fileiobase.uc_from_udic(udic, 1)
+        first, _ = uc.ppm_limits()
+        # Raw axis uses O1/SFO1, not OFFSET
+        expected = (dic["acqus"]["O1"] + dic["acqus"]["SW_h"] / 2) / \
+                   dic["acqus"]["SFO1"]
+        assert np.isclose(first, expected, atol=1e-4)
+
+    def test_pdata_false_same_as_none(self):
+        """pdata=False gives same result as pdata=None (backward compat)."""
+        pdic, pdata = ng.bruker.read_pdata(HSQC_PDATA_DIR)
+        u_none = ng.bruker.guess_udic(pdic, pdata, pdata=None)
+        u_false = ng.bruker.guess_udic(pdic, pdata, pdata=False)
+        uc_none = fileiobase.uc_from_udic(u_none, 1)
+        uc_false = fileiobase.uc_from_udic(u_false, 1)
+        assert np.allclose(uc_none.ppm_limits(), uc_false.ppm_limits())
+
+    def test_strip_fake_with_pdata(self):
+        """strip_fake=True combined with pdata=True does not crash."""
+        pdic, pdata = ng.bruker.read_pdata(HSQC_PDATA_DIR)
+        udic = ng.bruker.guess_udic(pdic, pdata, strip_fake=True, pdata=True)
+        uc = fileiobase.uc_from_udic(udic, 1)
+        first, last = uc.ppm_limits()
+        assert np.isfinite(first)
+        assert np.isfinite(last)

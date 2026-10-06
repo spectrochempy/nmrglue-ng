@@ -50,6 +50,59 @@ never declares readiness while an item is open.
 - [ ] Review critical inherited defects before the first release.
 - [x] Define the integer/float width contract and resolve the `zd_*` defect (#4).
 
+### Release-readiness audit — 2026-10-06
+
+Audited published `master` at `fd84c0666015b3a09fa6818ca4fd34c434c6c804`:
+**BLOCKED** under the existing P0 gates. This is a dated baseline, not a
+validation of subsequent commits.
+
+- [CI run 37454926973](https://github.com/spectrochempy/nmrglue-ng/actions/runs/37454926973)
+  passed all 10 jobs. Local autonomous validation: 364 passed, 3 skipped
+  (`csdmpy` absent), 147 deselected. The dedicated CSDM job passed in CI.
+  CI artifact reports contain 24 passing sdist tests and 64 passing installed
+  wheel tests, without skips.
+- Local corpus verification passed for all 145 manifest files. This does not
+  validate the 9 missing-group entries or the dataset test profile. Reconcile
+  the historical critical contract with the new licensed Bruker/JEOL/JCAMP-DX
+  fixtures using an explicit capability/test/reference mapping before deciding
+  which missing groups remain necessary. Rights, verified acquisition and a
+  current complete critical-profile result remain open. Dataset and NMRPipe
+  profiles were not rerun in this audit.
+- Issue [#48](https://github.com/spectrochempy/nmrglue-ng/issues/48) reproduces
+  on the packaged HSQC fixture: the direct first point is 5.99683966 ppm versus
+  processing `OFFSET = 7.99684` (about -2 ppm). **Recommendation pending
+  maintainer triage:** block release on this silent axis error; validate the
+  raw/processed metadata precedence and axis sampling convention independently.
+  Issues #31 (1D transpose failure) and #32 (float axes silently accepted) also
+  reproduce and need explicit release disposition.
+- **Issue #48 investigation (2026-10-06)**: root cause confirmed in
+  `add_axis_to_udic()` (`bruker.py:123-141`). When both `acqus` and `procs` are
+  present, `sw` comes from acquisition (`SW_h`) but `car` is derived from
+  processing (`SFO1 - SF`). For the HSQC fixture, this produces a -2 ppm
+  offset because the acquisition and processing carrier frequencies disagree
+  (the spectrum was re-referenced). The COSY fixture is unaffected because its
+  acqus and procs agree. The HSQC indirect dimension is unaffected because it
+  has no `acqu2s` and falls back to `proc2s`. The SI vs SI-1 convention
+  question remains open: Convention A (SW_p/SI bins, first point at OFFSET) is
+  consistent with the data and the existing `unit_conversion` formula.
+  Proposed fix: add a `pdata` parameter to `guess_udic()` for explicit
+  raw/processed disambiguation. Detailed report: `audits/2026-10-06-bruker-processed-axes.md`.
+- Strict Sphinx HTML build reports structural errors in the Sparky and Varian
+  docstrings. `.readthedocs.yml` requests Python 3.8 despite the package's
+  Python >=3.10 requirement; documentation still contains upstream branding
+  and installation commands. Repair the build and establish independent
+  deployment and migration guidance.
+- Source `0.13-dev` and CI artifact `0.13.dev0` versions are coherent, but the
+  final version/changelog/tag remain to be chosen. Consolidate duplicate
+  changelog sections and correct issue-versus-PR references. The sdist omits
+  the manifest required by its bundled corpus verifier: include it or document
+  checkout-only usage. Establish a publication procedure; PyPI access was not
+  checked.
+
+The detailed local report is `audits/2026-10-06-release-readiness.md` (ignored).
+The findings above are the shared record; no release gate or critical-corpus
+requirement has been waived by this audit.
+
 ## P1 — Scientific reliability
 
 - [x] Secure `data_nd` copy and negative-axis behavior.
@@ -63,12 +116,19 @@ never declares readiness while an item is open.
 - [x] Restore and validate the `proc_lp` QR solver (#10).
 - [ ] Specify observation/reference/carrier-frequency semantics and ppm conversion.
 - [ ] Resolve Bruker processing-parameter source selection.
+  Investigation complete (2026-10-06): root cause is in `add_axis_to_udic()`
+  mixing acquisition and processing parameters when both are present.
+  Fix implemented: `pdata` parameter on `guess_udic()`. Convention A
+  (SW_p/SI bins) adopted from data evidence. 8 regression tests added.
+  Self-contained suite: 372 passed, 3 skipped, 0 failures.
+  See issue #48 and `audits/2026-10-06-bruker-processed-axes.md`.
+  **Awaiting independent review.**
 - [ ] Consolidate JCAMP-DX behavior against documented and real-world fixtures.
   All harivyasi PRs adapted: #259 (read_err, PR #49), #260 (nD NTUPLES, PR #46),
   #262 (XY..XY/PEAKTABLE, PR #47), #277 (read_blocks, PR #52).
   FID handling improved: `guess_udic()` sw corrected, `get_complex_array()`,
   `as_complex` parameter, `time`/`freq`/`complex`/`car` flags (PR #54).
-  Bruker locale fix from #261 adapted (PR #53, awaiting review).
+  Bruker locale fix from #261 adapted and merged (PR #53).
   Upstream issue #284 opened for `sw` FID bug. Comments on PR #231 for
   indentation errors, `as_complex`, `[None, imag]` crash, NTUPLES detection.
 - [ ] Investigate NMRPipe/JRES dimensional metadata behavior.
@@ -82,7 +142,8 @@ New upstream PR #283 (harivyasi): `zd_*` width rounding half up (NMRPipe
 compatible). Our code is stricter (`_normalize_zd_width` rejects fractions).
 Decision: wait for upstream merge, then adapt if needed.
 
-Audit notes: `maintainer/audits/2026-10-jcampdx.md`, `2026-10-bruker.md`.
+Audit notes: `maintainer/audits/2026-10-jcampdx.md`, `2026-10-bruker.md`,
+`2026-10-06-bruker-processed-axes.md`.
 
 ### Bruker pdata fixtures — added
 
