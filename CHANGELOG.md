@@ -13,6 +13,10 @@ original nmrglue project and are preserved for attribution and continuity.
   with strict codec detection loop (utf-8-sig, cp1252, latin-1). Encoding no
   longer depends on the system locale. Adapted from upstream
   jjhelmus/nmrglue#261 (harivyasi). Add 5 fixture-based tests. (#53)
+- Fix `jcampdx.guess_udic()` returning acquisition time instead of spectral
+  width for FID data. Add `get_complex_array()` helper, `time`/`freq`/`complex`
+  flags, and `car` calculation for processed spectra. Related to upstream
+  jjhelmus/nmrglue#231 and jjhelmus/nmrglue#284. Add 7 synthetic tests. (#54)
 - Clamp `DSPFVS` values below 10 to 10 (default for DQD) in
   `bruker.remove_digital_filter()` and `bruker.rm_dig_filter()` instead of
   raising `ValueError`. Older Bruker files may report `DSPFVS < 10`; the

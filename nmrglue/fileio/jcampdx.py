@@ -783,7 +783,7 @@ def getdataarray(dic, show_all_data=False):
     return data
 
 
-def read(filename, show_all_data=False, read_err=None):
+def read(filename, show_all_data=False, read_err=None, as_complex=False):
     """
     Read JCAMP-DX file
 
@@ -801,6 +801,10 @@ def read(filename, show_all_data=False, read_err=None):
         ``errors`` parameter. Valid values include 'strict', 'ignore',
         'replace', 'backslashreplace', etc. Defaults to None which uses
         'replace'.
+    as_complex : bool, optional
+        If True and data is NTUPLES with separate real and imaginary
+        arrays, return a single complex128 array instead of a list
+        [real, imaginary]. Default is False for backward compatibility.
 
     Returns
     -------
@@ -812,7 +816,8 @@ def read(filename, show_all_data=False, read_err=None):
     data : ndarray or dict
         Array of NMR data, or a list of NMR data arrays in order
         [real, imaginary]. When show_all_data=True and data is NTUPLES,
-        a dict with keys 'real' and 'imaginary' is returned.
+        a dict with keys 'real' and 'imaginary' is returned. When
+        as_complex=True and data has separate R/I, a complex128 array.
     """
 
     if os.path.isfile(filename) is not True:
@@ -867,6 +872,9 @@ def read(filename, show_all_data=False, read_err=None):
 
     # clean main dic from possible empty entries
     dic = {key: value for key, value in dic.items() if value}
+
+    if as_complex and isinstance(data, list) and len(data) == 2:
+        data = get_complex_array(data)
 
     return dic, data
 
@@ -971,6 +979,39 @@ def _find_firstx_lastx(dic):
     return firstx, lastx, isppm
 
 
+def get_complex_array(data):
+    """
+    Combine separate real and imaginary arrays into a single complex array.
+
+    JCAMP-DX FID data are read as two separate arrays for real and imaginary
+    parts. This function returns them combined as a single complex128 array.
+
+    Parameters
+    ----------
+    data : list of ndarray
+        List of two arrays [real, imaginary].
+
+    Returns
+    -------
+    complexdata : ndarray or None
+        Complex array, or None if data is not a list of two compatible arrays.
+    """
+    if not isinstance(data, list) or len(data) != 2:
+        warn("data is not list of arrays [real, imag]")
+        return None
+
+    real, imag = data
+    if (not isinstance(real, np.ndarray) or not isinstance(imag, np.ndarray)
+            or real.shape != imag.shape):
+        warn("data arrays must be ndarrays of the same shape")
+        return None
+
+    complexdata = np.empty(len(real), dtype='complex128')
+    complexdata.real = real[:]
+    complexdata.imag = imag[:]
+    return complexdata
+
+
 def guess_udic(dic, data):
     """
     Guess parameters of universal dictionary from dic, data pair.
@@ -1024,37 +1065,78 @@ def guess_udic(dic, data):
         pass
 
     # "size"
+    npoints = None
     if isinstance(data, dict):
-        # show_all_data form: every page has the same length, so measure the
-        # first one that is present
         pages = data.get("real") or data.get("imaginary") or [None]
         data = pages[0]
     if isinstance(data, list):
-        data = data[0]  # if list [R,I]
-    if data is not None:
-        udic[0]["size"] = len(data)
+        for elem in data:
+            if elem is not None:
+                npoints = len(elem)
+                break
+    elif data is not None:
+        npoints = len(data)
+    if npoints is not None:
+        udic[0]["size"] = npoints
     else:
         warn('No data, cannot set udic size')
 
-    # "sw"
-    # get firstx, lastx and unit
+    # detect FID vs processed
+    is_processed = None
+    try:
+        datatype = dic["DATATYPE"][0]
+        if datatype.strip().upper().replace(" ", "") == "NMRFID":
+            is_processed = False
+        else:
+            is_processed = True
+    except KeyError:
+        pass
+    if is_processed is None:
+        try:
+            ntuples = dic["NTUPLES"][0]
+            if "FID" in ntuples.strip().upper():
+                is_processed = False
+            else:
+                is_processed = True
+        except KeyError:
+            pass
+    if is_processed is None:
+        is_processed = True
+
+    # "sw" and "car"
     firstx, lastx, isppm = _find_firstx_lastx(dic)
 
-    # ppm data: convert to Hz
-    if isppm:
-        if obs_freq:
-            firstx = firstx * obs_freq
-            lastx = lastx * obs_freq
-        else:
-            firstx, lastx = (None, None)
-            warn('Data is in ppm but have no frequency, cannot set udic sweep')
-
     if firstx is not None and lastx is not None:
-        udic[0]["sw"] = abs(lastx - firstx)
+        if is_processed:
+            # ppm data: convert to Hz
+            if isppm:
+                if obs_freq:
+                    firstx = firstx * obs_freq
+                    lastx = lastx * obs_freq
+                else:
+                    firstx, lastx = (None, None)
+                    warn('Data is in ppm but base frequency is unknown, '
+                         'cannot set udic spectral width')
+            if firstx is not None and lastx is not None:
+                udic[0]["sw"] = abs(lastx - firstx)
+                udic[0]["car"] = (lastx + firstx) / 2
+        else:
+            # FID: sw = npoints / acquisition_time (Nyquist)
+            if npoints:
+                aqtime = lastx - firstx
+                if aqtime > 0:
+                    udic[0]["sw"] = npoints / aqtime
     else:
-        warn('Cannot set udic sweep')
+        warn('No data ranges found from JCAMP, cannot set udic sw')
 
-    # keys not found in standard&required JCAMP-DX keys and thus left default:
-    # car, complex, encoding
+    # "time" and "freq"
+    udic[0]["freq"] = is_processed
+    udic[0]["time"] = not is_processed
+
+    # "complex" — JCAMP R&I are separate arrays, so default False
+    udic[0]["complex"] = False
+    if not isinstance(data, list):
+        if hasattr(data, 'dtype') and data.dtype == "complex128":
+            udic[0]["complex"] = True
 
     return udic
