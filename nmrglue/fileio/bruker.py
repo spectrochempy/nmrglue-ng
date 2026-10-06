@@ -2033,6 +2033,11 @@ def remove_digital_filter(dic, data, truncate=True, post_proc=False,
         the receiver DC offset.  False (default) leaves the data unchanged.
         Cannot be used with ``post_proc=True``.
 
+        .. warning::
+            Mean subtraction also attenuates or removes any real signal at
+            the carrier frequency (DC component).  Use with caution on
+            spectra where a resonance at the carrier is expected.
+
     Returns
     -------
     ndata : ndarray
@@ -2103,6 +2108,11 @@ def rm_dig_filter(
         axis, which removes the spike at the centre of the spectrum caused by
         the receiver DC offset.  False (default) leaves the data unchanged.
         Cannot be used with ``post_proc=True``.
+
+        .. warning::
+            Mean subtraction also attenuates or removes any real signal at
+            the carrier frequency (DC component).  Use with caution on
+            spectra where a resonance at the carrier is expected.
 
     Returns
     -------
