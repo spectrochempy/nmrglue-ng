@@ -206,6 +206,42 @@ def test_write_pdata():
     shutil.rmtree(td)
 
 
+def test_dspfvs_clamp():
+    """DSPFVS values below 10 are clamped to 10 (default for DQD).
+
+    Older Bruker files may report DSPFVS < 10. The lookup table starts at
+    DSPFVS = 10, so values below 10 are clamped to 10 rather than raising.
+    """
+    data = np.exp(-np.arange(256) / 30.0).astype(np.complex128)
+
+    # DSPFVS = 0, DECIM = 2 -> clamped to DSPFVS = 10, phase = 44.75
+    dic = {'acqus': {'DECIM': 2, 'DSPFVS': 0, 'TD': 512}}
+    out = ng.bruker.remove_digital_filter(dic, data.copy())
+    assert len(out) == 256 - int(np.floor(44.75 + 2))
+
+    # DSPFVS = 1, DECIM = 2 -> also clamped to 10
+    dic = {'acqus': {'DECIM': 2, 'DSPFVS': 1, 'TD': 512}}
+    out = ng.bruker.remove_digital_filter(dic, data.copy())
+    assert len(out) == 256 - int(np.floor(44.75 + 2))
+
+    # DSPFVS = 9, DECIM = 2 -> also clamped to 10
+    dic = {'acqus': {'DECIM': 2, 'DSPFVS': 9, 'TD': 512}}
+    out = ng.bruker.remove_digital_filter(dic, data.copy())
+    assert len(out) == 256 - int(np.floor(44.75 + 2))
+
+    # DSPFVS = 10, DECIM = 2 -> not clamped, same result
+    dic = {'acqus': {'DECIM': 2, 'DSPFVS': 10, 'TD': 512}}
+    out10 = ng.bruker.remove_digital_filter(dic, data.copy())
+    assert len(out10) == 256 - int(np.floor(44.75 + 2))
+
+    # DSPFVS = 0 and DSPFVS = 10 give identical output
+    dic = {'acqus': {'DECIM': 2, 'DSPFVS': 0, 'TD': 512}}
+    out0 = ng.bruker.remove_digital_filter(dic, data.copy())
+    dic = {'acqus': {'DECIM': 2, 'DSPFVS': 10, 'TD': 512}}
+    out10 = ng.bruker.remove_digital_filter(dic, data.copy())
+    assert np.allclose(out0, out10)
+
+
 def test_remove_dc_offset():
     """remove_dc_offset=True removes the DC spike from the spectrum."""
     # synthetic FID: decaying exponential at a non-centre frequency + known

@@ -7,6 +7,13 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+### Fixed
+
+- Clamp `DSPFVS` values below 10 to 10 (default for DQD) in
+  `bruker.remove_digital_filter()` and `bruker.rm_dig_filter()` instead of
+  raising `ValueError`. Older Bruker files may report `DSPFVS < 10`; the
+  lookup table starts at 10, so clamping makes these files readable. (#51)
+
 ### Added
 
 - Add optional `remove_dc_offset` parameter to `bruker.remove_digital_filter()`
