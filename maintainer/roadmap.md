@@ -64,11 +64,25 @@ never declares readiness while an item is open.
 - [ ] Specify observation/reference/carrier-frequency semantics and ppm conversion.
 - [ ] Resolve Bruker processing-parameter source selection.
 - [ ] Consolidate JCAMP-DX behavior against documented and real-world fixtures.
-  nD NTUPLES reading implemented (adapted from upstream #260). XY..XY format,
-  PEAKTABLE/XYPOINTS, and comma decimal separators implemented (adapted from
-  upstream #262). Remaining: read_blocks (upstream #277, depends on #259),
-  read_err parameter (upstream #259), FID handling (upstream #231).
+  All harivyasi PRs adapted: #259 (read_err, PR #49), #260 (nD NTUPLES, PR #46),
+  #262 (XY..XY/PEAKTABLE, PR #47), #277 (read_blocks, PR #52).
+  FID handling improved: `guess_udic()` sw corrected, `get_complex_array()`,
+  `as_complex` parameter, `time`/`freq`/`complex`/`car` flags (PR #54).
+  Bruker locale fix from #261 adapted (PR #53, awaiting review).
+  Upstream issue #284 opened for `sw` FID bug. Comments on PR #231 for
+  indentation errors, `as_complex`, `[None, imag]` crash, NTUPLES detection.
 - [ ] Investigate NMRPipe/JRES dimensional metadata behavior.
+
+## Upstream contribution status (2026-10)
+
+9 PRs submitted on jjhelmus/nmrglue (#268, #270, #272, #275, #278-#282).
+None have received maintainer feedback as of 2026-10-06.
+
+New upstream PR #283 (harivyasi): `zd_*` width rounding half up (NMRPipe
+compatible). Our code is stricter (`_normalize_zd_width` rejects fractions).
+Decision: wait for upstream merge, then adapt if needed.
+
+Audit notes: `maintainer/audits/2026-10-jcampdx.md`, `2026-10-bruker.md`.
 
 ### Bruker pdata fixtures — added
 

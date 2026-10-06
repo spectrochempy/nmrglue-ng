@@ -293,3 +293,83 @@ def test_remove_dc_offset_default_false():
     out_explicit = ng.bruker.rm_dig_filter(data, decim=80, dspfvs=21,
                                            grpdly=76.0, remove_dc_offset=False)
     assert np.allclose(out_default, out_explicit)
+
+
+def _real_acqus_bytes():
+    """Bytes of the real acqus file shipped with the test data."""
+    with open(os.path.join(DATA_DIR, '1', 'acqus'), 'rb') as f:
+        return f.read()
+
+
+def _write_temp(content):
+    fd, temp_path = tempfile.mkstemp()
+    with os.fdopen(fd, 'wb') as f:
+        f.write(content)
+    return temp_path
+
+
+def test_read_jcamp_cp1252():
+    """cp1252-encoded acqus (e.g. degree sign) decodes correctly."""
+    content = _real_acqus_bytes().replace(
+        b"##END=", "##$SOLVENT= <CDCl3 at 25\u00b0C>\n##END=".encode("cp1252"))
+    temp_path = _write_temp(content)
+    try:
+        dic = ng.bruker.read_jcamp(temp_path)
+        assert dic["SOLVENT"] == "CDCl3 at 25\u00b0C"
+        assert dic["LOCKED"] is True
+    finally:
+        os.remove(temp_path)
+
+
+def test_read_jcamp_undecodable_bytes():
+    """bytes invalid in both utf-8 and cp1252 do not crash the reader."""
+    content = _real_acqus_bytes().replace(
+        b"##END=", b"##$BAD= <\x81>\n##END=")
+    temp_path = _write_temp(content)
+    try:
+        with pytest.warns(UserWarning, match="latin-1"):
+            dic = ng.bruker.read_jcamp(temp_path)
+        assert dic["BAD"] == "\x81"
+        assert dic["LOCKED"] is True
+    finally:
+        os.remove(temp_path)
+
+
+def test_read_jcamp_explicit_encoding():
+    """an explicit encoding is tried first."""
+    content = _real_acqus_bytes().replace(
+        b"##END=", b"##$TEMPUNIT= <\xb0C>\n##END=")
+    temp_path = _write_temp(content)
+    try:
+        dic = ng.bruker.read_jcamp(temp_path, encoding="mac-roman")
+        assert dic["TEMPUNIT"] == "\u221eC"
+        dic = ng.bruker.read_jcamp(temp_path)
+        assert dic["TEMPUNIT"] == "\u00b0C"
+    finally:
+        os.remove(temp_path)
+
+
+def test_read_jcamp_unknown_encoding():
+    """an unknown explicit encoding falls back to the detected encoding."""
+    temp_path = _write_temp(_real_acqus_bytes())
+    try:
+        dic = ng.bruker.read_jcamp(temp_path, encoding="not-a-codec")
+        assert dic["LOCKED"] is True
+    finally:
+        os.remove(temp_path)
+
+
+def test_read_jcamp_utf8_bom():
+    """a byte order mark does not hide the first record."""
+    import warnings
+    content = b"\xef\xbb\xbf" + _real_acqus_bytes()
+    temp_path = _write_temp(content)
+    try:
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            dic = ng.bruker.read_jcamp(temp_path)
+        assert not [w for w in caught if "Extraneous line" in str(w.message)]
+        assert dic["_coreheader"][0].startswith("##TITLE=")
+        assert dic["LOCKED"] is True
+    finally:
+        os.remove(temp_path)

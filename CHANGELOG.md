@@ -9,6 +9,10 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ### Fixed
 
+- Fix `bruker.read_jcamp()` locale-dependent encoding: replace bare `except`
+  with strict codec detection loop (utf-8-sig, cp1252, latin-1). Encoding no
+  longer depends on the system locale. Adapted from upstream
+  jjhelmus/nmrglue#261 (harivyasi). Add 5 fixture-based tests. (#53)
 - Fix `jcampdx.guess_udic()` returning acquisition time instead of spectral
   width for FID data. Add `get_complex_array()` helper, `time`/`freq`/`complex`
   flags, and `car` calculation for processed spectra. Related to upstream
