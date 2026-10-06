@@ -9,6 +9,10 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ### Fixed
 
+- Fix `bruker.read_jcamp()` locale-dependent encoding: replace bare `except`
+  with strict codec detection loop (utf-8-sig, cp1252, latin-1). Encoding no
+  longer depends on the system locale. Adapted from upstream
+  jjhelmus/nmrglue#261 (harivyasi). Add 4 synthetic tests. (#53)
 - Clamp `DSPFVS` values below 10 to 10 (default for DQD) in
   `bruker.remove_digital_filter()` and `bruker.rm_dig_filter()` instead of
   raising `ValueError`. Older Bruker files may report `DSPFVS < 10`; the
