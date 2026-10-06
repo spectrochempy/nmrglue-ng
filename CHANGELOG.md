@@ -16,6 +16,10 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ### Added
 
+- Add `read_blocks()` to `jcampdx` module: read every data block of a
+  JCAMP-DX file in file order, including blocks nested in LINK blocks.
+  Fix `##END NTUPLES=` incorrectly closing blocks. Adapted from upstream
+  jjhelmus/nmrglue#277 (harivyasi). Add 3 synthetic tests. (#52)
 - Add optional `remove_dc_offset` parameter to `bruker.remove_digital_filter()`
   and `bruker.rm_dig_filter()`. When True, subtracts the mean of each row
   along the last axis before digital filter removal, which removes the spike

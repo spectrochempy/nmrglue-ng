@@ -696,3 +696,111 @@ class TestJCAMPDXReadErr:
         path.write_bytes(content.encode("latin1"))
         with pytest.raises(UnicodeDecodeError):
             ng.jcampdx.read(str(path), read_err="strict")
+
+
+class TestJCAMPDXReadBlocks:
+    """Tests for read_blocks() (upstream #277)."""
+
+    _LINK_FILE = (
+        "##TITLE=Linked\n"
+        "##JCAMP-DX=5.01\n"
+        "##DATA TYPE=LINK\n"
+        "##BLOCKS=2\n"
+        "##TITLE=Spectrum\n"
+        "##JCAMP-DX=5.01\n"
+        "##DATA TYPE=INFRARED SPECTRUM\n"
+        "##BLOCK_ID=1\n"
+        "##FIRSTX=1\n"
+        "##LASTX=3\n"
+        "##YFACTOR=1\n"
+        "##XYDATA=(X++(Y..Y))\n"
+        "1 10 20 30\n"
+        "##END=\n"
+        "##TITLE=Peaks\n"
+        "##JCAMP-DX=5.01\n"
+        "##DATA TYPE=PEAK TABLE\n"
+        "##BLOCK_ID=2\n"
+        "##PEAK TABLE=(XY..XY)\n"
+        "2, 20\n"
+        "##END=\n"
+        "##END=\n"
+    )
+
+    _NTUPLES_LINK_FILE = (
+        "##TITLE=Linked\n"
+        "##JCAMP-DX=6.0\n"
+        "##DATA TYPE=LINK\n"
+        "##BLOCKS=2\n"
+        "##TITLE=FID\n"
+        "##JCAMP-DX=6.0\n"
+        "##DATA TYPE=NMR FID\n"
+        "##DATA CLASS=NTUPLES\n"
+        "##NTUPLES=NMR FID\n"
+        "##VAR_NAME=TIME,FID/REAL\n"
+        "##SYMBOL=X,R\n"
+        "##FACTOR=1,1\n"
+        "##PAGE=N=1\n"
+        "##DATA TABLE=(X++(R..R)),XYDATA\n"
+        "0 1 2 3\n"
+        "##END NTUPLES=NMR FID\n"
+        "##END=\n"
+        "##TITLE=Spectrum\n"
+        "##JCAMP-DX=6.0\n"
+        "##DATA TYPE=NMR SPECTRUM\n"
+        "##DATA CLASS=XYDATA\n"
+        "##XYDATA=(X++(Y..Y))\n"
+        "0 4 5 6\n"
+        "##$INTEGRALS=(X Y)\n"
+        "##END=\n"
+        "##END=\n"
+    )
+
+    def test_read_blocks(self, tmp_path):
+        """read_blocks returns every block in file order."""
+        path = tmp_path / "link.jdx"
+        path.write_text(self._LINK_FILE)
+        blocks = ng.jcampdx.read_blocks(str(path))
+
+        # the LINK block begins first, although it ends last
+        assert [b["TITLE"][0] for b in blocks] == ["Linked", "Spectrum", "Peaks"]
+        assert [b["_parent"] for b in blocks] == [None, 0, 0]
+        assert blocks[1]["DATATYPE"] == ["INFRARED SPECTRUM"]
+
+        # data stays unparsed, and parses with getdataarray
+        assert "XYDATA" in blocks[1]
+        assert np.allclose(ng.jcampdx.getdataarray(blocks[1]), [10, 20, 30])
+
+        # read() is unchanged: it finds no NMR block in this file
+        dic, data = ng.jcampdx.read(str(path))
+        assert data is None
+        assert "_datatype_INFRAREDSPECTRUM" in dic
+
+    def test_read_blocks_read_err(self, tmp_path):
+        """read_blocks passes read_err to the decoder."""
+        path = tmp_path / "bad.jdx"
+        path.write_bytes(
+            b"##TITLE=T\n##DATA TYPE=NMR SPECTRUM\n##$BAD=\xff\n##END=\n"
+        )
+        assert "$BAD" not in ng.jcampdx.read_blocks(
+            str(path), read_err="ignore"
+        )[0]
+        with pytest.raises(UnicodeDecodeError):
+            ng.jcampdx.read_blocks(str(path), read_err="strict")
+
+    def test_read_blocks_end_ntuples(self, tmp_path):
+        """##END NTUPLES= does not close the block."""
+        content = self._NTUPLES_LINK_FILE.replace(
+            "##END=\n##TITLE=Spectrum",
+            "##$PROCESSED=yes\n##END=\n##TITLE=Spectrum",
+        )
+        path = tmp_path / "ntuples_link.jdx"
+        path.write_text(content)
+        blocks = ng.jcampdx.read_blocks(str(path))
+
+        # both blocks stay inside the LINK block
+        assert [b["_parent"] for b in blocks] == [None, 0, 0]
+        # a label after ##END NTUPLES= belongs to the block it is in
+        assert blocks[1]["$PROCESSED"] == ["yes"]
+        assert "$PROCESSED" not in blocks[0]
+        assert "ENDNTUPLES" not in blocks[1]
+        assert blocks[2]["$INTEGRALS"] == ["(X Y)"]
