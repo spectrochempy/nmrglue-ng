@@ -240,3 +240,56 @@ def test_dspfvs_clamp():
     dic = {'acqus': {'DECIM': 2, 'DSPFVS': 10, 'TD': 512}}
     out10 = ng.bruker.remove_digital_filter(dic, data.copy())
     assert np.allclose(out0, out10)
+
+
+def test_remove_dc_offset():
+    """remove_dc_offset=True removes the DC spike from the spectrum."""
+    # synthetic FID: decaying exponential at a non-centre frequency + known
+    # complex DC offset.  The DC offset dominates the spectrum; after
+    # remove_dc_offset=True the maximum spectral value drops to the signal
+    # level.
+    n = 256
+    t = np.arange(n)
+    signal = np.exp(-t / 30.0) * np.exp(1j * 2 * np.pi * 0.125 * t)
+    dc_offset = 3.0 + 2.0j
+    data = signal + dc_offset
+
+    # without DC offset removal: DC spike dominates the spectrum
+    out_off = ng.bruker.rm_dig_filter(data, decim=80, dspfvs=21,
+                                      grpdly=76.0, remove_dc_offset=False)
+    sp_off = np.abs(np.fft.fftshift(np.fft.fft(out_off)))
+
+    # with DC offset removal: DC spike is gone
+    out_on = ng.bruker.rm_dig_filter(data, decim=80, dspfvs=21,
+                                     grpdly=76.0, remove_dc_offset=True)
+    sp_on = np.abs(np.fft.fftshift(np.fft.fft(out_on)))
+
+    # The DC spike must dominate without removal
+    assert sp_off.max() > 100, f"expected DC spike, got max={sp_off.max():.2f}"
+    # After removal, the maximum drops to signal level
+    assert sp_on.max() < sp_off.max() / 10, (
+        f"expected DC spike removed, got {sp_on.max():.2f} vs {sp_off.max():.2f}"
+    )
+
+
+def test_remove_dc_offset_post_proc_incompatible():
+    """remove_dc_offset=True with post_proc=True raises ValueError."""
+    data = np.exp(-np.arange(256) / 30.0).astype(np.complex128)
+    with pytest.raises(ValueError, match="remove_dc_offset"):
+        ng.bruker.rm_dig_filter(data, decim=80, dspfvs=21, grpdly=76.0,
+                                post_proc=True, remove_dc_offset=True)
+
+    dic = {'acqus': {'DECIM': 80, 'DSPFVS': 21, 'GRPDLY': 76.0, 'TD': 512}}
+    with pytest.raises(ValueError, match="remove_dc_offset"):
+        ng.bruker.remove_digital_filter(dic, data.copy(),
+                                        post_proc=True, remove_dc_offset=True)
+
+
+def test_remove_dc_offset_default_false():
+    """Default remove_dc_offset=False is identical to not passing the flag."""
+    data = np.exp(-np.arange(256) / 30.0).astype(np.complex128)
+    out_default = ng.bruker.rm_dig_filter(data, decim=80, dspfvs=21,
+                                          grpdly=76.0)
+    out_explicit = ng.bruker.rm_dig_filter(data, decim=80, dspfvs=21,
+                                           grpdly=76.0, remove_dc_offset=False)
+    assert np.allclose(out_default, out_explicit)

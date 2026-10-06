@@ -16,13 +16,22 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ### Added
 
+- Add optional `remove_dc_offset` parameter to `bruker.remove_digital_filter()`
+  and `bruker.rm_dig_filter()`. When True, subtracts the mean of each row
+  along the last axis before digital filter removal, which removes the spike
+  at the centre of the spectrum caused by the receiver DC offset. Default is
+  False, preserving backward compatibility with upstream nmrglue. Cannot be
+  combined with `post_proc=True`. (#50)
+- Add `read_err` parameter to `jcampdx.read()` for configurable character
+  decoding error handling. Adapted from upstream jjhelmus/nmrglue#259
+  (harivyasi). Add 3 synthetic tests. (#49)
 - Add JCAMP-DX coordinate list (XY..XY) format, PEAKTABLE/XYPOINTS parsing,
   comma decimal separators, and XFACTOR/YFACTOR scaling for coordinate pairs.
-  Adapted from upstream jjhelmus/nmrglue#262. Add 16 synthetic tests. (#47)
+  Adapted from upstream jjhelmus/nmrglue#262 (harivyasi). Add 16 synthetic tests. (#47)
 - Add JCAMP-DX nD NTUPLES support: read multidimensional spectra as sets of
   1D pages, scale each page by its own dependent-variable factor, and prefer
   1D sections when both 1D and nD are present. Adapted from upstream
-  jjhelmus/nmrglue#260. Add 2D JCAMP-DX fixture and tests. (#46)
+  jjhelmus/nmrglue#260 (harivyasi). Add 2D JCAMP-DX fixture and tests. (#46)
 - Add packaged JEOL 2D and JCAMP-DX test fixtures with autonomous reader tests.
   Data from nmrXiv CENAPTNMR project P33 (doi:10.57992/nmrxiv.p33), CC0 1.0.
   Covers JEOL 2D HSQC/COSY/HMBC, JEOL 1D Beta-Pinene, and JCAMP-DX 1D

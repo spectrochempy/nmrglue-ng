@@ -648,3 +648,51 @@ class TestJCAMPDXXYFormats:
         finally:
             import os
             os.remove(path)
+
+
+class TestJCAMPDXReadErr:
+    """Tests for the read_err parameter (upstream #259)."""
+
+    def test_read_err_default(self, tmp_path):
+        """Default (read_err=None) replaces invalid bytes with U+FFFD."""
+        content = (
+            "##TITLE=Test Bad UTF8\n"
+            "##JCAMPDX=5.0\n"
+            "##DATATYPE=NMR SPECTRUM\n"
+            "##$BAD=\xff\xfe\xfd\n"
+            "##END=\n"
+        )
+        path = tmp_path / "bad.jdx"
+        path.write_bytes(content.encode("latin1"))
+        dic, data = ng.jcampdx.read(str(path))
+        subdic = dic["_datatype_NMRSPECTRUM"][0]
+        assert "\ufffd" in subdic["$BAD"][0]
+
+    def test_read_err_ignore(self, tmp_path):
+        """read_err='ignore' drops invalid bytes."""
+        content = (
+            "##TITLE=Test Bad UTF8\n"
+            "##JCAMPDX=5.0\n"
+            "##DATATYPE=NMR SPECTRUM\n"
+            "##$BAD=\xff\xfe\xfd\n"
+            "##END=\n"
+        )
+        path = tmp_path / "bad.jdx"
+        path.write_bytes(content.encode("latin1"))
+        dic, data = ng.jcampdx.read(str(path), read_err="ignore")
+        subdic = dic["_datatype_NMRSPECTRUM"][0]
+        assert "$BAD" not in subdic
+
+    def test_read_err_strict(self, tmp_path):
+        """read_err='strict' raises UnicodeDecodeError."""
+        content = (
+            "##TITLE=Test Bad UTF8\n"
+            "##JCAMPDX=5.0\n"
+            "##DATATYPE=NMR SPECTRUM\n"
+            "##$BAD=\xff\xfe\xfd\n"
+            "##END=\n"
+        )
+        path = tmp_path / "bad.jdx"
+        path.write_bytes(content.encode("latin1"))
+        with pytest.raises(UnicodeDecodeError):
+            ng.jcampdx.read(str(path), read_err="strict")
