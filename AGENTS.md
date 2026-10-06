@@ -135,9 +135,18 @@ scientific correctness. Any incompatible change must be explicitly
 identified, justified, tested, documented, and accompanied by migration
 guidance when needed.
 
-Update `maintainer/roadmap.md` when a shared decision or durable knowledge
-must survive the task. Each maintainer may keep separate local assessment notes
-under `maintainer/audits/`; that ignored directory is never part of a PR.
+After every audit, save a dated report under
+`maintainer/audits/YYYY-MM-DD-<topic>.md`. Preserve previous reports; use a
+distinct suffix for another audit of the same topic on the same day. Record
+the audited commit, evidence, validation performed and omitted, conclusions,
+and next steps. That ignored directory is never part of a PR.
+
+Review `maintainer/roadmap.md` after every audit and update it when findings
+add or change durable knowledge, priorities, or a shared decision. Keep the
+shared summary self-contained: an ignored report is not its sole evidence.
+Distinguish recommendations awaiting a maintainer decision from agreed policy.
+If no roadmap change is warranted, explain why in the report. Audit requests
+authorize these reporting edits, not changes to product code or release gates.
 
 ---
 

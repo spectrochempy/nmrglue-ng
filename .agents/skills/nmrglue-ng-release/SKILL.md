@@ -21,9 +21,11 @@ assume.
 
 The SpectroChemPy release skill assumes a mature release pipeline. `nmrglue-ng`
 does not have one yet: there is no publication workflow in
-`.github/workflows/` (only `ci.yml`), no versioned test-data manifest, no
-checksum-verifying fetcher, and unresolved provenance questions on
-release-critical data.
+`.github/workflows/` (only `ci.yml`), no checksum-verifying fetcher, and
+unresolved provenance questions on release-critical data. A versioned
+test-data manifest and local verifier now exist; assess their current scope
+against the repository rather than treating this historical description as
+evidence.
 
 What *can* honestly be automated today is the **gate audit**: checking the
 documented preconditions and reporting exactly which ones still block. So this
@@ -53,7 +55,7 @@ against the repository, not against this document.
 
 **Verdict lock:** if any of G1–G6 is open, set the final verdict to
 **BLOCKED** and list the open gates with their evidence. Continue every
-remaining step as a **read-only audit** so the report is complete: changelog,
+remaining step as an **audit with reporting edits only** so the report is complete: changelog,
 version and artifacts, CI, additional blockers, and the validation record
 still matter to the maintainer's next decision.
 
@@ -181,7 +183,11 @@ Rules:
 
 ## Step 7 — Report
 
-Produce a release-readiness report and nothing else:
+Save a release-readiness report under
+`maintainer/audits/YYYY-MM-DD-release-readiness.md`, including when the verdict
+is **BLOCKED**. Preserve previous reports; add a distinct suffix if the path
+already exists. The report must identify the exact audited commit, date,
+branch and initial working-tree state. Use the structure below:
 
 ```text
 ## Verdict
@@ -209,6 +215,18 @@ Exact commands, exact counts, skips with reasons, corpus integrity
 Ordered, concrete, and naming who must decide what
 ```
 
+Then review `maintainer/roadmap.md`. Update it if the audit establishes durable
+facts, changes the known status of a gate, or identifies follow-up work that
+must be shared. Keep evidence and conclusions understandable without access
+to the ignored report. Do not turn a recommendation into an agreed policy or
+change the release-critical contract without a maintainer decision. If no
+roadmap update is warranted, record the reason in the report.
+
+Report and roadmap persistence are the only default file edits authorized by
+this audit. Keep the detailed report ignored and out of PRs. Finish with a
+concise verdict, the saved report path, roadmap changes (or their absence),
+and the next actions. A chat-only report is not completion of the audit.
+
 State the verdict from the gates. If any P0 gate is open, the verdict is
 **BLOCKED** even after the later audit steps finish. Never soften "blocked"
 into "nearly ready" to be agreeable, and never present a partially validated
@@ -218,7 +236,8 @@ state as a green one.
 
 ## Rules
 
-* **Dry run / audit by default.** Report only.
+* **Dry run / audit by default.** Persist the report and warranted roadmap
+  updates; do not modify product code, tests, packaging, or release artifacts.
 * **No tag, no upload, no publication** without a separate explicit
   authorization. Do not create a `release/*` branch "to be ready".
 * Do not install, upgrade, or publish anything in the user's environment.

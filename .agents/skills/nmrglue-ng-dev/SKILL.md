@@ -25,7 +25,7 @@ Identify which level applies before acting, and never exceed it.
 
 | Level | Allows |
 |---|---|
-| **Analyze** | Read, search, audit, report. No file modification. |
+| **Analyze** | Read, search, audit, report. Persist audit reports and warranted roadmap updates as required by `AGENTS.md`; no other file modification. |
 | **Fix** | Modify source, tests, and docs, then validate them. No Git write operations. |
 | **Deliver** | *Only on explicit request:* create a branch, commit, push, open a PR. |
 
@@ -38,8 +38,8 @@ Always requires a **separate, explicit** authorization, never implied by
 * open an upstream issue or pull request;
 * install or upgrade dependencies in the user's primary environment.
 
-Analyze never modifies. Fix modifies and validates. Commit, push, and PR
-creation happen only when asked.
+Analyze permits only the audit-reporting edits described above. Fix modifies
+and validates. Commit, push, and PR creation happen only when asked.
 
 ---
 
@@ -243,6 +243,10 @@ durable knowledge that must outlive it:
 
 * `maintainer/roadmap.md` — priorities or a shared decision changed;
 * `maintainer/audits/` is local and ignored; it is never added to a PR.
+
+After every audit, persist a dated report and review the roadmap as required
+by `AGENTS.md`, even when the task ends with a blocked verdict. Include the
+report path and any roadmap update (or why none was needed) in the final reply.
 
 `CHANGELOG.md` `Unreleased` must be updated for every user- or
 developer-visible change, referencing the pull request number as `(#NNN)`.
