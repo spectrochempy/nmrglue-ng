@@ -9,6 +9,12 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ### Added
 
+- Add optional `remove_dc_offset` parameter to `bruker.remove_digital_filter()`
+  and `bruker.rm_dig_filter()`. When True, subtracts the mean of each row
+  along the last axis before digital filter removal, which removes the spike
+  at the centre of the spectrum caused by the receiver DC offset. Default is
+  False, preserving backward compatibility with upstream nmrglue. Cannot be
+  combined with `post_proc=True`. (#50)
 - Add `read_err` parameter to `jcampdx.read()` for configurable character
   decoding error handling. Adapted from upstream jjhelmus/nmrglue#259
   (harivyasi). Add 3 synthetic tests. (#49)
