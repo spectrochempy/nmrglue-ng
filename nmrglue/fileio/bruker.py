@@ -2137,6 +2137,8 @@ def rm_dig_filter(
         if dspfvs >= 14:    # DSPFVS greater than 14 give no phase correction.
             phase = 0.
         else:   # loop up the phase in the table
+            if dspfvs < 10:
+                dspfvs = 10  # default for DQD, clamped for older Bruker files
             if dspfvs not in bruker_dsp_table:
                 raise ValueError("dspfvs not in lookup table")
             if decim not in bruker_dsp_table[dspfvs]:
