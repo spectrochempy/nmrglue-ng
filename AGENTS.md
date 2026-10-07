@@ -139,14 +139,22 @@ After every audit, save a dated report under
 `maintainer/audits/YYYY-MM-DD-<topic>.md`. Preserve previous reports; use a
 distinct suffix for another audit of the same topic on the same day. Record
 the audited commit, evidence, validation performed and omitted, conclusions,
-and next steps. That ignored directory is never part of a PR.
+and next steps. That ignored directory is never part of a PR. Curated,
+self-contained technical reports belong in versioned `maintainer/reports/`;
+see `maintainer/README.md` for consolidation and evidence rules. Preserve local
+originals when preparing a shared report; exclude session logistics and draft
+correspondence, but retain relevant sources and attribution.
 
 Review `maintainer/roadmap.md` after every audit and update it when findings
 add or change durable knowledge, priorities, or a shared decision. Keep the
 shared summary self-contained: an ignored report is not its sole evidence.
+Use links to curated reports for detailed shared evidence instead of growing
+the roadmap into a chronological audit log.
 Distinguish recommendations awaiting a maintainer decision from agreed policy.
 If no roadmap change is warranted, explain why in the report. Audit requests
-authorize these reporting edits, not changes to product code or release gates.
+authorize local reports, warranted shared-report and roadmap updates, not
+changes to product code or release gates. Creating or updating a report does
+not authorize committing, pushing or publishing it.
 
 ---
 
@@ -238,3 +246,4 @@ Load the relevant skill before starting work:
 * `maintainer/README.md` — maintainer material scope
 * `maintainer/roadmap.md` — living roadmap, upstream contribution policy
 * `maintainer/audits/` — ignored local assessment notes
+* `maintainer/reports/` — versioned, curated technical evidence

@@ -243,6 +243,10 @@ durable knowledge that must outlive it:
 
 * `maintainer/roadmap.md` — priorities or a shared decision changed;
 * `maintainer/audits/` is local and ignored; it is never added to a PR.
+* `maintainer/reports/` holds curated, versioned technical evidence, following
+  `maintainer/README.md`. Link to it from the roadmap rather than duplicating
+  long validation records. Preserve the distinction between new execution,
+  historical results and independent review.
 
 After every audit, persist a dated report and review the roadmap as required
 by `AGENTS.md`, even when the task ends with a blocked verdict. Include the
