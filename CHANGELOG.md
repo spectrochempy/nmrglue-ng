@@ -21,11 +21,6 @@ original nmrglue project and are preserved for attribution and continuity.
   `bruker.remove_digital_filter()` and `bruker.rm_dig_filter()` instead of
   raising `ValueError`. Older Bruker files may report `DSPFVS < 10`; the
   lookup table starts at 10, so clamping makes these files readable. (#51)
-- Fix `bruker.guess_udic()` ignoring processing parameters (OFFSET/SF/SW_p)
-  for processed data when acquisition headers are present. The direct axis of
-  re-referenced spectra was displaced by up to 2 ppm. Add `pdata` parameter:
-  pass `pdata=True` for data read with `read_pdata()` to use processing
-  parameters for axis computation. Default behavior unchanged. (#48)
 - Fix `data_nd.transpose()` raising `TypeError` on 1-D arrays when called as
   `transpose()` or `transpose(0)`. The unpacking guard now skips unwrapping
   for scalar integer arguments (including `np.int64` and similar), matching
@@ -37,6 +32,17 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ### Added
 
+- Add a `pdata` parameter to `bruker.guess_udic()` and
+  `bruker.add_axis_to_udic()`: an explicit option selecting which parameter
+  set builds the axis. `pdata=True` uses the processing parameters
+  (`procs`/`procNs`: `OFFSET`, `SF`, `SW_p`), i.e. the axis the processed
+  file was written with, which is the appropriate choice for data read with
+  `read_pdata()` when the processed files and the acquisition headers
+  disagree. `pdata=False` and the default `pdata=None` keep the existing
+  behaviour (acquisition parameters take priority when both are present, and
+  processing parameters are used only when the acquisition header is absent),
+  so no axis changes by default. The option is not required for raw data, nor
+  when acquisition and processing parameters agree. (#55)
 - Add `read_blocks()` to `jcampdx` module: read every data block of a
   JCAMP-DX file in file order, including blocks nested in LINK blocks.
   Fix `##END NTUPLES=` incorrectly closing blocks. Adapted from upstream

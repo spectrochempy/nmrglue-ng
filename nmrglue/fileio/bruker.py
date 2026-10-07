@@ -69,9 +69,17 @@ def guess_udic(dic, data, strip_fake=False, pdata=None):
         but instead can are intended to trick the normal unit_conversion object
         into producing the correct result.
     pdata : bool or None, optional
-        True if data was read using `bruker.read_pdata`, False for raw data
-        read using `bruker.read`. None (default) auto-detects: acquisition
-        parameters take priority when both are present (backward compatible).
+        Explicit selection of the parameter set used to build the axis.
+        True uses the processing parameters (`procs`/`procNs`: `OFFSET`,
+        `SF`, `SW_p`) for every dimension that has them, i.e. the axis the
+        processed file was written with; this is the appropriate choice for
+        data read with `bruker.read_pdata()` when the processed parameters
+        and the acquisition headers disagree. False keeps the acquisition
+        parameters. None (default) keeps the historical behaviour:
+        acquisition parameters take priority when both are present, and
+        processing parameters are used only when the acquisition header is
+        absent (backward compatible). The option is not required for raw
+        data, nor when acquisition and processing parameters agree.
 
     Returns
     -------
@@ -129,6 +137,15 @@ def add_axis_to_udic(udic, dic, udim, strip_fake, pdata=None):
     # Determine axis parameters: processed data uses procs (OFFSET/SF/SW_p),
     # raw data uses acqus (O1/SFO1/SW_h).  When pdata is None and both are
     # present, acquisition parameters keep priority for backward compatibility.
+    #
+    # Source of the processed-data convention (first point at OFFSET, bin =
+    # SW_p/SI): Bruker, "TopSpin - Processing Commands and Parameters", User
+    # Manual, Version 007, doc H9776SA3_7_007 (c) 2020, which defines OFFSET
+    # as "the ppm value of the first data point of the spectrum" together with
+    # its default-calibration formula (p. 27, also in the `sref` description,
+    # p. 83), gives the processed spectral width as SW_p (p. 36) and the
+    # processed size as SI (p. 31), and computes TopSpin's own tiltfactor as
+    # (SW_p1/SI1)/(SW_p2/SI2) (p. 121).
     use_proc_axis = False
     if pdata is True:
         use_proc_axis = True
@@ -1246,6 +1263,18 @@ def read_pdata(dir=".", bin_files=None, procs_files=None, read_procs=True,
     -----
     There is currently no support for writing Bruker processed files or
     reading processed files using minimal memory.
+
+    The axis parameters of the returned data are stored in the processing
+    files (`procs`/`procNs`: `OFFSET`, `SF`, `SW_p`) and are read together
+    with the acquisition files. `bruker.guess_udic()` uses them automatically
+    when an acquisition header is absent; when both sets are present it keeps
+    the acquisition parameters by default. Pass `pdata=True` to
+    `bruker.guess_udic()` to build the axis from the processing parameters
+    instead, i.e. from the axis the processed file was written with. The two
+    choices differ only when the processed parameters and the acquisition
+    headers disagree, as can happen when a processed spectrum and the
+    acquisition files on disk were produced by different runs; when the two
+    sets agree, both give the same axis.
 
     """
     # TODO read_pdata_lowmem, write_pdata
