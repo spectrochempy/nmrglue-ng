@@ -121,8 +121,11 @@ entries. PR #58 already corrected the #55 entry and its interpretation.
 - #55: independent scientific review recorded 2026-10-07; documentation
   findings addressed by #58. The original general-defect claim was withdrawn
   after provenance analysis. See [Bruker axes](2026-10-bruker-axes.md).
-- #56/#57: merged fixes with successful tests; the available notes do not
-  establish an independent fresh-session review. See [data_nd](2026-10-data-nd.md).
+- #56/#57: review evidence was missing at the initial consolidation. Update
+  2026-10-07: a separate-session review at `23cdba1` approved each PR and their
+  combined behavior. Commands, counts, skips and the Boolean-axis qualification
+  are recorded in [data_nd](2026-10-data-nd.md). This closes the targeted
+  review follow-up, not the broader inherited-defect assessment or other gates.
 
 Closing an issue or merging a PR is neither an independent review nor a
 replacement for missing scientific validation. Final release validation must
