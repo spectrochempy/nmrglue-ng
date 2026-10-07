@@ -14,6 +14,11 @@ Reference values are decoded independently from the binary files.
 Processed values include the NC_proc scaling factor from the procs file.
 Tolerances: rtol=1e-6 for scaled float64 values; exact match for
 integer-valued raw complex data.
+
+Note: in exp2d_hsqc the processed files and the acquisition files describe
+two different acquisitions (see the fixture README), so that fixture
+exercises a discordance between parameter sets rather than a
+re-referencing of one coherent dataset.
 """
 
 import os
@@ -221,13 +226,26 @@ class TestBruker2DCOSY:
 
 
 class TestBrukerProcessedAxes:
-    """Regression tests for issue #48: processed axes use procs parameters.
+    """Tests for the explicit `pdata` processing-parameter selection (#55).
 
     When pdata=True, guess_udic derives axes from procs/procNs
-    (OFFSET, SF, SW_p) rather than acqus (SFO1, O1, SW_h).
+    (OFFSET, SF, SW_p) rather than from acqus (SFO1, O1, SW_h).
     Expected values are derived from the fixture's procs parameters:
         first point = OFFSET (ppm)
         last point  = OFFSET - (SI-1) * SW_p / (SI * SF) (ppm)
+    which is the convention documented by Bruker TopSpin, "Processing Commands
+    and Parameters", Version 007 (doc H9776SA3_7_007), p. 27 and p. 121.
+
+    What these tests show: that the option reproduces the axis stored in the
+    processed file, that the raw axis is untouched, and that pdata=False and
+    pdata=None keep the historical default. They do not show that the default
+    (acquisition-parameter) axis is wrong. In exp2d_hsqc the processed
+    parameters and the acquisition headers come from two different
+    acquisitions 2.000000 ppm apart (see
+    nmrglue/fileio/tests/data/bruker_pdata/README.md), which is why only the
+    HSQC direct first/last point assertions separate the two choices; in
+    exp1 and exp2d_cosy the two parameter sets agree and both choices give
+    the same axis.
     """
 
     def test_hsqc_direct_first_point(self):

@@ -25,6 +25,37 @@ These Bruker TopSpin directories contain raw and processed data for testing
 | exp2d_hsqc | [Sample S208](https://nmrxiv.org/sample/S208) Ginsenoside Rg1, dir `Ginsenoside_3110ug200uL_HSQC_600MHz_Bruker/` |
 | exp2d_cosy | [Sample S213](https://nmrxiv.org/sample/S213) Gossypol, dir `Gossypol_3650ug200uL_CDCl3_COSY_600MHz_JDX/` |
 
+### exp2d_hsqc — discordant parameter provenance
+
+The processed files and the acquisition files of `exp2d_hsqc` do not come
+from the same acquisition:
+
+| Part | Written (file timestamp) | Carrier described |
+|---|---|---|
+| `pdata/1/{procs,proc2s}` | 2019-08-19 17:47:22, `kims@HPZ400-PC`, `sbk190819/5/pdata/1` | `OFFSET = 7.99684` ppm (F2 first point), implying ≈ 5.000000 ppm carrier |
+| `acqus`, `ser` | 2019-08-20 13:44:59, same host, same expno `sbk190819/5` | `O1/BF1 = 3.000000 ppm` |
+
+The two parameter sets are therefore exactly **2.000000 ppm apart in F2**, one
+day apart: the processed spectrum belongs to the earlier acquisition, while the
+on-disk acquisition headers describe the later one. This was confirmed on the
+source dataset in upstream [jjhelmus/nmrglue#285](https://github.com/jjhelmus/nmrglue/issues/285)
+(closed 2026-10-07), where the other, self-consistent datasets of the same
+collection agreed with the acquisition-parameter calculation to rounding.
+
+What the fixture demonstrates, and what it does not:
+
+* It demonstrates a **metadata discordance** between processed and acquisition
+  files — each part is correctly labelled by its own parameters, so
+  `pdata=True` is the option that labels the processed data with its own
+  processing parameters.
+* It does **not** demonstrate a defect in the historical
+  acquisition-parameter precedence of `guess_udic()`: on a coherent dataset
+  (see `exp2d_cosy`, where both parameter sets agree) the two choices
+  coincide, and no deliberate re-referencing of one coherent dataset has been
+  observed here.
+* It does **not** illustrate an `sref` re-referencing, and it carries no
+  `acqu2s`, so the F1 axis is identical in every `pdata` mode.
+
 ## Files
 
 ### exp1 — 1D
