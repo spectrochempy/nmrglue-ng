@@ -1,6 +1,6 @@
 # nmrglue-ng roadmap
 
-Status consolidated on **2026-10-07**, against `ce98382`. This is the current
+Status consolidated on **2026-10-07**, against `23cdba1`. This is the current
 action list; dated evidence and qualifications live in the
 [maintainer reports](README.md). Consolidation is not a new test run or a
 change to release gates. Recommendations below require maintainer approval
@@ -25,9 +25,12 @@ The recorded readiness verdict remains **BLOCKED**. See
 - [ ] Resolve provenance/redistribution for the retained critical corpus.
 - [ ] Provide reproducible, checksum-verified data acquisition and
   scheduled/manual critical-dataset validation.
-- [ ] Complete inherited-defect review, including independent review evidence
-  for merged PRs #56 and #57. PR #55 has a recorded independent review;
-  documentation findings were addressed by #58.
+- [ ] Complete the broader inherited-defect assessment; the targeted reviews
+  below do not settle all scientific questions, including the reference-frequency
+  and Tecmag work discussed under P1.
+- [x] Independent review of PRs #56/#57 and their interaction, completed
+  2026-10-07 at `23cdba1`: all three verdicts approved. PR #55 also has a
+  recorded independent review; its documentation findings were addressed by #58.
 - [ ] Repair the documentation build and establish independent deployment.
 - [ ] Finalize version, release notes, artifact scope and publication procedure.
 
@@ -48,7 +51,7 @@ Neither missing data nor classified historical differences are passing tests.
 | JCAMP-DX encodings | Split the monolithic dataset test while preserving AFFN/PAC/SQZ/DIF equivalence and metadata checks. |
 | SIMPSON | Evaluate regeneration of 1D/2D encoding sets before deciding whether to reduce release scope. |
 | JEOL | Decide whether packaged fixtures can replace missing historical groups; explicitly account for the lost NMRPipe cross-reference. |
-| `data_nd` | Review #56/#57 and their interaction; correct changelog references from issues #31/#32 to PRs #56/#57. |
+| `data_nd` | Reviews approved at `23cdba1`; changelog references corrected to #56/#57. The documented Boolean-axis compatibility difference remains outside these fixes. |
 | Test hygiene | Make failed NMRPipe comparisons clean generated artifacts reliably. |
 
 ## P1 — Scientific reliability
