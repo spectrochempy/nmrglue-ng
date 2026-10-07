@@ -182,6 +182,14 @@ historical example material.
 The existing `.codespellrc` is preserved but codespell is not part of the
 pre-commit configuration; it remains an optional manual check.
 
+## Maintainer records
+
+Current maintainer priorities and curated validation evidence are indexed in
+[`maintainer/README.md`](maintainer/README.md). Shared technical reports belong
+in `maintainer/reports/`; `maintainer/audits/` remains ignored local working
+material. Reports must distinguish historical checks from new validation and
+must not depend on local-only notes to support shared conclusions.
+
 ## Test Data
 
 Prefer the smallest fixture that demonstrates the required behavior. Every

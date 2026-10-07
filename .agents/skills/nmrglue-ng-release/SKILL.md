@@ -218,12 +218,17 @@ Ordered, concrete, and naming who must decide what
 Then review `maintainer/roadmap.md`. Update it if the audit establishes durable
 facts, changes the known status of a gate, or identifies follow-up work that
 must be shared. Keep evidence and conclusions understandable without access
-to the ignored report. Do not turn a recommendation into an agreed policy or
+to the ignored report. Consolidate durable evidence into versioned
+`maintainer/reports/` when warranted, following `maintainer/README.md`, and link
+to that report from the roadmap. This is evidence preservation, not a fresh
+validation. Do not turn a recommendation into an agreed policy or
 change the release-critical contract without a maintainer decision. If no
 roadmap update is warranted, record the reason in the report.
 
-Report and roadmap persistence are the only default file edits authorized by
-this audit. Keep the detailed report ignored and out of PRs. Finish with a
+Local reports, curated shared reports and warranted roadmap updates are the
+only default file edits authorized by this audit. Keep local working notes
+ignored and out of PRs; shared reports may be versioned through the normal
+authorized delivery workflow. Finish with a
 concise verdict, the saved report path, roadmap changes (or their absence),
 and the next actions. A chat-only report is not completion of the audit.
 

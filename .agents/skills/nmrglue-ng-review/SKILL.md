@@ -154,6 +154,10 @@ Then audit the report against reality:
   yes. If the PR claims `Changelog: not required`, judge whether the reason
   holds.
 * Are local `maintainer/audits/` notes absent from the diff?
+* Are shared `maintainer/reports/` documents self-contained, dated and clear
+  about new versus historical validation and reviewer versus implementer
+  evidence? Apply `maintainer/README.md` rather than treating shared reports
+  as ignored working notes.
 * Is the change free of several independent defects in one PR?
 
 ### 7. Search for counter-examples
@@ -188,7 +192,10 @@ expected versus actual behavior.
 
 ## Deliverable
 
-Produce a review report with this structure.
+Produce a review report with this structure. Persist it and warranted
+maintainer summaries under the reporting rules in `AGENTS.md` and
+`maintainer/README.md`; report-only edits do not authorize fixing the reviewed
+change or altering its tests.
 
 ### Summary
 
@@ -236,7 +243,8 @@ Exactly one of:
 
 ## Rules
 
-* **Do not modify code or documentation.** Do not fix, do not commit, do not
+* **Do not modify the reviewed code or documentation**, except for the
+  maintainer reporting edits required above. Do not fix, do not commit, do not
   push, do not open a PR. This is a review. Report what is wrong and stop.
   If a fix seems obvious, describe it; do not apply it.
 * **Trust code, tests, and data**, not the implementer's summary.
