@@ -309,6 +309,118 @@ Scope boundary decisions confirmed by the maintainer:
   validation covered both conversion orders with checksums. Existing
   `FDDMXVAL` comparison exclusion is a limitation, not a validated value.
 
+## SIMPSON local generation — 2026-10-08
+
+Recorded from the separate installation/generation session on 2026-10-08;
+these commands were not rerun during this documentation update. The source
+note does not pin a tested Git commit, so this is diagnostic evidence rather
+than a commit-specific release validation.
+
+- SIMPSON 4.2.1 was installed user-locally from the official binary archive,
+  outside the primary Python/system environment. A wrapper uses the supplied
+  numerical libraries with system Tcl 8.6.17: the bundled Tcl 8.6.5 setup
+  lacked `init.tcl` and conflicted with the system scripts. Record this mixed
+  runtime, not only the SIMPSON banner, for future regeneration evidence.
+- `simpson rr.in` and `simpson 2d.in` ran on copied inputs in disposable
+  directories, exit 0. Outputs were generated outside the canonical corpus;
+  no reference was integrated and the manifest was not regenerated.
+- Executing the four bodies from `tests/fileio/test_simpson.py` against those
+  copied outputs gave passing `test_2d_time` and `test_2d_freq`, and failures
+  in `test_1d_time` / `test_1d_freq` at the TEXT shape assertion.
+- In the 1D branch, `read_text()` reshapes to `(NELEM, NP)` even when
+  `NELEM=1`, yielding `(1, 4096)` rather than the expected `(4096,)`.
+  This identifies a reader/test contract disagreement; it does not yet decide
+  which behavior should change. Inspect `NELEM>1`, absent `NELEM`, `NP=1`
+  and the other encodings before choosing a fix.
+- Additional numerical probes reported the historical 1D reference values
+  within tolerance and encoding differences no larger than `6.3e-05`.
+  Those probes do not turn the failing test bodies into passing tests.
+- Normal pytest execution against the unchanged, incomplete canonical corpus
+  produced four `FileNotFoundError` failures, distinct from the shape failures
+  observed with generated copies. Neither is reported as passing validation.
+
+Initial next action (completed in the subsection below): investigate the 1D shape contract,
+using minimal autonomous inputs plus real generated copies as needed. No
+unconditional `squeeze()`, changed expected shape or numeric tolerance is
+justified solely to make the existing tests pass. Preserve canonical data,
+record integrity before/after new runs, and independently review any eventual
+reader or assertion change. The separate `FDDMXVAL` correction was integrated
+in #65 and is not part of this SIMPSON change.
+
+### Shape-contract resolution — 2026-10-08
+
+The investigation requested above was completed on the same date at `805c6f2`
+(working tree, not yet committed). It supersedes the undecided wording of the
+paragraph above: the reader, not the expectations, was corrected. The results
+below were executed on 2026-10-08 against that state; the commands recorded
+above were not rerun for them.
+
+- All four 1D encodings of one 4096-point data set now agree in shape. TEXT
+  and BINARY returned `(1, 4096)` before and return `(4096,)` after, which is
+  what XREIM and RAWBIN already returned. Maximum absolute differences
+  against TEXT: BINARY `2.384e-07`, XREIM `4.292e-06`, RAWBIN `1.490e-08`.
+- 2D is unchanged and already consistent: TEXT, BINARY, XYREIM and RAWBIN all
+  return `(48, 128)`; only XYREIM differs from TEXT numerically (`6.126e-07`,
+  the others are `0`).
+- The correction is two conditions: `read_text()` reshapes to `(NELEM, NP)`
+  only when `NELEM > 1`, and `read_binary()` reshapes to `(NP,)` when
+  `NELEM == 1`, retaining its header/length check. The 2D branches, all existing assertions, tolerances,
+  fixtures and markers are untouched, so no expected value changed.
+- Justification: the `(4096,)` expectations date from `f1fc61f` (2012) in this
+  repository and in `jjhelmus/nmrglue`, which carries the identical reader and
+  assertions; the 2018 `NELEM` commits (`c89c849`, `e27da64`) added
+  multi-element support without considering the single-element case; the
+  sibling `read_xreim()` and `read_raw_bin_1d()` return `(NP,)` for the same
+  data; and the same test bodies index `text_data[2048]`, which requires a 1D
+  array. An unconditional `squeeze()` was rejected because it would collapse
+  `(1, 1)` to `()` for `NP=1`.
+- New self-contained regressions in `tests/fileio/test_simpson_shapes.py`
+  (9 tests, CI profile, unmarked): the seven shape/encoding tests fail 3 of 7
+  on the pre-fix reader and pass 7 of 7 after, and two guards keep the
+  single-element BINARY header/content validation (short block raises
+  `ValueError`, missing `NP` raises `KeyError`) — both pass on the pristine
+  reader and fail on the tree preceding the review fix. The SIMPSON dataset
+  module passes 4 of 4 against copies of the generated outputs in a
+  disposable directory; the self-contained profile reports `441 passed,
+  147 deselected`, exit 0. The canonical corpus
+  was not written (`git status -- data/` silent; `rr.in`/`2d.in` SHA-256
+  recorded).
+- `read_binary()` values needed no correction: `-raw_bin` stores little-endian
+  IEEE float32, whereas `-binary` stores sign, an 8-bit frexp-biased exponent
+  and a 23-bit significand without an implicit leading 1 — the layout
+  `bytes2float()` already decodes — so its text values agree within one
+  float32 ULP.
+- Two further reader defects were found and left out of scope: `read_xreim()`
+  on a 2D `-xyreim` file raises `ValueError: too many values to unpack
+  (expected 3)`, and `read_xyreim()` on a 1D 3-column file raises
+  `UnboundLocalError` for `NP`.
+- Independent review (2026-10-08, separate session from the implementer)
+  reran the shape, value and profile evidence, decoded the real 4.2.1
+  `-binary`/`-raw_bin` outputs with an independent codec to verify the new
+  synthetic writers at byte level, and returned **Changes requested**: the
+  `read_binary()` single-element branch must keep its implicit `NP`/length
+  consistency check (e.g. `return dic, data.reshape(dic['NP'])`) instead of
+  silently returning wrong-length arrays for inconsistent files. The shape
+  contract, the value tables and the corpus handling are verified. Full report
+  retained as local working evidence; the durable findings are summarized here.
+- **Addressed the same day.** The prescribed one-line hardening was applied
+  (`read_binary()` single-element path now returns `data.reshape(dic['NP'])`,
+  so a short block raises `ValueError` and a header without `NP` raises
+  `KeyError` again; well-formed files are byte-identical), and two guard tests
+  were added. A targeted counter-review (2026-10-08, separate session) checked
+  the delta against the pristine reader and the pre-fix tree, re-fingerprinted
+  all 16 generated 4.2.1 files, and returned **approved** with no defects in
+  the delta. Counts and the profile total were aligned across `CHANGELOG.md`,
+  the roadmap and this section (9 tests, `441 passed`). Delivery of the reader
+  correction is now authorized; corpus integration and manifest regeneration
+  remain separate decisions.
+
+The reported 441-pass autonomous run included available CSDM tests and unrelated
+already-integrated changes; it is not the count expected in CI without CSDM.
+The delivery session separately ran
+`python -m pytest tests/fileio/test_simpson_shapes.py tests/fileio/test_simpson_errors.py -m "not dataset and not external_software" --strict-markers --strict-config -ra -q`:
+**10 passed, 0 skipped**. No generated-file validation was rerun for delivery.
+
 ## Decisions required
 
 1. Approve the revised capability mapping without treating fixture reading as
