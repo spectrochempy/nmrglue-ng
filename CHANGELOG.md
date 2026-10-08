@@ -37,7 +37,7 @@ original nmrglue project and are preserved for attribution and continuity.
   asserted by hand. `scripts/verify_testdata.py` reports file integrity and
   required-component availability separately and exits 2 (instead of 0) when
   the release-critical corpus is incomplete. The manifest is shipped in the
-  sdist so the distributed manifest tests can load it. (#NNN)
+  sdist so the distributed manifest tests can load it. (#61)
 
 ### Added
 
