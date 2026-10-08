@@ -821,7 +821,7 @@ class TestJCAMPDXGuessUdic:
         "##SYMBOL=X,R,I\n"
         "##UNITS=SECONDS,ARBITRARY UNITS,ARBITRARY UNITS\n"
         "##FIRST=0,100,50\n"
-        "##LAST=0.6815317,-10,-20\n"
+        "##LAST=0.51,-10,-20\n"
         "##NPOINTS=4\n"
         "##FACTOR=1,1,1\n"
         "##PAGE=N=1\n"
@@ -886,9 +886,9 @@ class TestJCAMPDXGuessUdic:
         npoints = len(data[0])
         assert npoints == 4
         udic = ng.jcampdx.guess_udic(dic, data)
-        # sw = npoints / acquisition_time = 4 / 0.6815317
-        expected_sw = 4 / 0.6815317
-        assert abs(udic[0]["sw"] - expected_sw) < 0.1
+        # Four points span three dwell intervals of 0.17 s.
+        expected_sw = 1 / 0.17
+        assert udic[0]["sw"] == pytest.approx(expected_sw)
 
     def test_guess_udic_fid_flags(self, tmp_path):
         """guess_udic sets time/freq/complex flags for FID."""
@@ -930,6 +930,12 @@ class TestJCAMPDXGuessUdic:
         udic = ng.jcampdx.guess_udic(dic, complexdata)
         assert udic[0]["complex"] is True
 
+    def test_guess_udic_complex64_array(self):
+        """guess_udic detects complex arrays independent of precision."""
+        dic = {"FIRSTX": ["0"], "LASTX": ["1"], "XUNITS": ["HZ"]}
+        udic = ng.jcampdx.guess_udic(dic, np.zeros(4, dtype=np.complex64))
+        assert udic[0]["complex"] is True
+
     def test_read_as_complex(self, tmp_path):
         """read(as_complex=True) returns complex128 array for FID."""
         path = tmp_path / "fid.jdx"
@@ -946,6 +952,23 @@ class TestJCAMPDXGuessUdic:
         dic, data_default = ng.jcampdx.read(str(path))
         dic, data_complex = ng.jcampdx.read(str(path), as_complex=True)
         assert np.allclose(data_default, data_complex)
+
+    def test_read_as_complex_incomplete_pair(self, tmp_path):
+        """read(as_complex=True) leaves incomplete R/I pairs unchanged."""
+        content = self._FID_FILE.replace(
+            "##DATA TABLE=(X++(R..R)),XYDATA\n"
+            "0 100\n"
+            "0.17 200\n"
+            "0.34 150\n"
+            "0.51 -10\n",
+            "",
+        )
+        path = tmp_path / "imag_only.jdx"
+        path.write_text(content)
+        dic, data = ng.jcampdx.read(str(path), as_complex=True)
+        assert isinstance(data, list)
+        assert data[0] is None
+        assert np.allclose(data[1], [50, 60, 70, -20])
 
     def test_guess_udic_fid_no_datatype(self, tmp_path):
         """guess_udic detects FID via NTUPLES when DATATYPE is absent."""
@@ -975,8 +998,21 @@ class TestJCAMPDXGuessUdic:
         udic = ng.jcampdx.guess_udic(dic, data)
         assert udic[0]["time"] is True
         assert udic[0]["freq"] is False
-        # sw = npoints / aqtime = 2 / 1.0 = 2.0
-        assert abs(udic[0]["sw"] - 2.0) < 0.01
+        # two points span one dwell interval of 1.0 s
+        assert udic[0]["sw"] == pytest.approx(1.0)
+
+    def test_guess_udic_ntuples_requires_exact_nmr_fid(self):
+        """NTUPLES fallback does not match arbitrary strings containing FID."""
+        dic = {
+            "NTUPLES": ["NMR FID TEST"],
+            "FIRSTX": ["0"],
+            "LASTX": ["1"],
+            "XUNITS": ["SECONDS"],
+        }
+        udic = ng.jcampdx.guess_udic(dic, np.arange(4.))
+        assert udic[0]["time"] is False
+        assert udic[0]["freq"] is True
+        assert udic[0]["sw"] == pytest.approx(1.0)
 
     def test_guess_udic_imag_only(self):
         """guess_udic handles [None, imag] without crashing."""
@@ -991,4 +1027,4 @@ class TestJCAMPDXGuessUdic:
         data = [None, np.array([1.0, 2.0])]
         udic = ng.jcampdx.guess_udic(dic, data)
         assert udic[0]["size"] == 2
-        assert abs(udic[0]["sw"] - 2.0) < 0.01
+        assert udic[0]["sw"] == pytest.approx(1.0)

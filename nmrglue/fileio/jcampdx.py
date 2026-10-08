@@ -873,7 +873,8 @@ def read(filename, show_all_data=False, read_err=None, as_complex=False):
     # clean main dic from possible empty entries
     dic = {key: value for key, value in dic.items() if value}
 
-    if as_complex and isinstance(data, list) and len(data) == 2:
+    if (as_complex and isinstance(data, list) and len(data) == 2
+            and data[0] is not None and data[1] is not None):
         data = get_complex_array(data)
 
     return dic, data
@@ -1094,7 +1095,7 @@ def guess_udic(dic, data):
     if is_processed is None:
         try:
             ntuples = dic["NTUPLES"][0]
-            if "FID" in ntuples.strip().upper():
+            if ntuples.strip().upper().replace(" ", "") == "NMRFID":
                 is_processed = False
             else:
                 is_processed = True
@@ -1121,11 +1122,11 @@ def guess_udic(dic, data):
                 udic[0]["sw"] = abs(lastx - firstx)
                 udic[0]["car"] = (lastx + firstx) / 2
         else:
-            # FID: sw = npoints / acquisition_time (Nyquist)
+            # FID: FIRST/LAST cover npoints - 1 dwell intervals.
             if npoints:
                 aqtime = lastx - firstx
                 if aqtime > 0:
-                    udic[0]["sw"] = npoints / aqtime
+                    udic[0]["sw"] = (npoints - 1) / aqtime
     else:
         warn('No data ranges found from JCAMP, cannot set udic sw')
 
@@ -1136,7 +1137,7 @@ def guess_udic(dic, data):
     # "complex" — JCAMP R&I are separate arrays, so default False
     udic[0]["complex"] = False
     if not isinstance(data, list):
-        if hasattr(data, 'dtype') and data.dtype == "complex128":
+        if np.iscomplexobj(data):
             udic[0]["complex"] = True
 
     return udic
