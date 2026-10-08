@@ -13,7 +13,7 @@ original nmrglue project and are preserved for attribution and continuity.
   analysis, infrastructure and fixture directories. The wheel is now
   runtime-only and no longer exposes the non-public
   `nmrglue.fileio.tests` or `nmrglue.analysis.tests` namespaces; the matching
-  sdist retains tests and fixtures for distribution validation. (PR pending)
+  sdist retains tests and fixtures for distribution validation. (#64)
 
 ### Fixed
 
