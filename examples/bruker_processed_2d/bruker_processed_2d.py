@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 # Packaged HSQC fixture (pdata/1 contains the processed 2D spectrum)
 data_file = os.path.join(
     os.path.dirname(__file__), os.pardir, os.pardir,
-    "nmrglue", "fileio", "tests", "data",
+    "tests", "fixtures", "fileio", "data",
     "bruker_pdata", "exp2d_hsqc", "pdata", "1",
 )
 

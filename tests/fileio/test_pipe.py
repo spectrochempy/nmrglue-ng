@@ -13,7 +13,7 @@ from nmrglue.fileio.pipe import fdata2dic
 # create_test_data_nmrpipe.sh
 # they are checked into the repository, so NMRPipe is not required to
 # run the tests
-DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
+DATA_DIR = os.path.join(os.path.dirname(__file__), '..', 'fixtures', 'fileio', 'data')
 
 NMRPIPE_1D_TIME = os.path.join(DATA_DIR, 'nmrpipe_1d_time.fid')
 NMRPIPE_1D_FREQ = os.path.join(DATA_DIR, 'nmrpipe_1d_freq.fid')

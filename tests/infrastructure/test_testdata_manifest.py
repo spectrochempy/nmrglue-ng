@@ -12,12 +12,12 @@ try:
 except ModuleNotFoundError:
     import tomli as tomllib
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "scripts"))
 import generate_testdata_manifest
 import verify_testdata
 
 
-DEFAULT_CRITICAL_TEST = "tests/test_dummy.py::test_critical"
+DEFAULT_CRITICAL_TEST = "tests/fileio/test_dummy.py::test_critical"
 
 
 def make_component(paths, status="present", required_by=None, notes=""):
@@ -513,9 +513,9 @@ class TestDerivation:
 
     def test_scope_derived_from_required_by(self):
         scope = generate_testdata_manifest.component_scope
-        assert scope(["tests/test_convert.py::test_agilent_1d"]) == "critical"
+        assert scope(["tests/fileio/test_convert.py::test_agilent_1d"]) == "critical"
         assert scope([]) == "extended"
-        assert scope(["tests/test_x.py::test_y"]) == "extended"
+        assert scope(["tests/fileio/test_x.py::test_y"]) == "extended"
 
 
 class TestRequirementCoverage:
@@ -594,7 +594,7 @@ class TestStaticExtractorScope:
     The extractor is a complementary control: generation-time validation and
     ``test_every_consumed_reference_is_accounted`` only see references these
     forms resolve. The append-list loop form is the one exercised by
-    ``tests/test_jcampdx.py``; iterating a literal list directly is out of
+    ``tests/fileio/test_jcampdx.py``; iterating a literal list directly is out of
     scope and must stay documented as such.
     """
 
@@ -685,7 +685,7 @@ class TestArchetypeRawPresentReferenceMissing:
         pipe = group["components"]["pipe_reference"]
         assert pipe["status"] == "absent"
         assert "agilent_1d/test.fid" in pipe["paths"]
-        assert "tests/test_convert.py::test_agilent_1d" in pipe["required_by"]
+        assert "tests/fileio/test_convert.py::test_agilent_1d" in pipe["required_by"]
 
     def test_tracked_agilent_1d_raw_is_present(self):
         manifest = load_tracked_manifest()

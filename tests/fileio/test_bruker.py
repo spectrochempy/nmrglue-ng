@@ -9,7 +9,9 @@ import nmrglue as ng
 import pytest
 
 # Test data.
-DATA_DIR = os.path.join(os.path.dirname(__file__), 'bruker_test_data')
+DATA_DIR = os.path.join(
+    os.path.dirname(__file__), '..', 'fixtures', 'fileio', 'bruker_test_data'
+)
 SYNTHETIC_PPROG = os.path.join(DATA_DIR, 'synthetic_pulseprogram')
 
 

@@ -9,7 +9,7 @@ from numpy.testing import assert_array_equal
 import nmrglue as ng
 import pytest
 
-from setup import DATA_DIR
+from _dataset_paths import DATA_DIR
 
 
 # subroutines

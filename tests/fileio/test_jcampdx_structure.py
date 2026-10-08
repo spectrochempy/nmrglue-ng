@@ -5,7 +5,7 @@ from pathlib import Path
 import nmrglue as ng
 
 
-DATA_DIR = Path(__file__).with_name("data")
+DATA_DIR = Path(__file__).parents[1] / "fixtures" / "fileio" / "data"
 BLOCK_STRUCTURE = DATA_DIR / "synthetic_jcampdx_blocks.jdx"
 
 

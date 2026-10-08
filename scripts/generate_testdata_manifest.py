@@ -168,48 +168,48 @@ GROUP_META = {
 # a required component is "critical" when at least one of its consumers is in
 # this set, "extended" otherwise.
 CRITICAL_TESTS = frozenset({
-    "tests/test_agilent.py::test_1d",
-    "tests/test_agilent.py::test_2d",
-    "tests/test_agilent.py::test_2d_lowmem",
-    "tests/test_agilent.py::test_2d_tppi",
-    "tests/test_agilent.py::test_2d_tppi_lowmem",
-    "tests/test_agilent.py::test_3d",
-    "tests/test_agilent.py::test_3d_lowmem",
-    "tests/test_bruker_with_test_data.py::test_1d",
-    "tests/test_bruker_with_test_data.py::test_2d",
-    "tests/test_bruker_with_test_data.py::test_2d_lowmem",
-    "tests/test_bruker_with_test_data.py::test_3d",
-    "tests/test_bruker_with_test_data.py::test_3d_lowmem",
-    "tests/test_bruker_with_test_data.py::test_read_pdata_1d",
-    "tests/test_bruker_with_test_data.py::test_read_pdata_2d",
-    "tests/test_bruker_with_test_data.py::test_write_pdata_1d",
-    "tests/test_bruker_with_test_data.py::test_write_pdata_2d",
-    "tests/test_convert.py::test_agilent_1d",
-    "tests/test_convert.py::test_agilent_2d",
-    "tests/test_convert.py::test_agilent_2d_lowmem",
-    "tests/test_convert.py::test_agilent_3d",
-    "tests/test_convert.py::test_agilent_3d_lowmem",
-    "tests/test_convert.py::test_agilent_3d_rnmrtk",
-    "tests/test_convert.py::test_bruker_1d",
-    "tests/test_convert.py::test_bruker_2d",
-    "tests/test_convert.py::test_bruker_2d_lowmem",
-    "tests/test_convert.py::test_bruker_3d",
-    "tests/test_convert.py::test_bruker_3d_lowmem",
-    "tests/test_convert.py::test_bruker_3d_rnmrtk",
-    "tests/test_convert.py::test_sparky_2d",
-    "tests/test_convert.py::test_sparky_2d_lowmem",
-    "tests/test_convert.py::test_rnmrtk_3d",
-    "tests/test_jcampdx.py::test_jcampdx1",
-    "tests/test_jeol.py::test_1d_complex_1",
-    "tests/test_jeol.py::test_1d_complex_1_udic",
-    "tests/test_jeol.py::test_2d_cc_1",
-    "tests/test_jeol.py::test_2d_cc_1_udic",
-    "tests/test_rnmrtk.py::test_3d_time",
-    "tests/test_rnmrtk.py::test_3d_freq",
-    "tests/test_simpson.py::test_1d_time",
-    "tests/test_simpson.py::test_2d_freq",
-    "tests/test_sparky.py::test_2d",
-    "tests/test_sparky.py::test_2d_lowmem",
+    "tests/fileio/test_agilent.py::test_1d",
+    "tests/fileio/test_agilent.py::test_2d",
+    "tests/fileio/test_agilent.py::test_2d_lowmem",
+    "tests/fileio/test_agilent.py::test_2d_tppi",
+    "tests/fileio/test_agilent.py::test_2d_tppi_lowmem",
+    "tests/fileio/test_agilent.py::test_3d",
+    "tests/fileio/test_agilent.py::test_3d_lowmem",
+    "tests/fileio/test_bruker_with_test_data.py::test_1d",
+    "tests/fileio/test_bruker_with_test_data.py::test_2d",
+    "tests/fileio/test_bruker_with_test_data.py::test_2d_lowmem",
+    "tests/fileio/test_bruker_with_test_data.py::test_3d",
+    "tests/fileio/test_bruker_with_test_data.py::test_3d_lowmem",
+    "tests/fileio/test_bruker_with_test_data.py::test_read_pdata_1d",
+    "tests/fileio/test_bruker_with_test_data.py::test_read_pdata_2d",
+    "tests/fileio/test_bruker_with_test_data.py::test_write_pdata_1d",
+    "tests/fileio/test_bruker_with_test_data.py::test_write_pdata_2d",
+    "tests/fileio/test_convert.py::test_agilent_1d",
+    "tests/fileio/test_convert.py::test_agilent_2d",
+    "tests/fileio/test_convert.py::test_agilent_2d_lowmem",
+    "tests/fileio/test_convert.py::test_agilent_3d",
+    "tests/fileio/test_convert.py::test_agilent_3d_lowmem",
+    "tests/fileio/test_convert.py::test_agilent_3d_rnmrtk",
+    "tests/fileio/test_convert.py::test_bruker_1d",
+    "tests/fileio/test_convert.py::test_bruker_2d",
+    "tests/fileio/test_convert.py::test_bruker_2d_lowmem",
+    "tests/fileio/test_convert.py::test_bruker_3d",
+    "tests/fileio/test_convert.py::test_bruker_3d_lowmem",
+    "tests/fileio/test_convert.py::test_bruker_3d_rnmrtk",
+    "tests/fileio/test_convert.py::test_sparky_2d",
+    "tests/fileio/test_convert.py::test_sparky_2d_lowmem",
+    "tests/fileio/test_convert.py::test_rnmrtk_3d",
+    "tests/fileio/test_jcampdx.py::test_jcampdx1",
+    "tests/fileio/test_jeol.py::test_1d_complex_1",
+    "tests/fileio/test_jeol.py::test_1d_complex_1_udic",
+    "tests/fileio/test_jeol.py::test_2d_cc_1",
+    "tests/fileio/test_jeol.py::test_2d_cc_1_udic",
+    "tests/fileio/test_rnmrtk.py::test_3d_time",
+    "tests/fileio/test_rnmrtk.py::test_3d_freq",
+    "tests/fileio/test_simpson.py::test_1d_time",
+    "tests/fileio/test_simpson.py::test_2d_freq",
+    "tests/fileio/test_sparky.py::test_2d",
+    "tests/fileio/test_sparky.py::test_2d_lowmem",
 })
 
 # Dataset-dependent test modules whose data references the manifest accounts
@@ -217,15 +217,15 @@ CRITICAL_TESTS = frozenset({
 # and the RS2D/Spinsolve vendor profiles stay outside the manifest scope; see
 # maintainer/reports/2026-10-critical-corpus.md.
 SCANNED_TEST_MODULES = (
-    "test_agilent.py",
-    "test_bruker_with_test_data.py",
-    "test_convert.py",
-    "test_jcampdx.py",
-    "test_jeol.py",
-    "test_rnmrtk.py",
-    "test_simpson.py",
-    "test_sparky.py",
-    "test_tecmag.py",
+    "fileio/test_agilent.py",
+    "fileio/test_bruker_with_test_data.py",
+    "fileio/test_convert.py",
+    "fileio/test_jcampdx.py",
+    "fileio/test_jeol.py",
+    "fileio/test_rnmrtk.py",
+    "fileio/test_simpson.py",
+    "fileio/test_sparky.py",
+    "fileio/test_tecmag.py",
 )
 
 # Required reference components, by owning entry. A component's paths are
@@ -238,14 +238,14 @@ REQUIRED_COMPONENTS = {
         "raw": {
             "paths": ["agilent_1d/fid", "agilent_1d/procpar"],
             "required_by": [
-                "tests/test_agilent.py::test_1d",
-                "tests/test_convert.py::test_agilent_1d",
+                "tests/fileio/test_agilent.py::test_1d",
+                "tests/fileio/test_convert.py::test_agilent_1d",
             ],
             "notes": "real 1D acquisition block and parameters",
         },
         "pipe_reference": {
             "paths": ["agilent_1d/test.fid"],
-            "required_by": ["tests/test_convert.py::test_agilent_1d"],
+            "required_by": ["tests/fileio/test_convert.py::test_agilent_1d"],
             "notes": "NMRPipe-generated 1D conversion reference",
         },
     },
@@ -253,18 +253,18 @@ REQUIRED_COMPONENTS = {
         "raw": {
             "paths": ["agilent_2d/fid", "agilent_2d/procpar"],
             "required_by": [
-                "tests/test_agilent.py::test_2d",
-                "tests/test_agilent.py::test_2d_lowmem",
-                "tests/test_convert.py::test_agilent_2d",
-                "tests/test_convert.py::test_agilent_2d_lowmem",
+                "tests/fileio/test_agilent.py::test_2d",
+                "tests/fileio/test_agilent.py::test_2d_lowmem",
+                "tests/fileio/test_convert.py::test_agilent_2d",
+                "tests/fileio/test_convert.py::test_agilent_2d_lowmem",
             ],
             "notes": "real 2D blocks and parameters",
         },
         "pipe_reference": {
             "paths": ["agilent_2d/test.fid"],
             "required_by": [
-                "tests/test_convert.py::test_agilent_2d",
-                "tests/test_convert.py::test_agilent_2d_lowmem",
+                "tests/fileio/test_convert.py::test_agilent_2d",
+                "tests/fileio/test_convert.py::test_agilent_2d_lowmem",
             ],
             "notes": "NMRPipe-generated 2D conversion reference",
         },
@@ -273,8 +273,8 @@ REQUIRED_COMPONENTS = {
         "raw": {
             "paths": ["agilent_2d_tppi/fid", "agilent_2d_tppi/procpar"],
             "required_by": [
-                "tests/test_agilent.py::test_2d_tppi",
-                "tests/test_agilent.py::test_2d_tppi_lowmem",
+                "tests/fileio/test_agilent.py::test_2d_tppi",
+                "tests/fileio/test_agilent.py::test_2d_tppi_lowmem",
             ],
             "notes": "real 2D TPPI blocks and parameters",
         },
@@ -283,19 +283,19 @@ REQUIRED_COMPONENTS = {
         "raw": {
             "paths": ["agilent_3d/fid", "agilent_3d/procpar"],
             "required_by": [
-                "tests/test_agilent.py::test_3d",
-                "tests/test_agilent.py::test_3d_lowmem",
-                "tests/test_convert.py::test_agilent_3d",
-                "tests/test_convert.py::test_agilent_3d_lowmem",
-                "tests/test_convert.py::test_agilent_3d_rnmrtk",
+                "tests/fileio/test_agilent.py::test_3d",
+                "tests/fileio/test_agilent.py::test_3d_lowmem",
+                "tests/fileio/test_convert.py::test_agilent_3d",
+                "tests/fileio/test_convert.py::test_agilent_3d_lowmem",
+                "tests/fileio/test_convert.py::test_agilent_3d_rnmrtk",
             ],
             "notes": "real 3D blocks and parameters",
         },
         "pipe_reference": {
             "paths": ["agilent_3d/data/test%03d.fid"],
             "required_by": [
-                "tests/test_convert.py::test_agilent_3d",
-                "tests/test_convert.py::test_agilent_3d_lowmem",
+                "tests/fileio/test_convert.py::test_agilent_3d",
+                "tests/fileio/test_convert.py::test_agilent_3d_lowmem",
             ],
             "notes": "indexed NMRPipe-generated 3D conversion reference series",
         },
@@ -304,8 +304,8 @@ REQUIRED_COMPONENTS = {
         "raw": {
             "paths": ["agilent_4d/fid"],
             "required_by": [
-                "tests/test_agilent.py::test_4d",
-                "tests/test_agilent.py::test_4d_lowmem",
+                "tests/fileio/test_agilent.py::test_4d",
+                "tests/fileio/test_agilent.py::test_4d_lowmem",
             ],
             "notes": "synthetic boundary case read with an explicit shape",
         },
@@ -315,27 +315,27 @@ REQUIRED_COMPONENTS = {
             "paths": ["bruker_1d/acqu", "bruker_1d/acqus", "bruker_1d/fid",
                       "bruker_1d/pulseprogram"],
             "required_by": [
-                "tests/test_bruker_with_test_data.py::test_1d",
-                "tests/test_convert.py::test_bruker_1d",
+                "tests/fileio/test_bruker_with_test_data.py::test_1d",
+                "tests/fileio/test_convert.py::test_bruker_1d",
             ],
             "notes": "real FID, parameters and pulse program",
         },
         "pdata": {
             "paths": ["bruker_1d/pdata/1"],
             "required_by": [
-                "tests/test_bruker_with_test_data.py::test_read_pdata_1d",
-                "tests/test_bruker_with_test_data.py::test_write_pdata_1d",
+                "tests/fileio/test_bruker_with_test_data.py::test_read_pdata_1d",
+                "tests/fileio/test_bruker_with_test_data.py::test_write_pdata_1d",
             ],
             "notes": "processed 1D dataset (1r/1i, procs and related files)",
         },
         "pipe_reference": {
             "paths": ["bruker_1d/test.fid"],
-            "required_by": ["tests/test_convert.py::test_bruker_1d"],
+            "required_by": ["tests/fileio/test_convert.py::test_bruker_1d"],
             "notes": "NMRPipe-generated 1D conversion reference",
         },
         "rnmrtk_reference": {
             "paths": ["bruker_1d/time_1d.sec", "bruker_1d/time_1d.par"],
-            "required_by": ["tests/test_convert.py::test_bruker_1d_rnmrtk"],
+            "required_by": ["tests/fileio/test_convert.py::test_bruker_1d_rnmrtk"],
             "notes": "RNMRTK 1D time-domain reference and its parameter file",
         },
     },
@@ -344,32 +344,32 @@ REQUIRED_COMPONENTS = {
             "paths": ["bruker_2d/acqu", "bruker_2d/acqu2", "bruker_2d/acqu2s",
                       "bruker_2d/acqus", "bruker_2d/pulseprogram", "bruker_2d/ser"],
             "required_by": [
-                "tests/test_bruker_with_test_data.py::test_2d",
-                "tests/test_bruker_with_test_data.py::test_2d_lowmem",
-                "tests/test_convert.py::test_bruker_2d",
-                "tests/test_convert.py::test_bruker_2d_lowmem",
+                "tests/fileio/test_bruker_with_test_data.py::test_2d",
+                "tests/fileio/test_bruker_with_test_data.py::test_2d_lowmem",
+                "tests/fileio/test_convert.py::test_bruker_2d",
+                "tests/fileio/test_convert.py::test_bruker_2d_lowmem",
             ],
             "notes": "ser, parameters and pulse program",
         },
         "pdata": {
             "paths": ["bruker_2d/pdata/1"],
             "required_by": [
-                "tests/test_bruker_with_test_data.py::test_read_pdata_2d",
-                "tests/test_bruker_with_test_data.py::test_write_pdata_2d",
+                "tests/fileio/test_bruker_with_test_data.py::test_read_pdata_2d",
+                "tests/fileio/test_bruker_with_test_data.py::test_write_pdata_2d",
             ],
             "notes": "processed 2D dataset (2rr/2ri, proc2s and related files)",
         },
         "pipe_reference": {
             "paths": ["bruker_2d/test.fid"],
             "required_by": [
-                "tests/test_convert.py::test_bruker_2d",
-                "tests/test_convert.py::test_bruker_2d_lowmem",
+                "tests/fileio/test_convert.py::test_bruker_2d",
+                "tests/fileio/test_convert.py::test_bruker_2d_lowmem",
             ],
             "notes": "NMRPipe-generated 2D conversion reference",
         },
         "rnmrtk_reference": {
             "paths": ["bruker_2d/time_2d.sec", "bruker_2d/time_2d.par"],
-            "required_by": ["tests/test_convert.py::test_bruker_2d_rnmrtk"],
+            "required_by": ["tests/fileio/test_convert.py::test_bruker_2d_rnmrtk"],
             "notes": "RNMRTK 2D time-domain reference and its parameter file",
         },
     },
@@ -378,25 +378,25 @@ REQUIRED_COMPONENTS = {
             "paths": ["bruker_3d/acqu", "bruker_3d/acqu2", "bruker_3d/acqu2s",
                       "bruker_3d/acqus", "bruker_3d/pulseprogram", "bruker_3d/ser"],
             "required_by": [
-                "tests/test_bruker_with_test_data.py::test_3d",
-                "tests/test_bruker_with_test_data.py::test_3d_lowmem",
-                "tests/test_convert.py::test_bruker_3d",
-                "tests/test_convert.py::test_bruker_3d_lowmem",
-                "tests/test_convert.py::test_bruker_3d_rnmrtk",
+                "tests/fileio/test_bruker_with_test_data.py::test_3d",
+                "tests/fileio/test_bruker_with_test_data.py::test_3d_lowmem",
+                "tests/fileio/test_convert.py::test_bruker_3d",
+                "tests/fileio/test_convert.py::test_bruker_3d_lowmem",
+                "tests/fileio/test_convert.py::test_bruker_3d_rnmrtk",
             ],
             "notes": "3D parameters and ser",
         },
         "pipe_reference": {
             "paths": ["bruker_3d/fid/test%03d.fid"],
             "required_by": [
-                "tests/test_convert.py::test_bruker_3d",
-                "tests/test_convert.py::test_bruker_3d_lowmem",
+                "tests/fileio/test_convert.py::test_bruker_3d",
+                "tests/fileio/test_convert.py::test_bruker_3d_lowmem",
             ],
             "notes": "indexed NMRPipe-generated 3D conversion reference series",
         },
         "rnmrtk_reference": {
             "paths": ["bruker_3d/time_3d.sec", "bruker_3d/time_3d.par"],
-            "required_by": ["tests/test_convert.py::test_bruker_3d_rnmrtk"],
+            "required_by": ["tests/fileio/test_convert.py::test_bruker_3d_rnmrtk"],
             "notes": "RNMRTK 3D time-domain reference and its parameter file",
         },
         "pdata": {
@@ -415,13 +415,13 @@ REQUIRED_COMPONENTS = {
         "time_outputs": {
             "paths": ["simpson_1d/1d_text.fid", "simpson_1d/1d_bin.fid",
                       "simpson_1d/1d_ftext.fid", "simpson_1d/1d_rawbin.fid"],
-            "required_by": ["tests/test_simpson.py::test_1d_time"],
+            "required_by": ["tests/fileio/test_simpson.py::test_1d_time"],
             "notes": "1D time-domain encoding set (TEXT/BINARY/XREIM/RAWBIN)",
         },
         "freq_outputs": {
             "paths": ["simpson_1d/1d_text.spe", "simpson_1d/1d_bin.spe",
                       "simpson_1d/1d_ftext.spe", "simpson_1d/1d_rawbin.spe"],
-            "required_by": ["tests/test_simpson.py::test_1d_freq"],
+            "required_by": ["tests/fileio/test_simpson.py::test_1d_freq"],
             "notes": "1D frequency-domain encoding set (extended-validation test)",
         },
     },
@@ -434,20 +434,20 @@ REQUIRED_COMPONENTS = {
         "freq_outputs": {
             "paths": ["simpson_2d/2d_text.spe", "simpson_2d/2d.spe",
                       "simpson_2d/2d_ftext.spe", "simpson_2d/2d_raw.spe"],
-            "required_by": ["tests/test_simpson.py::test_2d_freq"],
+            "required_by": ["tests/fileio/test_simpson.py::test_2d_freq"],
             "notes": "2D frequency-domain encoding set (TEXT/BINARY/XREIM/RAWBIN)",
         },
         "time_outputs": {
             "paths": ["simpson_2d/2d_text.fid", "simpson_2d/2d.fid",
                       "simpson_2d/2d_ftext.fid", "simpson_2d/2d_raw.fid"],
-            "required_by": ["tests/test_simpson.py::test_2d_time"],
+            "required_by": ["tests/fileio/test_simpson.py::test_2d_time"],
             "notes": "2D time-domain encoding set (extended-validation test)",
         },
     },
     "tecmag": {
         "raw": {
             "paths": ["tecmag/LiCl_ref1.tnt", "tecmag/LiCl_ref1.txt"],
-            "required_by": ["tests/test_tecmag.py::test_tecmag_load_time_domain"],
+            "required_by": ["tests/fileio/test_tecmag.py::test_tecmag_load_time_domain"],
             "notes": "LiCl reference pair (.tnt + .txt)",
         },
     },
@@ -456,8 +456,8 @@ REQUIRED_COMPONENTS = {
             "paths": ["jeol/cyclosporine_Carbon-1-1.jdf",
                       "jeol/cyclosporine_Carbon-1-1.fid"],
             "required_by": [
-                "tests/test_jeol.py::test_1d_complex_1",
-                "tests/test_jeol.py::test_1d_complex_1_udic",
+                "tests/fileio/test_jeol.py::test_1d_complex_1",
+                "tests/fileio/test_jeol.py::test_1d_complex_1_udic",
             ],
             "notes": "real 1D JDF binary structure and independent NMRPipe reference",
         },
@@ -467,8 +467,8 @@ REQUIRED_COMPONENTS = {
             "paths": ["jeol/cyclosporine_tocsy-1-1.jdf",
                       "jeol/cyclosporine_tocsy-1-1.fid"],
             "required_by": [
-                "tests/test_jeol.py::test_2d_cc_1",
-                "tests/test_jeol.py::test_2d_cc_1_udic",
+                "tests/fileio/test_jeol.py::test_2d_cc_1",
+                "tests/fileio/test_jeol.py::test_2d_cc_1_udic",
             ],
             "notes": "real 2D JDF quadrature/layout and independent NMRPipe reference",
         },
@@ -477,18 +477,18 @@ REQUIRED_COMPONENTS = {
         "ucsf_spectrum": {
             "paths": ["sparky_2d/data.ucsf"],
             "required_by": [
-                "tests/test_sparky.py::test_2d",
-                "tests/test_sparky.py::test_2d_lowmem",
-                "tests/test_convert.py::test_sparky_2d",
-                "tests/test_convert.py::test_sparky_2d_lowmem",
+                "tests/fileio/test_sparky.py::test_2d",
+                "tests/fileio/test_sparky.py::test_2d_lowmem",
+                "tests/fileio/test_convert.py::test_sparky_2d",
+                "tests/fileio/test_convert.py::test_sparky_2d_lowmem",
             ],
             "notes": "tiled UCSF 2D spectrum",
         },
         "pipe_reference": {
             "paths": ["nmrpipe_2d/test.ft2"],
             "required_by": [
-                "tests/test_convert.py::test_sparky_2d",
-                "tests/test_convert.py::test_sparky_2d_lowmem",
+                "tests/fileio/test_convert.py::test_sparky_2d",
+                "tests/fileio/test_convert.py::test_sparky_2d_lowmem",
             ],
             "notes": "NMRPipe-generated 2D conversion reference",
         },
@@ -497,8 +497,8 @@ REQUIRED_COMPONENTS = {
         "time_reference": {
             "paths": ["rnmrtk_3d/time_3d.sec", "rnmrtk_3d/time_3d.par"],
             "required_by": [
-                "tests/test_rnmrtk.py::test_3d_time",
-                "tests/test_convert.py::test_agilent_3d_rnmrtk",
+                "tests/fileio/test_rnmrtk.py::test_3d_time",
+                "tests/fileio/test_convert.py::test_agilent_3d_rnmrtk",
             ],
             "notes": "real complex 3D RNMRTK file and its parameter file",
         },
@@ -507,14 +507,14 @@ REQUIRED_COMPONENTS = {
         "frequency_reference": {
             "paths": ["rnmrtk_3d/freq_3d.sec", "rnmrtk_3d/freq_3d.par"],
             "required_by": [
-                "tests/test_rnmrtk.py::test_3d_freq",
-                "tests/test_convert.py::test_rnmrtk_3d",
+                "tests/fileio/test_rnmrtk.py::test_3d_freq",
+                "tests/fileio/test_convert.py::test_rnmrtk_3d",
             ],
             "notes": "real 3D RNMRTK frequency file and its parameter file",
         },
         "pipe_reference": {
             "paths": ["rnmrtk_3d/test.ft3"],
-            "required_by": ["tests/test_convert.py::test_rnmrtk_3d"],
+            "required_by": ["tests/fileio/test_convert.py::test_rnmrtk_3d"],
             "notes": "NMRPipe-generated 3D conversion reference",
         },
     },
@@ -523,7 +523,7 @@ REQUIRED_COMPONENTS = {
             "paths": ["jcampdx/BRUKAFFN.DX", "jcampdx/BRUKPAC.DX",
                       "jcampdx/BRUKSQZ.DX", "jcampdx/BRUKDIF.DX",
                       "jcampdx/TEST32.DX", "jcampdx/TESTSPEC.DX"],
-            "required_by": ["tests/test_jcampdx.py::test_jcampdx1"],
+            "required_by": ["tests/fileio/test_jcampdx.py::test_jcampdx1"],
             "notes": "AFFN/PAC/SQZ/DIF encoding equivalence cases; the historical "
                      "encoding test is monolithic and also reads the NTUPLES cases",
         },
@@ -531,7 +531,7 @@ REQUIRED_COMPONENTS = {
     "jcampdx_ntuples_spectrum": {
         "ntuples_arrays": {
             "paths": ["jcampdx/BRUKNTUP.DX", "jcampdx/TESTNTUP.DX"],
-            "required_by": ["tests/test_jcampdx.py::test_jcampdx1"],
+            "required_by": ["tests/fileio/test_jcampdx.py::test_jcampdx1"],
             "notes": "real 2D NTUPLES arrays; shared with the monolithic encoding test",
         },
     },
@@ -541,8 +541,8 @@ REQUIRED_COMPONENTS = {
                       "rnmrtk_1d/freq_1d.sec", "rnmrtk_1d/freq_1d.par",
                       "rnmrtk_1d/test.ft"],
             "required_by": [
-                "tests/test_convert.py::test_agilent_1d_rnmrtk",
-                "tests/test_convert.py::test_rnmrtk_1d",
+                "tests/fileio/test_convert.py::test_agilent_1d_rnmrtk",
+                "tests/fileio/test_convert.py::test_rnmrtk_1d",
             ],
             "notes": "1D RNMRTK time/frequency references and Pipe output",
         },
@@ -551,24 +551,24 @@ REQUIRED_COMPONENTS = {
                       "rnmrtk_2d/freq_2d.sec", "rnmrtk_2d/freq_2d.par",
                       "rnmrtk_2d/test.ft2"],
             "required_by": [
-                "tests/test_convert.py::test_agilent_2d_rnmrtk",
-                "tests/test_convert.py::test_rnmrtk_2d",
+                "tests/fileio/test_convert.py::test_agilent_2d_rnmrtk",
+                "tests/fileio/test_convert.py::test_rnmrtk_2d",
             ],
             "notes": "2D RNMRTK time/frequency references and Pipe output",
         },
         "sparky_3d_conversion": {
             "paths": ["sparky_3d/data.ucsf", "nmrpipe_3d/ft/test%03d.ft3"],
             "required_by": [
-                "tests/test_sparky.py::test_3d",
-                "tests/test_sparky.py::test_3d_lowmem",
-                "tests/test_convert.py::test_sparky_3d",
-                "tests/test_convert.py::test_sparky_3d_lowmem",
+                "tests/fileio/test_sparky.py::test_3d",
+                "tests/fileio/test_sparky.py::test_3d_lowmem",
+                "tests/fileio/test_convert.py::test_sparky_3d",
+                "tests/fileio/test_convert.py::test_sparky_3d_lowmem",
             ],
             "notes": "3D UCSF spectrum and indexed NMRPipe conversion reference",
         },
         "pipe_1d_self_conversion": {
             "paths": ["nmrpipe_1d/test.fid"],
-            "required_by": ["tests/test_convert.py::test_pipe_1d"],
+            "required_by": ["tests/fileio/test_convert.py::test_pipe_1d"],
             "notes": "same-format historical 1D Pipe file",
         },
         "jeol_extended_samples": {
@@ -589,14 +589,14 @@ REQUIRED_COMPONENTS = {
                       "jeol/jeol-2d_1.jdf",
                       "jeol/jeol-2d_1.fid"],
             "required_by": [
-                "tests/test_jeol.py::test_1d_complex_2",
-                "tests/test_jeol.py::test_1d_complex_3",
-                "tests/test_jeol.py::test_1d_complex_4",
-                "tests/test_jeol.py::test_2d_cc_2",
-                "tests/test_jeol.py::test_2d_cc_nus",
-                "tests/test_jeol.py::test_2d_rc_nus",
-                "tests/test_jeol.py::test_2d_rc",
-                "tests/test_jeol.py::test_2d_cr",
+                "tests/fileio/test_jeol.py::test_1d_complex_2",
+                "tests/fileio/test_jeol.py::test_1d_complex_3",
+                "tests/fileio/test_jeol.py::test_1d_complex_4",
+                "tests/fileio/test_jeol.py::test_2d_cc_2",
+                "tests/fileio/test_jeol.py::test_2d_cc_nus",
+                "tests/fileio/test_jeol.py::test_2d_rc_nus",
+                "tests/fileio/test_jeol.py::test_2d_rc",
+                "tests/fileio/test_jeol.py::test_2d_cr",
             ],
             "notes": "additional real JEOL samples read by extended-validation tests",
         },
@@ -606,7 +606,7 @@ REQUIRED_COMPONENTS = {
                       "jcampdx/aug07.dx", "jcampdx/aug07b.dx",
                       "jcampdx/aug07c.dx", "jcampdx/aug07d.dx",
                       "jcampdx/aug07e.dx"],
-            "required_by": ["tests/test_jcampdx.py::test_jcampdx2"],
+            "required_by": ["tests/fileio/test_jcampdx.py::test_jcampdx2"],
             "notes": "miscellaneous real spectra read by the extended-validation test",
         },
     },
@@ -925,7 +925,7 @@ def _collect_lists(nodes):
 
     Both ``x.append("name")`` and ``x.append(("name", ...))`` contribute the
     first string literal of the appended value. This is the form used by
-    ``tests/test_jcampdx.py`` (a ``cases`` list iterated by the test loop).
+    ``tests/fileio/test_jcampdx.py`` (a ``cases`` list iterated by the test loop).
     """
     lists = {}
     for node in ast.walk(ast.Module(body=list(nodes), type_ignores=[])):
@@ -970,7 +970,7 @@ def extract_data_references(module_path: Path) -> dict:
       of a module-level DATA_DIR alias;
     - segments taken from a loop variable bound to a name filled by
       ``x.append(...)`` (the ``for case in cases`` / ``for i, case in
-      enumerate(cases)`` form of ``tests/test_jcampdx.py``, including the
+      enumerate(cases)`` form of ``tests/fileio/test_jcampdx.py``, including the
       ``case[0]`` subscript).
 
     Not recognized (and therefore reported as no reference): iterating a

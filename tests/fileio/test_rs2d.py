@@ -3,7 +3,7 @@
 import os
 import numpy as np
 import nmrglue as ng
-from setup import DATA_DIR
+from _dataset_paths import DATA_DIR
 
 
 def test_rs2d():

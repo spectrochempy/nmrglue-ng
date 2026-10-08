@@ -16,7 +16,7 @@ dist
 
 # data and sandbox
 data
-!nmrglue/fileio/tests/data/
+!tests/fixtures/fileio/data/
 sandbox
 maintainer/audits/
 

@@ -186,11 +186,11 @@ Know which category each test belongs to before reporting a result:
 python -m pytest -m "not dataset and not external_software"
 
 # focused file
-python -m pytest nmrglue/fileio/tests/test_pipe.py
-python -m pytest tests/test_peakpick.py
+python -m pytest tests/fileio/test_pipe.py
+python -m pytest tests/analysis/test_peakpick.py
 
 # single test
-python -m pytest tests/test_x.py::test_y -v
+python -m pytest tests/fileio/test_x.py::test_y -v
 
 # dataset profile (only when data/ is present)
 python -m pytest -m dataset

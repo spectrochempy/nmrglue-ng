@@ -4,7 +4,7 @@
 import nmrglue as ng
 from pathlib import Path
 
-from setup import DATA_DIR
+from _dataset_paths import DATA_DIR
 
 
 def test_acqu():

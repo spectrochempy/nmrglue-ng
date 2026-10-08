@@ -60,15 +60,14 @@ Run every test that needs neither external datasets nor external software with:
 python -m pytest -m "not dataset and not external_software"
 ```
 
-This is the standard CI profile. It collects tests from both `tests/` and the
-tests shipped inside `nmrglue`, including strict expected failures that track
-known autonomous defects.
+This is the standard CI profile. All tests live under `tests/`, including
+strict expected failures that track known autonomous defects.
 
 Run focused tests for the code you change as well. For example:
 
 ```bash
-python -m pytest nmrglue/fileio/tests/test_pipe.py
-python -m pytest tests/test_peakpick.py
+python -m pytest tests/fileio/test_pipe.py
+python -m pytest tests/analysis/test_peakpick.py
 ```
 
 ### Dataset-dependent tests
@@ -126,7 +125,7 @@ To reproduce the CSDM job in a disposable development environment:
 ```bash
 python -m pip install '.[test]' csdmpy astropy matplotlib
 python -c "import csdmpy"
-python -m pytest nmrglue/fileio/tests/test_convert_csdm.py --strict-markers --strict-config -ra --junitxml=csdm.xml
+python -m pytest tests/fileio/test_convert_csdm.py --strict-markers --strict-config -ra --junitxml=csdm.xml
 python .github/scripts/check_test_report.py csdm.xml
 ```
 
@@ -134,23 +133,26 @@ Astropy and Matplotlib are explicit CI dependencies because CSDMpy 0.7.0
 imports them without declaring them in its runtime requirements. They remain
 optional for nmrglue-ng.
 
-For installed-wheel validation, build with `python -m build` (without separate
+The wheel is runtime-only: it deliberately contains neither `tests` nor
+fixtures, and no longer exposes `nmrglue.fileio.tests` or
+`nmrglue.analysis.tests`. Build with `python -m build` (without separate
 `--sdist --wheel` flags, so the wheel is built from the sdist), run
 `python -m twine check --strict dist/*`, and install the wheel plus pytest and
-packaging into a fresh virtual environment. From a temporary directory outside
-the checkout, use that environment's Python with `-I` to run the absolute path to
-`.github/scripts/check_installed_wheel.py`, passing an absolute JUnit output
-path. The script runs packaged tests in its own temporary working directory
-next to the report. Run `check_test_report.py` on that report as well to reject
-empty or skipped validation.
+packaging into a fresh virtual environment. Extract that exact sdist outside
+the checkout, then use the environment's Python with `-I` to run its
+`.github/scripts/check_installed_wheel.py`, passing the extracted sdist root
+and an absolute JUnit output path. The harness stages the 45 NMRPipe and 19
+Bruker functional tests from the sdist, requires all 64 cases to execute, and
+verifies `nmrglue` imports from site-packages inside pytest. Run
+`check_test_report.py wheel.xml 64` as well.
 
-The sdist explicitly includes `tests/test_ci_validation.py` and its helper
-`.github/scripts/check_test_report.py`. The packaging job also extracts the
-sdist outside the checkout and executes that test file with the fresh
-environment's Python (`-I -m pytest`). It checks the resulting `sdist.xml` with
-the extracted helper and retains that report alongside `wheel.xml`. This
-focused check guarantees the CI report test's source-distribution dependency;
-it does not claim that the complete repository test suite runs from the sdist.
+The sdist contains all `tests/`, fixtures, `pytest.ini`, the manifest and their
+infrastructure dependencies. The packaging job separately extracts it outside
+the checkout and executes `tests/infrastructure/test_ci_validation.py` and
+`tests/infrastructure/test_testdata_manifest.py` with the fresh environment's
+Python (`-I -m pytest`). It requires all 55 cases through the extracted
+`check_test_report.py sdist.xml 55`. This focused check does not claim that the
+complete repository test suite runs from the sdist.
 
 ### Pre-commit
 
@@ -172,8 +174,8 @@ pre-commit run --all-files
 The first run downloads hook environments; subsequent runs are fast. The
 configuration deliberately excludes historical example scripts under
 `examples/`, documentation under `doc/`, binary and text fixtures under
-`nmrglue/fileio/tests/data/`, `nmrglue/fileio/tests/bruker_test_data/`, and
-`tests/pipe_proc_tests/`, and common binary or data extensions (`.fid`,
+`tests/fixtures/fileio/data/`, `tests/fixtures/fileio/bruker_test_data/`, and
+`tests/fixtures/process/pipe_proc_tests/`, and common binary or data extensions (`.fid`,
 `.ft2`, `.ft3`, `.ft4`, `.ser`, `.acqus`, `.procs`, `.jdf`, `.ucsf`, `.par`,
 `.sec`, `.1r`, `.2r`, `.in`, `.com`, `.tab`, `.png`, `.zip`, `.txt`, `.dat`,
 `.jdx`). These exclusions prevent hooks from modifying scientific fixtures or

@@ -8,7 +8,7 @@ import pytest
 
 
 check_report = runpy.run_path(
-    str(Path(__file__).resolve().parents[1] / ".github/scripts/check_test_report.py")
+    str(Path(__file__).resolve().parents[2] / ".github/scripts/check_test_report.py")
 )["check_report"]
 
 

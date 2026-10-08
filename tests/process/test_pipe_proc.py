@@ -14,9 +14,9 @@ def _perform_test(glue_script, pipe_script, glue_files, pipe_files,
     """
     cwd_backup = os.getcwd()    # save the current working directory
 
-    # decent into the pipe_proc_tests directory
+    # descend into the NMRPipe comparison fixture directory
     script_dir, script_fname = os.path.split(os.path.realpath(__file__))
-    os.chdir(os.path.join(script_dir, 'pipe_proc_tests'))
+    os.chdir(os.path.join(script_dir, '..', 'fixtures', 'process', 'pipe_proc_tests'))
 
     # execute the scripts and compare the files
     exec(open(glue_script).read())

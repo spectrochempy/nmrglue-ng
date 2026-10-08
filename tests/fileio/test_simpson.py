@@ -2,7 +2,7 @@ import nmrglue.fileio.simpson as simpson
 import numpy as np
 import os.path
 
-from setup import DATA_DIR
+from _dataset_paths import DATA_DIR
 
 DD_1D = os.path.join(DATA_DIR, 'simpson_1d')
 DD_2D = os.path.join(DATA_DIR, 'simpson_2d')

@@ -74,11 +74,11 @@ jobs:
       run: python -c "import csdmpy"
     - name: Test CSDM conversion
       run: >-
-        python -m pytest nmrglue/fileio/tests/test_convert_csdm.py
+        python -m pytest tests/fileio/test_convert_csdm.py
         --strict-markers --strict-config -ra
         --junitxml="${{ runner.temp }}/csdm.xml"
     - name: Require executed CSDM tests
-      run: python .github/scripts/check_test_report.py "${{ runner.temp }}/csdm.xml"
+      run: python .github/scripts/check_test_report.py "${{ runner.temp }}/csdm.xml" 3
     - name: Retain test report
       if: always()
       uses: actions/upload-artifact@v7
@@ -115,17 +115,18 @@ jobs:
       run: |
         mkdir "${{ runner.temp }}/sdist"
         tar -xzf "${{ runner.temp }}"/dist/*.tar.gz -C "${{ runner.temp }}/sdist"
-        "${{ runner.temp }}/wheel-env/bin/python" -I -m pytest "${{ runner.temp }}"/sdist/*/tests/test_ci_validation.py "${{ runner.temp }}"/sdist/*/tests/test_testdata_manifest.py --strict-markers --strict-config -ra --junitxml="${{ runner.temp }}/sdist.xml"
+        "${{ runner.temp }}/wheel-env/bin/python" -I -m pytest "${{ runner.temp }}"/sdist/*/tests/infrastructure/test_ci_validation.py "${{ runner.temp }}"/sdist/*/tests/infrastructure/test_testdata_manifest.py --strict-markers --strict-config -ra --junitxml="${{ runner.temp }}/sdist.xml"
     - name: Require executed sdist tests
-      run: python "${{ runner.temp }}"/sdist/*/.github/scripts/check_test_report.py "${{ runner.temp }}/sdist.xml"
+      run: python "${{ runner.temp }}"/sdist/*/.github/scripts/check_test_report.py "${{ runner.temp }}/sdist.xml" 55
     - name: Validate installed package outside checkout
       working-directory: ${{ runner.temp }}
       run: >-
         "${{ runner.temp }}/wheel-env/bin/python" -I
-        "${{ github.workspace }}/.github/scripts/check_installed_wheel.py"
+        "${{ runner.temp }}"/sdist/*/.github/scripts/check_installed_wheel.py
+        "${{ runner.temp }}"/sdist/*
         "${{ runner.temp }}/wheel.xml"
     - name: Require executed packaged tests
-      run: python .github/scripts/check_test_report.py "${{ runner.temp }}/wheel.xml"
+      run: python .github/scripts/check_test_report.py "${{ runner.temp }}/wheel.xml" 64
     - name: Retain distribution and test report
       if: always()
       uses: actions/upload-artifact@v7
