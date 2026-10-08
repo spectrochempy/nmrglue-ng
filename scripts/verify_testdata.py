@@ -1,9 +1,25 @@
 """Verify the local test-data corpus against maintainer/testdata-manifest.toml.
 
-Checks that every file listed in the manifest exists with the expected
-SHA-256 checksum and size. Reports missing, extra, and corrupted files.
-Rejects empty or malformed manifests. Fails on structural inconsistencies
-in declared counters.
+Two result axes are reported separately:
+
+* INTEGRITY -- every inventoried file exists with the expected SHA-256 and
+  size, no extra file sits under data/, and the declared counters form a
+  consistent chain.
+* AVAILABILITY -- every required component is either fully inventoried
+  (status ``present``) or explicitly declared absent (status ``absent``),
+  the declared status matches the on-disk reality, and the declared group
+  availability is derived from those components.
+
+``INTEGRITY: PASSED`` never claims that the critical corpus is complete.
+Results and exit codes:
+
+* ``0`` -- integrity OK and every release-critical component is present.
+  Extended-only absences are listed but do not change the exit code.
+* ``1`` -- error: structural inconsistency, integrity failure, or a
+  component whose declaration does not match the corpus.
+* ``2`` -- integrity OK and every declaration consistent, but at least one
+  release-critical component is explicitly declared absent (files conform,
+  critical corpus incomplete).
 
 Requires Python >= 3.11 (tomllib) or Python 3.10 with tomli installed.
 """
@@ -17,6 +33,8 @@ try:
 except ModuleNotFoundError:
     import tomli as tomllib
 
+from generate_testdata_manifest import resolve_matches
+
 
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 MANIFEST_PATH = Path(__file__).resolve().parents[1] / "maintainer" / "testdata-manifest.toml"
@@ -24,6 +42,8 @@ MANIFEST_PATH = Path(__file__).resolve().parents[1] / "maintainer" / "testdata-m
 EXCLUDE_NAMES = {"README", "conversion_scripts"}
 EXCLUDE_SUFFIXES = {".com"}
 EXCLUDE_PREFIXES = {"make_"}
+
+VALID_STATUSES = {"present", "absent"}
 
 
 def load_manifest() -> dict:
@@ -44,7 +64,160 @@ def should_exclude(name: str) -> bool:
     return False
 
 
-def verify_group(group_name: str, group_data: dict, data_dir: Path) -> tuple[list[str], int]:
+def iter_components(manifest: dict):
+    for section, entries in (
+        ("groups", manifest.get("groups", {})),
+        ("missing", manifest.get("missing", {})),
+    ):
+        for entry, data in entries.items():
+            for comp_id, comp in data.get("components", {}).items():
+                yield section, entry, comp_id, comp
+
+
+def derive_availability(statuses: list) -> str:
+    if statuses and all(s == "present" for s in statuses):
+        return "complete"
+    if any(s == "present" for s in statuses):
+        return "partial"
+    return "not_available"
+
+
+def verify_structure(manifest: dict) -> list:
+    """Data-independent consistency checks. Returns a list of errors."""
+    errors = []
+    groups = manifest.get("groups", {})
+    missing = manifest.get("missing", {})
+    info = manifest.get("manifest", {})
+
+    if not groups:
+        errors.append("STRUCTURAL: manifest contains no groups")
+        return errors
+    if info.get("version") != "3":
+        errors.append(
+            f"STRUCTURAL: unsupported manifest version {info.get('version')!r} (expected '3')"
+        )
+
+    critical_tests = info.get("critical_tests", [])
+    if not isinstance(critical_tests, list) or not critical_tests:
+        errors.append("STRUCTURAL: manifest.critical_tests must be a non-empty list")
+        critical_tests = []
+
+    total_files = sum(g.get("file_count", 0) for g in groups.values())
+    total_size = sum(g.get("total_size", 0) for g in groups.values())
+    components = list(iter_components(manifest))
+    total_components = len(components)
+    absent_components = sum(1 for *_, c in components if c.get("status") == "absent")
+    critical_components = sum(
+        1 for *_, c in components
+        if set(c.get("required_by", [])) & set(critical_tests)
+    )
+    absent_critical_components = sum(
+        1 for *_, c in components
+        if c.get("status") == "absent"
+        and set(c.get("required_by", [])) & set(critical_tests)
+    )
+
+    for key, actual in (
+        ("total_groups", len(groups)),
+        ("total_files", total_files),
+        ("total_size", total_size),
+        ("missing_groups", len(missing)),
+        ("total_components", total_components),
+        ("absent_components", absent_components),
+        ("critical_components", critical_components),
+        ("absent_critical_components", absent_critical_components),
+    ):
+        declared = info.get(key)
+        if declared != actual:
+            errors.append(
+                f"STRUCTURAL: manifest declares {key}={declared} but computed value is {actual}"
+            )
+
+    seen_paths = {}
+    for section, entry, comp_id, comp in components:
+        label = f"{section}.{entry}.components.{comp_id}"
+        status = comp.get("status")
+        if status not in VALID_STATUSES:
+            errors.append(f"STRUCTURAL: {label} has invalid status {status!r}")
+        paths = comp.get("paths")
+        if not paths or not isinstance(paths, list):
+            errors.append(f"STRUCTURAL: {label} must declare a non-empty paths list")
+            paths = []
+        required_by = comp.get("required_by")
+        if not isinstance(required_by, list):
+            errors.append(f"STRUCTURAL: {label} must declare a required_by list")
+            required_by = []
+        expected_scope = "critical" if set(required_by) & set(critical_tests) else "extended"
+        if comp.get("scope") != expected_scope:
+            errors.append(
+                f"STRUCTURAL: {label} declares scope={comp.get('scope')!r} "
+                f"but required_by implies {expected_scope!r}"
+            )
+        for p in paths:
+            if p in seen_paths:
+                errors.append(
+                    f"STRUCTURAL: path {p} declared by both {seen_paths[p]} and {label}"
+                )
+            else:
+                seen_paths[p] = label
+
+    for entry, gdata in groups.items():
+        comps = gdata.get("components", {})
+        if not comps:
+            errors.append(
+                f"STRUCTURAL: groups.{entry} declares no required component"
+            )
+        for fname in gdata.get("files", {}):
+            if not fname.startswith(f"{entry}/"):
+                errors.append(
+                    f"STRUCTURAL: groups.{entry} inventories {fname} outside its directory"
+                )
+        file_sizes = sum(f.get("size", 0) for f in gdata.get("files", {}).values())
+        if file_sizes != gdata.get("total_size", 0):
+            errors.append(
+                f"STRUCTURAL: groups.{entry} declares total_size={gdata.get('total_size')} "
+                f"but files sum to {file_sizes}"
+            )
+        if gdata.get("file_count") != len(gdata.get("files", {})):
+            errors.append(
+                f"STRUCTURAL: groups.{entry} declares file_count={gdata.get('file_count')} "
+                f"but has {len(gdata.get('files', {}))} file entries"
+            )
+
+    for section, entries in (("groups", groups), ("missing", missing)):
+        for entry, gdata in entries.items():
+            comps = gdata.get("components", {})
+            statuses = [c.get("status") for c in comps.values()]
+            declared_absent = sorted(
+                cid for cid, c in comps.items() if c.get("status") == "absent"
+            )
+            if gdata.get("component_count") != len(comps):
+                errors.append(
+                    f"STRUCTURAL: {section}.{entry} declares component_count="
+                    f"{gdata.get('component_count')} but has {len(comps)} components"
+                )
+            if gdata.get("absent_component_count") != len(declared_absent):
+                errors.append(
+                    f"STRUCTURAL: {section}.{entry} declares absent_component_count="
+                    f"{gdata.get('absent_component_count')} but has {len(declared_absent)} absent"
+                )
+            if section == "groups":
+                expected = derive_availability(statuses)
+                if gdata.get("availability") != expected:
+                    errors.append(
+                        f"STRUCTURAL: groups.{entry} declares availability="
+                        f"{gdata.get('availability')!r} but components imply {expected!r}"
+                    )
+                summary = ", ".join(declared_absent)
+                if gdata.get("missing_components") != summary:
+                    errors.append(
+                        f"STRUCTURAL: groups.{entry} declares missing_components="
+                        f"{gdata.get('missing_components')!r} but components imply {summary!r}"
+                    )
+    return errors
+
+
+def verify_group(group_name: str, group_data: dict, data_dir: Path) -> tuple:
     """Verify one group. Returns (errors, verified_count)."""
     errors = []
     files = group_data.get("files", {})
@@ -77,7 +250,7 @@ def verify_group(group_name: str, group_data: dict, data_dir: Path) -> tuple[lis
     return errors, verified
 
 
-def scan_data_dir(data_dir: Path) -> set[str]:
+def scan_data_dir(data_dir: Path) -> set:
     """Return all non-excluded file paths under data/ as relative POSIX paths."""
     found = set()
     if not data_dir.is_dir():
@@ -91,7 +264,7 @@ def scan_data_dir(data_dir: Path) -> set[str]:
     return found
 
 
-def detect_extra_files(manifest_groups: dict, data_dir: Path) -> list[str]:
+def detect_extra_files(manifest_groups: dict, data_dir: Path) -> list:
     """Return files under data/ that are not listed in any manifest group."""
     expected = set()
     for gdata in manifest_groups.values():
@@ -100,54 +273,74 @@ def detect_extra_files(manifest_groups: dict, data_dir: Path) -> list[str]:
     return sorted(actual - expected)
 
 
+def verify_availability(manifest: dict, data_dir: Path) -> tuple:
+    """Check component statuses against the corpus.
+
+    Returns (errors, stats) where stats counts components per scope/status.
+    """
+    errors = []
+    critical_tests = set(manifest.get("manifest", {}).get("critical_tests", []))
+    inventoried = {
+        rel for gdata in manifest.get("groups", {}).values()
+        for rel in gdata.get("files", {})
+    }
+    on_disk = scan_data_dir(data_dir) if data_dir.is_dir() else None
+
+    stats = {
+        "total": 0,
+        "present": 0,
+        "absent": 0,
+        "critical": 0,
+        "critical_present": 0,
+        "critical_absent": 0,
+    }
+    absent_critical = []
+    for section, entry, comp_id, comp in iter_components(manifest):
+        label = f"{section}.{entry}.components.{comp_id}"
+        status = comp.get("status")
+        required_by = comp.get("required_by", [])
+        is_critical = bool(set(required_by) & critical_tests)
+        stats["total"] += 1
+        if is_critical:
+            stats["critical"] += 1
+
+        if on_disk is not None:
+            matches = set()
+            for p in comp.get("paths", []):
+                matches |= resolve_matches(on_disk, p)
+            if status == "absent" and matches:
+                errors.append(
+                    f"DECLARED ABSENT BUT PRESENT: {label} matches {sorted(matches)}"
+                )
+            if status == "present":
+                if not matches:
+                    errors.append(f"DECLARED PRESENT BUT ABSENT: {label} matches nothing")
+                for rel in sorted(matches - inventoried):
+                    errors.append(
+                        f"NOT INVENTORIED: {label} matches {rel} which is not checksummed"
+                    )
+
+        if status == "present":
+            stats["present"] += 1
+            if is_critical:
+                stats["critical_present"] += 1
+        else:
+            stats["absent"] += 1
+            if is_critical:
+                stats["critical_absent"] += 1
+                absent_critical.append(label)
+    return errors, stats, absent_critical
+
+
 def main():
     manifest = load_manifest()
     groups = manifest.get("groups", {})
     missing_groups = manifest.get("missing", {})
 
-    if not groups:
-        print("FAILED: manifest contains no groups", file=sys.stderr)
-        return 1
-
-    manifest_info = manifest.get("manifest", {})
-    declared_total_groups = manifest_info.get("total_groups", 0)
-    declared_total_files = manifest_info.get("total_files", 0)
-    declared_total_size = manifest_info.get("total_size", 0)
-
-    actual_total_files = sum(g.get("file_count", 0) for g in groups.values())
-    actual_total_size = sum(g.get("total_size", 0) for g in groups.values())
-
-    structural_errors = []
-    if declared_total_groups != len(groups):
-        structural_errors.append(
-            f"GLOBAL COUNT MISMATCH: declares total_groups={declared_total_groups} "
-            f"but contains {len(groups)}"
-        )
-    if declared_total_files != actual_total_files:
-        structural_errors.append(
-            f"GLOBAL COUNT MISMATCH: declares total_files={declared_total_files} "
-            f"but groups sum to {actual_total_files}"
-        )
-    if declared_total_size != actual_total_size:
-        structural_errors.append(
-            f"GLOBAL SIZE MISMATCH: declares total_size={declared_total_size} "
-            f"but groups sum to {actual_total_size}"
-        )
-
-    # Validate the full size chain: file sizes -> group totals -> global total
-    for gname, gdata in groups.items():
-        files = gdata.get("files", {})
-        file_sizes_sum = sum(f.get("size", 0) for f in files.values())
-        group_total = gdata.get("total_size", 0)
-        if file_sizes_sum != group_total:
-            structural_errors.append(
-                f"GROUP SIZE MISMATCH: {gname} declares total_size={group_total} "
-                f"but files sum to {file_sizes_sum}"
-            )
-
+    structural_errors = verify_structure(manifest)
     if structural_errors:
         for e in structural_errors:
-            print(f"STRUCTURAL: {e}", file=sys.stderr)
+            print(e, file=sys.stderr)
         print("FAILED: manifest structural inconsistencies", file=sys.stderr)
         return 1
 
@@ -160,6 +353,7 @@ def main():
     total_verified = 0
     total_errors = 0
 
+    print("INTEGRITY")
     for gname in sorted(groups):
         gdata = groups[gname]
         declared_count = gdata.get("file_count", 0)
@@ -182,20 +376,54 @@ def main():
         else:
             print(f"[{gname}] {declared_count} files — OK ({verified} verified)")
 
-    # Detect files under data/ not listed in any group
     extras = detect_extra_files(groups, DATA_DIR)
     for e in extras:
         print(f"EXTRA (not in manifest): {e}")
         total_errors += 1
 
-    print()
     if total_errors:
-        print(f"FAILED: {total_errors} errors across {total_declared} declared files")
+        print(f"INTEGRITY: FAILED — {total_errors} errors across {total_declared} declared files")
+    elif total_verified == 0:
+        print("INTEGRITY: FAILED — no files were verified")
+        total_errors += 1
+    else:
+        print(f"INTEGRITY: PASSED — {total_verified}/{total_declared} inventoried files verified, 0 errors")
+    print()
+
+    print("AVAILABILITY")
+    avail_errors, stats, absent_critical = verify_availability(manifest, DATA_DIR)
+    for e in avail_errors:
+        print(f"  {e}")
+        total_errors += 1
+    print(
+        f"  required components: {stats['total']} "
+        f"({stats['critical']} release-critical), "
+        f"absent: {stats['absent']} ({stats['critical_absent']} release-critical)"
+    )
+    for label in absent_critical:
+        print(f"  ABSENT (critical): {label}")
+    if stats["critical_absent"]:
+        print(
+            f"AVAILABILITY: INCOMPLETE — {stats['critical_absent']} of "
+            f"{stats['critical']} release-critical components declared absent"
+        )
+    else:
+        print(
+            f"AVAILABILITY: COMPLETE — all {stats['critical']} release-critical "
+            f"components inventoried ({stats['absent']} extended-only absences)"
+        )
+    print()
+
+    if total_errors:
+        print(f"FAILED: {total_errors} errors; see INTEGRITY/AVAILABILITY above")
         return 1
-    if total_verified == 0:
-        print("FAILED: no files were verified", file=sys.stderr)
-        return 1
-    print(f"PASSED: {total_verified}/{total_declared} files verified, 0 errors")
+    if stats["critical_absent"]:
+        print(
+            "RESULT: INTEGRITY OK, RELEASE-CRITICAL CORPUS INCOMPLETE "
+            f"({stats['critical_absent']} declared absences)"
+        )
+        return 2
+    print("RESULT: INTEGRITY OK, RELEASE-CRITICAL CORPUS COMPLETE")
     return 0
 
 
