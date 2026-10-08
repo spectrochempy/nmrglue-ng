@@ -117,3 +117,64 @@ def test_zd_rejects_nonfinite_width(wide, func):
         ng.pipe_proc.zd(
             {}, data, wide=wide, x0=20, slope=1, func=func, g=2
         )
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "expected_rows", "expected_x1", "expected_xn", "expected_axis"),
+    [
+        ({"y1": 2, "yn": 512}, slice(1, 512), 2.0, 512.0,
+         (511.0, 255.0, 998.046875, -500.0)),
+        ({"y1": 1, "yn": 128}, slice(0, 128), None, None,
+         (None, 256.0, 250.0, 250.0)),
+        ({"y1": 400, "yn": 700}, slice(399, 512), 400.0, 512.0,
+         (113.0, -143.0, 220.703125, -500.0)),
+        ({"y1": 1, "yn": 700}, slice(0, 512), None, None,
+         (None, 256.0, 1000.0, -500.0)),
+        ({"y1": 600, "yn": 700}, slice(511, 512), 512.0, 512.0,
+         (1.0, -255.0, 1.953125, -500.0)),
+        ({"y1": 1, "yn": 128, "round": 256}, slice(0, 256), None, None,
+         (None, 256.0, 500.0, 0.0)),
+        ({"y1": 1, "yn": 100, "pow2": True}, slice(0, 128), None, None,
+         (None, 256.0, 250.0, 250.0)),
+        ({"y1": 400, "yn": 500, "round": 128}, slice(384, 512), 385.0, 512.0,
+         (128.0, -128.0, 250.0, -500.0)),
+        ({"y1": 400, "yn": 700, "pow2": True}, slice(384, 512), 385.0, 512.0,
+         (128.0, -128.0, 250.0, -500.0)),
+    ],
+)
+def test_ext_updates_indirect_metadata_and_axis(
+    tmp_path, kwargs, expected_rows, expected_x1, expected_xn, expected_axis
+):
+    data = np.arange(512 * 1024, dtype="float32").reshape(512, 1024)
+    udic = ng.fileiobase.create_blank_udic(2)
+    udic[0].update(size=512, complex=False, sw=1000.0, obs=1.0, car=0.0)
+    udic[1].update(size=1024, complex=False)
+    dic = ng.pipe.create_dic(udic)
+    dic["FDSPECNUM"] = dic["FDSLICECOUNT"] = 512.0
+    dic["FDF1FTFLAG"] = dic["FDF2FTFLAG"] = 1.0
+    dic["FDF1APOD"] = 512.0
+    dic["FDF1CENTER"] = 256.0
+    dic["FDF1ORIG"] = -500.0
+
+    result_dic, result = ng.pipe_proc.ext(dic, data, **kwargs)
+
+    expected = data[expected_rows]
+    np.testing.assert_array_equal(result, expected)
+    assert result.shape == expected.shape
+    assert result_dic["FDSPECNUM"] == result.shape[0]
+    assert result_dic["FDSLICECOUNT"] == result.shape[0]
+    if expected_axis[0] is not None:
+        assert result_dic["FDF1APOD"] == expected_axis[0]
+    assert result_dic["FDF1CENTER"] == expected_axis[1]
+    assert result_dic["FDF1SW"] == expected_axis[2]
+    assert result_dic["FDF1ORIG"] == expected_axis[3]
+    if expected_x1 is not None:
+        assert result_dic["FDF1X1"] == expected_x1
+        assert result_dic["FDF1XN"] == expected_xn
+
+    filename = tmp_path / "ext.ft2"
+    ng.pipe.write(str(filename), result_dic, result, overwrite=True)
+    read_dic, read_data = ng.pipe.read(filename)
+    assert read_dic["FDSPECNUM"] == result.shape[0]
+    assert read_data.shape == result.shape
+    np.testing.assert_array_equal(read_data, result)

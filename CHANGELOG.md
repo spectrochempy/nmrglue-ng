@@ -9,6 +9,11 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ### Fixed
 
+- Fix `pipe_proc.ext()` retaining stale indirect-dimension size metadata after
+  a 2D extraction and crashing when an indirect extraction extends past the
+  last row. Preserve rounded-window placement after clipping out-of-range
+  coordinates. Adapted from jjhelmus/nmrglue#289 (reneeotten), with additional
+  clipping and rounding corrections validated against NMRPipe. (#62)
 - Fix `bruker.read_jcamp()` locale-dependent encoding: replace bare `except`
   with strict codec detection loop (utf-8-sig, cp1252, latin-1). Encoding no
   longer depends on the system locale. Adapted from upstream
