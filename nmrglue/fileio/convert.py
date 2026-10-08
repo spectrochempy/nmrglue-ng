@@ -43,7 +43,7 @@ class converter:
         """
         Create a converter object
         """
-        pass
+        self._pipe_dmxval = None
 
     # utility functions
     def __returndata(self):
@@ -131,6 +131,8 @@ class converter:
             NMR data.
 
         """
+        self._pipe_dmxval = None
+
         # set data
         self._data = data
         self._iproc = {}
@@ -152,6 +154,8 @@ class converter:
             Universal dictionary, if not provided will be guesses from dic.
 
         """
+        self._pipe_dmxval = None
+
         # set data
         self._data = data
         if udic is not None and udic[0]['encoding'].lower() == "tppi":
@@ -181,6 +185,8 @@ class converter:
             True when RNMRTK data is being compared to Agilent/Varian data.
 
         """
+        self._pipe_dmxval = None
+
         # set data
         self._data = data
 
@@ -210,6 +216,8 @@ class converter:
             Universal dictionary, if not provided will be guesses from dic.
 
         """
+        self._pipe_dmxval = dic.get("FDDMXVAL")
+
         # set data
         self._data = data
         self._iproc = {}
@@ -234,6 +242,8 @@ class converter:
             Universal dictionary, if not provided will be guesses from dic.
 
         """
+        self._pipe_dmxval = None
+
         # set data
         self._data = data
         self._iproc = {}
@@ -263,6 +273,8 @@ class converter:
 
 
         """
+        self._pipe_dmxval = None
+
         # set data, possibly with removal of filter delay
         if remove_digital_filter:
             self._data = bruker.remove_digital_filter(dic, data)
@@ -319,6 +331,8 @@ class converter:
         """
         # create dictionary
         dic = pipe.create_dic(self._udic, datetimeobj)
+        if self._pipe_dmxval is not None:
+            dic["FDDMXVAL"] = self._pipe_dmxval
 
         # add processing flags for output
         self._oproc = {}

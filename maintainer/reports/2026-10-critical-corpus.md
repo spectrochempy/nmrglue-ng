@@ -323,3 +323,87 @@ Scope boundary decisions confirmed by the maintainer:
 These decisions precede a complete release-critical validation run. The
 scope-correction section records manifest/verifier tooling changes and their
 tests; it changes no scientific assertion, marker, fixture or release gate.
+
+## Local NMRPipe reference generation — 2026-10-08
+
+Current-author validation at `805c6f2` generated the five approved missing
+Agilent/Bruker NMRPipe references only in a disposable copy of the accepted
+local archive inputs. `nmrPipe`, `var2pipe` and `bruk2pipe` came from NMRPipe
+13.0 Rev 2026.072.12.03 64-bit. The unmodified historical scripts and their
+physical acquisition parameters were checked against `procpar`, `acqus` and
+`acqu2s`; no dimension, frequency, width, quadrature, trace-order or
+endianness option changed.
+
+Corpus integrity remained 145/145 before and after. The copied inputs matched
+the manifest hashes. NMRPipe generated the requested 1D and 2D Agilent and
+Bruker files and the 128-file Agilent 3D series. The single-file output hashes
+are:
+
+```text
+36e1acda7ca48e124a3fd72389f8ba1e37d83ef1aed55040294d56f9a7e1bf6e  agilent_1d/test.fid
+ed6562834f8cb98adc31e8fcec2bade6855ab74e7d7ec0be1115e03d330c42c2  agilent_2d/test.fid
+b4ad9a4580f267f8763778b4b18b549bb25edf70374b70912e5dc9ca6a97a2a7  bruker_1d/test.fid
+1cbe3951dad0b987647bcc87803d35d82d63aa92a1d6153d641af6e6a9c575a2  bruker_2d/test.fid
+```
+
+The ordered 132-output digest stream is
+`2afd82bd6871d3bcded005b66fc4bd4fedea1df535f618eabf2e02e9a30a0906`.
+
+Reproduce generation from a disposable copy whose `data/` contains only the
+five raw groups and `conversion_scripts/`:
+
+```bash
+export PATH="$HOME/pipe/nmrbin.linux239_64:$PATH"
+cd data/conversion_scripts
+mkdir -p ../agilent_3d/data
+for script in agilent2pipe_1d.com agilent2pipe_2d.com agilent2pipe_3d.com \
+              bruker2pipe_1d.com bruker2pipe_2d.com; do
+    /bin/csh "$script"
+done
+```
+
+The eight required conversion tests executed in the copied checkout: the five
+Agilent full/low-memory cases passed; the three Bruker full/low-memory cases
+failed, with no skips. Payload comparisons pass. The first observed difference
+in each Bruker case is the same header-preservation difference: NMRPipe writes
+`FDDMXVAL=71.625`, while an nmrglue Pipe-to-Pipe conversion reports `0.0`.
+Later header comparisons did not execute. Existing timestamp, size and
+roundoff exclusions do not cover this value. This is not resolved by this
+validation and no assertion, tolerance, expected value, exclusion, source code,
+fixture, corpus file or manifest declaration changed.
+
+The generated references are not integrated, available or redistributable on
+the basis of this work. Resolve and independently review the Bruker metadata
+defect first; then repeat the validation and obtain explicit authorization for
+a separate corpus/manifest/provenance integration change.
+
+### FDDMXVAL follow-up — 2026-10-08
+
+The metadata investigation at the same baseline established that `FDDMXVAL` is
+NMRPipe header word 40. `bruk2pipe` computes it from Bruker acquisition mode,
+`DECIM`, `DSPFVS` and group delay; NMRPipe's unit conversion code exposes it as
+the `df` value. It is therefore a Pipe-specific digital-filter metadata value,
+not a data extremum to ignore or an nmrglue-derived physical axis parameter.
+
+`guess_udic()` deliberately omits this format-specific field. The loss arose
+when `converter.to_pipe()` rebuilt a zeroed Pipe header. The narrow correction
+preserves `FDDMXVAL` only from `from_pipe()` to `to_pipe()` and clears it for
+every other input format, rather than calculating or inventing it outside Pipe.
+A synthetic autonomous regression retains `71.625` and its data exactly.
+It is explicitly exempt from the module-level `dataset` classification, so the
+standard autonomous CI profile executes it.
+The exact filtered collection and execution both reported one test; this
+classification complement passed focused independent review. It selected the
+regression without a skip path and retained `dataset` classification for the
+other 24 conversion tests.
+
+All five references were regenerated in a new disposable copy with the same
+NMRPipe version and scripts. The synthetic regression plus all eight target
+conversion tests now pass: **9 passed, 0 skipped**; the only output is the
+pre-existing three Bruker `sr` warnings. This is current-author validation, not
+an independent review. The references remain absent from the canonical corpus,
+the manifest remains unchanged, and no redistribution conclusion follows.
+Independent review confirmed the NMRPipe interpretation, Pipe-only preservation
+and converter reuse behavior without findings. It independently reproduced the
+9-pass copied-checkout result and canonical 145/145 integrity verification.
+Separately authorized integration is still required.

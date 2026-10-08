@@ -12,6 +12,7 @@ from re import sub
 import warnings
 warnings.simplefilter('ignore', UserWarning)
 
+import numpy as np
 import nmrglue as ng
 from numpy.testing import assert_array_equal
 
@@ -207,6 +208,20 @@ def _make_fake_acqu3s(dst_dir):
 
 
 # tests
+
+
+def test_pipe_to_pipe_preserves_digital_filter_value():
+    """Pipe round trips retain the NMRPipe digital-filter value."""
+    dic = ng.pipe.create_dic(ng.fileiobase.create_blank_udic(1))
+    dic["FDDMXVAL"] = 71.625
+    data = np.zeros(8, dtype="complex64")
+
+    converter = ng.convert.converter()
+    converter.from_pipe(dic, data)
+    converted, converted_data = converter.to_pipe()
+
+    assert_array_equal(data, converted_data)
+    assert converted["FDDMXVAL"] == dic["FDDMXVAL"]
 
 
 def test_agilent_1d():

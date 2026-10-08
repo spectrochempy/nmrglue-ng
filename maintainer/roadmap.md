@@ -52,7 +52,7 @@ Neither missing data nor classified historical differences are passing tests.
 | Topic | Next action / decision |
 |---|---|
 | Critical contract | Approve replacements individually; no JEOL, JCAMP-DX or SIMPSON requirement has been waived. |
-| Conversion references | Dependencies are documented in the manifest as required components; evaluate generation in a temporary copy, then assess provenance and redistribution separately. |
+| NMRPipe conversion references | Local NMRPipe 13.0 generation and the independently reviewed focused `FDDMXVAL` correction are recorded in the [corpus report](reports/2026-10-critical-corpus.md): all eight Agilent/Bruker full/low-memory cases pass in disposable copies. Corpus/manifest/provenance integration remains a separate explicit authorization. |
 | Packaged fixtures | Choose a consistent provenance/checksum verification scheme; the external manifest does not currently cover them. |
 | Bruker `pdata` writer | Add autonomous read/write/read evidence using a copied, licensed fixture. |
 | Bruker JCAMP line endings | Reproduce CR-only decoding with a self-contained fixture, then consider the upstream #261 `StringIO(..., newline=None)` correction in a separate fix. |
