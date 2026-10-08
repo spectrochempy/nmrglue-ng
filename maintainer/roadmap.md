@@ -86,8 +86,8 @@ Neither missing data nor classified historical differences are passing tests.
 - [ ] Investigate NMRPipe/JRES dimensional metadata behavior.
 - [ ] `pipe_proc.ext` indirect metadata and upper-bound correction: targeted
   third review on 2026-10-08 approved the reviewed correction
-  (**Ready to merge**); integration remains pending. All nine regressions pass
-  within the 48-test unit file, and independent NMRPipe comparisons verify
+  (**Ready to merge**); PR #62 is open, integration remains pending. All nine
+  regressions pass within the 48-test unit file, and independent NMRPipe comparisons verify
   clipping, rounded-window placement and saturation. Track inherited
   X1/XN/APOD, fractional-CENTER and quadrature limitations separately.
   [Evidence and scope](reports/2026-10-pipe-proc-ext.md).
