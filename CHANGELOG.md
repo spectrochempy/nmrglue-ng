@@ -24,7 +24,7 @@ original nmrglue project and are preserved for attribution and continuity.
   `(NELEM, NP)` and 2D data is unchanged. Add 9 self-contained shape-contract
   regressions: seven encode/shape tests plus two guards that keep the BINARY
   header/content validation of the single-element path (short block raises
-  `ValueError`, missing `NP` raises `KeyError`).
+  `ValueError`, missing `NP` raises `KeyError`). (#66)
 - Preserve the NMRPipe digital-filter value `FDDMXVAL` in Pipe-to-Pipe
   conversions. (#65)
 - Fix `pipe_proc.ext()` retaining stale indirect-dimension size metadata after
