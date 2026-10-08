@@ -24,7 +24,7 @@ original nmrglue project and are preserved for attribution and continuity.
   jjhelmus/nmrglue#231 and jjhelmus/nmrglue#284; follow-up alignment with
   jjhelmus/nmrglue#291 uses the final `(N - 1) / span` FID sweep-width
   convention, exact NTUPLES FID fallback, precision-independent complex-array
-  detection, and safer opt-in R/I conversion. Add 11 synthetic tests.
+  detection, and safer opt-in R/I conversion. Add 3 synthetic regressions.
   (#54, #63)
 - Clamp `DSPFVS` values below 10 to 10 (default for DQD) in
   `bruker.remove_digital_filter()` and `bruker.rm_dig_filter()` instead of
