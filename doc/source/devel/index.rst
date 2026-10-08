@@ -109,9 +109,10 @@ The directory layout of the nmrglue project is as follows.
 * ``doc`` : contains the setup file and source code for building the
   nmrglue documentation using `Sphinx <http://sphinx-doc.org/>`__.
 
-* ``tests`` : tests which use the
-  pytest_ framework to verify the
-  functionality of nmrglue.  See the :ref:`testing` section for details.
+* ``tests`` : the single test tree, organized into file I/O, processing,
+  analysis, infrastructure and versioned fixture directories. Tests use the
+  pytest_ framework to verify nmrglue functionality. See the :ref:`testing`
+  section for details.
 
 * ``example`` : contains numerous examples in which nmrglue is used to solve
   many real world NMR problems.
@@ -173,8 +174,9 @@ Requirements
 To run these tests NumPy, SciPy, nmrglue, and pytest must be installed and in the
 Python search path.  NMRPipe must be installed to run the pipe_proc tests.
 
-In addition, the location of the the test data sets must be specified in the
-``setup.py`` file in the test directory.  The `nmrglue test data`_ is available for download.
+The external test corpus, when available, is located in the repository-level
+``data`` directory. Versioned fixtures are in ``tests/fixtures``. See
+``CONTRIBUTING.md`` for marker-specific commands and corpus verification.
 
 .. _`nmrglue test data`: http://code.google.com/p/nmrglue/downloads/list?q=label:Test-Data
 
@@ -195,7 +197,7 @@ After ensuring that all required packages are installed, the unit tests can be r
 
 Unit tests for a specific module can be run using::
 
-    pytest tests/test_pipe.py
+    pytest tests/fileio/test_pipe.py
 
 Tests that are fast/slow can be run using::
 

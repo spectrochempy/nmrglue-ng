@@ -10,9 +10,9 @@ repos:
           (?x)(
             ^examples/|
             ^doc/|
-            ^nmrglue/fileio/tests/data/|
-            ^nmrglue/fileio/tests/bruker_test_data/|
-            ^tests/pipe_proc_tests/|
+            ^tests/fixtures/fileio/data/|
+            ^tests/fixtures/fileio/bruker_test_data/|
+            ^tests/fixtures/process/pipe_proc_tests/|
             \.(fid|ft2|ft3|ft4|ser|acqus|procs|jdf|ucsf|par|sec|1r|2r|in|com|tab|png|zip|txt|dat|jdx)$
           )
       - id: end-of-file-fixer
@@ -20,9 +20,9 @@ repos:
           (?x)(
             ^examples/|
             ^doc/|
-            ^nmrglue/fileio/tests/data/|
-            ^nmrglue/fileio/tests/bruker_test_data/|
-            ^tests/pipe_proc_tests/|
+            ^tests/fixtures/fileio/data/|
+            ^tests/fixtures/fileio/bruker_test_data/|
+            ^tests/fixtures/process/pipe_proc_tests/|
             \.(fid|ft2|ft3|ft4|ser|acqus|procs|jdf|ucsf|par|sec|1r|2r|in|com|tab|png|zip|txt|dat|jdx)$
           )
       - id: mixed-line-ending
@@ -31,9 +31,9 @@ repos:
           (?x)(
             ^examples/|
             ^doc/|
-            ^nmrglue/fileio/tests/data/|
-            ^nmrglue/fileio/tests/bruker_test_data/|
-            ^tests/pipe_proc_tests/|
+            ^tests/fixtures/fileio/data/|
+            ^tests/fixtures/fileio/bruker_test_data/|
+            ^tests/fixtures/process/pipe_proc_tests/|
             \.(fid|ft2|ft3|ft4|ser|acqus|procs|jdf|ucsf|par|sec|1r|2r|in|com|tab|png|zip|txt|dat|jdx)$
           )
       - id: check-yaml
@@ -50,6 +50,6 @@ repos:
         args: ['--enforce-all']
         exclude: |
           (?x)(
-            ^nmrglue/fileio/tests/data/|
-            ^tests/pipe_proc_tests/
+            ^tests/fixtures/fileio/data/|
+            ^tests/fixtures/process/pipe_proc_tests/
           )

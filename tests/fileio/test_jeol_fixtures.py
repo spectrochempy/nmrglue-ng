@@ -17,7 +17,7 @@ import nmrglue as ng
 
 
 PACKAGED_DIR = os.path.join(
-    os.path.dirname(__file__), "..", "nmrglue", "fileio", "tests", "data", "jeol"
+    os.path.dirname(__file__), "..", "fixtures", "fileio", "data", "jeol"
 )
 
 FLUORINE_JDF = os.path.join(PACKAGED_DIR, "fluorine.jdf")

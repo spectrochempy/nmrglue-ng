@@ -15,7 +15,7 @@ import nmrglue as ng
 
 
 DATA_DIR = os.path.join(
-    os.path.dirname(__file__), "..", "nmrglue", "fileio", "tests", "data",
+    os.path.dirname(__file__), "..", "fixtures", "fileio", "data",
     "jeol"
 )
 

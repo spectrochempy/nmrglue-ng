@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 import nmrglue as ng
 
-from setup import DATA_DIR
+from _dataset_paths import DATA_DIR
 JEOLDATA = os.path.join(DATA_DIR, "jeol")
 
 

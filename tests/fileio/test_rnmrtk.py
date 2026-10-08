@@ -6,7 +6,7 @@ import nmrglue as ng
 import numpy as np
 import pytest
 
-from setup import DATA_DIR
+from _dataset_paths import DATA_DIR
 
 
 @pytest.mark.slow

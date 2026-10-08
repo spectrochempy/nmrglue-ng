@@ -1,5 +1,5 @@
 """
-tests/test_tecmag.py — Tests for nmrglue.fileio.tecmag
+tests/fileio/test_tecmag.py — Tests for nmrglue.fileio.tecmag
 
 Covers two layers:
 
@@ -22,7 +22,7 @@ from nmrglue.fileio.tecmag import (
     TNTTMAG, TNTTMG2, guess_tables, _read_pascal_pair, _convert_si,
 )
 
-from setup import DATA_DIR
+from _dataset_paths import DATA_DIR
 
 
 # =============================================================================

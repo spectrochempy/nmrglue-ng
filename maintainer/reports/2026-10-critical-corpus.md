@@ -7,6 +7,9 @@ in [PR #26](https://github.com/spectrochempy/nmrglue-ng/pull/26); its original
 assessment is recoverable at
 `fdee69f:maintainer/audits/2026-10-release-critical-dataset.md` in Git history.
 
+Live fixture/test links use the single-tree locations introduced on 2026-10-08;
+recorded historical commands retain their original paths.
+
 ## Conclusion
 
 The historical **16 logical groups / 42 tests** remain an identifiable need
@@ -83,19 +86,19 @@ overlap capabilities and must not be added to the 42-test historical total.
 
 Sources and test locations:
 
-- [Bruker fixture provenance](../../nmrglue/fileio/tests/data/bruker_pdata/README.md),
-  [tests](../../tests/test_bruker_pdata.py), and
+- [Bruker fixture provenance](../../tests/fixtures/fileio/data/bruker_pdata/README.md),
+  [tests](../../tests/fileio/test_bruker_pdata.py), and
   [axis report](2026-10-bruker-axes.md). The HSQC raw/processed pairing is
   discordant; it is not evidence of a re-referencing bug on a coherent dataset.
-- [JEOL provenance](../../nmrglue/fileio/tests/data/jeol/README.md),
-  [1D tests](../../tests/test_jeol_fixtures.py),
-  [2D tests](../../tests/test_jeol_2d_fixtures.py).
-- [JCAMP-DX provenance](../../nmrglue/fileio/tests/data/jcampdx/README.md),
-  [packaged tests](../../tests/test_jcampdx_fixtures.py),
-  [historical encoding test](../../tests/test_jcampdx.py).
-- [Conversion tests](../../tests/test_convert.py),
-  [historical RNMRTK tests](../../tests/test_rnmrtk.py),
-  [generated RNMRTK tests](../../nmrglue/fileio/tests/test_rnmrtk_generated.py).
+- [JEOL provenance](../../tests/fixtures/fileio/data/jeol/README.md),
+  [1D tests](../../tests/fileio/test_jeol_fixtures.py),
+  [2D tests](../../tests/fileio/test_jeol_2d_fixtures.py).
+- [JCAMP-DX provenance](../../tests/fixtures/fileio/data/jcampdx/README.md),
+  [packaged tests](../../tests/fileio/test_jcampdx_fixtures.py),
+  [historical encoding test](../../tests/fileio/test_jcampdx.py).
+- [Conversion tests](../../tests/fileio/test_convert.py),
+  [historical RNMRTK tests](../../tests/fileio/test_rnmrtk.py),
+  [generated RNMRTK tests](../../tests/fileio/test_rnmrtk_generated.py).
 
 The audit counted 122 files / 41,279,331 bytes in the packaged-data directory;
 121 autonomous tests use the newly added Bruker/JEOL/JCAMP-DX sets. Those new

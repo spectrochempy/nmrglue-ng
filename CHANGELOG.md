@@ -7,6 +7,14 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+### Changed
+
+- Centralize the test suite under `tests/` with file-I/O, processing,
+  analysis, infrastructure and fixture directories. The wheel is now
+  runtime-only and no longer exposes the non-public
+  `nmrglue.fileio.tests` or `nmrglue.analysis.tests` namespaces; the matching
+  sdist retains tests and fixtures for distribution validation. (PR pending)
+
 ### Fixed
 
 - Fix `pipe_proc.ext()` retaining stale indirect-dimension size metadata after

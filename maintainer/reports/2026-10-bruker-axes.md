@@ -5,6 +5,9 @@ Consolidated 2026-10-07 at `ce98382`. Covers PR #55 (`ff0c160`, base
 documented by PR #58. This is a synthesis of those records, not another
 independent review or a new TopSpin execution.
 
+The live fixture link below reflects the 2026-10-08 single-tree relocation;
+the historical evidence remains otherwise unchanged.
+
 ## Current conclusion
 
 `pdata=True` is an explicit choice to construct an axis from processing
@@ -34,7 +37,7 @@ against the original general-defect claim, not proof about every Bruker dataset.
 
 Implementation and tests:
 [bruker.py](../../nmrglue/fileio/bruker.py),
-[test_bruker_pdata.py](../../tests/test_bruker_pdata.py).
+[test_bruker_pdata.py](../../tests/fileio/test_bruker_pdata.py).
 
 ## Scientific convention and sources
 
@@ -75,7 +78,7 @@ select a particular metadata set are distinct questions.
 The CC0 Ginsenoside Rg1 HSQC comes from
 [nmrXiv S208](https://doi.org/10.57992/nmrxiv.p33.s208), with original dataset
 [Harvard Dataverse](https://doi.org/10.7910/DVN/Y9A6DJ).
-See the [fixture README](../../nmrglue/fileio/tests/data/bruker_pdata/README.md)
+See the [fixture README](../../tests/fixtures/fileio/data/bruker_pdata/README.md)
 for file-level provenance and hashes.
 
 Its processed metadata is dated 2019-08-19, acquisition metadata 2019-08-20.

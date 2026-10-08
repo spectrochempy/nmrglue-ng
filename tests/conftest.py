@@ -8,34 +8,34 @@ import pytest
 
 
 DATASET_MODULES = {
-    "tests/test_agilent.py",
-    "tests/test_bruker_with_test_data.py",
-    "tests/test_convert.py",
-    "tests/test_jcampdx.py",
-    "tests/test_jeol.py",
-    "tests/test_pipe_with_test_data.py",
-    "tests/test_rnmrtk.py",
-    "tests/test_rs2d.py",
-    "tests/test_simpson.py",
-    "tests/test_sparky.py",
-    "tests/test_spinsolve.py",
+    "tests/fileio/test_agilent.py",
+    "tests/fileio/test_bruker_with_test_data.py",
+    "tests/fileio/test_convert.py",
+    "tests/fileio/test_jcampdx.py",
+    "tests/fileio/test_jeol.py",
+    "tests/fileio/test_pipe_with_test_data.py",
+    "tests/fileio/test_rnmrtk.py",
+    "tests/fileio/test_rs2d.py",
+    "tests/fileio/test_simpson.py",
+    "tests/fileio/test_sparky.py",
+    "tests/fileio/test_spinsolve.py",
 }
 
 SELF_CONTAINED_EXCEPTIONS = {
-    "tests/test_bruker_with_test_data.py::test_read_nuslist",
-    "tests/test_bruker_with_test_data.py::test_read_vdlist",
-    "tests/test_convert.py::test_bruker_3d_acqu3s_isolation",
+    "tests/fileio/test_bruker_with_test_data.py::test_read_nuslist",
+    "tests/fileio/test_bruker_with_test_data.py::test_read_vdlist",
+    "tests/fileio/test_convert.py::test_bruker_3d_acqu3s_isolation",
 }
 
 DATASET_TESTS = {
-    "tests/test_tecmag.py::test_tecmag_load_time_domain",
+    "tests/fileio/test_tecmag.py::test_tecmag_load_time_domain",
 }
 
 OPTIONAL_DEPENDENCIES = {
-    "nmrglue/fileio/tests/test_convert_csdm.py::test_csdm_1d": "csdmpy",
-    "nmrglue/fileio/tests/test_convert_csdm.py::test_csdm_2d": "csdmpy",
-    "nmrglue/fileio/tests/test_convert_csdm.py::test_csdm_3d": "csdmpy",
-    "tests/test_rs2d.py::test_rs2d": "xmltodict",
+    "tests/fileio/test_convert_csdm.py::test_csdm_1d": "csdmpy",
+    "tests/fileio/test_convert_csdm.py::test_csdm_2d": "csdmpy",
+    "tests/fileio/test_convert_csdm.py::test_csdm_3d": "csdmpy",
+    "tests/fileio/test_rs2d.py::test_rs2d": "xmltodict",
 }
 
 
@@ -69,7 +69,7 @@ def pytest_collection_modifyitems(config, items):
                     reason=f"external test data directory not available: {root / 'data'}"
                 ))
 
-        if path == "tests/test_pipe_proc.py":
+        if path == "tests/process/test_pipe_proc.py":
             item.add_marker(pytest.mark.external_software)
             if not nmrpipe_available:
                 item.add_marker(pytest.mark.skip(

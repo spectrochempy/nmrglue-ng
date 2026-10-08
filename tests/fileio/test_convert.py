@@ -15,7 +15,7 @@ warnings.simplefilter('ignore', UserWarning)
 import nmrglue as ng
 from numpy.testing import assert_array_equal
 
-from setup import DATA_DIR
+from _dataset_paths import DATA_DIR
 
 
 if sys.version_info[0] == 2:

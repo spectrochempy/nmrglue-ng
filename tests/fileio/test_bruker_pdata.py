@@ -31,21 +31,21 @@ from nmrglue.fileio import fileiobase
 
 
 DATA_DIR = os.path.join(
-    os.path.dirname(__file__), "..", "nmrglue", "fileio", "tests", "data",
+    os.path.dirname(__file__), "..", "fixtures", "fileio", "data",
     "bruker_pdata", "exp1"
 )
 
 PDATA_DIR = os.path.join(DATA_DIR, "pdata", "1")
 
 HSQC_DIR = os.path.join(
-    os.path.dirname(__file__), "..", "nmrglue", "fileio", "tests", "data",
+    os.path.dirname(__file__), "..", "fixtures", "fileio", "data",
     "bruker_pdata", "exp2d_hsqc"
 )
 
 HSQC_PDATA_DIR = os.path.join(HSQC_DIR, "pdata", "1")
 
 COSY_DIR = os.path.join(
-    os.path.dirname(__file__), "..", "nmrglue", "fileio", "tests", "data",
+    os.path.dirname(__file__), "..", "fixtures", "fileio", "data",
     "bruker_pdata", "exp2d_cosy"
 )
 
@@ -242,7 +242,7 @@ class TestBrukerProcessedAxes:
     (acquisition-parameter) axis is wrong. In exp2d_hsqc the processed
     parameters and the acquisition headers come from two different
     acquisitions 2.000000 ppm apart (see
-    nmrglue/fileio/tests/data/bruker_pdata/README.md), which is why only the
+    tests/fixtures/fileio/data/bruker_pdata/README.md), which is why only the
     HSQC direct first/last point assertions separate the two choices; in
     exp1 and exp2d_cosy the two parameter sets agree and both choices give
     the same axis.

@@ -25,7 +25,7 @@ total_components = 42
 absent_components = 30
 critical_components = 27
 absent_critical_components = 19
-critical_tests = ["tests/test_agilent.py::test_1d", "tests/test_agilent.py::test_2d", "tests/test_agilent.py::test_2d_lowmem", "tests/test_agilent.py::test_2d_tppi", "tests/test_agilent.py::test_2d_tppi_lowmem", "tests/test_agilent.py::test_3d", "tests/test_agilent.py::test_3d_lowmem", "tests/test_bruker_with_test_data.py::test_1d", "tests/test_bruker_with_test_data.py::test_2d", "tests/test_bruker_with_test_data.py::test_2d_lowmem", "tests/test_bruker_with_test_data.py::test_3d", "tests/test_bruker_with_test_data.py::test_3d_lowmem", "tests/test_bruker_with_test_data.py::test_read_pdata_1d", "tests/test_bruker_with_test_data.py::test_read_pdata_2d", "tests/test_bruker_with_test_data.py::test_write_pdata_1d", "tests/test_bruker_with_test_data.py::test_write_pdata_2d", "tests/test_convert.py::test_agilent_1d", "tests/test_convert.py::test_agilent_2d", "tests/test_convert.py::test_agilent_2d_lowmem", "tests/test_convert.py::test_agilent_3d", "tests/test_convert.py::test_agilent_3d_lowmem", "tests/test_convert.py::test_agilent_3d_rnmrtk", "tests/test_convert.py::test_bruker_1d", "tests/test_convert.py::test_bruker_2d", "tests/test_convert.py::test_bruker_2d_lowmem", "tests/test_convert.py::test_bruker_3d", "tests/test_convert.py::test_bruker_3d_lowmem", "tests/test_convert.py::test_bruker_3d_rnmrtk", "tests/test_convert.py::test_rnmrtk_3d", "tests/test_convert.py::test_sparky_2d", "tests/test_convert.py::test_sparky_2d_lowmem", "tests/test_jcampdx.py::test_jcampdx1", "tests/test_jeol.py::test_1d_complex_1", "tests/test_jeol.py::test_1d_complex_1_udic", "tests/test_jeol.py::test_2d_cc_1", "tests/test_jeol.py::test_2d_cc_1_udic", "tests/test_rnmrtk.py::test_3d_freq", "tests/test_rnmrtk.py::test_3d_time", "tests/test_simpson.py::test_1d_time", "tests/test_simpson.py::test_2d_freq", "tests/test_sparky.py::test_2d", "tests/test_sparky.py::test_2d_lowmem"]
+critical_tests = ["tests/fileio/test_agilent.py::test_1d", "tests/fileio/test_agilent.py::test_2d", "tests/fileio/test_agilent.py::test_2d_lowmem", "tests/fileio/test_agilent.py::test_2d_tppi", "tests/fileio/test_agilent.py::test_2d_tppi_lowmem", "tests/fileio/test_agilent.py::test_3d", "tests/fileio/test_agilent.py::test_3d_lowmem", "tests/fileio/test_bruker_with_test_data.py::test_1d", "tests/fileio/test_bruker_with_test_data.py::test_2d", "tests/fileio/test_bruker_with_test_data.py::test_2d_lowmem", "tests/fileio/test_bruker_with_test_data.py::test_3d", "tests/fileio/test_bruker_with_test_data.py::test_3d_lowmem", "tests/fileio/test_bruker_with_test_data.py::test_read_pdata_1d", "tests/fileio/test_bruker_with_test_data.py::test_read_pdata_2d", "tests/fileio/test_bruker_with_test_data.py::test_write_pdata_1d", "tests/fileio/test_bruker_with_test_data.py::test_write_pdata_2d", "tests/fileio/test_convert.py::test_agilent_1d", "tests/fileio/test_convert.py::test_agilent_2d", "tests/fileio/test_convert.py::test_agilent_2d_lowmem", "tests/fileio/test_convert.py::test_agilent_3d", "tests/fileio/test_convert.py::test_agilent_3d_lowmem", "tests/fileio/test_convert.py::test_agilent_3d_rnmrtk", "tests/fileio/test_convert.py::test_bruker_1d", "tests/fileio/test_convert.py::test_bruker_2d", "tests/fileio/test_convert.py::test_bruker_2d_lowmem", "tests/fileio/test_convert.py::test_bruker_3d", "tests/fileio/test_convert.py::test_bruker_3d_lowmem", "tests/fileio/test_convert.py::test_bruker_3d_rnmrtk", "tests/fileio/test_convert.py::test_rnmrtk_3d", "tests/fileio/test_convert.py::test_sparky_2d", "tests/fileio/test_convert.py::test_sparky_2d_lowmem", "tests/fileio/test_jcampdx.py::test_jcampdx1", "tests/fileio/test_jeol.py::test_1d_complex_1", "tests/fileio/test_jeol.py::test_1d_complex_1_udic", "tests/fileio/test_jeol.py::test_2d_cc_1", "tests/fileio/test_jeol.py::test_2d_cc_1_udic", "tests/fileio/test_rnmrtk.py::test_3d_freq", "tests/fileio/test_rnmrtk.py::test_3d_time", "tests/fileio/test_simpson.py::test_1d_time", "tests/fileio/test_simpson.py::test_2d_freq", "tests/fileio/test_sparky.py::test_2d", "tests/fileio/test_sparky.py::test_2d_lowmem"]
 
 [groups.agilent_1d]
 format = "Varian/Agilent"
@@ -56,14 +56,14 @@ provenance_class = "original"
 status = "absent"
 scope = "critical"
 paths = ["agilent_1d/test.fid"]
-required_by = ["tests/test_convert.py::test_agilent_1d"]
+required_by = ["tests/fileio/test_convert.py::test_agilent_1d"]
 notes = "NMRPipe-generated 1D conversion reference"
 
 [groups.agilent_1d.components.raw]
 status = "present"
 scope = "critical"
 paths = ["agilent_1d/fid", "agilent_1d/procpar"]
-required_by = ["tests/test_agilent.py::test_1d", "tests/test_convert.py::test_agilent_1d"]
+required_by = ["tests/fileio/test_agilent.py::test_1d", "tests/fileio/test_convert.py::test_agilent_1d"]
 notes = "real 1D acquisition block and parameters"
 
 [groups.agilent_2d]
@@ -95,14 +95,14 @@ provenance_class = "original"
 status = "absent"
 scope = "critical"
 paths = ["agilent_2d/test.fid"]
-required_by = ["tests/test_convert.py::test_agilent_2d", "tests/test_convert.py::test_agilent_2d_lowmem"]
+required_by = ["tests/fileio/test_convert.py::test_agilent_2d", "tests/fileio/test_convert.py::test_agilent_2d_lowmem"]
 notes = "NMRPipe-generated 2D conversion reference"
 
 [groups.agilent_2d.components.raw]
 status = "present"
 scope = "critical"
 paths = ["agilent_2d/fid", "agilent_2d/procpar"]
-required_by = ["tests/test_agilent.py::test_2d", "tests/test_agilent.py::test_2d_lowmem", "tests/test_convert.py::test_agilent_2d", "tests/test_convert.py::test_agilent_2d_lowmem"]
+required_by = ["tests/fileio/test_agilent.py::test_2d", "tests/fileio/test_agilent.py::test_2d_lowmem", "tests/fileio/test_convert.py::test_agilent_2d", "tests/fileio/test_convert.py::test_agilent_2d_lowmem"]
 notes = "real 2D blocks and parameters"
 
 [groups.agilent_2d_tppi]
@@ -134,7 +134,7 @@ provenance_class = "original"
 status = "present"
 scope = "critical"
 paths = ["agilent_2d_tppi/fid", "agilent_2d_tppi/procpar"]
-required_by = ["tests/test_agilent.py::test_2d_tppi", "tests/test_agilent.py::test_2d_tppi_lowmem"]
+required_by = ["tests/fileio/test_agilent.py::test_2d_tppi", "tests/fileio/test_agilent.py::test_2d_tppi_lowmem"]
 notes = "real 2D TPPI blocks and parameters"
 
 [groups.agilent_3d]
@@ -166,14 +166,14 @@ provenance_class = "original"
 status = "absent"
 scope = "critical"
 paths = ["agilent_3d/data/test%03d.fid"]
-required_by = ["tests/test_convert.py::test_agilent_3d", "tests/test_convert.py::test_agilent_3d_lowmem"]
+required_by = ["tests/fileio/test_convert.py::test_agilent_3d", "tests/fileio/test_convert.py::test_agilent_3d_lowmem"]
 notes = "indexed NMRPipe-generated 3D conversion reference series"
 
 [groups.agilent_3d.components.raw]
 status = "present"
 scope = "critical"
 paths = ["agilent_3d/fid", "agilent_3d/procpar"]
-required_by = ["tests/test_agilent.py::test_3d", "tests/test_agilent.py::test_3d_lowmem", "tests/test_convert.py::test_agilent_3d", "tests/test_convert.py::test_agilent_3d_lowmem", "tests/test_convert.py::test_agilent_3d_rnmrtk"]
+required_by = ["tests/fileio/test_agilent.py::test_3d", "tests/fileio/test_agilent.py::test_3d_lowmem", "tests/fileio/test_convert.py::test_agilent_3d", "tests/fileio/test_convert.py::test_agilent_3d_lowmem", "tests/fileio/test_convert.py::test_agilent_3d_rnmrtk"]
 notes = "real 3D blocks and parameters"
 
 [groups.agilent_4d]
@@ -201,7 +201,7 @@ provenance_class = "original"
 status = "present"
 scope = "extended"
 paths = ["agilent_4d/fid"]
-required_by = ["tests/test_agilent.py::test_4d", "tests/test_agilent.py::test_4d_lowmem"]
+required_by = ["tests/fileio/test_agilent.py::test_4d", "tests/fileio/test_agilent.py::test_4d_lowmem"]
 notes = "synthetic boundary case read with an explicit shape"
 
 [groups.bruker_1d]
@@ -241,28 +241,28 @@ provenance_class = "original"
 status = "absent"
 scope = "critical"
 paths = ["bruker_1d/pdata/1"]
-required_by = ["tests/test_bruker_with_test_data.py::test_read_pdata_1d", "tests/test_bruker_with_test_data.py::test_write_pdata_1d"]
+required_by = ["tests/fileio/test_bruker_with_test_data.py::test_read_pdata_1d", "tests/fileio/test_bruker_with_test_data.py::test_write_pdata_1d"]
 notes = "processed 1D dataset (1r/1i, procs and related files)"
 
 [groups.bruker_1d.components.pipe_reference]
 status = "absent"
 scope = "critical"
 paths = ["bruker_1d/test.fid"]
-required_by = ["tests/test_convert.py::test_bruker_1d"]
+required_by = ["tests/fileio/test_convert.py::test_bruker_1d"]
 notes = "NMRPipe-generated 1D conversion reference"
 
 [groups.bruker_1d.components.raw]
 status = "present"
 scope = "critical"
 paths = ["bruker_1d/acqu", "bruker_1d/acqus", "bruker_1d/fid", "bruker_1d/pulseprogram"]
-required_by = ["tests/test_bruker_with_test_data.py::test_1d", "tests/test_convert.py::test_bruker_1d"]
+required_by = ["tests/fileio/test_bruker_with_test_data.py::test_1d", "tests/fileio/test_convert.py::test_bruker_1d"]
 notes = "real FID, parameters and pulse program"
 
 [groups.bruker_1d.components.rnmrtk_reference]
 status = "absent"
 scope = "extended"
 paths = ["bruker_1d/time_1d.sec", "bruker_1d/time_1d.par"]
-required_by = ["tests/test_convert.py::test_bruker_1d_rnmrtk"]
+required_by = ["tests/fileio/test_convert.py::test_bruker_1d_rnmrtk"]
 notes = "RNMRTK 1D time-domain reference and its parameter file"
 
 [groups.bruker_2d]
@@ -310,28 +310,28 @@ provenance_class = "original"
 status = "absent"
 scope = "critical"
 paths = ["bruker_2d/pdata/1"]
-required_by = ["tests/test_bruker_with_test_data.py::test_read_pdata_2d", "tests/test_bruker_with_test_data.py::test_write_pdata_2d"]
+required_by = ["tests/fileio/test_bruker_with_test_data.py::test_read_pdata_2d", "tests/fileio/test_bruker_with_test_data.py::test_write_pdata_2d"]
 notes = "processed 2D dataset (2rr/2ri, proc2s and related files)"
 
 [groups.bruker_2d.components.pipe_reference]
 status = "absent"
 scope = "critical"
 paths = ["bruker_2d/test.fid"]
-required_by = ["tests/test_convert.py::test_bruker_2d", "tests/test_convert.py::test_bruker_2d_lowmem"]
+required_by = ["tests/fileio/test_convert.py::test_bruker_2d", "tests/fileio/test_convert.py::test_bruker_2d_lowmem"]
 notes = "NMRPipe-generated 2D conversion reference"
 
 [groups.bruker_2d.components.raw]
 status = "present"
 scope = "critical"
 paths = ["bruker_2d/acqu", "bruker_2d/acqu2", "bruker_2d/acqu2s", "bruker_2d/acqus", "bruker_2d/pulseprogram", "bruker_2d/ser"]
-required_by = ["tests/test_bruker_with_test_data.py::test_2d", "tests/test_bruker_with_test_data.py::test_2d_lowmem", "tests/test_convert.py::test_bruker_2d", "tests/test_convert.py::test_bruker_2d_lowmem"]
+required_by = ["tests/fileio/test_bruker_with_test_data.py::test_2d", "tests/fileio/test_bruker_with_test_data.py::test_2d_lowmem", "tests/fileio/test_convert.py::test_bruker_2d", "tests/fileio/test_convert.py::test_bruker_2d_lowmem"]
 notes = "ser, parameters and pulse program"
 
 [groups.bruker_2d.components.rnmrtk_reference]
 status = "absent"
 scope = "extended"
 paths = ["bruker_2d/time_2d.sec", "bruker_2d/time_2d.par"]
-required_by = ["tests/test_convert.py::test_bruker_2d_rnmrtk"]
+required_by = ["tests/fileio/test_convert.py::test_bruker_2d_rnmrtk"]
 notes = "RNMRTK 2D time-domain reference and its parameter file"
 
 [groups.bruker_3d]
@@ -850,21 +850,21 @@ notes = "processed 3D dataset; no tracked test consumes it, kept as a declared g
 status = "present"
 scope = "critical"
 paths = ["bruker_3d/fid/test%03d.fid"]
-required_by = ["tests/test_convert.py::test_bruker_3d", "tests/test_convert.py::test_bruker_3d_lowmem"]
+required_by = ["tests/fileio/test_convert.py::test_bruker_3d", "tests/fileio/test_convert.py::test_bruker_3d_lowmem"]
 notes = "indexed NMRPipe-generated 3D conversion reference series"
 
 [groups.bruker_3d.components.raw]
 status = "present"
 scope = "critical"
 paths = ["bruker_3d/acqu", "bruker_3d/acqu2", "bruker_3d/acqu2s", "bruker_3d/acqus", "bruker_3d/pulseprogram", "bruker_3d/ser"]
-required_by = ["tests/test_bruker_with_test_data.py::test_3d", "tests/test_bruker_with_test_data.py::test_3d_lowmem", "tests/test_convert.py::test_bruker_3d", "tests/test_convert.py::test_bruker_3d_lowmem", "tests/test_convert.py::test_bruker_3d_rnmrtk"]
+required_by = ["tests/fileio/test_bruker_with_test_data.py::test_3d", "tests/fileio/test_bruker_with_test_data.py::test_3d_lowmem", "tests/fileio/test_convert.py::test_bruker_3d", "tests/fileio/test_convert.py::test_bruker_3d_lowmem", "tests/fileio/test_convert.py::test_bruker_3d_rnmrtk"]
 notes = "3D parameters and ser"
 
 [groups.bruker_3d.components.rnmrtk_reference]
 status = "absent"
 scope = "critical"
 paths = ["bruker_3d/time_3d.sec", "bruker_3d/time_3d.par"]
-required_by = ["tests/test_convert.py::test_bruker_3d_rnmrtk"]
+required_by = ["tests/fileio/test_convert.py::test_bruker_3d_rnmrtk"]
 notes = "RNMRTK 3D time-domain reference and its parameter file"
 
 [groups.simpson_1d]
@@ -892,7 +892,7 @@ provenance_class = "original"
 status = "absent"
 scope = "extended"
 paths = ["simpson_1d/1d_text.spe", "simpson_1d/1d_bin.spe", "simpson_1d/1d_ftext.spe", "simpson_1d/1d_rawbin.spe"]
-required_by = ["tests/test_simpson.py::test_1d_freq"]
+required_by = ["tests/fileio/test_simpson.py::test_1d_freq"]
 notes = "1D frequency-domain encoding set (extended-validation test)"
 
 [groups.simpson_1d.components.simulator_input]
@@ -906,7 +906,7 @@ notes = "SIMPSON input script; regeneration source for the encoding outputs"
 status = "absent"
 scope = "critical"
 paths = ["simpson_1d/1d_text.fid", "simpson_1d/1d_bin.fid", "simpson_1d/1d_ftext.fid", "simpson_1d/1d_rawbin.fid"]
-required_by = ["tests/test_simpson.py::test_1d_time"]
+required_by = ["tests/fileio/test_simpson.py::test_1d_time"]
 notes = "1D time-domain encoding set (TEXT/BINARY/XREIM/RAWBIN)"
 
 [groups.simpson_2d]
@@ -934,7 +934,7 @@ provenance_class = "original"
 status = "absent"
 scope = "critical"
 paths = ["simpson_2d/2d_text.spe", "simpson_2d/2d.spe", "simpson_2d/2d_ftext.spe", "simpson_2d/2d_raw.spe"]
-required_by = ["tests/test_simpson.py::test_2d_freq"]
+required_by = ["tests/fileio/test_simpson.py::test_2d_freq"]
 notes = "2D frequency-domain encoding set (TEXT/BINARY/XREIM/RAWBIN)"
 
 [groups.simpson_2d.components.simulator_input]
@@ -948,7 +948,7 @@ notes = "SIMPSON input script; regeneration source for the encoding outputs"
 status = "absent"
 scope = "extended"
 paths = ["simpson_2d/2d_text.fid", "simpson_2d/2d.fid", "simpson_2d/2d_ftext.fid", "simpson_2d/2d_raw.fid"]
-required_by = ["tests/test_simpson.py::test_2d_time"]
+required_by = ["tests/fileio/test_simpson.py::test_2d_time"]
 notes = "2D time-domain encoding set (extended-validation test)"
 
 [groups.tecmag]
@@ -980,7 +980,7 @@ provenance_class = "original"
 status = "present"
 scope = "extended"
 paths = ["tecmag/LiCl_ref1.tnt", "tecmag/LiCl_ref1.txt"]
-required_by = ["tests/test_tecmag.py::test_tecmag_load_time_domain"]
+required_by = ["tests/fileio/test_tecmag.py::test_tecmag_load_time_domain"]
 notes = "LiCl reference pair (.tnt + .txt)"
 
 # Release-critical groups and reference sets NOT present in the
@@ -1000,7 +1000,7 @@ absent_component_count = 1
 status = "absent"
 scope = "critical"
 paths = ["jeol/cyclosporine_Carbon-1-1.jdf", "jeol/cyclosporine_Carbon-1-1.fid"]
-required_by = ["tests/test_jeol.py::test_1d_complex_1", "tests/test_jeol.py::test_1d_complex_1_udic"]
+required_by = ["tests/fileio/test_jeol.py::test_1d_complex_1", "tests/fileio/test_jeol.py::test_1d_complex_1_udic"]
 notes = "real 1D JDF binary structure and independent NMRPipe reference"
 
 [missing.jeol_2d_complex_pipe_reference]
@@ -1015,7 +1015,7 @@ absent_component_count = 1
 status = "absent"
 scope = "critical"
 paths = ["jeol/cyclosporine_tocsy-1-1.jdf", "jeol/cyclosporine_tocsy-1-1.fid"]
-required_by = ["tests/test_jeol.py::test_2d_cc_1", "tests/test_jeol.py::test_2d_cc_1_udic"]
+required_by = ["tests/fileio/test_jeol.py::test_2d_cc_1", "tests/fileio/test_jeol.py::test_2d_cc_1_udic"]
 notes = "real 2D JDF quadrature/layout and independent NMRPipe reference"
 
 [missing.sparky_2d_ucsf_pipe_reference]
@@ -1030,14 +1030,14 @@ absent_component_count = 2
 status = "absent"
 scope = "critical"
 paths = ["nmrpipe_2d/test.ft2"]
-required_by = ["tests/test_convert.py::test_sparky_2d", "tests/test_convert.py::test_sparky_2d_lowmem"]
+required_by = ["tests/fileio/test_convert.py::test_sparky_2d", "tests/fileio/test_convert.py::test_sparky_2d_lowmem"]
 notes = "NMRPipe-generated 2D conversion reference"
 
 [missing.sparky_2d_ucsf_pipe_reference.components.ucsf_spectrum]
 status = "absent"
 scope = "critical"
 paths = ["sparky_2d/data.ucsf"]
-required_by = ["tests/test_sparky.py::test_2d", "tests/test_sparky.py::test_2d_lowmem", "tests/test_convert.py::test_sparky_2d", "tests/test_convert.py::test_sparky_2d_lowmem"]
+required_by = ["tests/fileio/test_sparky.py::test_2d", "tests/fileio/test_sparky.py::test_2d_lowmem", "tests/fileio/test_convert.py::test_sparky_2d", "tests/fileio/test_convert.py::test_sparky_2d_lowmem"]
 notes = "tiled UCSF 2D spectrum"
 
 [missing.rnmrtk_3d_time_reference]
@@ -1052,7 +1052,7 @@ absent_component_count = 1
 status = "absent"
 scope = "critical"
 paths = ["rnmrtk_3d/time_3d.sec", "rnmrtk_3d/time_3d.par"]
-required_by = ["tests/test_rnmrtk.py::test_3d_time", "tests/test_convert.py::test_agilent_3d_rnmrtk"]
+required_by = ["tests/fileio/test_rnmrtk.py::test_3d_time", "tests/fileio/test_convert.py::test_agilent_3d_rnmrtk"]
 notes = "real complex 3D RNMRTK file and its parameter file"
 
 [missing.rnmrtk_3d_frequency_pipe_reference]
@@ -1067,14 +1067,14 @@ absent_component_count = 2
 status = "absent"
 scope = "critical"
 paths = ["rnmrtk_3d/freq_3d.sec", "rnmrtk_3d/freq_3d.par"]
-required_by = ["tests/test_rnmrtk.py::test_3d_freq", "tests/test_convert.py::test_rnmrtk_3d"]
+required_by = ["tests/fileio/test_rnmrtk.py::test_3d_freq", "tests/fileio/test_convert.py::test_rnmrtk_3d"]
 notes = "real 3D RNMRTK frequency file and its parameter file"
 
 [missing.rnmrtk_3d_frequency_pipe_reference.components.pipe_reference]
 status = "absent"
 scope = "critical"
 paths = ["rnmrtk_3d/test.ft3"]
-required_by = ["tests/test_convert.py::test_rnmrtk_3d"]
+required_by = ["tests/fileio/test_convert.py::test_rnmrtk_3d"]
 notes = "NMRPipe-generated 3D conversion reference"
 
 [missing.jcampdx_affn_spectrum]
@@ -1089,7 +1089,7 @@ absent_component_count = 1
 status = "absent"
 scope = "critical"
 paths = ["jcampdx/BRUKAFFN.DX", "jcampdx/BRUKPAC.DX", "jcampdx/BRUKSQZ.DX", "jcampdx/BRUKDIF.DX", "jcampdx/TEST32.DX", "jcampdx/TESTSPEC.DX"]
-required_by = ["tests/test_jcampdx.py::test_jcampdx1"]
+required_by = ["tests/fileio/test_jcampdx.py::test_jcampdx1"]
 notes = "AFFN/PAC/SQZ/DIF encoding equivalence cases; the historical encoding test is monolithic and also reads the NTUPLES cases"
 
 [missing.jcampdx_ntuples_spectrum]
@@ -1104,7 +1104,7 @@ absent_component_count = 1
 status = "absent"
 scope = "critical"
 paths = ["jcampdx/BRUKNTUP.DX", "jcampdx/TESTNTUP.DX"]
-required_by = ["tests/test_jcampdx.py::test_jcampdx1"]
+required_by = ["tests/fileio/test_jcampdx.py::test_jcampdx1"]
 notes = "real 2D NTUPLES arrays; shared with the monolithic encoding test"
 
 [missing.simpson_1d_encoding_set]
@@ -1135,40 +1135,40 @@ absent_component_count = 6
 status = "absent"
 scope = "extended"
 paths = ["jcampdx/TESTFID.DX", "jcampdx/bruker1.dx", "jcampdx/bruker2.dx", "jcampdx/bruker3.dx", "jcampdx/aug07.dx", "jcampdx/aug07b.dx", "jcampdx/aug07c.dx", "jcampdx/aug07d.dx", "jcampdx/aug07e.dx"]
-required_by = ["tests/test_jcampdx.py::test_jcampdx2"]
+required_by = ["tests/fileio/test_jcampdx.py::test_jcampdx2"]
 notes = "miscellaneous real spectra read by the extended-validation test"
 
 [missing.extended_test_references.components.jeol_extended_samples]
 status = "absent"
 scope = "extended"
 paths = ["jeol/cyclosporine_Proton-1-1.jdf", "jeol/cyclosporine_Proton-1-1.fid", "jeol/2mM sucrose_WATERGATE-3-1.jdf", "jeol/2mM sucrose_WATERGATE-3-1.fid", "jeol/2-ethyl-1-indanone 1_PROTON-21-1.jdf", "jeol/2-ethyl-1-indanone 1_PROTON-21-1.fid", "jeol/cyclosporine_HSQC-1-1.jdf", "jeol/cyclosporine_HSQC-1-1.fid", "jeol/2-ethyl-1-indanone 1_HSQC_NUS-3-1.jdf", "jeol/2-ethyl-1-indanone 1_HSQC_NUS-3-1.fid", "jeol/2-ethyl-1-indanone 1_HMBC_NUS-2-1.jdf", "jeol/2-ethyl-1-indanone 1_HMBC_NUS-2-1.fid", "jeol/cyclosporine_dqf_cosy_pfg-1-1.jdf", "jeol/cyclosporine_dqf_cosy_pfg-1-1.fid", "jeol/jeol-2d_1.jdf", "jeol/jeol-2d_1.fid"]
-required_by = ["tests/test_jeol.py::test_1d_complex_2", "tests/test_jeol.py::test_1d_complex_3", "tests/test_jeol.py::test_1d_complex_4", "tests/test_jeol.py::test_2d_cc_2", "tests/test_jeol.py::test_2d_cc_nus", "tests/test_jeol.py::test_2d_rc_nus", "tests/test_jeol.py::test_2d_rc", "tests/test_jeol.py::test_2d_cr"]
+required_by = ["tests/fileio/test_jeol.py::test_1d_complex_2", "tests/fileio/test_jeol.py::test_1d_complex_3", "tests/fileio/test_jeol.py::test_1d_complex_4", "tests/fileio/test_jeol.py::test_2d_cc_2", "tests/fileio/test_jeol.py::test_2d_cc_nus", "tests/fileio/test_jeol.py::test_2d_rc_nus", "tests/fileio/test_jeol.py::test_2d_rc", "tests/fileio/test_jeol.py::test_2d_cr"]
 notes = "additional real JEOL samples read by extended-validation tests"
 
 [missing.extended_test_references.components.pipe_1d_self_conversion]
 status = "absent"
 scope = "extended"
 paths = ["nmrpipe_1d/test.fid"]
-required_by = ["tests/test_convert.py::test_pipe_1d"]
+required_by = ["tests/fileio/test_convert.py::test_pipe_1d"]
 notes = "same-format historical 1D Pipe file"
 
 [missing.extended_test_references.components.rnmrtk_1d_conversion]
 status = "absent"
 scope = "extended"
 paths = ["rnmrtk_1d/time_1d.sec", "rnmrtk_1d/time_1d.par", "rnmrtk_1d/freq_1d.sec", "rnmrtk_1d/freq_1d.par", "rnmrtk_1d/test.ft"]
-required_by = ["tests/test_convert.py::test_agilent_1d_rnmrtk", "tests/test_convert.py::test_rnmrtk_1d"]
+required_by = ["tests/fileio/test_convert.py::test_agilent_1d_rnmrtk", "tests/fileio/test_convert.py::test_rnmrtk_1d"]
 notes = "1D RNMRTK time/frequency references and Pipe output"
 
 [missing.extended_test_references.components.rnmrtk_2d_conversion]
 status = "absent"
 scope = "extended"
 paths = ["rnmrtk_2d/time_2d.sec", "rnmrtk_2d/time_2d.par", "rnmrtk_2d/freq_2d.sec", "rnmrtk_2d/freq_2d.par", "rnmrtk_2d/test.ft2"]
-required_by = ["tests/test_convert.py::test_agilent_2d_rnmrtk", "tests/test_convert.py::test_rnmrtk_2d"]
+required_by = ["tests/fileio/test_convert.py::test_agilent_2d_rnmrtk", "tests/fileio/test_convert.py::test_rnmrtk_2d"]
 notes = "2D RNMRTK time/frequency references and Pipe output"
 
 [missing.extended_test_references.components.sparky_3d_conversion]
 status = "absent"
 scope = "extended"
 paths = ["sparky_3d/data.ucsf", "nmrpipe_3d/ft/test%03d.ft3"]
-required_by = ["tests/test_sparky.py::test_3d", "tests/test_sparky.py::test_3d_lowmem", "tests/test_convert.py::test_sparky_3d", "tests/test_convert.py::test_sparky_3d_lowmem"]
+required_by = ["tests/fileio/test_sparky.py::test_3d", "tests/fileio/test_sparky.py::test_3d_lowmem", "tests/fileio/test_convert.py::test_sparky_3d", "tests/fileio/test_convert.py::test_sparky_3d_lowmem"]
 notes = "3D UCSF spectrum and indexed NMRPipe conversion reference"

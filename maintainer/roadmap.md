@@ -58,11 +58,13 @@ Neither missing data nor classified historical differences are passing tests.
 | Bruker JCAMP line endings | Reproduce CR-only decoding with a self-contained fixture, then consider the upstream #261 `StringIO(..., newline=None)` correction in a separate fix. |
 | JCAMP-DX encodings | Split the monolithic dataset test while preserving AFFN/PAC/SQZ/DIF equivalence and metadata checks. |
 | JCAMP-DX tuples | Validate `(XYW..XYW)` / `(XYM..XYM)` tuple-size behavior independently, then adapt upstream #262 in a separate change if the evidence supports it. |
+| JCAMP-DX FID metadata | Aligned locally with final upstream #231/#291 semantics after #54: FID sweep width uses `(N - 1) / (LAST-FIRST)`, complex arrays use `np.iscomplexobj`, `as_complex=True` leaves incomplete R/I pairs unchanged, and NTUPLES fallback requires exact `NMR FID` when `DATATYPE` is absent. The synthetic FID fixture now uses sampling-consistent LAST coordinates. Targeted validation: `tests/fileio/test_jcampdx_fixtures.py` passed on 2026-10-08. |
 | Bruker processing-file priority | Scientific investigation and a compatibility decision are still required before choosing `proc`/`proc2` versus `procs`/`proc2s` precedence. |
 | SIMPSON | Evaluate regeneration of 1D/2D encoding sets before deciding whether to reduce release scope. |
 | JEOL | Decide whether packaged fixtures can replace missing historical groups; explicitly account for the lost NMRPipe cross-reference. |
 | `data_nd` | Reviews approved at `23cdba1`; changelog references corrected to #56/#57. The documented Boolean-axis compatibility difference remains outside these fixes. |
 | Test hygiene | Make failed NMRPipe comparisons clean generated artifacts reliably. |
+| Single test tree | Implemented and independently reviewed at `35fd95d`; [evidence](reports/2026-10-test-layout-plan.md) records the atomic move, runtime-only wheel and sdist-derived functional validation. |
 
 ## P1 — Scientific reliability
 
@@ -84,9 +86,9 @@ Neither missing data nor classified historical differences are passing tests.
 - [ ] Complete JCAMP-DX real-data and encoding-equivalence validation after
   #46/#47/#49/#52/#54. [Reader decisions](reports/2026-10-maintenance.md).
 - [ ] Investigate NMRPipe/JRES dimensional metadata behavior.
-- [ ] `pipe_proc.ext` indirect metadata and upper-bound correction: targeted
-  third review on 2026-10-08 approved the reviewed correction
-  (**Ready to merge**); PR #62 is open, integration remains pending. All nine
+- [x] `pipe_proc.ext` indirect metadata and upper-bound correction: targeted
+  third review on 2026-10-08 approved the reviewed correction; PR #62 was
+  integrated at `a662316` (master verified on 2026-10-08). All nine
   regressions pass within the 48-test unit file, and independent NMRPipe comparisons verify
   clipping, rounded-window placement and saturation. Track inherited
   X1/XN/APOD, fractional-CENTER and quadrature limitations separately.
@@ -98,20 +100,28 @@ Neither missing data nor classified historical differences are passing tests.
   and retain an extraction/`strip_fake` demonstration.
 - [ ] Define optional-dependency extras where useful.
 - [ ] Increase autonomous processing-module coverage.
-- [ ] After the `pipe_proc.ext` correction and its independent review, plan a
-  dedicated test-reorganization PR only; do not move tests as part of the EXT
-  work. Centralize tests under `tests/`, organized as `fileio/`, `process/`,
-  `analysis/`, `infrastructure/`, and `fixtures/`; retain `dataset`,
-  `external_software`, and `optional_dependency` markers. Before moving
-  anything, inventory every fixture user, including examples and distribution
-  validation. Update `conftest`, `pytest.ini`, documentation, CI, packaging,
-  `CRITICAL_TESTS`, scanned modules, and manifest `required_by` entries. Map
-  every old identifier to its new identifier, including parametrized cases,
-  while preserving assertions, tolerances, markers, and skips. Preserve
-  fixtures byte-for-byte and retain the external corpus. Keep installed-wheel
-  functional tests outside the checkout with import-origin verification and
-  retain sdist validation. This is not a new release gate and must not reduce
-  the critical contract.
+- [x] Prepare the dedicated test-reorganization plan after EXT #62:
+  [inventory, mapping and validation design](reports/2026-10-test-layout-plan.md),
+  assessed on 2026-10-08 at `a662316`: 269 tracked files, 35 collected modules,
+  575 collected items. Collection is not a functional validation result.
+- [x] Test layout A — approved fixture checksum policy, runtime-only wheel,
+  `_dataset_paths.py`, preserved pytest import mode and validation
+  environments. Captured IDs, parameters, markers/skips and fixture hashes on
+  `35fd95d`; the 578-item comparison is bijective in matched environments.
+- [x] Test layout B — one atomic migration to a single `tests/` tree with
+  `fileio/`, `process/`, `analysis/`, `infrastructure/`, `fixtures/` and
+  `tests/conftest.py`, updating all path
+  consumers, CI, packaging, docs/examples and manifest declarations together.
+  The 42-test critical contract / nine scanned modules, assertions, tolerances,
+  dependency markers/skips and external `data/` are retained. Fixtures match
+  by SHA-256, size and mode.
+- [x] Test layout C — independent review of parity and artifact evidence:
+  execute the mapped 64 NMRPipe/Bruker wheel cases outside checkout with
+  site-packages origin checks inside pytest; retain separate sdist functional
+  validation and all CI guarantees. Report unavailable dataset/software
+  coverage explicitly and clean disposable validation resources. No durable
+  dual layout, scientific correction, new release gate or critical-scope
+  reduction is implied by this plan; implementation needs authorization.
 - [ ] Modernize documentation and links incrementally.
 - [ ] Introduce linting, typing and benchmarks only through separately scoped
   work. Ruff linting/formatting remain deferred; minimal pre-commit is active.
@@ -120,10 +130,12 @@ Neither missing data nor classified historical differences are passing tests.
 
 Generic improvements may be candidates for the historical project, but local
 development and external submission are separate decisions. Follow
-[AGENTS.md](../AGENTS.md): the existing pause tied to meaningful feedback on
+[AGENTS.md](../AGENTS.md): the existing pause is tied to meaningful feedback on
 [PRs #279–#282](https://github.com/jjhelmus/nmrglue/pulls?q=is%3Apr+author%3Afernandezc)
-is unchanged. They concern QR solving, HT, NMRPipe fixtures and Bruker text
-fixtures. Check live feedback before interpreting this condition. Any future
+and concerns QR solving, HT, NMRPipe fixtures and Bruker text fixtures.
+Live check on 2026-10-08 confirms [#279](https://github.com/jjhelmus/nmrglue/pull/279)
+was merged (`255855d`), providing substantive upstream action on this group.
+Other contribution and publication permissions remain explicit. Any future
 port starts from the then-current `jjhelmus/nmrglue:master`.
 
 Candidates previously deferred include the autonomous JCAMP-DX, CSDM,
