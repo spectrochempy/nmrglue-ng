@@ -25,6 +25,7 @@ SELF_CONTAINED_EXCEPTIONS = {
     "tests/fileio/test_bruker_with_test_data.py::test_read_nuslist",
     "tests/fileio/test_bruker_with_test_data.py::test_read_vdlist",
     "tests/fileio/test_convert.py::test_bruker_3d_acqu3s_isolation",
+    "tests/fileio/test_convert.py::test_pipe_to_pipe_preserves_digital_filter_value",
 }
 
 DATASET_TESTS = {
