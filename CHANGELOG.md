@@ -17,6 +17,14 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ### Fixed
 
+- Return one-dimensional arrays for single-element 1D SIMPSON data
+  (`NELEM` absent or 1) from `read_text()` and `read_binary()` instead of
+  `(1, NP)`, so the TEXT, BINARY, XREIM and RAWBIN encodings of one 1D data
+  set share the `(NP,)` shape. Multi-element 1D data still returns
+  `(NELEM, NP)` and 2D data is unchanged. Add 9 self-contained shape-contract
+  regressions: seven encode/shape tests plus two guards that keep the BINARY
+  header/content validation of the single-element path (short block raises
+  `ValueError`, missing `NP` raises `KeyError`).
 - Preserve the NMRPipe digital-filter value `FDDMXVAL` in Pipe-to-Pipe
   conversions. (#65)
 - Fix `pipe_proc.ext()` retaining stale indirect-dimension size metadata after

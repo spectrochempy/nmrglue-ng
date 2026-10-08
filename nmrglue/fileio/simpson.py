@@ -65,7 +65,11 @@ def read(filename, ftype=None, ndim=None, NP=None, NI=None, spe=None):
         Dictionary of spectra parameters.  For some file formats this may be
         empty.
     data : ndarray
-        Complex array of spectral data.
+        Complex array of spectral data.  A single-element data set
+        (``NELEM`` absent or 1) gives ``(NP,)`` for 1D data and ``(NI, NP)``
+        for 2D data; a multi-element data set keeps the element axis as
+        ``(NELEM, NP)`` and ``(NI*NELEM, NP)``.  The 1D encodings of one
+        data set therefore share the same shape.
 
     """
     if ftype is None:
@@ -189,7 +193,8 @@ def read_text(filename):
             r_val, i_val = (float(i) for i in line.split())
             data.real[iline] = r_val
             data.imag[iline] = i_val
-        data = data.reshape(dic['NELEM'], -1)
+        if dic['NELEM'] > 1:    # multi-element 1D data stays 2D
+            data = data.reshape(dic['NELEM'], -1)
 
     f.close()
     return dic, data
@@ -365,6 +370,9 @@ def read_binary(filename):
         return dic, data.reshape(dic['NI']*dic['NELEM'], dic['NP'])
 
     else:   # 1D data
+        if dic['NELEM'] == 1:  # single-element 1D data is 1D
+            # the reshape also revalidates the block size against header NP
+            return dic, data.reshape(dic['NP'])
         return dic, data.reshape(dic['NELEM'], dic['NP'])
 
 BASE = 33
