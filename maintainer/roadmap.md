@@ -55,7 +55,10 @@ Neither missing data nor classified historical differences are passing tests.
 | Conversion references | Dependencies are documented in the manifest as required components; evaluate generation in a temporary copy, then assess provenance and redistribution separately. |
 | Packaged fixtures | Choose a consistent provenance/checksum verification scheme; the external manifest does not currently cover them. |
 | Bruker `pdata` writer | Add autonomous read/write/read evidence using a copied, licensed fixture. |
+| Bruker JCAMP line endings | Reproduce CR-only decoding with a self-contained fixture, then consider the upstream #261 `StringIO(..., newline=None)` correction in a separate fix. |
 | JCAMP-DX encodings | Split the monolithic dataset test while preserving AFFN/PAC/SQZ/DIF equivalence and metadata checks. |
+| JCAMP-DX tuples | Validate `(XYW..XYW)` / `(XYM..XYM)` tuple-size behavior independently, then adapt upstream #262 in a separate change if the evidence supports it. |
+| Bruker processing-file priority | Scientific investigation and a compatibility decision are still required before choosing `proc`/`proc2` versus `procs`/`proc2s` precedence. |
 | SIMPSON | Evaluate regeneration of 1D/2D encoding sets before deciding whether to reduce release scope. |
 | JEOL | Decide whether packaged fixtures can replace missing historical groups; explicitly account for the lost NMRPipe cross-reference. |
 | `data_nd` | Reviews approved at `23cdba1`; changelog references corrected to #56/#57. The documented Boolean-axis compatibility difference remains outside these fixes. |
@@ -81,6 +84,13 @@ Neither missing data nor classified historical differences are passing tests.
 - [ ] Complete JCAMP-DX real-data and encoding-equivalence validation after
   #46/#47/#49/#52/#54. [Reader decisions](reports/2026-10-maintenance.md).
 - [ ] Investigate NMRPipe/JRES dimensional metadata behavior.
+- [ ] `pipe_proc.ext` indirect metadata and upper-bound correction: targeted
+  third review on 2026-10-08 approved the reviewed correction
+  (**Ready to merge**); integration remains pending. All nine regressions pass
+  within the 48-test unit file, and independent NMRPipe comparisons verify
+  clipping, rounded-window placement and saturation. Track inherited
+  X1/XN/APOD, fractional-CENTER and quadrature limitations separately.
+  [Evidence and scope](reports/2026-10-pipe-proc-ext.md).
 
 ## P2 — Broader maintenance
 
@@ -88,6 +98,20 @@ Neither missing data nor classified historical differences are passing tests.
   and retain an extraction/`strip_fake` demonstration.
 - [ ] Define optional-dependency extras where useful.
 - [ ] Increase autonomous processing-module coverage.
+- [ ] After the `pipe_proc.ext` correction and its independent review, plan a
+  dedicated test-reorganization PR only; do not move tests as part of the EXT
+  work. Centralize tests under `tests/`, organized as `fileio/`, `process/`,
+  `analysis/`, `infrastructure/`, and `fixtures/`; retain `dataset`,
+  `external_software`, and `optional_dependency` markers. Before moving
+  anything, inventory every fixture user, including examples and distribution
+  validation. Update `conftest`, `pytest.ini`, documentation, CI, packaging,
+  `CRITICAL_TESTS`, scanned modules, and manifest `required_by` entries. Map
+  every old identifier to its new identifier, including parametrized cases,
+  while preserving assertions, tolerances, markers, and skips. Preserve
+  fixtures byte-for-byte and retain the external corpus. Keep installed-wheel
+  functional tests outside the checkout with import-origin verification and
+  retain sdist validation. This is not a new release gate and must not reduce
+  the critical contract.
 - [ ] Modernize documentation and links incrementally.
 - [ ] Introduce linting, typing and benchmarks only through separately scoped
   work. Ruff linting/formatting remain deferred; minimal pre-commit is active.

@@ -17,6 +17,7 @@ user documentation belongs in `doc/`, contributor instructions in
 | [Low-memory array operations](reports/2026-10-data-nd.md) | `data_nd` fixes, behavior contracts and validation/review status. |
 | [Reader and infrastructure maintenance](reports/2026-10-maintenance.md) | Durable reader decisions, corpus safety and CI design rationale. |
 | [Upstream synchronization](reports/2026-10-upstream-sync.md) | Upstream merges/PR/issues mapped to roadmap items, shared-scope divergences and pending decisions. |
+| [NMRPipe EXT extraction](reports/2026-10-pipe-proc-ext.md) | Indirect extraction metadata correction, evidence and review status. |
 | [External-data manifest](testdata-manifest.toml) | Machine-readable inventory, sizes, hashes and rights evidence; managed by the corpus scripts. |
 
 ## Evidence and update rules
