@@ -2,11 +2,15 @@
 
 import hashlib
 import sys
-import tomllib
 from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 import generate_testdata_manifest
