@@ -6,13 +6,26 @@
 #   UNRESOLVED    - no explicit license or rights evidence found
 #   NOT_AVAILABLE - data not found in examined sources
 #   CLEAR         - explicit redistribution permission documented
+#
+# Component status values:
+#   present - every listed path is inventoried below
+#   absent  - explicitly declared missing; no file matches the paths
+#
+# Component scope values:
+#   critical - consumed by at least one release-critical test
+#   extended - consumed only by extended-validation or low-priority tests
 
 [manifest]
-version = "2"
+version = "3"
 total_groups = 11
 total_files = 145
 total_size = 327812238
-missing_groups = 9
+missing_groups = 10
+total_components = 42
+absent_components = 30
+critical_components = 27
+absent_critical_components = 19
+critical_tests = ["tests/test_agilent.py::test_1d", "tests/test_agilent.py::test_2d", "tests/test_agilent.py::test_2d_lowmem", "tests/test_agilent.py::test_2d_tppi", "tests/test_agilent.py::test_2d_tppi_lowmem", "tests/test_agilent.py::test_3d", "tests/test_agilent.py::test_3d_lowmem", "tests/test_bruker_with_test_data.py::test_1d", "tests/test_bruker_with_test_data.py::test_2d", "tests/test_bruker_with_test_data.py::test_2d_lowmem", "tests/test_bruker_with_test_data.py::test_3d", "tests/test_bruker_with_test_data.py::test_3d_lowmem", "tests/test_bruker_with_test_data.py::test_read_pdata_1d", "tests/test_bruker_with_test_data.py::test_read_pdata_2d", "tests/test_bruker_with_test_data.py::test_write_pdata_1d", "tests/test_bruker_with_test_data.py::test_write_pdata_2d", "tests/test_convert.py::test_agilent_1d", "tests/test_convert.py::test_agilent_2d", "tests/test_convert.py::test_agilent_2d_lowmem", "tests/test_convert.py::test_agilent_3d", "tests/test_convert.py::test_agilent_3d_lowmem", "tests/test_convert.py::test_agilent_3d_rnmrtk", "tests/test_convert.py::test_bruker_1d", "tests/test_convert.py::test_bruker_2d", "tests/test_convert.py::test_bruker_2d_lowmem", "tests/test_convert.py::test_bruker_3d", "tests/test_convert.py::test_bruker_3d_lowmem", "tests/test_convert.py::test_bruker_3d_rnmrtk", "tests/test_convert.py::test_rnmrtk_3d", "tests/test_convert.py::test_sparky_2d", "tests/test_convert.py::test_sparky_2d_lowmem", "tests/test_jcampdx.py::test_jcampdx1", "tests/test_jeol.py::test_1d_complex_1", "tests/test_jeol.py::test_1d_complex_1_udic", "tests/test_jeol.py::test_2d_cc_1", "tests/test_jeol.py::test_2d_cc_1_udic", "tests/test_rnmrtk.py::test_3d_freq", "tests/test_rnmrtk.py::test_3d_time", "tests/test_simpson.py::test_1d_time", "tests/test_simpson.py::test_2d_freq", "tests/test_sparky.py::test_2d", "tests/test_sparky.py::test_2d_lowmem"]
 
 [groups.agilent_1d]
 format = "Varian/Agilent"
@@ -20,12 +33,15 @@ provenance = "nmrglue v0.5 release archive; community contribution"
 license = "BSD-3-Clause (nmrglue repository license; not separately applied to data)"
 redistribution_status = "UNRESOLVED"
 evidence = "release asset has no explicit data license; repository license scope unconfirmed"
-availability = "complete"
+availability = "partial"
+missing_components = "pipe_reference"
 notes = "real 1D acquisition; read/write and conversion tests"
 file_count = 2
 original_count = 2
 derived_count = 0
 total_size = 32249
+component_count = 2
+absent_component_count = 1
 
 [groups.agilent_1d.files."agilent_1d/fid"]
 sha256 = "4a4ccf9b8a8c20e4dd5d151564d84585fd13a15f53cc967cbaa77c556b29e145"
@@ -36,18 +52,35 @@ sha256 = "423d25e161adc5b5ad5a504ece04667c89835f698b4ba19ddd0a2de545bd2fbb"
 size = 20189
 provenance_class = "original"
 
+[groups.agilent_1d.components.pipe_reference]
+status = "absent"
+scope = "critical"
+paths = ["agilent_1d/test.fid"]
+required_by = ["tests/test_convert.py::test_agilent_1d"]
+notes = "NMRPipe-generated 1D conversion reference"
+
+[groups.agilent_1d.components.raw]
+status = "present"
+scope = "critical"
+paths = ["agilent_1d/fid", "agilent_1d/procpar"]
+required_by = ["tests/test_agilent.py::test_1d", "tests/test_convert.py::test_agilent_1d"]
+notes = "real 1D acquisition block and parameters"
+
 [groups.agilent_2d]
 format = "Varian/Agilent"
 provenance = "nmrglue v0.5 release archive; community contribution"
 license = "BSD-3-Clause (nmrglue repository license; not separately applied to data)"
 redistribution_status = "UNRESOLVED"
 evidence = "release asset has no explicit data license; repository license scope unconfirmed"
-availability = "complete"
+availability = "partial"
+missing_components = "pipe_reference"
 notes = "real 2D blocks; read/low-memory and conversion tests"
 file_count = 2
 original_count = 2
 derived_count = 0
 total_size = 4015851
+component_count = 2
+absent_component_count = 1
 
 [groups.agilent_2d.files."agilent_2d/fid"]
 sha256 = "4a35f4b98f9116ba67760d1c0c83cc48a17b4e53897b5dbe1e25f85f28b1eac8"
@@ -58,6 +91,20 @@ sha256 = "54cf12841987ec3a05f5ca76f2b09dff09b7648d84b2936627f2c9757472c817"
 size = 22523
 provenance_class = "original"
 
+[groups.agilent_2d.components.pipe_reference]
+status = "absent"
+scope = "critical"
+paths = ["agilent_2d/test.fid"]
+required_by = ["tests/test_convert.py::test_agilent_2d", "tests/test_convert.py::test_agilent_2d_lowmem"]
+notes = "NMRPipe-generated 2D conversion reference"
+
+[groups.agilent_2d.components.raw]
+status = "present"
+scope = "critical"
+paths = ["agilent_2d/fid", "agilent_2d/procpar"]
+required_by = ["tests/test_agilent.py::test_2d", "tests/test_agilent.py::test_2d_lowmem", "tests/test_convert.py::test_agilent_2d", "tests/test_convert.py::test_agilent_2d_lowmem"]
+notes = "real 2D blocks and parameters"
+
 [groups.agilent_2d_tppi]
 format = "Varian/Agilent"
 provenance = "nmrglue v0.5 release archive; community contribution"
@@ -65,11 +112,14 @@ license = "BSD-3-Clause (nmrglue repository license; not separately applied to d
 redistribution_status = "UNRESOLVED"
 evidence = "release asset has no explicit data license; repository license scope unconfirmed"
 availability = "complete"
+missing_components = ""
 notes = "TPPI ordering; read/low-memory tests"
 file_count = 2
 original_count = 2
 derived_count = 0
 total_size = 6758406
+component_count = 1
+absent_component_count = 0
 
 [groups.agilent_2d_tppi.files."agilent_2d_tppi/fid"]
 sha256 = "db3a4b42140aec536917b5fe4369d1a517dd9208c2c1cc88d8e17f6ae1d0ee13"
@@ -80,18 +130,28 @@ sha256 = "cbe683a6463bdc34b389aedc18438edf32968984f5f8599da2ed82cef73b0199"
 size = 21574
 provenance_class = "original"
 
+[groups.agilent_2d_tppi.components.raw]
+status = "present"
+scope = "critical"
+paths = ["agilent_2d_tppi/fid", "agilent_2d_tppi/procpar"]
+required_by = ["tests/test_agilent.py::test_2d_tppi", "tests/test_agilent.py::test_2d_tppi_lowmem"]
+notes = "real 2D TPPI blocks and parameters"
+
 [groups.agilent_3d]
 format = "Varian/Agilent"
 provenance = "nmrglue v0.5 release archive; community contribution"
 license = "BSD-3-Clause (nmrglue repository license; not separately applied to data)"
 redistribution_status = "UNRESOLVED"
 evidence = "release asset has no explicit data license; repository license scope unconfirmed"
-availability = "complete"
+availability = "partial"
+missing_components = "pipe_reference"
 notes = "real 3D blocks; read/low-memory and conversion tests"
 file_count = 2
 original_count = 2
 derived_count = 0
 total_size = 112980480
+component_count = 2
+absent_component_count = 1
 
 [groups.agilent_3d.files."agilent_3d/fid"]
 sha256 = "4104329db704264b41f0f052627cc00747048f931d44f4d5d31fb2bdfc048239"
@@ -102,6 +162,20 @@ sha256 = "e2166f9400426ff0d2e07bce5cd363ad9139fa8472e1bc94a33ba2a61c3caf86"
 size = 25056
 provenance_class = "original"
 
+[groups.agilent_3d.components.pipe_reference]
+status = "absent"
+scope = "critical"
+paths = ["agilent_3d/data/test%03d.fid"]
+required_by = ["tests/test_convert.py::test_agilent_3d", "tests/test_convert.py::test_agilent_3d_lowmem"]
+notes = "indexed NMRPipe-generated 3D conversion reference series"
+
+[groups.agilent_3d.components.raw]
+status = "present"
+scope = "critical"
+paths = ["agilent_3d/fid", "agilent_3d/procpar"]
+required_by = ["tests/test_agilent.py::test_3d", "tests/test_agilent.py::test_3d_lowmem", "tests/test_convert.py::test_agilent_3d", "tests/test_convert.py::test_agilent_3d_lowmem", "tests/test_convert.py::test_agilent_3d_rnmrtk"]
+notes = "real 3D blocks and parameters"
+
 [groups.agilent_4d]
 format = "Varian/Agilent"
 provenance = "nmrglue v0.5 release archive; synthetic boundary case"
@@ -109,16 +183,26 @@ license = "BSD-3-Clause (nmrglue repository license; not separately applied to d
 redistribution_status = "UNRESOLVED"
 evidence = "release asset has no explicit data license; repository license scope unconfirmed"
 availability = "complete"
+missing_components = ""
 notes = "4D boundary case without procpar; shape supplied manually"
 file_count = 1
 original_count = 1
 derived_count = 0
 total_size = 17246240
+component_count = 1
+absent_component_count = 0
 
 [groups.agilent_4d.files."agilent_4d/fid"]
 sha256 = "4430a0e446919998b8a21251f42ead90f6ae0b79191d6a9a504eccf345c2bf75"
 size = 17246240
 provenance_class = "original"
+
+[groups.agilent_4d.components.raw]
+status = "present"
+scope = "extended"
+paths = ["agilent_4d/fid"]
+required_by = ["tests/test_agilent.py::test_4d", "tests/test_agilent.py::test_4d_lowmem"]
+notes = "synthetic boundary case read with an explicit shape"
 
 [groups.bruker_1d]
 format = "Bruker"
@@ -127,12 +211,14 @@ license = "BSD-3-Clause (nmrglue repository license; not separately applied to d
 redistribution_status = "UNRESOLVED"
 evidence = "release asset has no explicit data license; repository license scope unconfirmed"
 availability = "partial"
-missing_components = "pdata/1 processed data (referenced by test_read_pdata_1d)"
+missing_components = "pdata, pipe_reference, rnmrtk_reference"
 notes = "real FID, parameters, pulse program; read tests"
 file_count = 4
 original_count = 4
 derived_count = 0
 total_size = 34416
+component_count = 4
+absent_component_count = 3
 
 [groups.bruker_1d.files."bruker_1d/acqu"]
 sha256 = "e9c7c326182614d23bebec1279f36a5e77b43827c08ca230023ce9ef942040e4"
@@ -151,6 +237,34 @@ sha256 = "7d74164b030df04713a084321b11ae109b9bb3e197542af9db6a2141193250b4"
 size = 2832
 provenance_class = "original"
 
+[groups.bruker_1d.components.pdata]
+status = "absent"
+scope = "critical"
+paths = ["bruker_1d/pdata/1"]
+required_by = ["tests/test_bruker_with_test_data.py::test_read_pdata_1d", "tests/test_bruker_with_test_data.py::test_write_pdata_1d"]
+notes = "processed 1D dataset (1r/1i, procs and related files)"
+
+[groups.bruker_1d.components.pipe_reference]
+status = "absent"
+scope = "critical"
+paths = ["bruker_1d/test.fid"]
+required_by = ["tests/test_convert.py::test_bruker_1d"]
+notes = "NMRPipe-generated 1D conversion reference"
+
+[groups.bruker_1d.components.raw]
+status = "present"
+scope = "critical"
+paths = ["bruker_1d/acqu", "bruker_1d/acqus", "bruker_1d/fid", "bruker_1d/pulseprogram"]
+required_by = ["tests/test_bruker_with_test_data.py::test_1d", "tests/test_convert.py::test_bruker_1d"]
+notes = "real FID, parameters and pulse program"
+
+[groups.bruker_1d.components.rnmrtk_reference]
+status = "absent"
+scope = "extended"
+paths = ["bruker_1d/time_1d.sec", "bruker_1d/time_1d.par"]
+required_by = ["tests/test_convert.py::test_bruker_1d_rnmrtk"]
+notes = "RNMRTK 1D time-domain reference and its parameter file"
+
 [groups.bruker_2d]
 format = "Bruker"
 provenance = "nmrglue v0.5 release archive; community contribution"
@@ -158,12 +272,14 @@ license = "BSD-3-Clause (nmrglue repository license; not separately applied to d
 redistribution_status = "UNRESOLVED"
 evidence = "release asset has no explicit data license; repository license scope unconfirmed"
 availability = "partial"
-missing_components = "pdata/1 processed data (referenced by test_read_pdata_2d)"
+missing_components = "pdata, pipe_reference, rnmrtk_reference"
 notes = "ser, padding, parameters; read/low-memory and conversion tests"
 file_count = 6
 original_count = 6
 derived_count = 0
 total_size = 3725099
+component_count = 4
+absent_component_count = 3
 
 [groups.bruker_2d.files."bruker_2d/acqu"]
 sha256 = "44e7470c2244bb8bba301578c22ed7b4b735270ac3a5e54e7aad61fad81f367e"
@@ -190,6 +306,34 @@ sha256 = "5a3f9d4f82e0435c5bbe623ece715e84da062aad65e7865a93d31692e25dd598"
 size = 3686400
 provenance_class = "original"
 
+[groups.bruker_2d.components.pdata]
+status = "absent"
+scope = "critical"
+paths = ["bruker_2d/pdata/1"]
+required_by = ["tests/test_bruker_with_test_data.py::test_read_pdata_2d", "tests/test_bruker_with_test_data.py::test_write_pdata_2d"]
+notes = "processed 2D dataset (2rr/2ri, proc2s and related files)"
+
+[groups.bruker_2d.components.pipe_reference]
+status = "absent"
+scope = "critical"
+paths = ["bruker_2d/test.fid"]
+required_by = ["tests/test_convert.py::test_bruker_2d", "tests/test_convert.py::test_bruker_2d_lowmem"]
+notes = "NMRPipe-generated 2D conversion reference"
+
+[groups.bruker_2d.components.raw]
+status = "present"
+scope = "critical"
+paths = ["bruker_2d/acqu", "bruker_2d/acqu2", "bruker_2d/acqu2s", "bruker_2d/acqus", "bruker_2d/pulseprogram", "bruker_2d/ser"]
+required_by = ["tests/test_bruker_with_test_data.py::test_2d", "tests/test_bruker_with_test_data.py::test_2d_lowmem", "tests/test_convert.py::test_bruker_2d", "tests/test_convert.py::test_bruker_2d_lowmem"]
+notes = "ser, parameters and pulse program"
+
+[groups.bruker_2d.components.rnmrtk_reference]
+status = "absent"
+scope = "extended"
+paths = ["bruker_2d/time_2d.sec", "bruker_2d/time_2d.par"]
+required_by = ["tests/test_convert.py::test_bruker_2d_rnmrtk"]
+notes = "RNMRTK 2D time-domain reference and its parameter file"
+
 [groups.bruker_3d]
 format = "Bruker"
 provenance = "nmrglue v0.5 release archive (6 original files) + 116 locally generated NMRPipe references"
@@ -197,12 +341,14 @@ license = "BSD-3-Clause (nmrglue repository license; not separately applied to d
 redistribution_status = "UNRESOLVED"
 evidence = "original files from release asset; derived references generated by NMRPipe, no explicit license"
 availability = "partial"
-missing_components = "pdata/ processed data (referenced by test_bruker_3d)"
+missing_components = "pdata, rnmrtk_reference"
 notes = "3D parameters, ser, indexed fid references; read/low-memory and conversion tests"
 file_count = 122
 original_count = 6
 derived_count = 116
 total_size = 182729203
+component_count = 4
+absent_component_count = 2
 
 [groups.bruker_3d.files."bruker_3d/acqu"]
 sha256 = "44bb16ab329f441b22521df630bacdb228596e09ee73e4e33cfc9ee4c4363b2c"
@@ -693,6 +839,34 @@ sha256 = "72304d265717157ff6b42f6e3e225173106da5760056bf29d62712bd4c9cb1b0"
 size = 91226112
 provenance_class = "original"
 
+[groups.bruker_3d.components.pdata]
+status = "absent"
+scope = "extended"
+paths = ["bruker_3d/pdata"]
+required_by = []
+notes = "processed 3D dataset; no tracked test consumes it, kept as a declared gap from the historical manifest"
+
+[groups.bruker_3d.components.pipe_reference]
+status = "present"
+scope = "critical"
+paths = ["bruker_3d/fid/test%03d.fid"]
+required_by = ["tests/test_convert.py::test_bruker_3d", "tests/test_convert.py::test_bruker_3d_lowmem"]
+notes = "indexed NMRPipe-generated 3D conversion reference series"
+
+[groups.bruker_3d.components.raw]
+status = "present"
+scope = "critical"
+paths = ["bruker_3d/acqu", "bruker_3d/acqu2", "bruker_3d/acqu2s", "bruker_3d/acqus", "bruker_3d/pulseprogram", "bruker_3d/ser"]
+required_by = ["tests/test_bruker_with_test_data.py::test_3d", "tests/test_bruker_with_test_data.py::test_3d_lowmem", "tests/test_convert.py::test_bruker_3d", "tests/test_convert.py::test_bruker_3d_lowmem", "tests/test_convert.py::test_bruker_3d_rnmrtk"]
+notes = "3D parameters and ser"
+
+[groups.bruker_3d.components.rnmrtk_reference]
+status = "absent"
+scope = "critical"
+paths = ["bruker_3d/time_3d.sec", "bruker_3d/time_3d.par"]
+required_by = ["tests/test_convert.py::test_bruker_3d_rnmrtk"]
+notes = "RNMRTK 3D time-domain reference and its parameter file"
+
 [groups.simpson_1d]
 format = "SIMPSON"
 provenance = "nmrglue v0.5 release archive; simulator input"
@@ -700,17 +874,40 @@ license = "BSD-3-Clause (nmrglue repository license; not separately applied to d
 redistribution_status = "UNRESOLVED"
 evidence = "release asset has no explicit data license; repository license scope unconfirmed"
 availability = "partial"
-missing_components = "encoding-set outputs (TEXT/BINARY/XREIM/RAWBIN); only input .in present"
+missing_components = "freq_outputs, time_outputs"
 notes = "1D input file; encoding-set tests need generated outputs"
 file_count = 1
 original_count = 1
 derived_count = 0
 total_size = 824
+component_count = 3
+absent_component_count = 2
 
 [groups.simpson_1d.files."simpson_1d/rr.in"]
 sha256 = "87bab45cfc524c4d522edc9ab4ae781dd4f763944ba07253556c9ed216103912"
 size = 824
 provenance_class = "original"
+
+[groups.simpson_1d.components.freq_outputs]
+status = "absent"
+scope = "extended"
+paths = ["simpson_1d/1d_text.spe", "simpson_1d/1d_bin.spe", "simpson_1d/1d_ftext.spe", "simpson_1d/1d_rawbin.spe"]
+required_by = ["tests/test_simpson.py::test_1d_freq"]
+notes = "1D frequency-domain encoding set (extended-validation test)"
+
+[groups.simpson_1d.components.simulator_input]
+status = "present"
+scope = "extended"
+paths = ["simpson_1d/rr.in"]
+required_by = []
+notes = "SIMPSON input script; regeneration source for the encoding outputs"
+
+[groups.simpson_1d.components.time_outputs]
+status = "absent"
+scope = "critical"
+paths = ["simpson_1d/1d_text.fid", "simpson_1d/1d_bin.fid", "simpson_1d/1d_ftext.fid", "simpson_1d/1d_rawbin.fid"]
+required_by = ["tests/test_simpson.py::test_1d_time"]
+notes = "1D time-domain encoding set (TEXT/BINARY/XREIM/RAWBIN)"
 
 [groups.simpson_2d]
 format = "SIMPSON"
@@ -719,17 +916,40 @@ license = "BSD-3-Clause (nmrglue repository license; not separately applied to d
 redistribution_status = "UNRESOLVED"
 evidence = "release asset has no explicit data license; repository license scope unconfirmed"
 availability = "partial"
-missing_components = "encoding-set outputs (2D variants); only input .in present"
+missing_components = "freq_outputs, time_outputs"
 notes = "2D input file; encoding-set tests need generated outputs"
 file_count = 1
 original_count = 1
 derived_count = 0
 total_size = 1644
+component_count = 3
+absent_component_count = 2
 
 [groups.simpson_2d.files."simpson_2d/2d.in"]
 sha256 = "b090079091bb7b27cded02100320f43c3d68e271cad679004de854f8574cab13"
 size = 1644
 provenance_class = "original"
+
+[groups.simpson_2d.components.freq_outputs]
+status = "absent"
+scope = "critical"
+paths = ["simpson_2d/2d_text.spe", "simpson_2d/2d.spe", "simpson_2d/2d_ftext.spe", "simpson_2d/2d_raw.spe"]
+required_by = ["tests/test_simpson.py::test_2d_freq"]
+notes = "2D frequency-domain encoding set (TEXT/BINARY/XREIM/RAWBIN)"
+
+[groups.simpson_2d.components.simulator_input]
+status = "present"
+scope = "extended"
+paths = ["simpson_2d/2d.in"]
+required_by = []
+notes = "SIMPSON input script; regeneration source for the encoding outputs"
+
+[groups.simpson_2d.components.time_outputs]
+status = "absent"
+scope = "extended"
+paths = ["simpson_2d/2d_text.fid", "simpson_2d/2d.fid", "simpson_2d/2d_ftext.fid", "simpson_2d/2d_raw.fid"]
+required_by = ["tests/test_simpson.py::test_2d_time"]
+notes = "2D time-domain encoding set (extended-validation test)"
 
 [groups.tecmag]
 format = "Tecmag"
@@ -738,11 +958,14 @@ license = "BSD-3-Clause (nmrglue repository license; not separately applied to d
 redistribution_status = "UNRESOLVED"
 evidence = "release asset has no explicit data license; repository license scope unconfirmed"
 availability = "complete"
+missing_components = ""
 notes = "LiCl reference pair (.tnt + .txt); load-time and sign-check tests"
 file_count = 2
 original_count = 2
 derived_count = 0
 total_size = 287826
+component_count = 1
+absent_component_count = 0
 
 [groups.tecmag.files."tecmag/LiCl_ref1.tnt"]
 sha256 = "18db5c85db04167dbef369442ac2368dcaadf80f3396134ca732c5a1d8a32b92"
@@ -753,58 +976,199 @@ sha256 = "3d1e9e95e5f8a2be8afb59464a51a0aeb70e0365ed19655725d1a075fe765083"
 size = 203206
 provenance_class = "original"
 
-# Release-critical groups NOT present in the local corpus.
+[groups.tecmag.components.raw]
+status = "present"
+scope = "extended"
+paths = ["tecmag/LiCl_ref1.tnt", "tecmag/LiCl_ref1.txt"]
+required_by = ["tests/test_tecmag.py::test_tecmag_load_time_domain"]
+notes = "LiCl reference pair (.tnt + .txt)"
+
+# Release-critical groups and reference sets NOT present in the
+# local corpus. extended_test_references is not a contract group: it
+# records references consumed only by extended-validation or
+# low-priority tests so that no consumed path stays silent.
 
 [missing.jeol_1d_complex_pipe_reference]
 format = "JEOL + Pipe"
 redistribution_status = "NOT_AVAILABLE"
 evidence = "absent from nmrglue repository, v0.5 release archive, and local corpus; PR #228 added code+tests only; maintainer asked about data availability but no resolution recorded"
 notes = "real JDF binary structure; data not found in examined sources"
+component_count = 1
+absent_component_count = 1
+
+[missing.jeol_1d_complex_pipe_reference.components.reference_pair]
+status = "absent"
+scope = "critical"
+paths = ["jeol/cyclosporine_Carbon-1-1.jdf", "jeol/cyclosporine_Carbon-1-1.fid"]
+required_by = ["tests/test_jeol.py::test_1d_complex_1", "tests/test_jeol.py::test_1d_complex_1_udic"]
+notes = "real 1D JDF binary structure and independent NMRPipe reference"
 
 [missing.jeol_2d_complex_pipe_reference]
 format = "JEOL + Pipe"
 redistribution_status = "NOT_AVAILABLE"
 evidence = "absent from nmrglue repository, v0.5 release archive, and local corpus; PR #228 added code+tests only; maintainer asked about data availability but no resolution recorded"
 notes = "real 2D JDF quadrature/layout; data not found in examined sources"
+component_count = 1
+absent_component_count = 1
+
+[missing.jeol_2d_complex_pipe_reference.components.reference_pair]
+status = "absent"
+scope = "critical"
+paths = ["jeol/cyclosporine_tocsy-1-1.jdf", "jeol/cyclosporine_tocsy-1-1.fid"]
+required_by = ["tests/test_jeol.py::test_2d_cc_1", "tests/test_jeol.py::test_2d_cc_1_udic"]
+notes = "real 2D JDF quadrature/layout and independent NMRPipe reference"
 
 [missing.sparky_2d_ucsf_pipe_reference]
 format = "UCSF + Pipe"
 redistribution_status = "UNRESOLVED"
 evidence = "not present in local corpus or v0.5 archive"
 notes = "tiled UCSF layout; requires acquisition or licensed spectrum"
+component_count = 2
+absent_component_count = 2
+
+[missing.sparky_2d_ucsf_pipe_reference.components.pipe_reference]
+status = "absent"
+scope = "critical"
+paths = ["nmrpipe_2d/test.ft2"]
+required_by = ["tests/test_convert.py::test_sparky_2d", "tests/test_convert.py::test_sparky_2d_lowmem"]
+notes = "NMRPipe-generated 2D conversion reference"
+
+[missing.sparky_2d_ucsf_pipe_reference.components.ucsf_spectrum]
+status = "absent"
+scope = "critical"
+paths = ["sparky_2d/data.ucsf"]
+required_by = ["tests/test_sparky.py::test_2d", "tests/test_sparky.py::test_2d_lowmem", "tests/test_convert.py::test_sparky_2d", "tests/test_convert.py::test_sparky_2d_lowmem"]
+notes = "tiled UCSF 2D spectrum"
 
 [missing.rnmrtk_3d_time_reference]
 format = "RNMRTK"
 redistribution_status = "UNRESOLVED"
 evidence = "not present in local corpus or v0.5 archive"
 notes = "real complex 3D file; requires independent generation"
+component_count = 1
+absent_component_count = 1
+
+[missing.rnmrtk_3d_time_reference.components.time_reference]
+status = "absent"
+scope = "critical"
+paths = ["rnmrtk_3d/time_3d.sec", "rnmrtk_3d/time_3d.par"]
+required_by = ["tests/test_rnmrtk.py::test_3d_time", "tests/test_convert.py::test_agilent_3d_rnmrtk"]
+notes = "real complex 3D RNMRTK file and its parameter file"
 
 [missing.rnmrtk_3d_frequency_pipe_reference]
 format = "RNMRTK + Pipe"
 redistribution_status = "UNRESOLVED"
 evidence = "not present in local corpus or v0.5 archive"
 notes = "real frequency file and independent conversion reference"
+component_count = 2
+absent_component_count = 2
+
+[missing.rnmrtk_3d_frequency_pipe_reference.components.frequency_reference]
+status = "absent"
+scope = "critical"
+paths = ["rnmrtk_3d/freq_3d.sec", "rnmrtk_3d/freq_3d.par"]
+required_by = ["tests/test_rnmrtk.py::test_3d_freq", "tests/test_convert.py::test_rnmrtk_3d"]
+notes = "real 3D RNMRTK frequency file and its parameter file"
+
+[missing.rnmrtk_3d_frequency_pipe_reference.components.pipe_reference]
+status = "absent"
+scope = "critical"
+paths = ["rnmrtk_3d/test.ft3"]
+required_by = ["tests/test_convert.py::test_rnmrtk_3d"]
+notes = "NMRPipe-generated 3D conversion reference"
 
 [missing.jcampdx_affn_spectrum]
 format = "JCAMP-DX"
 redistribution_status = "UNRESOLVED"
 evidence = "not present in local corpus or v0.5 archive"
 notes = "human-auditable real spectrum; requires licensed test set"
+component_count = 1
+absent_component_count = 1
+
+[missing.jcampdx_affn_spectrum.components.encoding_set]
+status = "absent"
+scope = "critical"
+paths = ["jcampdx/BRUKAFFN.DX", "jcampdx/BRUKPAC.DX", "jcampdx/BRUKSQZ.DX", "jcampdx/BRUKDIF.DX", "jcampdx/TEST32.DX", "jcampdx/TESTSPEC.DX"]
+required_by = ["tests/test_jcampdx.py::test_jcampdx1"]
+notes = "AFFN/PAC/SQZ/DIF encoding equivalence cases; the historical encoding test is monolithic and also reads the NTUPLES cases"
 
 [missing.jcampdx_ntuples_spectrum]
 format = "JCAMP-DX"
 redistribution_status = "UNRESOLVED"
 evidence = "not present in local corpus or v0.5 archive"
 notes = "real NTUPLES arrays; requires licensed test set"
+component_count = 1
+absent_component_count = 1
+
+[missing.jcampdx_ntuples_spectrum.components.ntuples_arrays]
+status = "absent"
+scope = "critical"
+paths = ["jcampdx/BRUKNTUP.DX", "jcampdx/TESTNTUP.DX"]
+required_by = ["tests/test_jcampdx.py::test_jcampdx1"]
+notes = "real 2D NTUPLES arrays; shared with the monolithic encoding test"
 
 [missing.simpson_1d_encoding_set]
 format = "SIMPSON"
 redistribution_status = "UNRESOLVED"
 evidence = "input .in present; encoding outputs not generated"
-notes = "TEXT/BINARY/XREIM/RAWBIN equivalence; requires SIMPSON regeneration"
+notes = "TEXT/BINARY/XREIM/RAWBIN equivalence; requires SIMPSON regeneration; output paths are declared as components of group simpson_1d"
+component_count = 0
+absent_component_count = 0
 
 [missing.simpson_2d_encoding_set]
 format = "SIMPSON"
 redistribution_status = "UNRESOLVED"
 evidence = "input .in present; encoding outputs not generated"
-notes = "2D encoding variants; requires SIMPSON regeneration"
+notes = "2D encoding variants; requires SIMPSON regeneration; output paths are declared as components of group simpson_2d"
+component_count = 0
+absent_component_count = 0
+
+[missing.extended_test_references]
+format = "various"
+redistribution_status = "UNRESOLVED"
+evidence = "consumed only by extended-validation or historical low-priority tests; outside the 16-group release-critical contract (PR #26 assessment)"
+notes = "recorded so that no reference consumed by a scanned dataset test is silent; promotion into the release-critical contract is a maintainer decision"
+component_count = 6
+absent_component_count = 6
+
+[missing.extended_test_references.components.jcampdx_extended_spectra]
+status = "absent"
+scope = "extended"
+paths = ["jcampdx/TESTFID.DX", "jcampdx/bruker1.dx", "jcampdx/bruker2.dx", "jcampdx/bruker3.dx", "jcampdx/aug07.dx", "jcampdx/aug07b.dx", "jcampdx/aug07c.dx", "jcampdx/aug07d.dx", "jcampdx/aug07e.dx"]
+required_by = ["tests/test_jcampdx.py::test_jcampdx2"]
+notes = "miscellaneous real spectra read by the extended-validation test"
+
+[missing.extended_test_references.components.jeol_extended_samples]
+status = "absent"
+scope = "extended"
+paths = ["jeol/cyclosporine_Proton-1-1.jdf", "jeol/cyclosporine_Proton-1-1.fid", "jeol/2mM sucrose_WATERGATE-3-1.jdf", "jeol/2mM sucrose_WATERGATE-3-1.fid", "jeol/2-ethyl-1-indanone 1_PROTON-21-1.jdf", "jeol/2-ethyl-1-indanone 1_PROTON-21-1.fid", "jeol/cyclosporine_HSQC-1-1.jdf", "jeol/cyclosporine_HSQC-1-1.fid", "jeol/2-ethyl-1-indanone 1_HSQC_NUS-3-1.jdf", "jeol/2-ethyl-1-indanone 1_HSQC_NUS-3-1.fid", "jeol/2-ethyl-1-indanone 1_HMBC_NUS-2-1.jdf", "jeol/2-ethyl-1-indanone 1_HMBC_NUS-2-1.fid", "jeol/cyclosporine_dqf_cosy_pfg-1-1.jdf", "jeol/cyclosporine_dqf_cosy_pfg-1-1.fid", "jeol/jeol-2d_1.jdf", "jeol/jeol-2d_1.fid"]
+required_by = ["tests/test_jeol.py::test_1d_complex_2", "tests/test_jeol.py::test_1d_complex_3", "tests/test_jeol.py::test_1d_complex_4", "tests/test_jeol.py::test_2d_cc_2", "tests/test_jeol.py::test_2d_cc_nus", "tests/test_jeol.py::test_2d_rc_nus", "tests/test_jeol.py::test_2d_rc", "tests/test_jeol.py::test_2d_cr"]
+notes = "additional real JEOL samples read by extended-validation tests"
+
+[missing.extended_test_references.components.pipe_1d_self_conversion]
+status = "absent"
+scope = "extended"
+paths = ["nmrpipe_1d/test.fid"]
+required_by = ["tests/test_convert.py::test_pipe_1d"]
+notes = "same-format historical 1D Pipe file"
+
+[missing.extended_test_references.components.rnmrtk_1d_conversion]
+status = "absent"
+scope = "extended"
+paths = ["rnmrtk_1d/time_1d.sec", "rnmrtk_1d/time_1d.par", "rnmrtk_1d/freq_1d.sec", "rnmrtk_1d/freq_1d.par", "rnmrtk_1d/test.ft"]
+required_by = ["tests/test_convert.py::test_agilent_1d_rnmrtk", "tests/test_convert.py::test_rnmrtk_1d"]
+notes = "1D RNMRTK time/frequency references and Pipe output"
+
+[missing.extended_test_references.components.rnmrtk_2d_conversion]
+status = "absent"
+scope = "extended"
+paths = ["rnmrtk_2d/time_2d.sec", "rnmrtk_2d/time_2d.par", "rnmrtk_2d/freq_2d.sec", "rnmrtk_2d/freq_2d.par", "rnmrtk_2d/test.ft2"]
+required_by = ["tests/test_convert.py::test_agilent_2d_rnmrtk", "tests/test_convert.py::test_rnmrtk_2d"]
+notes = "2D RNMRTK time/frequency references and Pipe output"
+
+[missing.extended_test_references.components.sparky_3d_conversion]
+status = "absent"
+scope = "extended"
+paths = ["sparky_3d/data.ucsf", "nmrpipe_3d/ft/test%03d.ft3"]
+required_by = ["tests/test_sparky.py::test_3d", "tests/test_sparky.py::test_3d_lowmem", "tests/test_convert.py::test_sparky_3d", "tests/test_convert.py::test_sparky_3d_lowmem"]
+notes = "3D UCSF spectrum and indexed NMRPipe conversion reference"

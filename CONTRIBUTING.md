@@ -226,11 +226,54 @@ The manifest records, for each logical group:
 - repository license and redistribution status (`UNRESOLVED`,
   `NOT_AVAILABLE`, or `CLEAR`);
 - evidence supporting the redistribution assessment;
-- availability (`complete`, `partial`, or `not_available`) and missing
-  components;
 - every file with its SHA-256 checksum, size, and provenance class
   (`original` from the v0.5 archive, or `derived` from local generation);
-- groups that are not present in the local corpus.
+- required components (see below) and the derived availability
+  (`complete`, `partial`, or `not_available`) with a missing-component
+  summary;
+- groups and reference sets that are not present in the local corpus
+  (`[missing.*]`).
+
+Required components are the reference paths the dataset tests consume:
+raw datasets, NMRPipe conversion outputs such as `test.fid`, RNMRTK `.sec`
+files with their `.par` parameter files, processed datasets, or encoding
+outputs. Each component lists its paths, the tests that need it
+(`required_by`), and a status:
+
+- `present` — every listed path is inventoried with a checksum;
+- `absent` — explicitly declared missing; no file matches the paths.
+
+Two independent controls keep the declarations honest, each with a stated
+scope:
+
+- **declaration closure** — every `required_by` id must resolve to a real
+  test in a scanned module, and all 42 release-critical test ids must
+  appear in at least one component; the manifest is not written otherwise;
+- **reference cross-check** — a static extractor collects the `DATA_DIR`
+  references it recognizes (joins and `Path` division with literal
+  segments, f-strings interpolating a resolved alias, alias assignments,
+  and loop variables bound to `x.append(...)` lists, as used by the
+  JCAMP-DX tests), and the manifest is not written while a recognized
+  reference is neither inventoried nor declared absent.
+
+The extractor is a complementary control limited to those constructions:
+references built at runtime — from parameters, from a literal list
+iterated directly, from glob or temporary paths — are not recognized.
+Declaring all 42 test ids therefore does not, by itself, prove that every
+file a test consumes is declared. The exact scope of the automated
+controls, and the independent review that confronted the extractor with
+every `DATA_DIR` use of the current modules, are recorded in
+`maintainer/reports/2026-10-critical-corpus.md`.
+
+A component is `critical` when at least one consumer belongs to the
+historical 42-test release-critical contract, `extended` otherwise. Group
+availability is derived from its components and is never asserted by hand,
+so a group whose raw data is present while a conversion reference is missing
+is reported `partial`, not `complete`. References consumed only by
+extended-validation or low-priority tests are recorded under
+`[missing.extended_test_references]` so no consumed path stays silent;
+promoting any of them into the release-critical contract is a maintainer
+decision.
 
 Two scripts support this manifest:
 
@@ -242,9 +285,25 @@ python scripts/generate_testdata_manifest.py
 python scripts/verify_testdata.py
 ```
 
-The verifier validates manifest structure, rejects empty manifests, checks
-every listed file against its expected checksum and size, detects extra files
-not in the manifest, and confronts declared counters with actual entries.
+The verifier reports two result axes that must not be conflated:
+
+- **integrity** — every inventoried file exists with the expected checksum
+  and size, no extra file sits under `data/`, and the declared counters form
+  a consistent chain;
+- **availability** — every required component is present or explicitly
+  declared absent, the declared statuses match the on-disk reality, and the
+  declared group availability follows from the components.
+
+`INTEGRITY: PASSED` never claims that the critical corpus is complete; read
+the `AVAILABILITY` section or the exit code for that. Exit codes are:
+
+- `0` — integrity OK and every release-critical component is present
+  (extended-only absences are listed but do not change the exit code);
+- `1` — error: structural inconsistency, integrity failure, or a component
+  whose declaration does not match the corpus;
+- `2` — integrity OK and every declaration consistent, but at least one
+  release-critical component is explicitly declared absent (files conform,
+  critical corpus incomplete).
 
 The archive reference for the upstream v0.5 test data is:
 

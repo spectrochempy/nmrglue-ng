@@ -130,23 +130,31 @@ form another additive test inventory.
 Summary: 1 data-covered, 2 partially replaceable, 4 proposed replacements,
 7 still needed, 2 proposed scope decisions. The historical requirements remain
 in force until the maintainer approves the revised mapping.
-
 ## Manifest completeness, rights and integrity
 
 The [manifest](../testdata-manifest.toml) and
 [verifier](../../scripts/verify_testdata.py) describe the external corpus.
 Their existence and checksum success do not prove all test dependencies are
-inventoried:
+inventoried. Before the scope correction recorded below, three defects
+applied:
 
-- `agilent_*` groups can be marked complete even though conversion tests need
-  missing `test.fid` references not listed or declared missing.
-- `bruker_1d`/`bruker_2d` mention absent pdata but not all conversion references.
-- RNMRTK conversion-reference paths must be reconciled with the two declared
-  missing groups. Only Bruker 3D inventories its derived Pipe reference files.
-- Packaged fixtures are outside this manifest. Forty documented hashes match;
-  the audit found no recorded hashes for the other 82 files and no automated
-  fixture-hash enforcement. Git tracks their contents; any additional checksum
-  scheme should serve provenance/download verification, not merely duplicate Git.
+- `agilent_*` groups could be marked complete even though conversion tests
+  needed missing `test.fid` references not listed or declared missing.
+- `bruker_1d`/`bruker_2d` mentioned absent pdata but not all conversion
+  references.
+- RNMRTK conversion-reference paths were not reconciled with the two declared
+  missing groups. Only Bruker 3D inventoried its derived Pipe reference files.
+
+These gaps are corrected: required references are now declared as components
+(inventoried or explicitly absent), the two RNMRTK missing groups carry their
+`.sec`/`.par`/`test.ft3` paths, and group availability is derived from
+components. See the correction section below.
+
+Packaged fixtures remain outside this manifest. Forty documented hashes
+match; the audit found no recorded hashes for the other 82 files and no
+automated fixture-hash enforcement. Git tracks their contents; any additional
+checksum scheme should serve provenance/download verification, not merely
+duplicate Git.
 
 Historical archive:
 [nmrglue v0.5 test data](https://github.com/jjhelmus/nmrglue/releases/download/v0.5/test_data_v0.5-dev.zip),
@@ -161,6 +169,130 @@ conditions and any applicable output-distribution terms separately. Earlier
 local notes used "unlicensed/non-redistributable" too categorically; the
 supported shared conclusion is **rights unresolved**. Generate in disposable
 copies and record commands/tool versions before considering corpus updates.
+
+## Manifest scope correction (2026-10-07)
+
+Recorded after this report's consolidation; no dataset was downloaded or
+regenerated and no test value changed. Baseline `5619a1b`.
+
+Defect reproduction, before the correction:
+
+- `python scripts/verify_testdata.py` reported `PASSED: 145/145 files
+  verified, 0 errors` (exit 0) while `groups.agilent_1d` declared
+  `availability = "complete"` and consumed references were absent.
+- A path-by-path confrontation of the 15 release-critical conversion tests
+  with the manifest found the consumed references unaccounted: `test.fid`
+  for `agilent_1d`, `agilent_2d`, `agilent_3d/data/test%03d.fid`,
+  `bruker_1d`, `bruker_2d`; `rnmrtk_3d/time_3d.sec` (via
+  `test_agilent_3d_rnmrtk`), `bruker_3d/time_3d.sec` (via
+  `test_bruker_3d_rnmrtk`), `rnmrtk_3d/freq_3d.sec` and `rnmrtk_3d/test.ft3`
+  (via `test_rnmrtk_3d`); `sparky_2d/data.ucsf` and `nmrpipe_2d/test.ft2`.
+- Running the tests themselves confirmed the consumption:
+  `test_agilent_1d` fails on `data/agilent_1d/test.fid`,
+  `test_agilent_3d_rnmrtk` on `data/rnmrtk_3d/time_3d.par`, and
+  `test_rnmrtk_3d` on `data/rnmrtk_3d/freq_3d.par` (the `.par` parameter file
+  `rnmrtk.read()` derives from the `.sec` name).
+
+Correction, applied in the generator rather than in the generated TOML:
+
+- The manifest schema (v3) declares **required components** per group: path
+  list, consuming tests, notes, and a derived status (`present` = inventoried,
+  `absent` = explicitly declared missing). RNMRTK `.sec` references always
+  declare their `.par` parameter file.
+- Group `availability` and `missing_components` are derived from component
+  statuses; a group with present raw data and a missing conversion reference
+  is `partial`. Rights, license and evidence strings are unchanged.
+- The RNMRTK conversion paths are reconciled with the two declared missing
+  groups: `rnmrtk_3d_time_reference` carries `time_3d.sec`/`time_3d.par`,
+  `rnmrtk_3d_frequency_pipe_reference` carries `freq_3d.sec`/`freq_3d.par`
+  and `rnmrtk_3d/test.ft3`, both listing their consuming tests
+  (`test_agilent_3d_rnmrtk`, `test_rnmrtk_3d`, `tests/test_rnmrtk.py`).
+- References consumed only by extended-validation or low-priority tests
+  (1D/2D RNMRTK conversion sets, Sparky 3D, `nmrpipe_1d/test.fid`, extra JEOL
+  samples, miscellaneous JCAMP-DX spectra, the complementary SIMPSON encoding
+  sets) are recorded under `[missing.extended_test_references]` so no consumed
+  path is silent. This entry is explicitly **outside** the 16-group contract.
+- Generation statically extracts the `DATA_DIR` references of the scanned
+  dataset modules (a complementary control limited to the recognized
+  constructions: joins and `Path` division with literal segments, f-strings
+  interpolating a resolved alias, alias assignments, and loop variables
+  bound to `x.append(...)` lists as used by the JCAMP-DX tests) and refuses
+  to write a manifest while a recognized reference is neither inventoried
+  nor declared absent. Alongside it, declaration closure requires all 42
+  critical test ids to appear in a component and every `required_by` id to
+  resolve; covering the ids does not by itself prove that every consumed
+  file is declared, so exhaustiveness for the current modules rests on the
+  independent confrontation recorded below. The verifier reports
+  **integrity** and **availability**
+  separately: `0` critical corpus complete, `1` error, `2` files conform but
+  release-critical components are declared absent. On the materialized corpus
+  it now reports `INTEGRITY: PASSED — 145/145` with `AVAILABILITY: INCOMPLETE
+  — 19 of 27 release-critical components declared absent` and exits `2`.
+
+New validation (self-contained profile, no corpus mutation):
+
+- `tests/test_testdata_manifest.py`: 47 tests, all passing after the change
+  (6 of them pin the extractor's recognized constructions and its documented
+  limits). Against the pre-change scripts and manifest the archetype cases
+  fail: the old verifier returns `0` with `PASSED: 2/2 files verified` while
+  a required conversion reference is absent, and `groups.agilent_1d` is
+  declared `complete` without its `test.fid` reference.
+- `python -m pytest -m "not dataset and not external_software"`: 416 passed,
+  3 skipped (optional `csdmpy`), 147 deselected.
+- Corpus SHA-256 before/after the work: 174 files, identical.
+
+Independent review and follow-up corrections (same baseline, uncommitted
+work; the review itself lives locally in `maintainer/audits/`, only its
+durable outcomes are recorded here):
+
+- A fresh-context review re-derived the 42-test contract from the
+  release-critical audit (`fdee69f`), re-ran the generator, verifier and
+  both test profiles, and confronted the extractor with every `DATA_DIR`
+  use in the nine scanned modules (all references accounted for the code
+  as reviewed). It returned *changes requested* on two introduced defects.
+  The reserved scope decisions below were confirmed as
+  correctly reserved, not resolved.
+- sdist packaging: seven tests read `maintainer/testdata-manifest.toml`,
+  which the sdist did not ship, so the CI packaging job would fail when
+  run from an extracted sdist (`7 failed, 42 passed`). Fixed by including
+  the manifest in `MANIFEST.in`; no test skip and no relaxation of the
+  strict `check_test_report.py` gate were introduced. Re-verified from an
+  extracted sdist, outside the checkout: `55 passed` with the gate
+  reporting `Required profile: 55 tests passed, no skips`.
+- Extractor claims: the previously documented "joins whose segment iterates
+  over a literal list" construction is not implemented — iterating an
+  inline literal list yields no reference. The claim was removed. The
+  review's suggestion to delete the append/loop machinery was tested and
+  rejected: `tests/test_jcampdx.py` uses exactly that form, and deletion
+  made 17 of its references invisible to generation-time validation and to
+  the   anti-regression test. The machinery stays; its docstring, the test
+  suite and this report now state the recognized constructions exactly,
+  and unit tests pin each form plus the literal-list limit.
+- A targeted counter-review confirmed the sdist fix (55 passed from an
+  extracted sdist, strict gate green) and the counter-proof (removing the
+  append/loop collection loses all 17 JCAMP-DX references), and returned a
+  final change on the generator's module docstring, which still claimed
+  that generation guarantees every consumed reference is declared. The
+  claim is now limited to recognized static references, with the
+  declarations covering the rest.
+
+Scope boundary and open points for the maintainer:
+
+- The extraction covers `test_agilent.py`, `test_bruker_with_test_data.py`,
+  `test_convert.py`, `test_jcampdx.py`, `test_jeol.py`, `test_rnmrtk.py`,
+  `test_simpson.py`, `test_sparky.py`, `test_tecmag.py`. The historical
+  NMRPipe file-I/O module (`test_pipe_with_test_data.py`, 25 extended tests)
+  and the RS2D/Spinsolve vendor profiles stay outside the manifest, matching
+  the critical-set classification above. Extending the inventory to them is a
+  decision.
+- The 4 JEOL release-critical tests are recorded as
+  `test_1d_complex_1{,_udic}` and `test_2d_cc_1{,_udic}` per the "1D/2D
+  complex read and udic" contract line; confirm the 2D pair if the intended
+  sample differs.
+- `bruker_3d` keeps a declared `pdata` gap although no tracked test consumes
+  it (the previous prose referred to a `test_bruker_3d` that does not exist).
+- Promoting any `extended_test_references` component into the release-critical
+  contract changes the contract and requires explicit approval.
 
 ## Other recorded validation limits
 
@@ -180,11 +312,17 @@ copies and record commands/tool versions before considering corpus updates.
 
 1. Approve the revised capability mapping without treating fixture reading as
    equivalent to independent conversion validation.
-2. Correct inventory completeness and specify reference generation/verification.
+2. Inventory completeness is corrected (see the scope-correction section);
+   the remaining decision is to specify reference generation/verification
+   (tools, commands, rights checks) before any corpus update.
 3. Choose provenance/hash coverage for packaged fixtures.
 4. Authorize a JCAMP-DX split preserving cross-encoding assertions.
 5. Decide SIMPSON scope after evaluating regeneration.
 6. Decide whether JEOL replacements must retain an independent Pipe comparison.
+7. Confirm the scope-boundary points listed in the scope-correction section
+   (scanned modules, JEOL 2D critical pair, `bruker_3d` pdata gap, and any
+   promotion out of `extended_test_references`).
 
-These decisions precede a complete release-critical validation run. No manifest,
-assertion, marker, fixture or release gate is changed by this report.
+These decisions precede a complete release-critical validation run. The
+scope-correction section records manifest/verifier tooling changes and their
+tests; it changes no scientific assertion, marker, fixture or release gate.

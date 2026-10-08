@@ -2,6 +2,7 @@ include *.txt
 include *.rst
 include tests/test_ci_validation.py
 include tests/test_testdata_manifest.py
+include maintainer/testdata-manifest.toml
 include .github/scripts/check_test_report.py
 include scripts/generate_testdata_manifest.py
 include scripts/verify_testdata.py

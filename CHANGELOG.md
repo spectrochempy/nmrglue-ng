@@ -29,6 +29,15 @@ original nmrglue project and are preserved for attribution and continuity.
   floating-point axis arguments (e.g. `swapaxes(0.5, 1)` truncated to axis 0).
   Both methods now use `operator.index` to validate axis types, matching NumPy.
   (#57)
+- Correct the external-data manifest scope: every reference consumed by the
+  release-critical dataset tests (NMRPipe `test.fid` outputs, RNMRTK
+  `.sec`/`.par` pairs, processed datasets, encoding outputs) is now either
+  inventoried or explicitly declared absent as a required component, and
+  group availability is derived from those components instead of being
+  asserted by hand. `scripts/verify_testdata.py` reports file integrity and
+  required-component availability separately and exits 2 (instead of 0) when
+  the release-critical corpus is incomplete. The manifest is shipped in the
+  sdist so the distributed manifest tests can load it. (#NNN)
 
 ### Added
 

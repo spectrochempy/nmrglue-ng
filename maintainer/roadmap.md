@@ -20,8 +20,15 @@ The recorded readiness verdict remains **BLOCKED**. See
 - [ ] Approve a revised capability/test/reference contract. At `34e057c`,
   14 historical critical tests passed and 28 failed for missing files;
   new autonomous fixtures do not automatically replace those references.
-- [ ] Correct manifest scope: missing conversion references must be inventoried
-  or explicitly declared absent before calling groups complete.
+- [x] Correct manifest scope: missing conversion references are inventoried
+  or explicitly declared absent before calling groups complete; the verifier
+  separates file integrity from required-component availability and returns 2
+  while critical components are missing. Independent review and targeted
+  counter-review corrections are applied (manifest shipped in the sdist,
+  extractor scope stated exactly and pinned, module docstring qualified);
+  the item closes after maintainer confirmation of the reserved scope
+  decisions below.
+  [Corpus report](reports/2026-10-critical-corpus.md).
 - [ ] Resolve provenance/redistribution for the retained critical corpus.
 - [ ] Provide reproducible, checksum-verified data acquisition and
   scheduled/manual critical-dataset validation.
@@ -45,7 +52,7 @@ Neither missing data nor classified historical differences are passing tests.
 | Topic | Next action / decision |
 |---|---|
 | Critical contract | Approve replacements individually; no JEOL, JCAMP-DX or SIMPSON requirement has been waived. |
-| Conversion references | Document all dependencies first; evaluate generation in a temporary copy, then assess provenance and redistribution separately. |
+| Conversion references | Dependencies are documented in the manifest as required components; evaluate generation in a temporary copy, then assess provenance and redistribution separately. |
 | Packaged fixtures | Choose a consistent provenance/checksum verification scheme; the external manifest does not currently cover them. |
 | Bruker `pdata` writer | Add autonomous read/write/read evidence using a copied, licensed fixture. |
 | JCAMP-DX encodings | Split the monolithic dataset test while preserving AFFN/PAC/SQZ/DIF equivalence and metadata checks. |
