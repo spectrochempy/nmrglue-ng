@@ -18,7 +18,7 @@ original nmrglue project and are preserved for attribution and continuity.
 ### Fixed
 
 - Preserve the NMRPipe digital-filter value `FDDMXVAL` in Pipe-to-Pipe
-  conversions. (PR pending)
+  conversions. (#65)
 - Fix `pipe_proc.ext()` retaining stale indirect-dimension size metadata after
   a 2D extraction and crashing when an indirect extraction extends past the
   last row. Preserve rounded-window placement after clipping out-of-range
