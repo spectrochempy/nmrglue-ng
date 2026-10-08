@@ -276,23 +276,21 @@ durable outcomes are recorded here):
   claim is now limited to recognized static references, with the
   declarations covering the rest.
 
-Scope boundary and open points for the maintainer:
+Scope boundary decisions confirmed by the maintainer:
 
 - The extraction covers `test_agilent.py`, `test_bruker_with_test_data.py`,
   `test_convert.py`, `test_jcampdx.py`, `test_jeol.py`, `test_rnmrtk.py`,
   `test_simpson.py`, `test_sparky.py`, `test_tecmag.py`. The historical
   NMRPipe file-I/O module (`test_pipe_with_test_data.py`, 25 extended tests)
   and the RS2D/Spinsolve vendor profiles stay outside the manifest, matching
-  the critical-set classification above. Extending the inventory to them is a
-  decision.
+  the critical-set classification above.
 - The 4 JEOL release-critical tests are recorded as
   `test_1d_complex_1{,_udic}` and `test_2d_cc_1{,_udic}` per the "1D/2D
-  complex read and udic" contract line; confirm the 2D pair if the intended
-  sample differs.
+  complex read and udic" contract line.
 - `bruker_3d` keeps a declared `pdata` gap although no tracked test consumes
   it (the previous prose referred to a `test_bruker_3d` that does not exist).
-- Promoting any `extended_test_references` component into the release-critical
-  contract changes the contract and requires explicit approval.
+- No `extended_test_references` component is promoted into the release-critical
+  contract in this correction.
 
 ## Other recorded validation limits
 
@@ -319,10 +317,6 @@ Scope boundary and open points for the maintainer:
 4. Authorize a JCAMP-DX split preserving cross-encoding assertions.
 5. Decide SIMPSON scope after evaluating regeneration.
 6. Decide whether JEOL replacements must retain an independent Pipe comparison.
-7. Confirm the scope-boundary points listed in the scope-correction section
-   (scanned modules, JEOL 2D critical pair, `bruker_3d` pdata gap, and any
-   promotion out of `extended_test_references`).
-
 These decisions precede a complete release-critical validation run. The
 scope-correction section records manifest/verifier tooling changes and their
 tests; it changes no scientific assertion, marker, fixture or release gate.

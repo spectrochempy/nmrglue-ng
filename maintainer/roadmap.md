@@ -26,8 +26,8 @@ The recorded readiness verdict remains **BLOCKED**. See
   while critical components are missing. Independent review and targeted
   counter-review corrections are applied (manifest shipped in the sdist,
   extractor scope stated exactly and pinned, module docstring qualified);
-  the item closes after maintainer confirmation of the reserved scope
-  decisions below.
+  the maintainer confirmed the reserved scope decisions recorded in the
+  corpus report.
   [Corpus report](reports/2026-10-critical-corpus.md).
 - [ ] Resolve provenance/redistribution for the retained critical corpus.
 - [ ] Provide reproducible, checksum-verified data acquisition and
