@@ -40,7 +40,7 @@ EXCLUDE_NAMES = {"README", "conversion_scripts"}
 EXCLUDE_SUFFIXES = {".com"}
 EXCLUDE_PREFIXES = {"make_"}
 
-MANIFEST_VERSION = "3"
+MANIFEST_VERSION = "4"
 
 # Files in the nmrglue v0.5 release archive for each group.
 # Derived/generated files (not in the archive) are listed separately.
@@ -60,13 +60,74 @@ ARCHIVE_FILES = {
 
 # Derived files generated locally (e.g., NMRPipe references), not in the archive.
 DERIVED_FILES = {
+    "agilent_1d": {
+        "patterns": ["test.fid"],
+        "count": 1,
+        "source": "NMRPipe-generated 1D conversion reference from fid",
+        "tool": "NMRPipe 13.0 Rev 2026.072.12.03 (var2pipe), per conversion_scripts/agilent2pipe_1d.com",
+        "redistribution_status": "UNRESOLVED",
+        "evidence": "generated locally; no explicit license; derivation tool is NMRPipe; "
+                    "var2pipe embeds the conversion timestamp in FDYEAR..FDSECS",
+    },
+    "agilent_2d": {
+        "patterns": ["test.fid"],
+        "count": 1,
+        "source": "NMRPipe-generated 2D conversion reference from fid",
+        "tool": "NMRPipe 13.0 Rev 2026.072.12.03 (var2pipe), per conversion_scripts/agilent2pipe_2d.com",
+        "redistribution_status": "UNRESOLVED",
+        "evidence": "generated locally; no explicit license; derivation tool is NMRPipe; "
+                    "var2pipe embeds the conversion timestamp in FDYEAR..FDSECS",
+    },
+    "agilent_3d": {
+        "patterns": ["data/test*.fid"],
+        "count": 128,
+        "source": "NMRPipe-generated indexed 3D conversion reference series from fid",
+        "tool": "NMRPipe 13.0 Rev 2026.072.12.03 (var2pipe), per conversion_scripts/agilent2pipe_3d.com",
+        "redistribution_status": "UNRESOLVED",
+        "evidence": "generated locally; no explicit license; derivation tool is NMRPipe; "
+                    "var2pipe embeds the conversion timestamp in FDYEAR..FDSECS",
+    },
+    "bruker_1d": {
+        "patterns": ["test.fid"],
+        "count": 1,
+        "source": "NMRPipe-generated 1D conversion reference from fid",
+        "tool": "NMRPipe 13.0 Rev 2026.072.12.03 (bruk2pipe), per conversion_scripts/bruker2pipe_1d.com",
+        "redistribution_status": "UNRESOLVED",
+        "evidence": "generated locally; no explicit license; derivation tool is NMRPipe",
+    },
+    "bruker_2d": {
+        "patterns": ["test.fid"],
+        "count": 1,
+        "source": "NMRPipe-generated 2D conversion reference from ser",
+        "tool": "NMRPipe 13.0 Rev 2026.072.12.03 (bruk2pipe), per conversion_scripts/bruker2pipe_2d.com",
+        "redistribution_status": "UNRESOLVED",
+        "evidence": "generated locally; no explicit license; derivation tool is NMRPipe",
+    },
     "bruker_3d": {
-        "pattern": "fid/test*.fid",
+        "patterns": ["fid/test*.fid"],
         "count": 116,
         "source": "NMRPipe-generated indexed references from ser",
         "tool": "NMRPipe (external software), per conversion_scripts/bruker2pipe_3d.com",
         "redistribution_status": "UNRESOLVED",
         "evidence": "generated locally; no explicit license; derivation tool is NMRPipe",
+    },
+    "simpson_1d": {
+        "patterns": ["1d_*.fid", "1d_*.spe"],
+        "count": 8,
+        "source": "SIMPSON-generated 1D time/frequency encoding set from rr.in",
+        "tool": "SIMPSON 4.2.1 with system Tcl 8.6.17, per data/simpson_1d/rr.in",
+        "redistribution_status": "UNRESOLVED",
+        "evidence": "generated locally from the released input script; no explicit "
+                    "license; derivation tool is SIMPSON",
+    },
+    "simpson_2d": {
+        "patterns": ["2d*.fid", "2d*.spe"],
+        "count": 8,
+        "source": "SIMPSON-generated 2D time/frequency encoding set from 2d.in",
+        "tool": "SIMPSON 4.2.1 with system Tcl 8.6.17, per data/simpson_2d/2d.in",
+        "redistribution_status": "UNRESOLVED",
+        "evidence": "generated locally from the released input script; no explicit "
+                    "license; derivation tool is SIMPSON",
     },
 }
 
@@ -75,18 +136,18 @@ DERIVED_FILES = {
 GROUP_META = {
     "agilent_1d": {
         "format": "Varian/Agilent",
-        "provenance": "nmrglue v0.5 release archive; community contribution",
+        "provenance": "nmrglue v0.5 release archive (2 original files) + 1 locally generated NMRPipe reference",
         "license": "BSD-3-Clause (nmrglue repository license; not separately applied to data)",
         "redistribution_status": "UNRESOLVED",
-        "evidence": "release asset has no explicit data license; repository license scope unconfirmed",
+        "evidence": "release asset has no explicit data license; derived NMRPipe reference generated locally, no explicit license",
         "notes": "real 1D acquisition; read/write and conversion tests",
     },
     "agilent_2d": {
         "format": "Varian/Agilent",
-        "provenance": "nmrglue v0.5 release archive; community contribution",
+        "provenance": "nmrglue v0.5 release archive (2 original files) + 1 locally generated NMRPipe reference",
         "license": "BSD-3-Clause (nmrglue repository license; not separately applied to data)",
         "redistribution_status": "UNRESOLVED",
-        "evidence": "release asset has no explicit data license; repository license scope unconfirmed",
+        "evidence": "release asset has no explicit data license; derived NMRPipe reference generated locally, no explicit license",
         "notes": "real 2D blocks; read/low-memory and conversion tests",
     },
     "agilent_2d_tppi": {
@@ -99,10 +160,10 @@ GROUP_META = {
     },
     "agilent_3d": {
         "format": "Varian/Agilent",
-        "provenance": "nmrglue v0.5 release archive; community contribution",
+        "provenance": "nmrglue v0.5 release archive (2 original files) + 128 locally generated NMRPipe references",
         "license": "BSD-3-Clause (nmrglue repository license; not separately applied to data)",
         "redistribution_status": "UNRESOLVED",
-        "evidence": "release asset has no explicit data license; repository license scope unconfirmed",
+        "evidence": "release asset has no explicit data license; derived NMRPipe reference series generated locally, no explicit license",
         "notes": "real 3D blocks; read/low-memory and conversion tests",
     },
     "agilent_4d": {
@@ -115,18 +176,18 @@ GROUP_META = {
     },
     "bruker_1d": {
         "format": "Bruker",
-        "provenance": "nmrglue v0.5 release archive; community contribution",
+        "provenance": "nmrglue v0.5 release archive (4 original files) + 1 locally generated NMRPipe reference",
         "license": "BSD-3-Clause (nmrglue repository license; not separately applied to data)",
         "redistribution_status": "UNRESOLVED",
-        "evidence": "release asset has no explicit data license; repository license scope unconfirmed",
+        "evidence": "release asset has no explicit data license; derived NMRPipe reference generated locally, no explicit license",
         "notes": "real FID, parameters, pulse program; read tests",
     },
     "bruker_2d": {
         "format": "Bruker",
-        "provenance": "nmrglue v0.5 release archive; community contribution",
+        "provenance": "nmrglue v0.5 release archive (6 original files) + 1 locally generated NMRPipe reference",
         "license": "BSD-3-Clause (nmrglue repository license; not separately applied to data)",
         "redistribution_status": "UNRESOLVED",
-        "evidence": "release asset has no explicit data license; repository license scope unconfirmed",
+        "evidence": "release asset has no explicit data license; derived NMRPipe reference generated locally, no explicit license",
         "notes": "ser, padding, parameters; read/low-memory and conversion tests",
     },
     "bruker_3d": {
@@ -139,19 +200,19 @@ GROUP_META = {
     },
     "simpson_1d": {
         "format": "SIMPSON",
-        "provenance": "nmrglue v0.5 release archive; simulator input",
+        "provenance": "nmrglue v0.5 release archive (1 original input) + 8 locally generated SIMPSON outputs",
         "license": "BSD-3-Clause (nmrglue repository license; not separately applied to data)",
         "redistribution_status": "UNRESOLVED",
-        "evidence": "release asset has no explicit data license; repository license scope unconfirmed",
-        "notes": "1D input file; encoding-set tests need generated outputs",
+        "evidence": "release asset has no explicit data license; derived SIMPSON outputs generated locally from the released input script, no explicit license",
+        "notes": "1D simulator input and generated encoding outputs",
     },
     "simpson_2d": {
         "format": "SIMPSON",
-        "provenance": "nmrglue v0.5 release archive; simulator input",
+        "provenance": "nmrglue v0.5 release archive (1 original input) + 8 locally generated SIMPSON outputs",
         "license": "BSD-3-Clause (nmrglue repository license; not separately applied to data)",
         "redistribution_status": "UNRESOLVED",
-        "evidence": "release asset has no explicit data license; repository license scope unconfirmed",
-        "notes": "2D input file; encoding-set tests need generated outputs",
+        "evidence": "release asset has no explicit data license; derived SIMPSON outputs generated locally from the released input script, no explicit license",
+        "notes": "2D simulator input and generated encoding outputs",
     },
     "tecmag": {
         "format": "Tecmag",
@@ -163,10 +224,14 @@ GROUP_META = {
     },
 }
 
-# The 42 release-critical tests of the historical contract (PR #26 assessment,
-# fdee69f:maintainer/audits/2026-10-release-critical-dataset.md). The scope of
-# a required component is "critical" when at least one of its consumers is in
-# this set, "extended" otherwise.
+# The release-critical tests of the first-release contract. They derive from
+# the historical 42-test contract (PR #26 assessment,
+# fdee69f:maintainer/audits/2026-10-release-critical-dataset.md) minus the
+# RNMRTK/Sparky and JEOL historical reference tests deferred by the maintainer
+# decisions of 2026-10-08 (maintainer/testdata-policy.md, PR #67). Bruker
+# pdata read/write and the JCAMP-DX encoding set remain in the contract
+# provisionally. The scope of a required component is "critical" when at
+# least one of its consumers is in this set.
 CRITICAL_TESTS = frozenset({
     "tests/fileio/test_agilent.py::test_1d",
     "tests/fileio/test_agilent.py::test_2d",
@@ -189,27 +254,38 @@ CRITICAL_TESTS = frozenset({
     "tests/fileio/test_convert.py::test_agilent_2d_lowmem",
     "tests/fileio/test_convert.py::test_agilent_3d",
     "tests/fileio/test_convert.py::test_agilent_3d_lowmem",
-    "tests/fileio/test_convert.py::test_agilent_3d_rnmrtk",
     "tests/fileio/test_convert.py::test_bruker_1d",
     "tests/fileio/test_convert.py::test_bruker_2d",
     "tests/fileio/test_convert.py::test_bruker_2d_lowmem",
     "tests/fileio/test_convert.py::test_bruker_3d",
     "tests/fileio/test_convert.py::test_bruker_3d_lowmem",
+    "tests/fileio/test_jcampdx.py::test_jcampdx1",
+    "tests/fileio/test_simpson.py::test_1d_time",
+    "tests/fileio/test_simpson.py::test_2d_freq",
+})
+
+# The historical release-critical tests deferred from the first-release
+# contract by the maintainer decisions of 2026-10-08 (maintainer/testdata-
+# policy.md, PR #67): nine RNMRTK/Sparky and four JEOL tests whose real
+# reference profiles remain unavailable. Their tests, component declarations
+# and format support are retained; only the release-critical status of the
+# reference requirements is deferred. The scope of a required component is
+# "deferred" when it has no critical consumer but at least one consumer in
+# this set.
+DEFERRED_TESTS = frozenset({
+    "tests/fileio/test_convert.py::test_agilent_3d_rnmrtk",
     "tests/fileio/test_convert.py::test_bruker_3d_rnmrtk",
+    "tests/fileio/test_convert.py::test_rnmrtk_3d",
     "tests/fileio/test_convert.py::test_sparky_2d",
     "tests/fileio/test_convert.py::test_sparky_2d_lowmem",
-    "tests/fileio/test_convert.py::test_rnmrtk_3d",
-    "tests/fileio/test_jcampdx.py::test_jcampdx1",
+    "tests/fileio/test_rnmrtk.py::test_3d_time",
+    "tests/fileio/test_rnmrtk.py::test_3d_freq",
+    "tests/fileio/test_sparky.py::test_2d",
+    "tests/fileio/test_sparky.py::test_2d_lowmem",
     "tests/fileio/test_jeol.py::test_1d_complex_1",
     "tests/fileio/test_jeol.py::test_1d_complex_1_udic",
     "tests/fileio/test_jeol.py::test_2d_cc_1",
     "tests/fileio/test_jeol.py::test_2d_cc_1_udic",
-    "tests/fileio/test_rnmrtk.py::test_3d_time",
-    "tests/fileio/test_rnmrtk.py::test_3d_freq",
-    "tests/fileio/test_simpson.py::test_1d_time",
-    "tests/fileio/test_simpson.py::test_2d_freq",
-    "tests/fileio/test_sparky.py::test_2d",
-    "tests/fileio/test_sparky.py::test_2d_lowmem",
 })
 
 # Dataset-dependent test modules whose data references the manifest accounts
@@ -397,7 +473,7 @@ REQUIRED_COMPONENTS = {
         "rnmrtk_reference": {
             "paths": ["bruker_3d/time_3d.sec", "bruker_3d/time_3d.par"],
             "required_by": ["tests/fileio/test_convert.py::test_bruker_3d_rnmrtk"],
-            "notes": "RNMRTK 3D time-domain reference and its parameter file",
+            "notes": "RNMRTK 3D time-domain reference and its parameter file; deferred from the first-release critical contract (2026-10-08)",
         },
         "pdata": {
             "paths": ["bruker_3d/pdata"],
@@ -459,7 +535,7 @@ REQUIRED_COMPONENTS = {
                 "tests/fileio/test_jeol.py::test_1d_complex_1",
                 "tests/fileio/test_jeol.py::test_1d_complex_1_udic",
             ],
-            "notes": "real 1D JDF binary structure and independent NMRPipe reference",
+            "notes": "real 1D JDF binary structure and independent NMRPipe reference; deferred from the first-release critical contract (2026-10-08)",
         },
     },
     "jeol_2d_complex_pipe_reference": {
@@ -470,7 +546,7 @@ REQUIRED_COMPONENTS = {
                 "tests/fileio/test_jeol.py::test_2d_cc_1",
                 "tests/fileio/test_jeol.py::test_2d_cc_1_udic",
             ],
-            "notes": "real 2D JDF quadrature/layout and independent NMRPipe reference",
+            "notes": "real 2D JDF quadrature/layout and independent NMRPipe reference; deferred from the first-release critical contract (2026-10-08)",
         },
     },
     "sparky_2d_ucsf_pipe_reference": {
@@ -482,7 +558,7 @@ REQUIRED_COMPONENTS = {
                 "tests/fileio/test_convert.py::test_sparky_2d",
                 "tests/fileio/test_convert.py::test_sparky_2d_lowmem",
             ],
-            "notes": "tiled UCSF 2D spectrum",
+            "notes": "tiled UCSF 2D spectrum; deferred from the first-release critical contract (2026-10-08)",
         },
         "pipe_reference": {
             "paths": ["nmrpipe_2d/test.ft2"],
@@ -490,7 +566,8 @@ REQUIRED_COMPONENTS = {
                 "tests/fileio/test_convert.py::test_sparky_2d",
                 "tests/fileio/test_convert.py::test_sparky_2d_lowmem",
             ],
-            "notes": "NMRPipe-generated 2D conversion reference",
+            "notes": "NMRPipe-generated 2D conversion reference; deferred from "
+                     "the first-release critical contract (2026-10-08)",
         },
     },
     "rnmrtk_3d_time_reference": {
@@ -500,7 +577,7 @@ REQUIRED_COMPONENTS = {
                 "tests/fileio/test_rnmrtk.py::test_3d_time",
                 "tests/fileio/test_convert.py::test_agilent_3d_rnmrtk",
             ],
-            "notes": "real complex 3D RNMRTK file and its parameter file",
+            "notes": "real complex 3D RNMRTK file and its parameter file; deferred from the first-release critical contract (2026-10-08)",
         },
     },
     "rnmrtk_3d_frequency_pipe_reference": {
@@ -510,12 +587,13 @@ REQUIRED_COMPONENTS = {
                 "tests/fileio/test_rnmrtk.py::test_3d_freq",
                 "tests/fileio/test_convert.py::test_rnmrtk_3d",
             ],
-            "notes": "real 3D RNMRTK frequency file and its parameter file",
+            "notes": "real 3D RNMRTK frequency file and its parameter file; deferred from the first-release critical contract (2026-10-08)",
         },
         "pipe_reference": {
             "paths": ["rnmrtk_3d/test.ft3"],
             "required_by": ["tests/fileio/test_convert.py::test_rnmrtk_3d"],
-            "notes": "NMRPipe-generated 3D conversion reference",
+            "notes": "NMRPipe-generated 3D conversion reference; deferred from "
+                     "the first-release critical contract (2026-10-08)",
         },
     },
     "jcampdx_affn_spectrum": {
@@ -620,31 +698,31 @@ MISSING_GROUPS = {
         "format": "JEOL + Pipe",
         "redistribution_status": "NOT_AVAILABLE",
         "evidence": "absent from nmrglue repository, v0.5 release archive, and local corpus; PR #228 added code+tests only; maintainer asked about data availability but no resolution recorded",
-        "notes": "real JDF binary structure; data not found in examined sources",
+        "notes": "real JDF binary structure; data not found in examined sources; deferred from the first-release critical contract (2026-10-08)",
     },
     "jeol_2d_complex_pipe_reference": {
         "format": "JEOL + Pipe",
         "redistribution_status": "NOT_AVAILABLE",
         "evidence": "absent from nmrglue repository, v0.5 release archive, and local corpus; PR #228 added code+tests only; maintainer asked about data availability but no resolution recorded",
-        "notes": "real 2D JDF quadrature/layout; data not found in examined sources",
+        "notes": "real 2D JDF quadrature/layout; data not found in examined sources; deferred from the first-release critical contract (2026-10-08)",
     },
     "sparky_2d_ucsf_pipe_reference": {
         "format": "UCSF + Pipe",
         "redistribution_status": "UNRESOLVED",
         "evidence": "not present in local corpus or v0.5 archive",
-        "notes": "tiled UCSF layout; requires acquisition or licensed spectrum",
+        "notes": "tiled UCSF layout; requires acquisition or licensed spectrum; deferred from the first-release critical contract (2026-10-08)",
     },
     "rnmrtk_3d_time_reference": {
         "format": "RNMRTK",
         "redistribution_status": "UNRESOLVED",
         "evidence": "not present in local corpus or v0.5 archive",
-        "notes": "real complex 3D file; requires independent generation",
+        "notes": "real complex 3D file; requires independent generation; deferred from the first-release critical contract (2026-10-08)",
     },
     "rnmrtk_3d_frequency_pipe_reference": {
         "format": "RNMRTK + Pipe",
         "redistribution_status": "UNRESOLVED",
         "evidence": "not present in local corpus or v0.5 archive",
-        "notes": "real frequency file and independent conversion reference",
+        "notes": "real frequency file and independent conversion reference; deferred from the first-release critical contract (2026-10-08)",
     },
     "jcampdx_affn_spectrum": {
         "format": "JCAMP-DX",
@@ -657,20 +735,6 @@ MISSING_GROUPS = {
         "redistribution_status": "UNRESOLVED",
         "evidence": "not present in local corpus or v0.5 archive",
         "notes": "real NTUPLES arrays; requires licensed test set",
-    },
-    "simpson_1d_encoding_set": {
-        "format": "SIMPSON",
-        "redistribution_status": "UNRESOLVED",
-        "evidence": "input .in present; encoding outputs not generated",
-        "notes": "TEXT/BINARY/XREIM/RAWBIN equivalence; requires SIMPSON regeneration; "
-                 "output paths are declared as components of group simpson_1d",
-    },
-    "simpson_2d_encoding_set": {
-        "format": "SIMPSON",
-        "redistribution_status": "UNRESOLVED",
-        "evidence": "input .in present; encoding outputs not generated",
-        "notes": "2D encoding variants; requires SIMPSON regeneration; "
-                 "output paths are declared as components of group simpson_2d",
     },
     "extended_test_references": {
         "format": "various",
@@ -712,11 +776,12 @@ def classify_file(rel_path: str, group_name: str) -> str:
 
     derived = DERIVED_FILES.get(group_name, {})
     if derived:
-        pattern = derived.get("pattern", "")
-        if pattern:
-            import fnmatch
-            if fnmatch.fnmatch(group_rel, pattern):
-                return "derived"
+        patterns = derived.get("patterns") or derived.get("pattern", "")
+        if isinstance(patterns, str):
+            patterns = [patterns]
+        import fnmatch
+        if any(fnmatch.fnmatch(group_rel, p) for p in patterns):
+            return "derived"
     return "unknown"
 
 
@@ -811,7 +876,12 @@ def derive_availability(statuses: list) -> str:
 
 
 def component_scope(required_by: list) -> str:
-    return "critical" if set(required_by) & CRITICAL_TESTS else "extended"
+    consumers = set(required_by)
+    if consumers & CRITICAL_TESTS:
+        return "critical"
+    if consumers & DEFERRED_TESTS:
+        return "deferred"
+    return "extended"
 
 
 def iter_components():
@@ -977,10 +1047,11 @@ def extract_data_references(module_path: Path) -> dict:
     literal list directly (``for name in ["a.bin", "b.bin"]``), segments
     coming from function parameters, glob or temporary-directory results,
     or any other runtime-built value. Extraction does not claim
-    exhaustiveness over a module. The release-critical contract is enforced
-    independently by the declarative checks (every ``CRITICAL_TESTS`` id
-    declared in a component, unknown ids rejected), and generation refuses
-    to write a manifest that leaves a recognized reference unaccounted for.
+    exhaustiveness over a module. The release contract is enforced
+    independently by the declarative checks (every ``CRITICAL_TESTS`` or
+    ``DEFERRED_TESTS`` id declared in a component, unknown ids rejected), and
+    generation refuses to write a manifest that leaves a recognized reference
+    unaccounted for.
     """
     tree = ast.parse(module_path.read_text(encoding="utf-8"), filename=str(module_path))
     env = {}
@@ -1087,8 +1158,8 @@ def validate_declarations(files: dict) -> list:
     covered = set()
     for entry, comp_id, comp in iter_components():
         covered.update(comp["required_by"])
-    for test_id in sorted(CRITICAL_TESTS - covered):
-        errors.append(f"UNDECLARED CRITICAL TEST: {test_id} appears in no component")
+    for test_id in sorted((CRITICAL_TESTS | DEFERRED_TESTS) - covered):
+        errors.append(f"UNDECLARED CONTRACT TEST: {test_id} appears in no component")
 
     declared = set(all_component_paths())
     for module in SCANNED_TEST_MODULES:
@@ -1210,6 +1281,8 @@ def main():
     absent_components = 0
     critical_components = 0
     absent_critical_components = 0
+    deferred_components = 0
+    absent_deferred_components = 0
     for entry, comp_id, comp in iter_components():
         status = component_states[(entry, comp_id)][0]
         scope = component_scope(comp["required_by"])
@@ -1220,6 +1293,10 @@ def main():
             critical_components += 1
             if status == "absent":
                 absent_critical_components += 1
+        elif scope == "deferred":
+            deferred_components += 1
+            if status == "absent":
+                absent_deferred_components += 1
 
     lines = []
     lines.append("# nmrglue-ng release-critical test-data manifest")
@@ -1236,7 +1313,10 @@ def main():
     lines.append("#   absent  - explicitly declared missing; no file matches the paths")
     lines.append("#")
     lines.append("# Component scope values:")
-    lines.append("#   critical - consumed by at least one release-critical test")
+    lines.append("#   critical - consumed by at least one first-release critical test")
+    lines.append("#   deferred - consumed only by tests deferred from the first-release")
+    lines.append("#              critical contract (RNMRTK/Sparky and JEOL historical")
+    lines.append("#              references; maintainer decision 2026-10-08)")
     lines.append("#   extended - consumed only by extended-validation or low-priority tests")
     lines.append("")
     lines.append("[manifest]")
@@ -1249,7 +1329,10 @@ def main():
     lines.append(f"absent_components = {absent_components}")
     lines.append(f"critical_components = {critical_components}")
     lines.append(f"absent_critical_components = {absent_critical_components}")
+    lines.append(f"deferred_components = {deferred_components}")
+    lines.append(f"absent_deferred_components = {absent_deferred_components}")
     lines.append(f"critical_tests = {_toml_value(sorted(CRITICAL_TESTS))}")
+    lines.append(f"deferred_tests = {_toml_value(sorted(DEFERRED_TESTS))}")
     lines.append("")
 
     for gname, gdata in groups.items():
@@ -1280,8 +1363,11 @@ def main():
             status = component_states[(gname, comp_id)][0]
             emit_component(lines, f"groups.{gname}.components", comp_id, comp, status)
 
-    lines.append("# Release-critical groups and reference sets NOT present in the")
-    lines.append("# local corpus. extended_test_references is not a contract group: it")
+    lines.append("# Groups and reference sets NOT present in the local corpus.")
+    lines.append("# RNMRTK/Sparky and JEOL reference entries are deferred from the")
+    lines.append("# first-release critical contract (maintainer decision 2026-10-08,"
+                 " PR #67); their tests, declarations and support are retained.")
+    lines.append("# extended_test_references is not a contract group: it")
     lines.append("# records references consumed only by extended-validation or")
     lines.append("# low-priority tests so that no consumed path stays silent.")
     lines.append("")
@@ -1311,6 +1397,7 @@ def main():
     print(f"  Total size:       {sum(g['total_size'] for g in groups.values())} bytes")
     print(f"  Components:       {total_components} ({absent_components} absent)")
     print(f"  Critical:         {critical_components} ({absent_critical_components} absent)")
+    print(f"  Deferred:         {deferred_components} ({absent_deferred_components} absent)")
     return 0
 
 

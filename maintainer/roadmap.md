@@ -1,6 +1,6 @@
 # nmrglue-ng roadmap
 
-Status updated on **2026-10-09**, against `d9ba184`. This is the current
+Status updated on **2026-10-09**, against `7a7f935`. This is the current
 action list; dated evidence and qualifications live in the
 [maintainer reports](README.md). Consolidation is not a new test run or a
 change to scientific validation results. The approved local-data policy below
@@ -19,10 +19,20 @@ The recorded readiness verdict remains **BLOCKED**. See
 - [x] Historical critical contract identified: 16 logical groups / 42 tests.
 - [x] Versioned external-data manifest and local size/SHA-256 verifier.
 - [ ] Implement the approved first-release corpus dispositions in the
-  capability/test/reference contract (see [policy](testdata-policy.md)):
-  generate NMRPipe/SIMPSON references, replace historical Bruker pdata,
-  defer RNMRTK/Sparky/JEOL historical reference requirements.
-  JCAMP-DX scope remains open. Historical counts (14/42 passes, 28 missing-file
+  capability/test/reference contract (see [policy](testdata-policy.md)).
+  Contract translation and local reference integration were completed on
+  2026-10-09 at `7a7f935` and reviewed the same day in a separate session
+  (changes requested: three minor documentation/coverage findings, no
+  scientific or gating defect; findings verified addressed the same day — see the
+  review note and implementer follow-up in the
+  [corpus report](reports/2026-10-critical-corpus.md#independent-review-of-the-contract-translation-and-integration--2026-10-09)):
+  the manifest contract
+  now carries 29 first-release critical tests plus 13 explicitly deferred
+  (RNMRTK/Sparky/JEOL historical reference profiles, tests and declarations
+  retained), and the validated NMRPipe/SIMPSON references are in the local
+  corpus with their inventory. Remaining: replace historical Bruker pdata
+  (requirements retained provisionally); JCAMP-DX scope remains open.
+  Historical counts (14/42 passes, 28 missing-file
   failures at `34e057c`) remain evidence of the old contract, not a new result.
 - [x] Correct manifest scope: missing conversion references are inventoried
   or explicitly declared absent before calling groups complete; the verifier
@@ -62,11 +72,11 @@ Neither missing data nor classified historical differences are passing tests.
 
 | Topic | Next action / decision |
 |---|---|
-| Critical contract | Translate the 2026-10-08 decisions into the generator/manifest and coverage mapping. RNMRTK/Sparky/JEOL historical reference profiles are deferred; Bruker pdata replacement is approved subject to validation. JCAMP-DX and SIMPSON requirements remain. |
+| Critical contract | The 2026-10-08 decisions are translated into the generator/manifest at `7a7f935` (2026-10-09, reviewed the same day; minor findings addressed the same day): `CRITICAL_TESTS` holds the 29 first-release ids, `DEFERRED_TESTS` the 13 deferred RNMRTK/Sparky/JEOL ids, component scope is three-valued (`critical`/`deferred`/`extended`), manifest schema v4. Bruker pdata replacement remains approved subject to validation. JCAMP-DX and SIMPSON requirements remain. [Corpus report](reports/2026-10-critical-corpus.md#contract-translation-and-local-reference-integration--2026-10-09). |
 | Local corpus use | Historical archive accepted for local testing; `UNRESOLVED` redistribution status alone no longer blocks those tests. Identify missing references and record actual results. |
 | Data redistribution | Distribute only files/groups with recorded public-domain status, an applicable license or permission; keep other accepted inputs local/private. |
-| NMRPipe conversion references | The `FDDMXVAL` correction is integrated in #65 (`7ef9b8f`). Recorded NMRPipe 13.0 validation: all eight Agilent/Bruker full/low-memory cases pass in disposable copies. [Corpus evidence](reports/2026-10-critical-corpus.md). Reference integration remains separately authorized. |
-| RNMRTK/Sparky references | Deferred from first-release critical scope by maintainer decision; retain tests and format support, document absent real-reference validation, and revisit with contributed data. Manifest translation remains to do. |
+| NMRPipe conversion references | The `FDDMXVAL` correction is integrated in #65 (`7ef9b8f`). Recorded NMRPipe 13.0 validation: all eight Agilent/Bruker full/low-memory cases pass in disposable copies. On 2026-10-09 the five references were regenerated (132 files) and validated with the FDDMXVAL regression (9 passed) then integrated into the local corpus; Bruker outputs are byte-identical to the 2026-10-08 receipts, Agilent outputs differ only in the var2pipe conversion-timestamp header fields. Independently reviewed 2026-10-09 (byte identity and timestamp property reproduced by the reviewer). [Corpus evidence](reports/2026-10-critical-corpus.md#contract-translation-and-local-reference-integration--2026-10-09). |
+| RNMRTK/Sparky references | Deferred from first-release critical scope by maintainer decision; retain tests and format support, document absent real-reference validation, and revisit with contributed data. The deferral is translated into the contract (`DEFERRED_TESTS`, component scope `deferred`); nothing remains to do on the manifest side. |
 | Packaged fixtures | Choose a consistent provenance/checksum verification scheme; the external manifest does not currently cover them. |
 | Bruker `pdata` | Replace the two historical processed datasets with licensed fixtures; add missing read/write/read evidence and reconcile the historical requirements. |
 | Bruker JCAMP line endings | Reproduce CR-only decoding with a self-contained fixture, then consider the upstream #261 `StringIO(..., newline=None)` correction in a separate fix. |
@@ -74,7 +84,7 @@ Neither missing data nor classified historical differences are passing tests.
 | JCAMP-DX tuples | Validate `(XYW..XYW)` / `(XYM..XYM)` tuple-size behavior independently, then adapt upstream #262 in a separate change if the evidence supports it. |
 | JCAMP-DX FID metadata | Aligned locally with final upstream #231/#291 semantics after #54: FID sweep width uses `(N - 1) / (LAST-FIRST)`, complex arrays use `np.iscomplexobj`, `as_complex=True` leaves incomplete R/I pairs unchanged, and NTUPLES fallback requires exact `NMR FID` when `DATATYPE` is absent. The synthetic FID fixture now uses sampling-consistent LAST coordinates. Targeted validation: `tests/fileio/test_jcampdx_fixtures.py` passed on 2026-10-08. |
 | Bruker processing-file priority | Scientific investigation and a compatibility decision are still required before choosing `proc`/`proc2` versus `procs`/`proc2s` precedence. |
-| SIMPSON | Shape correction integrated in #66 (`d9ba184`): single-element 1D TEXT/BINARY returns `(NP,)`, preserving multi-element/2D behavior and BINARY header checks. Independent review and counter-review approved it. Recorded validation: 441 autonomous passes with CSDM and 4/4 dataset tests on disposable outputs. Generated-reference integration remains separately authorized. [Resolution evidence](reports/2026-10-critical-corpus.md#shape-contract-resolution--2026-10-08). |
+| SIMPSON | Shape correction integrated in #66 (`d9ba184`): single-element 1D TEXT/BINARY returns `(NP,)`, preserving multi-element/2D behavior and BINARY header checks. Independent review and counter-review approved it. Recorded validation: 441 autonomous passes with CSDM and 4/4 dataset tests on disposable outputs. On 2026-10-09 the 16 encoding outputs were regenerated from `rr.in`/`2d.in` (SIMPSON 4.2.1, system Tcl 8.6.17), validated (4/4 dataset tests, 9/9 autonomous shape regressions) and integrated into the local corpus. Independently reviewed 2026-10-09 (1D outputs reproduced byte-identically by the reviewer). [Resolution evidence](reports/2026-10-critical-corpus.md#shape-contract-resolution--2026-10-08) and [integration evidence](reports/2026-10-critical-corpus.md#contract-translation-and-local-reference-integration--2026-10-09). |
 | JEOL | Historical independent reference pairs are deferred from first-release critical scope; retain the reader and licensed autonomous tests. Revisit with user demand or contributed data/reference results, potentially from the reader author. No contact is authorized by this entry. |
 | `data_nd` | Reviews approved at `23cdba1`; changelog references corrected to #56/#57. The documented Boolean-axis compatibility difference remains outside these fixes. |
 | Test hygiene | Make failed NMRPipe comparisons clean generated artifacts reliably. |

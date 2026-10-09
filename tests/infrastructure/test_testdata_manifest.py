@@ -18,12 +18,18 @@ import verify_testdata
 
 
 DEFAULT_CRITICAL_TEST = "tests/fileio/test_dummy.py::test_critical"
+DEFAULT_DEFERRED_TEST = "tests/fileio/test_dummy.py::test_deferred"
 
 
 def make_component(paths, status="present", required_by=None, notes=""):
     if required_by is None:
         required_by = []
-    scope = "critical" if DEFAULT_CRITICAL_TEST in required_by else "extended"
+    if DEFAULT_CRITICAL_TEST in required_by:
+        scope = "critical"
+    elif DEFAULT_DEFERRED_TEST in required_by:
+        scope = "deferred"
+    else:
+        scope = "extended"
     return {
         "status": status,
         "scope": scope,
@@ -33,7 +39,8 @@ def make_component(paths, status="present", required_by=None, notes=""):
     }
 
 
-def make_manifest(groups=None, missing=None, critical_tests=None, overrides=None):
+def make_manifest(groups=None, missing=None, critical_tests=None, deferred_tests=None,
+                  overrides=None):
     """Build a manifest dict with self-consistent declared counters."""
     if groups is None:
         groups = {}
@@ -41,27 +48,42 @@ def make_manifest(groups=None, missing=None, critical_tests=None, overrides=None
         missing = {}
     if critical_tests is None:
         critical_tests = [DEFAULT_CRITICAL_TEST]
+    if deferred_tests is None:
+        deferred_tests = [DEFAULT_DEFERRED_TEST]
     components = [
         c for g in list(groups.values()) + list(missing.values())
         for c in g.get("components", {}).values()
     ]
     critical = set(critical_tests)
+    deferred = set(deferred_tests)
+
+    def is_critical(c):
+        return bool(set(c.get("required_by", [])) & critical)
+
+    def is_deferred(c):
+        required_by = set(c.get("required_by", []))
+        return not (required_by & critical) and bool(required_by & deferred)
+
     info = {
-        "version": "3",
+        "version": "4",
         "total_groups": len(groups),
         "total_files": sum(g.get("file_count", 0) for g in groups.values()),
         "total_size": sum(g.get("total_size", 0) for g in groups.values()),
         "missing_groups": len(missing),
         "total_components": len(components),
         "absent_components": sum(1 for c in components if c.get("status") == "absent"),
-        "critical_components": sum(
-            1 for c in components if set(c.get("required_by", [])) & critical
-        ),
+        "critical_components": sum(1 for c in components if is_critical(c)),
         "absent_critical_components": sum(
             1 for c in components
-            if c.get("status") == "absent" and set(c.get("required_by", [])) & critical
+            if c.get("status") == "absent" and is_critical(c)
+        ),
+        "deferred_components": sum(1 for c in components if is_deferred(c)),
+        "absent_deferred_components": sum(
+            1 for c in components
+            if c.get("status") == "absent" and is_deferred(c)
         ),
         "critical_tests": list(critical_tests),
+        "deferred_tests": list(deferred_tests),
     }
     if overrides:
         info.update(overrides)
@@ -425,6 +447,22 @@ class TestAvailabilityResultAxes:
         manifest = make_manifest(groups={"grp": group})
         assert run_verify(tmp_path / "m.toml", data_dir, manifest) == 0
 
+    def test_absent_deferred_component_returns_zero(self, tmp_path):
+        """A deferred reference gap must not gate the first-release verdict."""
+        data_dir = self._corpus(tmp_path)
+        group = make_group(
+            files={"grp/raw.bin": make_file_entry(b"x")},
+            components={
+                "raw": make_component(["grp/raw.bin"], status="present"),
+                "deferred_ref": make_component(
+                    ["grp/test.sec"], status="absent",
+                    required_by=[DEFAULT_DEFERRED_TEST],
+                ),
+            },
+        )
+        manifest = make_manifest(groups={"grp": group})
+        assert run_verify(tmp_path / "m.toml", data_dir, manifest) == 0
+
     def test_integrity_failure_returns_one_not_two(self, tmp_path):
         data_dir = self._corpus(tmp_path)
         group = make_group(
@@ -514,6 +552,11 @@ class TestDerivation:
     def test_scope_derived_from_required_by(self):
         scope = generate_testdata_manifest.component_scope
         assert scope(["tests/fileio/test_convert.py::test_agilent_1d"]) == "critical"
+        assert scope([
+            "tests/fileio/test_convert.py::test_agilent_1d",
+            "tests/fileio/test_rnmrtk.py::test_3d_time",
+        ]) == "critical"
+        assert scope(["tests/fileio/test_rnmrtk.py::test_3d_time"]) == "deferred"
         assert scope([]) == "extended"
         assert scope(["tests/fileio/test_x.py::test_y"]) == "extended"
 
@@ -565,6 +608,18 @@ class TestRequirementCoverage:
         missing = sorted(critical - covered)
         assert not missing, f"release-critical tests in no component: {missing}"
 
+    def test_deferred_tests_are_all_declared(self):
+        manifest = load_tracked_manifest()
+        covered = set()
+        for section in ("groups", "missing"):
+            for gdata in manifest.get(section, {}).values():
+                for comp in gdata.get("components", {}).values():
+                    covered.update(comp.get("required_by", []))
+        deferred = set(manifest["manifest"]["deferred_tests"])
+        assert deferred == set(generate_testdata_manifest.DEFERRED_TESTS)
+        missing = sorted(deferred - covered)
+        assert not missing, f"deferred contract tests in no component: {missing}"
+
     def test_declared_test_ids_exist(self):
         known = generate_testdata_manifest.known_test_ids()
         manifest = load_tracked_manifest()
@@ -586,6 +641,7 @@ class TestRequirementCoverage:
         info = manifest["manifest"]
         assert info["version"] == generate_testdata_manifest.MANIFEST_VERSION
         assert set(info["critical_tests"]) == set(generate_testdata_manifest.CRITICAL_TESTS)
+        assert set(info["deferred_tests"]) == set(generate_testdata_manifest.DEFERRED_TESTS)
 
 
 class TestStaticExtractorScope:
@@ -676,15 +732,23 @@ class TestStaticExtractorScope:
 
 class TestArchetypeRawPresentReferenceMissing:
     """A group whose raw data is present but whose conversion reference is
-    missing must not be declared complete."""
+    missing must not be declared complete.
+
+    The behavior is pinned synthetically in
+    ``test_synthetic_raw_present_reference_missing_is_partial``. The tracked
+    agilent_1d tests record the integrated state after the 2026-10-09 NMRPipe
+    reference integration: the reference is declared, inventoried and its
+    group is derived complete from its components.
+    """
 
     def test_tracked_agilent_1d_declares_its_conversion_reference(self):
         manifest = load_tracked_manifest()
         group = manifest["groups"]["agilent_1d"]
-        assert group["availability"] != "complete"
+        assert group["availability"] == "complete"
         pipe = group["components"]["pipe_reference"]
-        assert pipe["status"] == "absent"
+        assert pipe["status"] == "present"
         assert "agilent_1d/test.fid" in pipe["paths"]
+        assert "agilent_1d/test.fid" in group["files"]
         assert "tests/fileio/test_convert.py::test_agilent_1d" in pipe["required_by"]
 
     def test_tracked_agilent_1d_raw_is_present(self):

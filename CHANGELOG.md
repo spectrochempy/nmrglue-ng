@@ -9,6 +9,14 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ### Changed
 
+- Translate the approved first-release corpus scope decisions into the
+  machine-readable test-data contract and integrate the validated NMRPipe and
+  SIMPSON references into the local external corpus. The regenerated manifest
+  (schema v4) records the 29 release-critical tests and the 13
+  RNMRTK/Sparky/JEOL historical reference tests deferred from that contract,
+  with a three-valued component scope (`critical`/`deferred`/`extended`);
+  tests, declarations and format support are retained and no redistribution
+  status changes. No data is committed or redistributed by this change.
 - Document accepted local use of the historical test archive separately from
   redistribution rights, and record maintainer-approved first-release corpus
   scope decisions. The manifest and executable test contract will be updated

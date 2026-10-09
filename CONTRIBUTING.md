@@ -150,8 +150,8 @@ The sdist contains all `tests/`, fixtures, `pytest.ini`, the manifest and their
 infrastructure dependencies. The packaging job separately extracts it outside
 the checkout and executes `tests/infrastructure/test_ci_validation.py` and
 `tests/infrastructure/test_testdata_manifest.py` with the fresh environment's
-Python (`-I -m pytest`). It requires all 55 cases through the extracted
-`check_test_report.py sdist.xml 55`. This focused check does not claim that the
+Python (`-I -m pytest`). It requires all 57 cases through the extracted
+`check_test_report.py sdist.xml 57`. This focused check does not claim that the
 complete repository test suite runs from the sdist.
 
 ### Pre-commit
@@ -273,8 +273,9 @@ Two independent controls keep the declarations honest, each with a stated
 scope:
 
 - **declaration closure** — every `required_by` id must resolve to a real
-  test in a scanned module, and all 42 release-critical test ids must
-  appear in at least one component; the manifest is not written otherwise;
+  test in a scanned module, and all first-release and deferred contract test
+  ids must appear in at least one component; the manifest is not written
+  otherwise;
 - **reference cross-check** — a static extractor collects the `DATA_DIR`
   references it recognizes (joins and `Path` division with literal
   segments, f-strings interpolating a resolved alias, alias assignments,
@@ -285,17 +286,24 @@ scope:
 The extractor is a complementary control limited to those constructions:
 references built at runtime — from parameters, from a literal list
 iterated directly, from glob or temporary paths — are not recognized.
-Declaring all 42 test ids therefore does not, by itself, prove that every
+Declaring all contract test ids therefore does not, by itself, prove that every
 file a test consumes is declared. The exact scope of the automated
 controls, and the independent review that confronted the extractor with
 every `DATA_DIR` use of the current modules, are recorded in
 `maintainer/reports/2026-10-critical-corpus.md`.
 
 A component is `critical` when at least one consumer belongs to the
-historical 42-test release-critical contract, `extended` otherwise. Group
-availability is derived from its components and is never asserted by hand,
-so a group whose raw data is present while a conversion reference is missing
-is reported `partial`, not `complete`. References consumed only by
+first-release critical contract, `deferred` when it has no critical consumer
+but at least one consumer whose test is deferred from that contract by the
+maintainer decisions of 2026-10-08 (RNMRTK/Sparky and JEOL historical
+references; see
+[`maintainer/testdata-policy.md`](maintainer/testdata-policy.md)), and
+`extended` otherwise. The two contract sets are recorded as
+`critical_tests` and `deferred_tests` in the manifest; deferred tests,
+their component declarations and the format support remain in the tree.
+Group availability is derived from its components and is never asserted by
+hand, so a group whose raw data is present while a conversion reference is
+missing is reported `partial`, not `complete`. References consumed only by
 extended-validation or low-priority tests are recorded under
 `[missing.extended_test_references]` so no consumed path stays silent;
 promoting any of them into the release-critical contract is a maintainer
@@ -324,7 +332,8 @@ The verifier reports two result axes that must not be conflated:
 the `AVAILABILITY` section or the exit code for that. Exit codes are:
 
 - `0` — integrity OK and every release-critical component is present
-  (extended-only absences are listed but do not change the exit code);
+  (deferred and extended-only absences are listed but do not change the exit
+  code);
 - `1` — error: structural inconsistency, integrity failure, or a component
   whose declaration does not match the corpus;
 - `2` — integrity OK and every declaration consistent, but at least one

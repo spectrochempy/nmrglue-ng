@@ -117,7 +117,7 @@ jobs:
         tar -xzf "${{ runner.temp }}"/dist/*.tar.gz -C "${{ runner.temp }}/sdist"
         "${{ runner.temp }}/wheel-env/bin/python" -I -m pytest "${{ runner.temp }}"/sdist/*/tests/infrastructure/test_ci_validation.py "${{ runner.temp }}"/sdist/*/tests/infrastructure/test_testdata_manifest.py --strict-markers --strict-config -ra --junitxml="${{ runner.temp }}/sdist.xml"
     - name: Require executed sdist tests
-      run: python "${{ runner.temp }}"/sdist/*/.github/scripts/check_test_report.py "${{ runner.temp }}/sdist.xml" 55
+      run: python "${{ runner.temp }}"/sdist/*/.github/scripts/check_test_report.py "${{ runner.temp }}/sdist.xml" 57
     - name: Validate installed package outside checkout
       working-directory: ${{ runner.temp }}
       run: >-

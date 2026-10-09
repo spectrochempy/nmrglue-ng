@@ -14,7 +14,9 @@ Two result axes are reported separately:
 Results and exit codes:
 
 * ``0`` -- integrity OK and every release-critical component is present.
-  Extended-only absences are listed but do not change the exit code.
+  Deferred and extended-only absences are listed but do not change the exit
+  code (deferred components are held out of the first-release critical
+  contract by the maintainer decisions of 2026-10-08).
 * ``1`` -- error: structural inconsistency, integrity failure, or a
   component whose declaration does not match the corpus.
 * ``2`` -- integrity OK and every declaration consistent, but at least one
@@ -44,6 +46,7 @@ EXCLUDE_SUFFIXES = {".com"}
 EXCLUDE_PREFIXES = {"make_"}
 
 VALID_STATUSES = {"present", "absent"}
+VALID_SCOPES = {"critical", "deferred", "extended"}
 
 
 def load_manifest() -> dict:
@@ -92,29 +95,47 @@ def verify_structure(manifest: dict) -> list:
     if not groups:
         errors.append("STRUCTURAL: manifest contains no groups")
         return errors
-    if info.get("version") != "3":
+    if info.get("version") != "4":
         errors.append(
-            f"STRUCTURAL: unsupported manifest version {info.get('version')!r} (expected '3')"
+            f"STRUCTURAL: unsupported manifest version {info.get('version')!r} (expected '4')"
         )
 
     critical_tests = info.get("critical_tests", [])
     if not isinstance(critical_tests, list) or not critical_tests:
         errors.append("STRUCTURAL: manifest.critical_tests must be a non-empty list")
         critical_tests = []
+    deferred_tests = info.get("deferred_tests", [])
+    if not isinstance(deferred_tests, list):
+        errors.append("STRUCTURAL: manifest.deferred_tests must be a list")
+        deferred_tests = []
 
     total_files = sum(g.get("file_count", 0) for g in groups.values())
     total_size = sum(g.get("total_size", 0) for g in groups.values())
     components = list(iter_components(manifest))
     total_components = len(components)
     absent_components = sum(1 for *_, c in components if c.get("status") == "absent")
-    critical_components = sum(
-        1 for *_, c in components
-        if set(c.get("required_by", [])) & set(critical_tests)
-    )
+
+    def is_scope(comp, scope):
+        required_by = set(comp.get("required_by", []))
+        if scope == "critical":
+            return bool(required_by & set(critical_tests))
+        if scope == "deferred":
+            return not (required_by & set(critical_tests)) and bool(
+                required_by & set(deferred_tests)
+            )
+        return not (required_by & set(critical_tests)) and not (
+            required_by & set(deferred_tests)
+        )
+
+    critical_components = sum(1 for *_, c in components if is_scope(c, "critical"))
     absent_critical_components = sum(
         1 for *_, c in components
-        if c.get("status") == "absent"
-        and set(c.get("required_by", [])) & set(critical_tests)
+        if c.get("status") == "absent" and is_scope(c, "critical")
+    )
+    deferred_components = sum(1 for *_, c in components if is_scope(c, "deferred"))
+    absent_deferred_components = sum(
+        1 for *_, c in components
+        if c.get("status") == "absent" and is_scope(c, "deferred")
     )
 
     for key, actual in (
@@ -126,6 +147,8 @@ def verify_structure(manifest: dict) -> list:
         ("absent_components", absent_components),
         ("critical_components", critical_components),
         ("absent_critical_components", absent_critical_components),
+        ("deferred_components", deferred_components),
+        ("absent_deferred_components", absent_deferred_components),
     ):
         declared = info.get(key)
         if declared != actual:
@@ -147,8 +170,15 @@ def verify_structure(manifest: dict) -> list:
         if not isinstance(required_by, list):
             errors.append(f"STRUCTURAL: {label} must declare a required_by list")
             required_by = []
-        expected_scope = "critical" if set(required_by) & set(critical_tests) else "extended"
-        if comp.get("scope") != expected_scope:
+        expected_scope = next(
+            s for s in ("critical", "deferred", "extended")
+            if is_scope(comp, s)
+        )
+        if comp.get("scope") not in VALID_SCOPES:
+            errors.append(
+                f"STRUCTURAL: {label} has invalid scope {comp.get('scope')!r}"
+            )
+        elif comp.get("scope") != expected_scope:
             errors.append(
                 f"STRUCTURAL: {label} declares scope={comp.get('scope')!r} "
                 f"but required_by implies {expected_scope!r}"
@@ -276,10 +306,13 @@ def detect_extra_files(manifest_groups: dict, data_dir: Path) -> list:
 def verify_availability(manifest: dict, data_dir: Path) -> tuple:
     """Check component statuses against the corpus.
 
-    Returns (errors, stats) where stats counts components per scope/status.
+    Returns ``(errors, stats, absent)`` where stats counts components per
+    scope/status and ``absent`` lists every absent component labeled by its
+    scope.
     """
     errors = []
     critical_tests = set(manifest.get("manifest", {}).get("critical_tests", []))
+    deferred_tests = set(manifest.get("manifest", {}).get("deferred_tests", []))
     inventoried = {
         rel for gdata in manifest.get("groups", {}).values()
         for rel in gdata.get("files", {})
@@ -293,16 +326,25 @@ def verify_availability(manifest: dict, data_dir: Path) -> tuple:
         "critical": 0,
         "critical_present": 0,
         "critical_absent": 0,
+        "deferred": 0,
+        "deferred_absent": 0,
     }
-    absent_critical = []
+    absent = []
     for section, entry, comp_id, comp in iter_components(manifest):
         label = f"{section}.{entry}.components.{comp_id}"
         status = comp.get("status")
-        required_by = comp.get("required_by", [])
-        is_critical = bool(set(required_by) & critical_tests)
+        required_by = set(comp.get("required_by", []))
+        if required_by & critical_tests:
+            scope = "critical"
+        elif required_by & deferred_tests:
+            scope = "deferred"
+        else:
+            scope = "extended"
         stats["total"] += 1
-        if is_critical:
+        if scope == "critical":
             stats["critical"] += 1
+        elif scope == "deferred":
+            stats["deferred"] += 1
 
         if on_disk is not None:
             matches = set()
@@ -322,14 +364,16 @@ def verify_availability(manifest: dict, data_dir: Path) -> tuple:
 
         if status == "present":
             stats["present"] += 1
-            if is_critical:
+            if scope == "critical":
                 stats["critical_present"] += 1
         else:
             stats["absent"] += 1
-            if is_critical:
+            absent.append((scope, label))
+            if scope == "critical":
                 stats["critical_absent"] += 1
-                absent_critical.append(label)
-    return errors, stats, absent_critical
+            elif scope == "deferred":
+                stats["deferred_absent"] += 1
+    return errors, stats, absent
 
 
 def main():
@@ -391,26 +435,33 @@ def main():
     print()
 
     print("AVAILABILITY")
-    avail_errors, stats, absent_critical = verify_availability(manifest, DATA_DIR)
+    avail_errors, stats, absent = verify_availability(manifest, DATA_DIR)
     for e in avail_errors:
         print(f"  {e}")
         total_errors += 1
     print(
         f"  required components: {stats['total']} "
-        f"({stats['critical']} release-critical), "
-        f"absent: {stats['absent']} ({stats['critical_absent']} release-critical)"
+        f"({stats['critical']} release-critical, {stats['deferred']} deferred), "
+        f"absent: {stats['absent']} "
+        f"({stats['critical_absent']} release-critical, "
+        f"{stats['deferred_absent']} deferred)"
     )
-    for label in absent_critical:
-        print(f"  ABSENT (critical): {label}")
+    for scope, label in absent:
+        print(f"  ABSENT ({scope}): {label}")
     if stats["critical_absent"]:
         print(
             f"AVAILABILITY: INCOMPLETE — {stats['critical_absent']} of "
-            f"{stats['critical']} release-critical components declared absent"
+            f"{stats['critical']} release-critical components declared absent "
+            f"({stats['deferred_absent']} deferred, "
+            f"{stats['absent'] - stats['critical_absent'] - stats['deferred_absent']}"
+            f" extended-only)"
         )
     else:
         print(
             f"AVAILABILITY: COMPLETE — all {stats['critical']} release-critical "
-            f"components inventoried ({stats['absent']} extended-only absences)"
+            f"components inventoried ({stats['deferred_absent']} deferred, "
+            f"{stats['absent'] - stats['critical_absent'] - stats['deferred_absent']}"
+            f" extended-only absences)"
         )
     print()
 
