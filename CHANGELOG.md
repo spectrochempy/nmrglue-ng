@@ -12,7 +12,7 @@ original nmrglue project and are preserved for attribution and continuity.
 - Document accepted local use of the historical test archive separately from
   redistribution rights, and record maintainer-approved first-release corpus
   scope decisions. The manifest and executable test contract will be updated
-  separately; no data is redistributed by this policy change. (PR pending)
+  separately; no data is redistributed by this policy change. (#67)
 - Centralize the test suite under `tests/` with file-I/O, processing,
   analysis, infrastructure and fixture directories. The wheel is now
   runtime-only and no longer exposes the non-public
