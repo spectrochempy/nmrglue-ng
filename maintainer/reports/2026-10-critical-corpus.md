@@ -579,3 +579,307 @@ Independent review confirmed the NMRPipe interpretation, Pipe-only preservation
 and converter reuse behavior without findings. It independently reproduced the
 9-pass copied-checkout result and canonical 145/145 integrity verification.
 Separately authorized integration is still required.
+
+## Contract translation and local reference integration — 2026-10-09
+
+Current-author work on the uncommitted working tree at `7a7f935` (master),
+authorized by the maintainer the same day: translate the first-release corpus
+dispositions of 2026-10-08 (`testdata-policy.md`, PR #67) into the
+machine-readable contract, regenerate the NMRPipe and SIMPSON references on
+disposable copies, validate them, and integrate only the validated outputs
+into the local corpus with their versioned inventory. No data file is
+committed to Git, redistributed or published; redistribution status is
+unchanged everywhere (`UNRESOLVED` / `NOT_AVAILABLE`, nothing marked
+`CLEAR`). This section supersedes the "Separately authorized integration is
+still required" conclusion above and the corresponding *Remaining
+implementation* items 1, 2 and 6 for the parts completed here. It is not an
+independent review and not a release-readiness claim.
+
+### Machine-readable contract (generator, then regenerated manifest)
+
+The translation is implemented in `scripts/generate_testdata_manifest.py`
+and `scripts/verify_testdata.py`; `maintainer/testdata-manifest.toml` was
+regenerated, never hand-edited. Manifest schema version 3 -> 4.
+
+- `CRITICAL_TESTS` = the 29 first-release tests; `DEFERRED_TESTS` (new) = the
+  13 tests deferred on 2026-10-08 (nine RNMRTK/Sparky, four JEOL). Deferred
+  tests, their `required_by` consumer declarations and the format support all
+  remain in the tree.
+- Component scope is now three-valued and derived: `critical` (a consumer in
+  `CRITICAL_TESTS`), `deferred` (no critical consumer but a consumer in
+  `DEFERRED_TESTS`), `extended` (otherwise). `[manifest]` carries
+  `deferred_tests`, `deferred_components` and `absent_deferred_components`.
+- Declaration closure now requires every critical and deferred contract id to
+  appear in a component. Bruker pdata read/write and the JCAMP-DX set remain
+  release-critical (pdata provisionally, JCAMP-DX still open).
+- The verifier lists every absent component labeled by scope and still
+  separates integrity from availability with unchanged exit-code semantics
+  (`2` = files conform, release-critical components missing).
+
+Exact test correspondence by the historical capability table (enumerated
+sums, not subtraction):
+
+| Historical capability | Before | After |
+|---|---:|---:|
+| Varian 1D/2D/TPPI/3D read, round trips, low-memory | 7 | 7 |
+| Bruker raw 1D/2D/3D and low-memory | 5 | 5 |
+| Bruker pdata read/write | 4 | 4 (retained provisionally) |
+| Agilent↔Pipe 1D/2D/3D incl. low-memory | 5 | 5 |
+| Bruker↔Pipe 1D/2D incl. low-memory | 3 | 3 |
+| Bruker↔Pipe 3D incl. low-memory | 2 | 2 |
+| Agilent↔RNMRTK, Bruker↔RNMRTK, RNMRTK↔Pipe 3D | 3 | 0 (3 deferred) |
+| Sparky 2D read and low-memory | 2 | 0 (2 deferred) |
+| Sparky↔Pipe 2D and low-memory | 2 | 0 (2 deferred) |
+| RNMRTK 3D time/frequency read | 2 | 0 (2 deferred) |
+| SIMPSON 1D/2D encoding equivalence | 2 | 2 |
+| JEOL 1D/2D complex read and udic | 4 | 0 (4 deferred) |
+| JCAMP-DX encoding set | 1 | 1 (kept open) |
+| **Total** | **42** | **29 critical + 13 deferred** |
+
+Component scopes, computed by running the generator at each stage:
+
+| Scope | Before | After translation | After integration |
+|---|---:|---:|---:|
+| critical | 27 | 19 | 19 (15 present / 4 absent) |
+| deferred | 0 | 8 (all absent) | 8 (all absent) |
+| extended | 15 | 15 (4 present / 11 absent) | 15 (6 present / 9 absent) |
+
+The 8 components moving `critical -> deferred` are `groups.bruker_3d.rnmrtk_reference`,
+the two JEOL `reference_pair` components, the two `sparky_2d_ucsf_pipe_reference`
+components and the three RNMRTK 3D components (`rnmrtk_3d_time_reference.time_reference`,
+`rnmrtk_3d_frequency_pipe_reference.{frequency_reference,pipe_reference}`) —
+the six RNMRTK/Sparky plus two JEOL components named in the policy. All other
+34 components keep their scope; `agilent_3d.raw` and `bruker_3d.raw` stay
+critical because they keep both retained and deferred consumers.
+
+### NMRPipe reference generation and validation
+
+NMRPipe 13.0 Rev 2026.072.12.03 64-bit (`var2pipe`, `bruk2pipe`, `nmrPipe`)
+with the historical unmodified `data/conversion_scripts` scripts, on a
+disposable copy whose `data/` contains only the five raw groups and
+`conversion_scripts/`; copied inputs matched the manifest hashes. All five
+scripts exited 0 and produced the five authorized reference sets (132 files);
+the scripts' side copies into `nmrpipe_1d/`, `nmrpipe_2d/` and `nmrpipe_3d/`
+are outside the authorized list and were discarded with the copy.
+
+The eight conversion tests plus the FDDMXVAL regression
+(`test_agilent_1d`, `test_agilent_2d`, `test_agilent_2d_lowmem`,
+`test_agilent_3d`, `test_agilent_3d_lowmem`, `test_bruker_1d`,
+`test_bruker_2d`, `test_bruker_2d_lowmem`,
+`test_pipe_to_pipe_preserves_digital_filter_value`) ran in the copied
+checkout: **9 passed, 0 skipped** (only the three pre-existing Bruker `sr`
+warnings), reproducing the recorded post-#65 result. No new discrepancy.
+
+Relation to the 2026-10-08 receipts recorded above:
+
+- `bruker_1d/test.fid` (`b4ad9a4580f267f8763778b4b18b549bb25edf70374b70912e5dc9ca6a97a2a7`)
+  and `bruker_2d/test.fid`
+  (`1cbe3951dad0b987647bcc87803d35d82d63aa92a1d6153d641af6e6a9c575a2`)
+  are byte-identical to the recorded session hashes.
+- The Agilent outputs cannot reproduce the recorded session hashes
+  (`36e1acda…`, `ed656283…`) byte-for-byte: `var2pipe` embeds the conversion
+  timestamp in `FDYEAR/FDMONTH/FDDAY/FDHOURS/FDMINS/FDSECS`, exactly the
+  fields the Pipe comparisons exclude (`bad_pipe_keys`), while `bruk2pipe`
+  writes them as zero. A second generation from fresh input copies differed
+  from the first only in `FDMINS`/`FDSECS` (header words 284/285), with
+  byte-identical payloads. Byte identity with the 2026-10-08 outputs is
+  therefore not claimed; consistency rests on the Bruker byte matches, this
+  determinism proof, unchanged scripts/inputs/tool version and the 9/9
+  result. Future regeneration receipts should state this timestamp property
+  explicitly and treat content (payload + non-timestamp header) — not whole
+  file bytes — as the reproducible quantity for var2pipe outputs.
+- The ordered 132-output digest stream of this generation is
+  `47514268963834d2b2a784590ba840ec397d0f8f2c2fdd441ca0278d454a8938`
+  (`find agilent_1d/test.fid agilent_2d/test.fid agilent_3d/data
+  bruker_1d/test.fid bruker_2d/test.fid -type f | sort | xargs sha256sum |
+  sha256sum`); the recorded `2afd82bd…` stream covers the same 132 paths of
+  the 2026-10-08 session.
+
+### SIMPSON reference generation and validation
+
+SIMPSON 4.2.1 (`simpson` banner) installed user-locally; the wrapper runs the
+bundled numerical libraries against the **system Tcl 8.6.17**
+(`/usr/lib/x86_64-linux-gnu/libtcl8.6.so`; `info patchlevel` through the
+binary reports 8.6.17). This mixed runtime is part of the regeneration
+receipt. Inputs were copies of `data/simpson_1d/rr.in` (SHA-256 `87bab45c…`)
+and `data/simpson_2d/2d.in` (SHA-256 `b0900790…`), matching the inventory.
+`simpson rr.in` and `simpson 2d.in` exited 0 on the copies and produced the
+16 encoding outputs (TEXT/BINARY/XREIM-or-XYREIM/RAWBIN, time and frequency,
+1D and 2D) plus `2d.ppm`, an unconsumed `fplot2d` product that was not
+integrated.
+
+Validation on the copies: the four dataset tests (`test_1d_time`,
+`test_1d_freq`, `test_2d_time`, `test_2d_freq`) **4 passed**; the nine
+autonomous shape-contract regressions (`tests/fileio/test_simpson_shapes.py`)
+**9 passed**; supplementary `tests/fileio/test_simpson_errors.py` 1 passed.
+No new discrepancy with the shape-contract resolution recorded above.
+
+### Corpus integration and verification
+
+Only the validated outputs were added to the local corpus after a no-overwrite
+pre-flight: 148 files / 132,728,613 bytes —
+`agilent_1d/test.fid`, `agilent_2d/test.fid`, `bruker_1d/test.fid`,
+`bruker_2d/test.fid`, the 128-file `agilent_3d/data/test%03d.fid` series, and
+the two 8-file SIMPSON encoding sets. Inventory comparison of the whole
+`data/` tree before and after: **0 pre-existing file changed, 0 removed,
+148 added**; each integrated file is byte-identical to the validated copy
+output (148/148 hash bridge), so the copy-based results apply to the
+integrated files.
+
+Provenance is recorded per file in the regenerated manifest (SHA-256, size,
+provenance class `derived`) and per group in the generator (`DERIVED_FILES`
+entries name the source inputs, the tool and version, the generating script
+or input file, and the rights evidence). The `simpson_*_encoding_set`
+placeholders left `[missing.*]`: their outputs are materialized as components
+of `groups.simpson_1d`/`groups.simpson_2d`.
+
+Post-integration verifier result (current author, this baseline):
+
+- INTEGRITY: PASSED — 293/293 inventoried files verified, 0 errors
+  (145 pre-existing + 148 integrated; 460,540,851 bytes);
+- AVAILABILITY: INCOMPLETE — 4 of 19 release-critical components declared
+  absent (8 deferred, 9 extended-only), exit 2 as expected.
+
+The four remaining release-critical absences are the two Bruker `pdata`
+components (retained provisionally until the licensed-fixture replacement and
+writer evidence) and the two JCAMP-DX components (scope unchanged, still
+open). The eight deferred components stay explicitly absent and visible.
+
+### Reproducible local generation
+
+All generation runs on disposable copies; nothing writes into the corpus
+during tests.
+
+```bash
+# NMRPipe references (NMRPipe 13.0 Rev 2026.072.12.03)
+export PATH="$HOME/pipe/nmrbin.linux239_64:$PATH"
+# in a disposable copy of data/ containing the five raw groups + conversion_scripts/
+cd data/conversion_scripts
+mkdir -p ../agilent_3d/data
+for script in agilent2pipe_1d.com agilent2pipe_2d.com agilent2pipe_3d.com \
+              bruker2pipe_1d.com bruker2pipe_2d.com; do
+    /bin/csh "$script"
+done
+
+# SIMPSON references (SIMPSON 4.2.1, system Tcl 8.6.17)
+# in disposable copies of data/simpson_1d and data/simpson_2d
+simpson rr.in
+simpson 2d.in
+```
+
+Inputs are identified by the manifest inventory (`rr.in` `87bab45c…`, `2d.in`
+`b0900790…`, raw groups unchanged); outputs are identified by the manifest
+checksums. Note that re-running the var2pipe conversions reproduces the
+content but not the exact bytes of previously generated Agilent references
+(see the timestamp property above).
+
+### Validation battery at this baseline
+
+Infrastructure/manifest tests **56 passed** (one added contract test; the CI
+sdist requirement is updated 55 -> 56 in `CONTRIBUTING.md` and the workflow);
+autonomous CI profile **442 passed, 147 deselected**; extracted-sdist run of
+the two infrastructure modules outside the checkout **56 passed** with the
+strict gate `check_test_report.py sdist.xml 56` reporting
+`Required profile: 56 tests passed, no skips`; the wheel staged-case count is
+unchanged (**64** = 45 NMRPipe + 19 Bruker collected). `twine check --strict`
+and the wheel-install harness were not executed (tools absent from the
+primary environment and no installs authorized); the sdist build used the
+installed PEP 517 setuptools backend. Dataset and external-software profiles
+ran only on disposable copies before integration, plus 5 read-only cases
+re-executed against the integrated corpus after the hash bridge (5 passed).
+
+## Independent review of the contract translation and integration — 2026-10-09
+
+Separate reviewer session (not the implementer), same baseline: uncommitted
+working tree at `7a7f935`, diff `git diff 7a7f935` (9 files). The reviewer
+worked from the need, `maintainer/testdata-policy.md`, the diff and the
+data; the implementer's section above was treated as claims to verify. Full
+review record: `maintainer/audits/2026-10-09-corpus-contract-and-integration-review.md`
+(local, ignored); the conclusions below are self-contained.
+
+Reproduced independently: old `CRITICAL_TESTS` = 42 and `old = critical ∪
+deferred`, `old − critical = deferred` exactly (29 + 13, disjoint, by
+enumerated test ids); 42 components derived three-valued from `required_by`
+(19 critical = 15 present / 4 absent; 8 deferred all absent; 15 extended =
+6 present / 9 absent), with the 8 deferred components exactly the six
+RNMRTK/Sparky plus two JEOL reference-pair components named in the policy;
+`generate_testdata_manifest.py` output byte-identical to the tracked
+manifest (293 files / 460,540,851 bytes); `verify_testdata.py` exit 2 with
+INTEGRITY 293/293 and the four declared critical absences (two Bruker
+`pdata`, two JCAMP-DX), all 21 absences listed by scope. Reviewer test runs:
+infrastructure **56 passed**, autonomous profile **442 passed / 147
+deselected**, the eight conversion tests plus the FDDMXVAL regression
+**9 passed** and the SIMPSON dataset/shape/error tests **14 passed** against
+the integrated corpus (0 skips anywhere); sdist gate accepts exactly 56 and
+rejects 55; wheel staged cases still 64. Corpus inventory captured before
+and after every run: unchanged; 0 pre-existing files modified or removed,
+148 added (132,728,613 bytes), hash bridge 148/148, no `nmrpipe_*` side
+copies and no `2d.ppm`, nothing marked `CLEAR`.
+
+Scientific recomputation by regeneration on disposable copies (NMRPipe 13.0
+Rev 2026.072.12.03, SIMPSON 4.2.1): `bruker_1d/test.fid` byte-identical to
+the corpus and to the 2026-10-08 receipt; `agilent_1d/test.fid` differs from
+the corpus in exactly four bytes, all inside float32 header words 284/285
+(`FDMINS`/`FDSECS`), payload and all other words identical — confirming the
+var2pipe timestamp property and that content, not whole-file bytes, is the
+reproducible quantity; the eight SIMPSON 1D encoding outputs byte-identical
+from `rr.in`. The `FDYEAR..FDSECS` fields carry the conversion timestamp in
+the Agilent outputs and zeros in the Bruker outputs, and are exactly the
+`bad_pipe_keys` exclusions. No marker, skip, xfail or tolerance was added,
+removed or loosened; the `TestArchetypeRawPresentReferenceMissing` change is
+inventory-state tracking (it adds a file-membership assertion) while the
+synthetic archetype `…_is_partial` remains intact and still pins exit 2.
+
+Verdict: **changes requested** — three minor introduced defects, no
+scientific or gating defect: (1) `CONTRIBUTING.md` link to
+`maintainer/testdata-policy.md` uses a wrong href (`testdata-policy.md`);
+(2) the roadmap RNMRTK/Sparky row still says "Manifest translation remains
+to do" while the translation is completed; (3) no test asserts deferred
+declaration closure symmetrically to `test_critical_tests_are_all_declared`
+(generator enforcement exists). Pre-existing and out of scope: convert
+tests write temporaries into CWD (known *Test hygiene* item). Pending: the
+CHANGELOG entry still needs its `(#NNN)` when the PR opens. Not re-verified
+here: `twine check --strict` and the wheel-install harness (tools absent).
+
+### Implementer follow-up to the review — 2026-10-09
+
+Same day, same baseline (`7a7f935` working tree). The three review findings
+were addressed; nothing else changed.
+
+1. `CONTRIBUTING.md` — the scope paragraph's link now targets
+   `maintainer/testdata-policy.md` (was the dead href `testdata-policy.md`).
+2. `maintainer/roadmap.md` — the RNMRTK/Sparky row no longer claims "Manifest
+   translation remains to do"; it records the translated deferral
+   (`DEFERRED_TESTS`, component scope `deferred`).
+3. `tests/infrastructure/test_testdata_manifest.py` — new
+   `test_deferred_tests_are_all_declared` mirrors
+   `test_critical_tests_are_all_declared`: every `DEFERRED_TESTS` id must
+   appear in at least one component. The infrastructure profile therefore
+   moves **56 -> 57** cases and the CI sdist gate with it
+   (`CONTRIBUTING.md`, `.github/workflows/ci.yml`: `check_test_report.py
+   sdist.xml 57`), superseding the 56 counts reported above and in the
+   review section.
+
+Closure checks requested by the review, re-run here: `git diff --check`
+silent; `tests/infrastructure/` **57 passed, 0 skipped**;
+`scripts/verify_testdata.py` unchanged — INTEGRITY 293/293, AVAILABILITY 4
+of 19 release-critical absent (8 deferred, 9 extended-only), exit 2. The
+extracted-sdist run reports 57 passed and the strict gate accepts 57
+(`Required profile: 57 tests passed, no skips`) while correctly rejecting 56
+(`Required profile executed 57 tests, expected 56`, exit 1). The review's
+other pending item — the CHANGELOG `(#NNN)` reference — is filled when the
+PR is opened; the pre-existing convert-test CWD temporaries remain the known
+*Test hygiene* roadmap item.
+
+Reviewer closure re-check, same day and same baseline: the three findings
+were verified fixed. `CONTRIBUTING.md` now links to
+`maintainer/testdata-policy.md`, the RNMRTK/Sparky roadmap row records the
+completed deferral translation instead of saying it remains to do, and
+`test_deferred_tests_are_all_declared` now pins deferred declaration closure.
+Reviewer validation: `git diff --check` silent; infrastructure **57 passed**;
+sdist gate 57 accepted and 56 rejected; `verify_testdata.py` unchanged
+(293/293, exit 2 on the four declared critical absences); corpus digest
+unchanged from the reviewed post-integration state. Final review conclusion:
+ready after follow-up for this scope, with the CHANGELOG PR number,
+pre-existing `test_convert.py` temporary-file hygiene, and absent
+`twine`/wheel-install execution still outside scope.

@@ -12,36 +12,42 @@
 #   absent  - explicitly declared missing; no file matches the paths
 #
 # Component scope values:
-#   critical - consumed by at least one release-critical test
+#   critical - consumed by at least one first-release critical test
+#   deferred - consumed only by tests deferred from the first-release
+#              critical contract (RNMRTK/Sparky and JEOL historical
+#              references; maintainer decision 2026-10-08)
 #   extended - consumed only by extended-validation or low-priority tests
 
 [manifest]
-version = "3"
+version = "4"
 total_groups = 11
-total_files = 145
-total_size = 327812238
-missing_groups = 10
+total_files = 293
+total_size = 460540851
+missing_groups = 8
 total_components = 42
-absent_components = 30
-critical_components = 27
-absent_critical_components = 19
-critical_tests = ["tests/fileio/test_agilent.py::test_1d", "tests/fileio/test_agilent.py::test_2d", "tests/fileio/test_agilent.py::test_2d_lowmem", "tests/fileio/test_agilent.py::test_2d_tppi", "tests/fileio/test_agilent.py::test_2d_tppi_lowmem", "tests/fileio/test_agilent.py::test_3d", "tests/fileio/test_agilent.py::test_3d_lowmem", "tests/fileio/test_bruker_with_test_data.py::test_1d", "tests/fileio/test_bruker_with_test_data.py::test_2d", "tests/fileio/test_bruker_with_test_data.py::test_2d_lowmem", "tests/fileio/test_bruker_with_test_data.py::test_3d", "tests/fileio/test_bruker_with_test_data.py::test_3d_lowmem", "tests/fileio/test_bruker_with_test_data.py::test_read_pdata_1d", "tests/fileio/test_bruker_with_test_data.py::test_read_pdata_2d", "tests/fileio/test_bruker_with_test_data.py::test_write_pdata_1d", "tests/fileio/test_bruker_with_test_data.py::test_write_pdata_2d", "tests/fileio/test_convert.py::test_agilent_1d", "tests/fileio/test_convert.py::test_agilent_2d", "tests/fileio/test_convert.py::test_agilent_2d_lowmem", "tests/fileio/test_convert.py::test_agilent_3d", "tests/fileio/test_convert.py::test_agilent_3d_lowmem", "tests/fileio/test_convert.py::test_agilent_3d_rnmrtk", "tests/fileio/test_convert.py::test_bruker_1d", "tests/fileio/test_convert.py::test_bruker_2d", "tests/fileio/test_convert.py::test_bruker_2d_lowmem", "tests/fileio/test_convert.py::test_bruker_3d", "tests/fileio/test_convert.py::test_bruker_3d_lowmem", "tests/fileio/test_convert.py::test_bruker_3d_rnmrtk", "tests/fileio/test_convert.py::test_rnmrtk_3d", "tests/fileio/test_convert.py::test_sparky_2d", "tests/fileio/test_convert.py::test_sparky_2d_lowmem", "tests/fileio/test_jcampdx.py::test_jcampdx1", "tests/fileio/test_jeol.py::test_1d_complex_1", "tests/fileio/test_jeol.py::test_1d_complex_1_udic", "tests/fileio/test_jeol.py::test_2d_cc_1", "tests/fileio/test_jeol.py::test_2d_cc_1_udic", "tests/fileio/test_rnmrtk.py::test_3d_freq", "tests/fileio/test_rnmrtk.py::test_3d_time", "tests/fileio/test_simpson.py::test_1d_time", "tests/fileio/test_simpson.py::test_2d_freq", "tests/fileio/test_sparky.py::test_2d", "tests/fileio/test_sparky.py::test_2d_lowmem"]
+absent_components = 21
+critical_components = 19
+absent_critical_components = 4
+deferred_components = 8
+absent_deferred_components = 8
+critical_tests = ["tests/fileio/test_agilent.py::test_1d", "tests/fileio/test_agilent.py::test_2d", "tests/fileio/test_agilent.py::test_2d_lowmem", "tests/fileio/test_agilent.py::test_2d_tppi", "tests/fileio/test_agilent.py::test_2d_tppi_lowmem", "tests/fileio/test_agilent.py::test_3d", "tests/fileio/test_agilent.py::test_3d_lowmem", "tests/fileio/test_bruker_with_test_data.py::test_1d", "tests/fileio/test_bruker_with_test_data.py::test_2d", "tests/fileio/test_bruker_with_test_data.py::test_2d_lowmem", "tests/fileio/test_bruker_with_test_data.py::test_3d", "tests/fileio/test_bruker_with_test_data.py::test_3d_lowmem", "tests/fileio/test_bruker_with_test_data.py::test_read_pdata_1d", "tests/fileio/test_bruker_with_test_data.py::test_read_pdata_2d", "tests/fileio/test_bruker_with_test_data.py::test_write_pdata_1d", "tests/fileio/test_bruker_with_test_data.py::test_write_pdata_2d", "tests/fileio/test_convert.py::test_agilent_1d", "tests/fileio/test_convert.py::test_agilent_2d", "tests/fileio/test_convert.py::test_agilent_2d_lowmem", "tests/fileio/test_convert.py::test_agilent_3d", "tests/fileio/test_convert.py::test_agilent_3d_lowmem", "tests/fileio/test_convert.py::test_bruker_1d", "tests/fileio/test_convert.py::test_bruker_2d", "tests/fileio/test_convert.py::test_bruker_2d_lowmem", "tests/fileio/test_convert.py::test_bruker_3d", "tests/fileio/test_convert.py::test_bruker_3d_lowmem", "tests/fileio/test_jcampdx.py::test_jcampdx1", "tests/fileio/test_simpson.py::test_1d_time", "tests/fileio/test_simpson.py::test_2d_freq"]
+deferred_tests = ["tests/fileio/test_convert.py::test_agilent_3d_rnmrtk", "tests/fileio/test_convert.py::test_bruker_3d_rnmrtk", "tests/fileio/test_convert.py::test_rnmrtk_3d", "tests/fileio/test_convert.py::test_sparky_2d", "tests/fileio/test_convert.py::test_sparky_2d_lowmem", "tests/fileio/test_jeol.py::test_1d_complex_1", "tests/fileio/test_jeol.py::test_1d_complex_1_udic", "tests/fileio/test_jeol.py::test_2d_cc_1", "tests/fileio/test_jeol.py::test_2d_cc_1_udic", "tests/fileio/test_rnmrtk.py::test_3d_freq", "tests/fileio/test_rnmrtk.py::test_3d_time", "tests/fileio/test_sparky.py::test_2d", "tests/fileio/test_sparky.py::test_2d_lowmem"]
 
 [groups.agilent_1d]
 format = "Varian/Agilent"
-provenance = "nmrglue v0.5 release archive; community contribution"
+provenance = "nmrglue v0.5 release archive (2 original files) + 1 locally generated NMRPipe reference"
 license = "BSD-3-Clause (nmrglue repository license; not separately applied to data)"
 redistribution_status = "UNRESOLVED"
-evidence = "release asset has no explicit data license; repository license scope unconfirmed"
-availability = "partial"
-missing_components = "pipe_reference"
+evidence = "release asset has no explicit data license; derived NMRPipe reference generated locally, no explicit license"
+availability = "complete"
+missing_components = ""
 notes = "real 1D acquisition; read/write and conversion tests"
-file_count = 2
+file_count = 3
 original_count = 2
-derived_count = 0
-total_size = 32249
+derived_count = 1
+total_size = 46297
 component_count = 2
-absent_component_count = 1
+absent_component_count = 0
 
 [groups.agilent_1d.files."agilent_1d/fid"]
 sha256 = "4a4ccf9b8a8c20e4dd5d151564d84585fd13a15f53cc967cbaa77c556b29e145"
@@ -51,9 +57,13 @@ provenance_class = "original"
 sha256 = "423d25e161adc5b5ad5a504ece04667c89835f698b4ba19ddd0a2de545bd2fbb"
 size = 20189
 provenance_class = "original"
+[groups.agilent_1d.files."agilent_1d/test.fid"]
+sha256 = "3cd39e31e3d4cfa0c04a01162a197b392a2315dc8a02fd5e3e6d2c4cfb57d380"
+size = 14048
+provenance_class = "derived"
 
 [groups.agilent_1d.components.pipe_reference]
-status = "absent"
+status = "present"
 scope = "critical"
 paths = ["agilent_1d/test.fid"]
 required_by = ["tests/fileio/test_convert.py::test_agilent_1d"]
@@ -68,19 +78,19 @@ notes = "real 1D acquisition block and parameters"
 
 [groups.agilent_2d]
 format = "Varian/Agilent"
-provenance = "nmrglue v0.5 release archive; community contribution"
+provenance = "nmrglue v0.5 release archive (2 original files) + 1 locally generated NMRPipe reference"
 license = "BSD-3-Clause (nmrglue repository license; not separately applied to data)"
 redistribution_status = "UNRESOLVED"
-evidence = "release asset has no explicit data license; repository license scope unconfirmed"
-availability = "partial"
-missing_components = "pipe_reference"
+evidence = "release asset has no explicit data license; derived NMRPipe reference generated locally, no explicit license"
+availability = "complete"
+missing_components = ""
 notes = "real 2D blocks; read/low-memory and conversion tests"
-file_count = 2
+file_count = 3
 original_count = 2
-derived_count = 0
-total_size = 4015851
+derived_count = 1
+total_size = 8001899
 component_count = 2
-absent_component_count = 1
+absent_component_count = 0
 
 [groups.agilent_2d.files."agilent_2d/fid"]
 sha256 = "4a35f4b98f9116ba67760d1c0c83cc48a17b4e53897b5dbe1e25f85f28b1eac8"
@@ -90,9 +100,13 @@ provenance_class = "original"
 sha256 = "54cf12841987ec3a05f5ca76f2b09dff09b7648d84b2936627f2c9757472c817"
 size = 22523
 provenance_class = "original"
+[groups.agilent_2d.files."agilent_2d/test.fid"]
+sha256 = "d411a7fb0e4d349faec2236ce8972646ad5a323afe434f9121286ebf9104b53f"
+size = 3986048
+provenance_class = "derived"
 
 [groups.agilent_2d.components.pipe_reference]
-status = "absent"
+status = "present"
 scope = "critical"
 paths = ["agilent_2d/test.fid"]
 required_by = ["tests/fileio/test_convert.py::test_agilent_2d", "tests/fileio/test_convert.py::test_agilent_2d_lowmem"]
@@ -139,20 +153,532 @@ notes = "real 2D TPPI blocks and parameters"
 
 [groups.agilent_3d]
 format = "Varian/Agilent"
-provenance = "nmrglue v0.5 release archive; community contribution"
+provenance = "nmrglue v0.5 release archive (2 original files) + 128 locally generated NMRPipe references"
 license = "BSD-3-Clause (nmrglue repository license; not separately applied to data)"
 redistribution_status = "UNRESOLVED"
-evidence = "release asset has no explicit data license; repository license scope unconfirmed"
-availability = "partial"
-missing_components = "pipe_reference"
+evidence = "release asset has no explicit data license; derived NMRPipe reference series generated locally, no explicit license"
+availability = "complete"
+missing_components = ""
 notes = "real 3D blocks; read/low-memory and conversion tests"
-file_count = 2
+file_count = 130
 original_count = 2
-derived_count = 0
-total_size = 112980480
+derived_count = 128
+total_size = 225882624
 component_count = 2
-absent_component_count = 1
+absent_component_count = 0
 
+[groups.agilent_3d.files."agilent_3d/data/test001.fid"]
+sha256 = "8ce2fd79e6d33b190f30e3578f729c702ff28bacf0c664e52b8baf78e097ef9b"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test002.fid"]
+sha256 = "73016e0a47f01fb3fdb8f58febeeff5b3215361fa53fc4b9b7de2b308ba2c55f"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test003.fid"]
+sha256 = "04310c3821ed1e5b5275dee35cc84c17d79ea6b70d4c51387af18e7df8c1a17b"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test004.fid"]
+sha256 = "a9648699e884784a2a9c13f5762e12dade0398462fb97759ece165dade9512ed"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test005.fid"]
+sha256 = "6b28d623b17b6f3eae9670bab2bdf9192b33204cbda0fcae1527aa3f7f6b6e4d"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test006.fid"]
+sha256 = "66d161662e0e8189a67d6c532c5bd986f423e48079440b99b6db72f8390c1a4b"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test007.fid"]
+sha256 = "0ecd471104a825b7859e5191aa228ea5ba7c1864a410056b940168b46a8eb6a7"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test008.fid"]
+sha256 = "6fa1303189a0f29b263bcb423e64dbcaea0ae638020eac0ba564df6f239eb520"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test009.fid"]
+sha256 = "4a5bb3444278fdf819578cbaa105575099db540dc3cfc03026b12aa8feefd20e"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test010.fid"]
+sha256 = "5b58f53a99cceae00620adaef82de977701b31b240a5b067687799ffcd79b060"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test011.fid"]
+sha256 = "057c9e728059feeb4559d325a04119927d3085ca2d7288af5ba25abc59700d3e"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test012.fid"]
+sha256 = "fae79d45c4c55b4b0086ffcda4cf50dac78ffc89111d68e96d777c144b2c695f"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test013.fid"]
+sha256 = "9616ccbf8ea626b395d77f966955994f96155713db412216739fe34a115426ae"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test014.fid"]
+sha256 = "9c59019fa8d5fae695b61fc447653b349852ba6a5d1966060b22967f69bcfeda"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test015.fid"]
+sha256 = "0a53188da0f3ebebda5159235080262ad010e6a8df8ce2a7911f8a2b46cc715f"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test016.fid"]
+sha256 = "73e90155c049d6f4bbb3a6423bdd4d331228fb5762ebf38d41e019e05fd94486"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test017.fid"]
+sha256 = "bc9e53fb980cbd4d092c21e000379c670f43e673694e573bce372c52fd3cb845"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test018.fid"]
+sha256 = "5f043063c16ba90acca2fd30ffc2b3f4a1efb29d429f80950665a4b1b9153fb3"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test019.fid"]
+sha256 = "3cc245989d0b3c945890e77be1e6a9d014a14968f051080f73f06e7af6482253"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test020.fid"]
+sha256 = "c0e23940c7716f17e85eb97016e1dc4ca275eeb6e336db4acd8b3e8a10f7d1e5"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test021.fid"]
+sha256 = "204821fa87c534579cfe14b5a82ddd233f524ac509557e36bbc806a95b7b1b83"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test022.fid"]
+sha256 = "37c9aad83f76724bac7b437873b0d44330ce8abf5507faf091cad309e70a003b"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test023.fid"]
+sha256 = "1100c623c4d86c3983e4a8b791c75c53d008cb3cb9bf958a4b1b30a5b83afccb"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test024.fid"]
+sha256 = "09e7a062b49b76e710d93e77c3f2ceb86acb3a2ae6b57f6b0d892a6761ffdd2b"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test025.fid"]
+sha256 = "e494cd3e3c62197d30f698edc204f8fbae63af34583e6007d2d3a7caf700a9b0"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test026.fid"]
+sha256 = "54575634229764278f3c73fb8f3f538a9eea58adfb23ffb97f4652a6278bacc5"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test027.fid"]
+sha256 = "ea9f5418c2d4e958ae7951242c2f9545032613c0647b46cb4e60cdb225c0ba82"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test028.fid"]
+sha256 = "a2407d2d4917ba78656f4de116e06b39f7c6424144275829487607e4a3b477f9"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test029.fid"]
+sha256 = "f34be8e7d83c2f40182c1dcd631cc1e48fa4b512af442efef99693b58b774d32"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test030.fid"]
+sha256 = "ac12a7d1ec253325fcda4796123b593d0273bb1f564b2aa3b72489f11c10cf8a"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test031.fid"]
+sha256 = "3ee9ff61e1a6b49c168fead7513311b985088ed17e1c5d420c1a965127086006"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test032.fid"]
+sha256 = "dfb7df7db9d21016c1b45483f707255ce4fd9fd4c53ac0d5448746b87f6dcc09"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test033.fid"]
+sha256 = "bc95b25d26834c97b18b7ed84b00729631e241d568c11ebfbfb4cb2f7b8856fb"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test034.fid"]
+sha256 = "0dd63fa2f2a212b9964f65f6a0fb74006b7fadedc3a9315167d7c4d9acc9fa02"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test035.fid"]
+sha256 = "2acfa0ef699cfcb8aecca32342c59d75fba31acb27d5871e9fa35cf01dbca154"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test036.fid"]
+sha256 = "9cc8a7ab0fe8c72c1bdedf18bc55ebaf6bcb60f131bd2e2414af160a0ebe0321"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test037.fid"]
+sha256 = "db193618c592c09b7b114ca29658447facb26f89d456916ba2e37061b6234116"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test038.fid"]
+sha256 = "c29a7d8107f7345622d4363985be4f262230fedc801013395bf08639f7c2124b"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test039.fid"]
+sha256 = "20a20f8aa82a30f97d20b4a67487ce8ca31d3927f3c8414002d5b24c36e6ab97"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test040.fid"]
+sha256 = "cebea01a102b4667d359a6804a5058cd7f5b27881b5103a56b2f7c2c671d0f38"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test041.fid"]
+sha256 = "0902663c5dff0d08be3d05478694687c0c77a062ffe8c7c51d22adfa18eb2c04"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test042.fid"]
+sha256 = "3e067410315e06ec05bd0d69fc0cd02c86dc9fe8cb67afe9c0bfe9a7f4dc1db5"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test043.fid"]
+sha256 = "219df481cb969b47d0d818d31f1cc1a97da560ad3dabd6321fffbd327f19e8a8"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test044.fid"]
+sha256 = "178f4587f01329a16b75dec736e237e440ed0d19edf3f117bd4775dc17df0a2f"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test045.fid"]
+sha256 = "20852beff03ba569ce55983feb04ddea87dd73e23c7c34fb9380f2f5d036540f"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test046.fid"]
+sha256 = "77fd9d1b50657d0a63c698b06834765f7d5e23f1479e297cbac5477d8034d19c"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test047.fid"]
+sha256 = "a6c2081428c39fb20eebec5624962ff00a11e71dd01550ffe6b93eaa2f6d29c5"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test048.fid"]
+sha256 = "f50ebdf768797a002ac63683ed93308021311ae54341bb9f764be33bd605273e"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test049.fid"]
+sha256 = "6c87d2fce740d6aaa020a0cae4675984b14fbfad9d60e4918873d48ce06139e7"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test050.fid"]
+sha256 = "90f88b96f695e2e4fb8252cdd0ff6c008d83506826722226bdc9c5a7fbc17189"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test051.fid"]
+sha256 = "a533602bbb619ccce08ad01fc1dfbf23752641f53a176b3522f20b365af15098"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test052.fid"]
+sha256 = "9e5f396209fc1ca0f8b6a70665d71eea31a459472a5bf7e6002ddb35cf5880f6"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test053.fid"]
+sha256 = "e3f13c43a56e5ebeb0e00d4056bf2a98ccd873e7f678cc82539f62f903f6e13e"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test054.fid"]
+sha256 = "2543178fccc0c0d675fce64ce2c316580ceb23f5fa38204a4d4c9e4d9c41aeb7"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test055.fid"]
+sha256 = "b6c594e3466405a8baeacf6ae6876fd68a8a3ba561655987b07f4df423649ff5"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test056.fid"]
+sha256 = "5e795d11070356317a930d9bd5a0257043344709044f1030f724908120806ccf"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test057.fid"]
+sha256 = "bd2521f701be67a7435c78597662c7cdfbc6b2197610844edec48cbce5c4a5e2"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test058.fid"]
+sha256 = "4eb090d8213c3ec16b93e9f500ec44f96108262b8af1b4d2429be4ba8184ba04"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test059.fid"]
+sha256 = "ee2465d56f1ce164f5a0f7aabf7c922593e676fd8edfb407bcd988ec09bbde0d"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test060.fid"]
+sha256 = "f097576c666953e38ec8dda2a42f643ab24b20c5129beffee5b56908147f8903"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test061.fid"]
+sha256 = "cab50d659726841ef2fa44d84db3e91f8025c9d5de60b9941bc030a4f65f1741"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test062.fid"]
+sha256 = "b0e7518b250dd53663529b694844bfc0b08a2e63c42042c2c4d6090807476356"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test063.fid"]
+sha256 = "2964353952b95497ddb320eaea70ba0c5ac71c05679310f553fa9d53747ce832"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test064.fid"]
+sha256 = "64e1f18ad3bb0c94018bce0c716ca2cc76e13aad8b611e1c816b67b36b4c9c2a"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test065.fid"]
+sha256 = "80697443bc0842849950ac7fffbb145abd1650832c7243e178530e6068106505"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test066.fid"]
+sha256 = "a1aa19ddef51ce08dad133749cc9ffae1dc644caeabc83fe5bab80096234041f"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test067.fid"]
+sha256 = "a3bee02d1bf9f0d2b449057b798d17ebadcaf83a392ead1a5f0f769c3c84476a"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test068.fid"]
+sha256 = "11d13a8f41624126f14da61be57e942a5e8f37cf5033a8853f06f7e215bff55e"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test069.fid"]
+sha256 = "82e16dc06fea4e55ff81a18b6e0ee816f34d32fcf111eca063df3986c74e83c7"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test070.fid"]
+sha256 = "47b7dbd84dab117435aa0c93f193321e47823c72db5d5588b2d7bc3c6e8b9bbd"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test071.fid"]
+sha256 = "47f03d89dae07510f33d36e55471bd0873cc2ead1240285553eeeb25fdda12ad"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test072.fid"]
+sha256 = "d7fda55610316f8ebcf45a21f12faca5dcca2ddcf17772d246f0ff14ffae6d88"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test073.fid"]
+sha256 = "ae1d1d70904bc5ac88cbe0f5d05535a4856ec3ea55aaab4b777e4c91b45c8ae8"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test074.fid"]
+sha256 = "806aa2a57fcd309b532d5d93922e266cf8fd3412cfad65c0fe2695f7da5c6d6c"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test075.fid"]
+sha256 = "02dd5bd8c1c22fdfd5e838f010994e0c2012b9ec3d66f6badd2a6d2393098351"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test076.fid"]
+sha256 = "e4b76f77dd8d6c99f0604eb72819f9a14884735efb4ee68f74e47e75ed58dd35"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test077.fid"]
+sha256 = "e1fa2d1daa61a87f59627a38a1bc6b9b03ae05d2234a2eeef320e812d41a0577"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test078.fid"]
+sha256 = "cf68e0fef774bf549483762c44b29f01b79de671f275c206ac43e691988451cb"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test079.fid"]
+sha256 = "88d8b284264cce63cd77f5afb1cb3e2eb41715460a8e0c67bbea1a8d6bdd21f8"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test080.fid"]
+sha256 = "f8af754252e13822b331e54644cf06c445e913bfa961e7a0541899adc0b8b8c6"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test081.fid"]
+sha256 = "c3c809f448d1f2c6b9e4c6d4da07b414f8ea823b684be4582f1fa6cb191112dc"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test082.fid"]
+sha256 = "0f98dde3c505dbdc98d0728c827429fa4d720e2350cbfaa010b4f17823c71151"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test083.fid"]
+sha256 = "49ab7632c67708f549b5fe10a3844bb3c1c5ba20c8ae8769b17fb30a8b82f3d3"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test084.fid"]
+sha256 = "f8dc83340b4ead7d0829b6307ceaf86c09a0e87eded6ea084d8caf7e9f477487"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test085.fid"]
+sha256 = "13d9bf8002d10f0f007c01e945ef6eb64936e913875319c70c498900bd40467c"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test086.fid"]
+sha256 = "50286412ead444f02e10c849398960d1fe7d4134401c7b482a0d30c0a4b6304b"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test087.fid"]
+sha256 = "c27d5c73e3a1592ff963099dfac49251de2d8525d966feadb2b228f83c1efbbc"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test088.fid"]
+sha256 = "ae5c038bd338ed7537c92ec726e3fdfa9da9905aa7141da2d52b723c8234545e"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test089.fid"]
+sha256 = "e90c5d2c8bef3dbda6b9b457350705bd12f40f1ca14e42080b557616c11d84bd"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test090.fid"]
+sha256 = "ea4fadb861c5624d6d617c9b147dfa6d22a8aefd1a6d81f1d4aa2a4b04bfb10a"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test091.fid"]
+sha256 = "ef0e2790991443eca78e3933bbdd2957eb668abd131049077bc112c4202ef8d8"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test092.fid"]
+sha256 = "0bcac5c61a60caff6324c01ff01ba37fca2a06680107f2bb69f7e29b171f01b7"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test093.fid"]
+sha256 = "172f66957658331a356c78ef626718b186870f927b0fd7b5be339eb8fcef6a0d"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test094.fid"]
+sha256 = "4b302a0096922fac9f9a34fcfb117119dbbe9ac22a767fa8ef1e3eca272980bb"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test095.fid"]
+sha256 = "bbbf58191f924a981f5733f18b7d004aee23fd455428e1803e6e605c494e8722"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test096.fid"]
+sha256 = "ef6cacb20212959fcd57cb9de6ae19b6cebd20b8214d4ca35e8122e0d81ed9fd"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test097.fid"]
+sha256 = "b6aad0ab86d6e90f93deacadafe12335535f086f98961d37c4b1aaf09ea79941"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test098.fid"]
+sha256 = "876a3fa73edd8aa33aeda2985d1caf96cc8a9c89b6189562843a7f809d2ef62f"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test099.fid"]
+sha256 = "968caf9086c5165667afd56206b6de734454e45e606e1a104326184d59eb7691"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test100.fid"]
+sha256 = "65e5083f08a654cac81b9d8f1d4ffd77aecbfd811b6eb9cb4ce3681916dab652"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test101.fid"]
+sha256 = "de0aa3f0c0d143f1420aa2eb3abf793804cf823c4fe53bea50d5d44fe1804654"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test102.fid"]
+sha256 = "96bf3b8bc2190cbe626f2104a5acf35c2fd7ea8d7957d6491d2e1a72ba13cf0b"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test103.fid"]
+sha256 = "69524b828a6c1fcab76715b3d39b4229df8a8e56277dbb75d577a2993c2139e8"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test104.fid"]
+sha256 = "7c15852c91c002c21a6f33dff56f3944558d51e78433447aed86ca6caa300121"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test105.fid"]
+sha256 = "e6754fa7657749f418546f616a7cdbfcefbd59ada5957fa658c13bc8eb4c4d05"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test106.fid"]
+sha256 = "1c78a6811335b2d89bc951d8f80e9ef2e73a460011dc3ce7681617d2fe521eda"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test107.fid"]
+sha256 = "b7971ff2aa13acd433ee6ec381c59fe5f1128bc1598e36b40208d7618ad4c0cb"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test108.fid"]
+sha256 = "8bf0b5b6476a47da8e02eea9c447372d975c4b57ea263f1686ef45373752bccf"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test109.fid"]
+sha256 = "14d7795e171b3ac7e5046227ee50d34a55291c50a92076bcb3325c3c0981c142"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test110.fid"]
+sha256 = "a6cc54df4c154957348a5808fb0c784cd21b85186582b03bba06510b66a0ec70"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test111.fid"]
+sha256 = "a092e8ac0bfae4d48f47ea7cf408d9b0cf1c37fd0e17f6f57cd168f83e4b8b11"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test112.fid"]
+sha256 = "87d067710b4bcdc34fbfaf85db62ecf54b510572afef59e91f1f75ad8a474e18"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test113.fid"]
+sha256 = "fab4b29a29ed849201015455b039191615f863cdf815cdf28d22d408a78252ce"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test114.fid"]
+sha256 = "db20e119eede8a2467e29bda237449e3e9f1f855b869657fc3ca43437058c242"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test115.fid"]
+sha256 = "637cc96adee9183f95667e24c4606f31f1bfdbfd16d28029dbb69e58268e3cbe"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test116.fid"]
+sha256 = "bd99722079ffe08bf3f925c6e99b43190ba13474bb67fb63f18482fc15615391"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test117.fid"]
+sha256 = "1c8f94c954aca013b9fa138245c6fd3a68b5c04361a0aaa92b38cdcab2e8b518"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test118.fid"]
+sha256 = "41677cbba601a19974cfce515ff1f8a630d2c34e5cce1de924f6c5105f30ff50"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test119.fid"]
+sha256 = "c8203294b068dc805d54f494bdce7bc067bc40c212c575c47b5160547d29e9f5"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test120.fid"]
+sha256 = "a0829fc93af9d23903a65c37908831f20a20858b59f5a96cf758e7b270d0746b"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test121.fid"]
+sha256 = "bc5a71986fb487a0ba9bfc305d308a93eb134b669e8f14c1aa65961a18c5ac57"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test122.fid"]
+sha256 = "566cf266c056a249b1eaef887c2560d6bc5fa1dbd3792b7ac261024d47ff54d4"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test123.fid"]
+sha256 = "57b490049e140f85795e99859ed5715f0355d12dbdc9f353a2721f793558ad4a"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test124.fid"]
+sha256 = "d7ad6859c6d6da3588f93ee992a27ddcee9327b7f3b4a47be230ad01f5639e49"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test125.fid"]
+sha256 = "c360895f3103a9a9f4f860dc453fba5d0a412bd5e71cb58e8e981adaa994fa9b"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test126.fid"]
+sha256 = "2b4f1a2264ceb1b856e4028732f5acfafd275391804659a4dc52ee729074405a"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test127.fid"]
+sha256 = "153bc77d16a9dfa94d1b381e5bb87c35802a242dfd7ea344e4da5d7b33065588"
+size = 882048
+provenance_class = "derived"
+[groups.agilent_3d.files."agilent_3d/data/test128.fid"]
+sha256 = "ab765a614a69fde7675dab4c155e22b64d1fe40ff5c35a4dd9d92a15d769036b"
+size = 882048
+provenance_class = "derived"
 [groups.agilent_3d.files."agilent_3d/fid"]
 sha256 = "4104329db704264b41f0f052627cc00747048f931d44f4d5d31fb2bdfc048239"
 size = 112955424
@@ -163,7 +689,7 @@ size = 25056
 provenance_class = "original"
 
 [groups.agilent_3d.components.pipe_reference]
-status = "absent"
+status = "present"
 scope = "critical"
 paths = ["agilent_3d/data/test%03d.fid"]
 required_by = ["tests/fileio/test_convert.py::test_agilent_3d", "tests/fileio/test_convert.py::test_agilent_3d_lowmem"]
@@ -206,19 +732,19 @@ notes = "synthetic boundary case read with an explicit shape"
 
 [groups.bruker_1d]
 format = "Bruker"
-provenance = "nmrglue v0.5 release archive; community contribution"
+provenance = "nmrglue v0.5 release archive (4 original files) + 1 locally generated NMRPipe reference"
 license = "BSD-3-Clause (nmrglue repository license; not separately applied to data)"
 redistribution_status = "UNRESOLVED"
-evidence = "release asset has no explicit data license; repository license scope unconfirmed"
+evidence = "release asset has no explicit data license; derived NMRPipe reference generated locally, no explicit license"
 availability = "partial"
-missing_components = "pdata, pipe_reference, rnmrtk_reference"
+missing_components = "pdata, rnmrtk_reference"
 notes = "real FID, parameters, pulse program; read tests"
-file_count = 4
+file_count = 5
 original_count = 4
-derived_count = 0
-total_size = 34416
+derived_count = 1
+total_size = 52848
 component_count = 4
-absent_component_count = 3
+absent_component_count = 2
 
 [groups.bruker_1d.files."bruker_1d/acqu"]
 sha256 = "e9c7c326182614d23bebec1279f36a5e77b43827c08ca230023ce9ef942040e4"
@@ -236,6 +762,10 @@ provenance_class = "original"
 sha256 = "7d74164b030df04713a084321b11ae109b9bb3e197542af9db6a2141193250b4"
 size = 2832
 provenance_class = "original"
+[groups.bruker_1d.files."bruker_1d/test.fid"]
+sha256 = "b4ad9a4580f267f8763778b4b18b549bb25edf70374b70912e5dc9ca6a97a2a7"
+size = 18432
+provenance_class = "derived"
 
 [groups.bruker_1d.components.pdata]
 status = "absent"
@@ -245,7 +775,7 @@ required_by = ["tests/fileio/test_bruker_with_test_data.py::test_read_pdata_1d",
 notes = "processed 1D dataset (1r/1i, procs and related files)"
 
 [groups.bruker_1d.components.pipe_reference]
-status = "absent"
+status = "present"
 scope = "critical"
 paths = ["bruker_1d/test.fid"]
 required_by = ["tests/fileio/test_convert.py::test_bruker_1d"]
@@ -267,19 +797,19 @@ notes = "RNMRTK 1D time-domain reference and its parameter file"
 
 [groups.bruker_2d]
 format = "Bruker"
-provenance = "nmrglue v0.5 release archive; community contribution"
+provenance = "nmrglue v0.5 release archive (6 original files) + 1 locally generated NMRPipe reference"
 license = "BSD-3-Clause (nmrglue repository license; not separately applied to data)"
 redistribution_status = "UNRESOLVED"
-evidence = "release asset has no explicit data license; repository license scope unconfirmed"
+evidence = "release asset has no explicit data license; derived NMRPipe reference generated locally, no explicit license"
 availability = "partial"
-missing_components = "pdata, pipe_reference, rnmrtk_reference"
+missing_components = "pdata, rnmrtk_reference"
 notes = "ser, padding, parameters; read/low-memory and conversion tests"
-file_count = 6
+file_count = 7
 original_count = 6
-derived_count = 0
-total_size = 3725099
+derived_count = 1
+total_size = 7413547
 component_count = 4
-absent_component_count = 3
+absent_component_count = 2
 
 [groups.bruker_2d.files."bruker_2d/acqu"]
 sha256 = "44e7470c2244bb8bba301578c22ed7b4b735270ac3a5e54e7aad61fad81f367e"
@@ -305,6 +835,10 @@ provenance_class = "original"
 sha256 = "5a3f9d4f82e0435c5bbe623ece715e84da062aad65e7865a93d31692e25dd598"
 size = 3686400
 provenance_class = "original"
+[groups.bruker_2d.files."bruker_2d/test.fid"]
+sha256 = "1cbe3951dad0b987647bcc87803d35d82d63aa92a1d6153d641af6e6a9c575a2"
+size = 3688448
+provenance_class = "derived"
 
 [groups.bruker_2d.components.pdata]
 status = "absent"
@@ -314,7 +848,7 @@ required_by = ["tests/fileio/test_bruker_with_test_data.py::test_read_pdata_2d",
 notes = "processed 2D dataset (2rr/2ri, proc2s and related files)"
 
 [groups.bruker_2d.components.pipe_reference]
-status = "absent"
+status = "present"
 scope = "critical"
 paths = ["bruker_2d/test.fid"]
 required_by = ["tests/fileio/test_convert.py::test_bruker_2d", "tests/fileio/test_convert.py::test_bruker_2d_lowmem"]
@@ -862,34 +1396,66 @@ notes = "3D parameters and ser"
 
 [groups.bruker_3d.components.rnmrtk_reference]
 status = "absent"
-scope = "critical"
+scope = "deferred"
 paths = ["bruker_3d/time_3d.sec", "bruker_3d/time_3d.par"]
 required_by = ["tests/fileio/test_convert.py::test_bruker_3d_rnmrtk"]
-notes = "RNMRTK 3D time-domain reference and its parameter file"
+notes = "RNMRTK 3D time-domain reference and its parameter file; deferred from the first-release critical contract (2026-10-08)"
 
 [groups.simpson_1d]
 format = "SIMPSON"
-provenance = "nmrglue v0.5 release archive; simulator input"
+provenance = "nmrglue v0.5 release archive (1 original input) + 8 locally generated SIMPSON outputs"
 license = "BSD-3-Clause (nmrglue repository license; not separately applied to data)"
 redistribution_status = "UNRESOLVED"
-evidence = "release asset has no explicit data license; repository license scope unconfirmed"
-availability = "partial"
-missing_components = "freq_outputs, time_outputs"
-notes = "1D input file; encoding-set tests need generated outputs"
-file_count = 1
+evidence = "release asset has no explicit data license; derived SIMPSON outputs generated locally from the released input script, no explicit license"
+availability = "complete"
+missing_components = ""
+notes = "1D simulator input and generated encoding outputs"
+file_count = 9
 original_count = 1
-derived_count = 0
-total_size = 824
+derived_count = 8
+total_size = 605963
 component_count = 3
-absent_component_count = 2
+absent_component_count = 0
 
+[groups.simpson_1d.files."simpson_1d/1d_bin.fid"]
+sha256 = "b7c7950861fec0699a1f2ab0c0763dc6ddb1d6e11571e1ff4255af262f376e73"
+size = 44429
+provenance_class = "derived"
+[groups.simpson_1d.files."simpson_1d/1d_bin.spe"]
+sha256 = "7ad0761f40d7a9f9b5bafccf94f41b613af7f0b231ad092738efa24663500600"
+size = 44429
+provenance_class = "derived"
+[groups.simpson_1d.files."simpson_1d/1d_ftext.fid"]
+sha256 = "93d4743b469d728139206cb060a14cde61622cdc4f53fc1e5c0d2c3d21281a11"
+size = 123161
+provenance_class = "derived"
+[groups.simpson_1d.files."simpson_1d/1d_ftext.spe"]
+sha256 = "25568fcb03e4175486d71242a35a8f515c079105d426133a8e2d6f0f9febb88c"
+size = 111461
+provenance_class = "derived"
+[groups.simpson_1d.files."simpson_1d/1d_rawbin.fid"]
+sha256 = "9fbb54cab0c02192bb43779d8e0410fb97055544d19344fd6d5d1899c217a3cd"
+size = 32768
+provenance_class = "derived"
+[groups.simpson_1d.files."simpson_1d/1d_rawbin.spe"]
+sha256 = "cf93b011c947f8627d041d0b63161c9f3a23eabff5137330be6104c0db4a98be"
+size = 32768
+provenance_class = "derived"
+[groups.simpson_1d.files."simpson_1d/1d_text.fid"]
+sha256 = "8a8ab16d0f46f9a5a421d40fd243316401ac8cc95c9171cb56c27586d07234b6"
+size = 114126
+provenance_class = "derived"
+[groups.simpson_1d.files."simpson_1d/1d_text.spe"]
+sha256 = "9cc9d839bcddcf8e1846a5307796e91cdba27cfdc64fc2c2b4d7f3081175d154"
+size = 101997
+provenance_class = "derived"
 [groups.simpson_1d.files."simpson_1d/rr.in"]
 sha256 = "87bab45cfc524c4d522edc9ab4ae781dd4f763944ba07253556c9ed216103912"
 size = 824
 provenance_class = "original"
 
 [groups.simpson_1d.components.freq_outputs]
-status = "absent"
+status = "present"
 scope = "extended"
 paths = ["simpson_1d/1d_text.spe", "simpson_1d/1d_bin.spe", "simpson_1d/1d_ftext.spe", "simpson_1d/1d_rawbin.spe"]
 required_by = ["tests/fileio/test_simpson.py::test_1d_freq"]
@@ -903,7 +1469,7 @@ required_by = []
 notes = "SIMPSON input script; regeneration source for the encoding outputs"
 
 [groups.simpson_1d.components.time_outputs]
-status = "absent"
+status = "present"
 scope = "critical"
 paths = ["simpson_1d/1d_text.fid", "simpson_1d/1d_bin.fid", "simpson_1d/1d_ftext.fid", "simpson_1d/1d_rawbin.fid"]
 required_by = ["tests/fileio/test_simpson.py::test_1d_time"]
@@ -911,27 +1477,59 @@ notes = "1D time-domain encoding set (TEXT/BINARY/XREIM/RAWBIN)"
 
 [groups.simpson_2d]
 format = "SIMPSON"
-provenance = "nmrglue v0.5 release archive; simulator input"
+provenance = "nmrglue v0.5 release archive (1 original input) + 8 locally generated SIMPSON outputs"
 license = "BSD-3-Clause (nmrglue repository license; not separately applied to data)"
 redistribution_status = "UNRESOLVED"
-evidence = "release asset has no explicit data license; repository license scope unconfirmed"
-availability = "partial"
-missing_components = "freq_outputs, time_outputs"
-notes = "2D input file; encoding-set tests need generated outputs"
-file_count = 1
+evidence = "release asset has no explicit data license; derived SIMPSON outputs generated locally from the released input script, no explicit license"
+availability = "complete"
+missing_components = ""
+notes = "2D simulator input and generated encoding outputs"
+file_count = 9
 original_count = 1
-derived_count = 0
-total_size = 1644
+derived_count = 8
+total_size = 11515998
 component_count = 3
-absent_component_count = 2
+absent_component_count = 0
 
+[groups.simpson_2d.files."simpson_2d/2d.fid"]
+sha256 = "7d4360891ac05117638a84a4931b6ebc7f11b486dde96be11fff2b3052d911b6"
+size = 66637
+provenance_class = "derived"
 [groups.simpson_2d.files."simpson_2d/2d.in"]
 sha256 = "b090079091bb7b27cded02100320f43c3d68e271cad679004de854f8574cab13"
 size = 1644
 provenance_class = "original"
+[groups.simpson_2d.files."simpson_2d/2d.spe"]
+sha256 = "ab56fe94c20fb0fa2addacf287576b79d20ff102dcaf58cd87e6679bcd27b3b0"
+size = 1420028
+provenance_class = "derived"
+[groups.simpson_2d.files."simpson_2d/2d_ftext.fid"]
+sha256 = "a03358fa07a319a5a145b705086ce17f5dfa8a753b420935e3a9d184542c16c7"
+size = 252645
+provenance_class = "derived"
+[groups.simpson_2d.files."simpson_2d/2d_ftext.spe"]
+sha256 = "67e7f0e78f4e1938a94571530b8f13a525a9ee42b60eeec08534bb43f7d16f20"
+size = 4913629
+provenance_class = "derived"
+[groups.simpson_2d.files."simpson_2d/2d_raw.fid"]
+sha256 = "0b3dd1701512c901af60695d2bd05529c1f39e23c1fb75ba121f579d78605069"
+size = 49152
+provenance_class = "derived"
+[groups.simpson_2d.files."simpson_2d/2d_raw.spe"]
+sha256 = "3fc678bea495b02b8f8da191d1c38488041cb10eab730956e9f06057d03d906d"
+size = 1048576
+provenance_class = "derived"
+[groups.simpson_2d.files."simpson_2d/2d_text.fid"]
+sha256 = "ffeff2c373351e868133bfc01d5c263eb009e5850bfbfbb37c81585b0571d043"
+size = 167256
+provenance_class = "derived"
+[groups.simpson_2d.files."simpson_2d/2d_text.spe"]
+sha256 = "e3cff06b40e95652e437e581fba40d4015a73c15902b8020ad1613eeeefc5b45"
+size = 3596431
+provenance_class = "derived"
 
 [groups.simpson_2d.components.freq_outputs]
-status = "absent"
+status = "present"
 scope = "critical"
 paths = ["simpson_2d/2d_text.spe", "simpson_2d/2d.spe", "simpson_2d/2d_ftext.spe", "simpson_2d/2d_raw.spe"]
 required_by = ["tests/fileio/test_simpson.py::test_2d_freq"]
@@ -945,7 +1543,7 @@ required_by = []
 notes = "SIMPSON input script; regeneration source for the encoding outputs"
 
 [groups.simpson_2d.components.time_outputs]
-status = "absent"
+status = "present"
 scope = "extended"
 paths = ["simpson_2d/2d_text.fid", "simpson_2d/2d.fid", "simpson_2d/2d_ftext.fid", "simpson_2d/2d_raw.fid"]
 required_by = ["tests/fileio/test_simpson.py::test_2d_time"]
@@ -983,8 +1581,10 @@ paths = ["tecmag/LiCl_ref1.tnt", "tecmag/LiCl_ref1.txt"]
 required_by = ["tests/fileio/test_tecmag.py::test_tecmag_load_time_domain"]
 notes = "LiCl reference pair (.tnt + .txt)"
 
-# Release-critical groups and reference sets NOT present in the
-# local corpus. extended_test_references is not a contract group: it
+# Groups and reference sets NOT present in the local corpus.
+# RNMRTK/Sparky and JEOL reference entries are deferred from the
+# first-release critical contract (maintainer decision 2026-10-08, PR #67); their tests, declarations and support are retained.
+# extended_test_references is not a contract group: it
 # records references consumed only by extended-validation or
 # low-priority tests so that no consumed path stays silent.
 
@@ -992,90 +1592,90 @@ notes = "LiCl reference pair (.tnt + .txt)"
 format = "JEOL + Pipe"
 redistribution_status = "NOT_AVAILABLE"
 evidence = "absent from nmrglue repository, v0.5 release archive, and local corpus; PR #228 added code+tests only; maintainer asked about data availability but no resolution recorded"
-notes = "real JDF binary structure; data not found in examined sources"
+notes = "real JDF binary structure; data not found in examined sources; deferred from the first-release critical contract (2026-10-08)"
 component_count = 1
 absent_component_count = 1
 
 [missing.jeol_1d_complex_pipe_reference.components.reference_pair]
 status = "absent"
-scope = "critical"
+scope = "deferred"
 paths = ["jeol/cyclosporine_Carbon-1-1.jdf", "jeol/cyclosporine_Carbon-1-1.fid"]
 required_by = ["tests/fileio/test_jeol.py::test_1d_complex_1", "tests/fileio/test_jeol.py::test_1d_complex_1_udic"]
-notes = "real 1D JDF binary structure and independent NMRPipe reference"
+notes = "real 1D JDF binary structure and independent NMRPipe reference; deferred from the first-release critical contract (2026-10-08)"
 
 [missing.jeol_2d_complex_pipe_reference]
 format = "JEOL + Pipe"
 redistribution_status = "NOT_AVAILABLE"
 evidence = "absent from nmrglue repository, v0.5 release archive, and local corpus; PR #228 added code+tests only; maintainer asked about data availability but no resolution recorded"
-notes = "real 2D JDF quadrature/layout; data not found in examined sources"
+notes = "real 2D JDF quadrature/layout; data not found in examined sources; deferred from the first-release critical contract (2026-10-08)"
 component_count = 1
 absent_component_count = 1
 
 [missing.jeol_2d_complex_pipe_reference.components.reference_pair]
 status = "absent"
-scope = "critical"
+scope = "deferred"
 paths = ["jeol/cyclosporine_tocsy-1-1.jdf", "jeol/cyclosporine_tocsy-1-1.fid"]
 required_by = ["tests/fileio/test_jeol.py::test_2d_cc_1", "tests/fileio/test_jeol.py::test_2d_cc_1_udic"]
-notes = "real 2D JDF quadrature/layout and independent NMRPipe reference"
+notes = "real 2D JDF quadrature/layout and independent NMRPipe reference; deferred from the first-release critical contract (2026-10-08)"
 
 [missing.sparky_2d_ucsf_pipe_reference]
 format = "UCSF + Pipe"
 redistribution_status = "UNRESOLVED"
 evidence = "not present in local corpus or v0.5 archive"
-notes = "tiled UCSF layout; requires acquisition or licensed spectrum"
+notes = "tiled UCSF layout; requires acquisition or licensed spectrum; deferred from the first-release critical contract (2026-10-08)"
 component_count = 2
 absent_component_count = 2
 
 [missing.sparky_2d_ucsf_pipe_reference.components.pipe_reference]
 status = "absent"
-scope = "critical"
+scope = "deferred"
 paths = ["nmrpipe_2d/test.ft2"]
 required_by = ["tests/fileio/test_convert.py::test_sparky_2d", "tests/fileio/test_convert.py::test_sparky_2d_lowmem"]
-notes = "NMRPipe-generated 2D conversion reference"
+notes = "NMRPipe-generated 2D conversion reference; deferred from the first-release critical contract (2026-10-08)"
 
 [missing.sparky_2d_ucsf_pipe_reference.components.ucsf_spectrum]
 status = "absent"
-scope = "critical"
+scope = "deferred"
 paths = ["sparky_2d/data.ucsf"]
 required_by = ["tests/fileio/test_sparky.py::test_2d", "tests/fileio/test_sparky.py::test_2d_lowmem", "tests/fileio/test_convert.py::test_sparky_2d", "tests/fileio/test_convert.py::test_sparky_2d_lowmem"]
-notes = "tiled UCSF 2D spectrum"
+notes = "tiled UCSF 2D spectrum; deferred from the first-release critical contract (2026-10-08)"
 
 [missing.rnmrtk_3d_time_reference]
 format = "RNMRTK"
 redistribution_status = "UNRESOLVED"
 evidence = "not present in local corpus or v0.5 archive"
-notes = "real complex 3D file; requires independent generation"
+notes = "real complex 3D file; requires independent generation; deferred from the first-release critical contract (2026-10-08)"
 component_count = 1
 absent_component_count = 1
 
 [missing.rnmrtk_3d_time_reference.components.time_reference]
 status = "absent"
-scope = "critical"
+scope = "deferred"
 paths = ["rnmrtk_3d/time_3d.sec", "rnmrtk_3d/time_3d.par"]
 required_by = ["tests/fileio/test_rnmrtk.py::test_3d_time", "tests/fileio/test_convert.py::test_agilent_3d_rnmrtk"]
-notes = "real complex 3D RNMRTK file and its parameter file"
+notes = "real complex 3D RNMRTK file and its parameter file; deferred from the first-release critical contract (2026-10-08)"
 
 [missing.rnmrtk_3d_frequency_pipe_reference]
 format = "RNMRTK + Pipe"
 redistribution_status = "UNRESOLVED"
 evidence = "not present in local corpus or v0.5 archive"
-notes = "real frequency file and independent conversion reference"
+notes = "real frequency file and independent conversion reference; deferred from the first-release critical contract (2026-10-08)"
 component_count = 2
 absent_component_count = 2
 
 [missing.rnmrtk_3d_frequency_pipe_reference.components.frequency_reference]
 status = "absent"
-scope = "critical"
+scope = "deferred"
 paths = ["rnmrtk_3d/freq_3d.sec", "rnmrtk_3d/freq_3d.par"]
 required_by = ["tests/fileio/test_rnmrtk.py::test_3d_freq", "tests/fileio/test_convert.py::test_rnmrtk_3d"]
-notes = "real 3D RNMRTK frequency file and its parameter file"
+notes = "real 3D RNMRTK frequency file and its parameter file; deferred from the first-release critical contract (2026-10-08)"
 
 [missing.rnmrtk_3d_frequency_pipe_reference.components.pipe_reference]
 status = "absent"
-scope = "critical"
+scope = "deferred"
 paths = ["rnmrtk_3d/test.ft3"]
 required_by = ["tests/fileio/test_convert.py::test_rnmrtk_3d"]
-notes = "NMRPipe-generated 3D conversion reference"
+notes = "NMRPipe-generated 3D conversion reference; deferred from the first-release critical contract (2026-10-08)"
 
 [missing.jcampdx_affn_spectrum]
 format = "JCAMP-DX"
@@ -1106,22 +1706,6 @@ scope = "critical"
 paths = ["jcampdx/BRUKNTUP.DX", "jcampdx/TESTNTUP.DX"]
 required_by = ["tests/fileio/test_jcampdx.py::test_jcampdx1"]
 notes = "real 2D NTUPLES arrays; shared with the monolithic encoding test"
-
-[missing.simpson_1d_encoding_set]
-format = "SIMPSON"
-redistribution_status = "UNRESOLVED"
-evidence = "input .in present; encoding outputs not generated"
-notes = "TEXT/BINARY/XREIM/RAWBIN equivalence; requires SIMPSON regeneration; output paths are declared as components of group simpson_1d"
-component_count = 0
-absent_component_count = 0
-
-[missing.simpson_2d_encoding_set]
-format = "SIMPSON"
-redistribution_status = "UNRESOLVED"
-evidence = "input .in present; encoding outputs not generated"
-notes = "2D encoding variants; requires SIMPSON regeneration; output paths are declared as components of group simpson_2d"
-component_count = 0
-absent_component_count = 0
 
 [missing.extended_test_references]
 format = "various"
