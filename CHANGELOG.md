@@ -16,7 +16,7 @@ original nmrglue project and are preserved for attribution and continuity.
   RNMRTK/Sparky/JEOL historical reference tests deferred from that contract,
   with a three-valued component scope (`critical`/`deferred`/`extended`);
   tests, declarations and format support are retained and no redistribution
-  status changes. No data is committed or redistributed by this change.
+  status changes. No data is committed or redistributed by this change. (#68)
 - Document accepted local use of the historical test archive separately from
   redistribution rights, and record maintainer-approved first-release corpus
   scope decisions. The manifest and executable test contract will be updated
