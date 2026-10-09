@@ -46,10 +46,10 @@ against the repository, not against this document.
 
 | # | Gate | Evidence to look for |
 |---|---|---|
-| G1 | **Provenance and redistribution rights** for the release-critical corpus | `maintainer/roadmap.md` P0 item; recorded local evidence if available |
+| G1 | **Provenance and accepted validation use**, plus redistribution rights for data actually distributed | `maintainer/testdata-policy.md`, per-source acceptance and per-file/group redistribution evidence; do not require redistribution rights for accepted local-only inputs |
 | G2 | **Versioned manifest** with sizes and SHA-256 checksums | a tracked manifest file; roadmap P0 item |
-| G3 | **Checksum-verifying test-data fetcher** | a script or documented command that downloads and verifies; roadmap P0 item |
-| G4 | **Dataset validation** run and recorded | recorded result for the release-critical dataset profile |
+| G3 | **Reproducible, checksum-verified acquisition** in the authorized validation environment | a fetcher or documented retrieval/verification commands; public mirroring or unrestricted downloads are not required |
+| G4 | **Dataset validation** run and recorded | critical-profile results on an immutable corpus; documented local/manual or authorized private runs are acceptable, public dataset CI is not required |
 | G5 | **Independent documentation** and a working documentation build | `doc/`, `.readthedocs.yml`, and an actual build/deployment record |
 | G6 | **Version and artifact coherence** | version source, `CHANGELOG.md`, and any built artifact agree |
 
@@ -74,12 +74,32 @@ evidence but are not shared repository material. Do not restate an audit as if
 it were a fresh validation.
 
 A release may proceed only when the autonomous suite is green, all
-release-critical groups are reproducibly available and checksum-verified, the
-release-critical dataset tests pass against an immutable corpus, the inherited
+release-critical groups are reproducibly available and checksum-verified in
+the authorized validation environment, the release-critical dataset tests pass
+against an immutable corpus, the inherited
 release-critical defects are resolved, the Varian / low-memory blockers have an
 explicit validated outcome, provenance is acceptable for every distributed
 group, and the extended and NMRPipe differential profiles have recorded
 outcomes.
+
+Apply the maintainer's 2026-10-08 decision in `maintainer/testdata-policy.md`:
+the identified historical archive is accepted for local tests, without claiming
+an explicit data license for every file. `redistribution_status=UNRESOLVED`
+alone is not a blocker for those local-only inputs. Files/groups whose public-
+domain status or applicable redistribution license is documented may be
+distributed; other accepted data remain local/private. Review the actual
+sdist/wheel and artifact contents when evaluating distribution rights.
+
+Accept documented local critical validation with traceable commit, data,
+commands, reference software, results and integrity checks. Do not substitute
+source acceptance for test execution or waive missing components. No public
+dataset CI job is required to close G4 if sufficient local evidence is recorded.
+
+The same policy separately records approved first-release scope dispositions.
+While the generator/manifest still describe the historical contract, report
+that implementation gap explicitly; do not silently treat deferred components
+as present, relabel skipped tests as passing, or claim that the verifier already
+implements the approved scope. Any contract translation needs its own review.
 
 Failures confined to the historical low-priority set do not block release. An
 extended-profile failure blocks only if it reveals a defect in a capability

@@ -173,6 +173,29 @@ local notes used "unlicensed/non-redistributable" too categorically; the
 supported shared conclusion is **rights unresolved**. Generate in disposable
 copies and record commands/tool versions before considering corpus updates.
 
+## Local-use decision — 2026-10-08
+
+The maintainer accepts the identified historical nmrglue archive for local
+validation. See [test-data policy](../testdata-policy.md) for the source,
+checksum and approved evidence requirements. This is a project acceptance
+decision, not discovery of an explicit license for every archive file.
+
+The earlier tables' `UNRESOLVED` entries describe redistribution. They do not
+block tests using this locally accepted source. References to rights work or
+public dataset CI as prerequisites must be read with this qualification:
+documented local/manual critical validation is acceptable; only actually
+distributed data require established redistribution rights. Archive files or
+groups with documented public-domain status or suitable licenses may be
+redistributed individually, respecting applicable conditions. No such file
+classification is changed by this documentation decision.
+
+The local-use decision alone does not change the scientific contract or
+availability findings: 145 verified files do not supply the 19 declared missing
+critical components. Separate scope dispositions are recorded later below.
+No tests were rerun for this decision. Prior counts remain dated evidence,
+not a new validation. Generation of missing independent references remains
+separate work, with tool/input provenance and validation on disposable copies.
+
 ## Manifest scope correction (2026-10-07)
 
 Recorded after this report's consolidation; no dataset was downloaded or
@@ -309,6 +332,33 @@ Scope boundary decisions confirmed by the maintainer:
   validation covered both conversion orders with checksums. Existing
   `FDDMXVAL` comparison exclusion is a limitation, not a validated value.
 
+## Maintainer dispositions — 2026-10-08
+
+The [test-data policy](../testdata-policy.md) now records decisions following
+the inventory of 19 absent critical components:
+
+- Generate the five Agilent/Bruker NMRPipe conversion-reference components
+  locally from available raw data; validate conversion choices and outputs.
+- Replace the two historical Bruker pdata datasets with existing licensed
+  fixtures, preserving their read/write capability requirements.
+- Defer six RNMRTK/Sparky reference components from first-release critical
+  scope. Nine tests in the historical breakdown exercise these capabilities;
+  their unvalidated real-reference behaviors must remain explicit. Existing
+  support and tests are retained; further reference work can resume when
+  interested contributors supply suitable data.
+- Retain both SIMPSON encoding sets and pursue local generation.
+- Defer the two historical JEOL reference-pair components as well, following
+  the maintainer's subsequent decision on the same date. Their four historical
+  tests remain unvalidated and no longer form a first-release requirement.
+  Keep the reader, licensed fixtures and autonomous tests. Revisit with user
+  demand or suitable contributed data and independent references.
+- No new disposition was made for the two JCAMP-DX components.
+
+These decisions supersede the earlier *proposed* classifications only where
+stated. The manifest, generator and tests still encode the historical contract
+until a separate reviewed change translates them. No data was generated and
+no validation rerun to record these decisions.
+
 ## SIMPSON local generation — 2026-10-08
 
 Recorded from the separate installation/generation session on 2026-10-08;
@@ -421,18 +471,28 @@ The delivery session separately ran
 `python -m pytest tests/fileio/test_simpson_shapes.py tests/fileio/test_simpson_errors.py -m "not dataset and not external_software" --strict-markers --strict-config -ra -q`:
 **10 passed, 0 skipped**. No generated-file validation was rerun for delivery.
 
-## Decisions required
+## Remaining implementation and decisions
 
-1. Approve the revised capability mapping without treating fixture reading as
-   equivalent to independent conversion validation.
+1. Translate the approved dispositions into a revised capability mapping and
+   manifest, without treating fixture reading as independent conversion proof.
 2. Inventory completeness is corrected (see the scope-correction section);
    the remaining decision is to specify reference generation/verification
    (tools, commands, rights checks) before any corpus update.
 3. Choose provenance/hash coverage for packaged fixtures.
 4. Authorize a JCAMP-DX split preserving cross-encoding assertions.
-5. Decide SIMPSON scope after evaluating regeneration.
-6. Decide whether JEOL replacements must retain an independent Pipe comparison.
-These decisions precede a complete release-critical validation run. The
+5. The SIMPSON 1D shape contract is decided, implemented and independently
+   reviewed (2026-10-08); the review's requested `read_binary()` `NP`/length
+   hardening was applied and accepted by a targeted counter-review the same
+   day — see the shape-contract resolution subsection above. The local
+   installation and copied-input generation are available. The reader correction
+   is now integrated in #66 (`d9ba184`), while generated-output integration into
+   the external local corpus and versioned manifest still requires separate
+   authorization. No payload commit is implied or required for local validation.
+6. Record the JEOL historical-reference deferral in the machine-readable
+   contract; additional independent comparisons are follow-up work rather
+   than prerequisites for the first release.
+Available tests may run locally under the accepted-use policy; the remaining
+decisions concern completion of the contract and its references. The
 scope-correction section records manifest/verifier tooling changes and their
 tests; it changes no scientific assertion, marker, fixture or release gate.
 

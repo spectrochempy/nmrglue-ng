@@ -9,7 +9,9 @@ PR #58 (`ce98382`) subsequently changed documentation only.
 
 The recorded verdict is **BLOCKED**. Autonomous tests and distribution builds
 are healthy, but the complete critical-data contract, documentation and final
-release preparation have not been validated. No gate is waived here.
+release preparation have not been validated. The table below retains the
+historical assessment; the 2026-10-08 maintainer decision immediately below
+updates the rights/acquisition interpretation without waiving test coverage.
 
 | Gate | Evidence / remaining work |
 |---|---|
@@ -22,6 +24,38 @@ release preparation have not been validated. No gate is waived here.
 
 The [critical-corpus report](2026-10-critical-corpus.md) gives the evidence
 behind G1–G4 and proposals requiring a maintainer decision.
+
+### Approved policy update — 2026-10-08
+
+Under the [test-data policy](../testdata-policy.md), the historical nmrglue
+archive is accepted for local validation. This supplies a recorded local-use
+basis for that source, not blanket redistribution permission. Individual
+files/groups with established public-domain status or redistribution licenses
+may be distributed; the other accepted inputs remain local/private.
+
+- **G1** now distinguishes provenance and accepted test use from redistribution
+  rights for data actually distributed. The archive's unresolved redistribution
+  status alone does not block its local validation. Other sources and files
+  selected for publication still need their own assessment.
+- **G3** accepts documented retrieval/checksum verification in the authorized
+  environment; a public mirror or public download automation is not mandatory.
+- **G4** accepts recorded local/manual critical-profile results with identified
+  commit, inputs, software and integrity checks. Absence of public dataset CI
+  is not itself a blocker. Missing files and unexecuted tests remain gaps.
+
+The local-use decision does not rerun any profile or close the complete
+validation gate. It supersedes the older blanket requirement to resolve
+redistribution for all critical inputs,
+not the historical test results. Current gate definitions are in the release
+skill; current actions are in the [roadmap](../roadmap.md).
+
+A subsequent maintainer disposition on the same date explicitly defers the
+RNMRTK/Sparky/JEOL historical reference requirements from the first-release
+critical scope, approves replacement of historical Bruker pdata, and retains the other
+validation work described in the [policy](../testdata-policy.md). This is a
+scope decision, not a successful execution. Its translation into the manifest
+and generator remains pending; recorded 42-test/19-absence totals still refer
+to the historical machine-readable contract.
 
 ## Recorded validation
 
