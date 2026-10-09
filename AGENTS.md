@@ -106,8 +106,14 @@ Additional rules:
 * A skipped test is not a validated test. Never present a `skipped` result as
   evidence that a behavior is correct; report the skip and its reason.
 * Never version or republish data whose provenance and redistribution rights
-  are not established. Document provenance, license, and checksum for every
-  external dataset (see `CONTRIBUTING.md`).
+  are not established. Document provenance, accepted use basis, redistribution
+  assessment and checksum for external datasets (see `CONTRIBUTING.md`).
+* Follow `maintainer/testdata-policy.md`: the identified historical nmrglue
+  archive is accepted for local validation. Local use and redistribution are
+  separate decisions. Public-domain or otherwise licensed files from that
+  archive may be redistributed when their individual/group rights are recorded.
+  Unresolved redistribution alone does not block accepted local validation;
+  it does not establish availability, a passing test or distribution permission.
 
 Keep the test categories explicit in code and reporting:
 

@@ -198,7 +198,8 @@ Prefer the smallest fixture that demonstrates the required behavior. Every
 new external dataset should have documented:
 
 - provenance and acquisition or generation details;
-- permission and license for redistribution;
+- the basis for access/test use and, separately, redistribution rights or their
+  unresolved/restricted status (rights must be established before distribution);
 - a checksum;
 - the format and relevant software or instrument version;
 - instructions for obtaining or regenerating it.
@@ -206,6 +207,28 @@ new external dataset should have documented:
 Do not commit large datasets to Git when a small fixture is sufficient. Do not
 add automatic multi-gigabyte downloads to the standard CI. If data must remain
 external, document how contributors can obtain and verify it.
+
+### Local validation and redistribution
+
+The maintainer accepts the identified nmrglue v0.5 test archive for local
+validation even where its data redistribution status remains unresolved.
+See [`maintainer/testdata-policy.md`](maintainer/testdata-policy.md) for the
+2026-10-08 decision, source/checksum and validation-evidence requirements.
+This acceptance does not claim an explicit license for all archive contents.
+
+Files or groups with documented public-domain status or an applicable license
+permitting redistribution may be distributed as fixtures, respecting any
+conditions. Public download availability alone does not establish that status.
+Keep other payloads local or in an authorized private validation environment;
+do not publish them through distributions or CI artifacts.
+
+Documented local critical-test results are acceptable release evidence. They
+must identify the code, data, reference software, results and integrity checks.
+The absence of public dataset CI is not by itself a release blocker; missing
+critical data or unexecuted critical tests remain unvalidated. Local-use
+acceptance alone waives no scientific requirement. Separate maintainer-approved
+first-release scope decisions are recorded in the policy; their implementation
+in the machine-readable contract requires its own reviewed change.
 
 ### Test-data manifest and verification
 
@@ -216,8 +239,9 @@ require Python >= 3.11 (for `tomllib`); on Python 3.10, install `tomli`.
 The data comes from the upstream nmrglue v0.5 release archive. The repository
 has a BSD-3-Clause license, but no explicit data license was specified for
 release assets. Redistribution status for each group is therefore recorded as
-`UNRESOLVED` pending explicit rights evidence. JEOL test data was not found
-in the nmrglue repository, the v0.5 release archive, or the local corpus;
+`UNRESOLVED` pending explicit redistribution evidence; this field does not
+encode the accepted local-use decision above. Historical JEOL test data was
+not found in the nmrglue repository, the v0.5 release archive, or the local corpus;
 PR #228 added code and tests only. Tests referencing `data/jeol/` fail with
 `FileNotFoundError` when the data is absent (the conftest skip checks for
 the `data/` directory, not `data/jeol/` specifically).

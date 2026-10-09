@@ -177,7 +177,7 @@ or unchanged. This is more than replacing strings matching old directories.
 
 | Consumer | Required treatment |
 |---|---|
-| `tests/conftest.py` | Map `DATASET_MODULES` (11), `SELF_CONTAINED_EXCEPTIONS` (3), `DATASET_TESTS` (Tecmag), `OPTIONAL_DEPENDENCIES` (3 CSDM + RS2D), and the NMRPipe module equality. Preserve stripping only the parameter suffix for classification. |
+| `tests/conftest.py` | Map `DATASET_MODULES` (11), `SELF_CONTAINED_EXCEPTIONS` (3 at the planning/migration baseline; 4 after #65 added the autonomous FDDMXVAL regression), `DATASET_TESTS` (Tecmag), `OPTIONAL_DEPENDENCIES` (3 CSDM + RS2D), and the NMRPipe module equality. Preserve stripping only the parameter suffix for classification. |
 | Conftest scope/root | It currently lives under `tests/` but its collection hook classifies the session, including CSDM under `nmrglue/`. Focused old packaged-test invocations may not load it. Verify both full and focused invocations after migration; do not mistake this old loading asymmetry for a reason to lose markers. Preserve `<root>/data` presence check, not per-dataset auto-skips. |
 | `pytest.ini` | Change `testpaths` from `tests`, `nmrglue` to `tests` only. Preserve all five registered markers and strict CI flags; ensure assets are not newly collected. |
 | `tests/setup.py` and its 12 imports | Apply the helper mapping above. No dependency on invocation cwd or installed `nmrglue.__file__` for source fixture discovery. |
