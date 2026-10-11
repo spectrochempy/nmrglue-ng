@@ -1,6 +1,6 @@
 # nmrglue-ng roadmap
 
-Status updated on **2026-10-09**, against `7a7f935`. This is the current
+Status updated on **2026-10-11**, against `3369943`. This is the current
 action list; dated evidence and qualifications live in the
 [maintainer reports](README.md). Consolidation is not a new test run or a
 change to scientific validation results. The approved local-data policy below
@@ -52,10 +52,13 @@ The recorded readiness verdict remains **BLOCKED**. See
 - [x] Accept the identified historical nmrglue archive for local validation
   (maintainer decision 2026-10-08). Keep use acceptance separate from
   redistribution status; see [test-data policy](testdata-policy.md).
-- [ ] Establish provenance and accepted test use for any other retained critical
-  sources, and rights for data actually distributed. Archive files/groups with
-  documented public-domain status or suitable licenses may be redistributed;
-  no blanket archive clearance is inferred.
+- [x] Establish provenance and accepted test use for retained critical sources,
+  and rights for data actually distributed. As of `3369943`, the manifest and
+  verifier record 19/19 release-critical components covered (15 present, 4
+  replaced, 0 absent). Accepted local-only archive and generated-reference inputs
+  remain `UNRESOLVED` for redistribution under the policy and are not cleared for
+  publication; the distributed Bruker `pdata` and JCAMP-DX replacement fixtures
+  record CC0 provenance/license and checksummed fixture inventory.
 - [ ] Document reproducible, checksum-verified acquisition and record complete
   critical-dataset validation. Local/manual evidence is acceptable; public
   dataset CI and redistribution of the whole corpus are not prerequisites.
