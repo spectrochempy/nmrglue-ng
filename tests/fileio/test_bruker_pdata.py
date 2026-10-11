@@ -24,6 +24,7 @@ re-referencing of one coherent dataset.
 import os
 
 import numpy as np
+from numpy.testing import assert_array_equal
 import pytest
 
 import nmrglue as ng
@@ -336,3 +337,128 @@ class TestBrukerProcessedAxes:
         first, last = uc.ppm_limits()
         assert np.isfinite(first)
         assert np.isfinite(last)
+
+
+class TestBrukerProcessedSubmatrix:
+    """Submatrix organization of the fixture processed data.
+
+    Both 2D fixtures store full-width submatrices: `XDIM` equals `SI` in the
+    direct and the indirect dimension, so `guess_shape_and_submatrix_shape`
+    returns a submatrix shape identical to the data shape. These fixtures
+    therefore verify the shape derivation and the (identity) submatrix
+    reordering, but they do not exercise multi-submatrix tiling; the
+    historical corpus data that did is no longer available.
+    """
+
+    def test_hsqc_submatrix_shape_is_identity(self):
+        pdic, pdata = ng.bruker.read_pdata(HSQC_PDATA_DIR)
+        shape, submatrix = ng.bruker.guess_shape_and_submatrix_shape(pdic)
+        assert shape == pdata.shape == (256, 4096)
+        assert submatrix == (256, 4096)
+
+    def test_cosy_submatrix_shape_is_identity(self):
+        pdic, pdata = ng.bruker.read_pdata(COSY_PDATA_DIR)
+        shape, submatrix = ng.bruker.guess_shape_and_submatrix_shape(pdic)
+        assert shape == pdata.shape == (512, 2048)
+        assert submatrix == (512, 2048)
+
+
+# Capability tests that replace the historical external pdata datasets
+# (`data/bruker_1d/pdata/1`, `data/bruker_2d/pdata/1`) with the versioned CC0
+# fixtures. They are module-level so that their ids match the contract ids
+# declared in `CRITICAL_TESTS` (see scripts/generate_testdata_manifest.py).
+
+
+def test_pdata_1d_procs_metadata():
+    """1D processed parameters and scaling match the procs file.
+
+    Replaces the historical `test_read_pdata_1d`. NC_proc is 13, so the
+    scaled array equals the unscaled int32 array multiplied by 2**13.
+    """
+    pdic, pdata = ng.bruker.read_pdata(PDATA_DIR)
+    procs = pdic["procs"]
+    assert procs["OFFSET"] == 15.11477
+    assert procs["SF"] == 600.139999679976
+    assert procs["FT_mod"] == 6
+    assert procs["NC_proc"] == 13
+
+    _, unscaled = ng.bruker.read_pdata(PDATA_DIR, scale_data=False)
+    assert np.isclose(pdata[0], unscaled[0] * 2.0 ** procs["NC_proc"])
+    assert np.isclose(pdata[-1], unscaled[-1] * 2.0 ** procs["NC_proc"])
+
+
+def test_pdata_2d_procs_metadata():
+    """2D processed parameters and scaling match procs and proc2s.
+
+    Replaces the historical `test_read_pdata_2d`, using the HSQC and COSY
+    fixtures. Both share NC_proc across dimensions.
+    """
+    hdic, hdata = ng.bruker.read_pdata(HSQC_PDATA_DIR)
+    assert hdic["procs"]["OFFSET"] == 7.99684
+    assert hdic["procs"]["SF"] == 600.150000007829
+    assert hdic["proc2s"]["OFFSET"] == 189.3282
+    assert hdic["proc2s"]["SF"] == 150.907895795745
+    assert hdic["procs"]["NC_proc"] == -12
+    _, hunscaled = ng.bruker.read_pdata(HSQC_PDATA_DIR, scale_data=False)
+    assert np.isclose(hdata[0, 0], hunscaled[0, 0] * 2.0 ** hdic["procs"]["NC_proc"])
+
+    cdic, cdata = ng.bruker.read_pdata(COSY_PDATA_DIR)
+    assert cdic["procs"]["OFFSET"] == 16.00128
+    assert cdic["proc2s"]["OFFSET"] == 16.00128
+    assert cdic["procs"]["NC_proc"] == -4
+    _, cunscaled = ng.bruker.read_pdata(COSY_PDATA_DIR, scale_data=False)
+    assert np.isclose(cdata[0, 0], cunscaled[0, 0] * 2.0 ** cdic["procs"]["NC_proc"])
+
+
+def _copy_bruker_dict(dic):
+    """Return a shallow copy with fresh nested parameter sub-dicts.
+
+    `write_pdata` updates `dic['procs']['PPARMOD']` in place; the copy keeps
+    the dictionary read from the fixture unchanged for the comparison.
+    """
+    return {
+        key: dict(value) if isinstance(value, dict) else value
+        for key, value in dic.items()
+    }
+
+
+@pytest.mark.parametrize("pdata_folder", [False, 90])
+def test_write_pdata_1d_roundtrip(tmp_path, pdata_folder):
+    """1D processed data round-trips through write_pdata/read_pdata.
+
+    Replaces the historical `test_write_pdata_1d`. The scaled array read
+    from the fixture is written with `scale_data=True`, the documented mode
+    for an array produced by `read_pdata`, and is recovered exactly; the
+    procs metadata is preserved. Both the flat layout and the
+    `pdata/<n>` layout are exercised.
+    """
+    dic, data = ng.bruker.read_pdata(PDATA_DIR, read_acqus=False)
+    dic = _copy_bruker_dict(dic)
+    ng.bruker.write_pdata(str(tmp_path), dic, data.copy(), scale_data=True,
+                          write_procs=True, pdata_folder=pdata_folder)
+    read_dir = str(tmp_path / "pdata" / str(pdata_folder)) if pdata_folder \
+        else str(tmp_path)
+    rdic, rdata = ng.bruker.read_pdata(read_dir, read_acqus=False)
+    assert_array_equal(data, rdata)
+    assert rdic["procs"] == dic["procs"]
+
+
+@pytest.mark.parametrize("fixture", [HSQC_PDATA_DIR, COSY_PDATA_DIR])
+@pytest.mark.parametrize("pdata_folder", [False, 90])
+def test_write_pdata_2d_roundtrip(tmp_path, fixture, pdata_folder):
+    """2D processed data round-trips through write_pdata/read_pdata.
+
+    Replaces the historical `test_write_pdata_2d`. The real component is
+    recovered exactly with `scale_data=True` and both procs and proc2s are
+    preserved, for the flat and `pdata/<n>` layouts.
+    """
+    dic, data = ng.bruker.read_pdata(fixture, read_acqus=False)
+    dic = _copy_bruker_dict(dic)
+    ng.bruker.write_pdata(str(tmp_path), dic, data.copy(), scale_data=True,
+                          write_procs=True, pdata_folder=pdata_folder)
+    read_dir = str(tmp_path / "pdata" / str(pdata_folder)) if pdata_folder \
+        else str(tmp_path)
+    rdic, rdata = ng.bruker.read_pdata(read_dir, read_acqus=False)
+    assert_array_equal(data, rdata)
+    assert rdic["procs"] == dic["procs"]
+    assert rdic["proc2s"] == dic["proc2s"]

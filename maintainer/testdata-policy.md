@@ -89,7 +89,7 @@ the verifier's result.
 | Capability | Maintainer direction | Completion condition |
 |---|---|---|
 | Agilent 1D/2D/3D and Bruker 1D/2D NMRPipe conversion references | Generate locally from the available raw inputs using NMRPipe. | Reviewed conversion parameters, recorded commands/version/hashes, and passing relevant tests against the resulting independent references. |
-| Historical Bruker 1D/2D pdata | Replace these specific datasets with the existing licensed fixtures. | Map the historical read/write requirements to those fixtures; add missing writer round-trip evidence and verify relevant metadata/scaling. Dataset replacement is approved; validation is not yet complete. |
+| Historical Bruker 1D/2D pdata | Replace these specific datasets with the existing licensed fixtures. | Done: the historical `read_pdata`/`write_pdata` requirements are mapped to the committed CC0 fixtures with fixture-derived metadata and read/write-roundtrip evidence, and the two `pdata` components are recorded as `replaced`. |
 | RNMRTK 3D and Sparky/UCSF 2D historical reference groups | Defer from the first-release critical contract due to limited current demand and unavailable references. | Record the validation limitation, retain existing functionality and tests, and revisit if an interested contributor supplies appropriate data. This is an explicit scope reduction, not a validation claim. |
 | SIMPSON 1D/2D encoding sets | Retain the requirement and pursue local generation with SIMPSON. | Check available input scripts, software setup and encoding conventions; generate in a disposable copy and validate equivalence. Do not install into the maintainer's primary environment implicitly. |
 | JEOL historical 1D/2D reference pairs | Defer from the first-release critical contract unless user demand or suitable contributed data justifies revisiting it. | Retain the reader and existing licensed fixtures/autonomous tests. Record that the historical independent NMRPipe comparison remains unvalidated; additional evidence is welcome but no longer required for this release. |
@@ -111,6 +111,21 @@ useful evidence even though the unavailable real-reference profile is deferred.
 The same distinction applies to the existing JEOL autonomous tests. A possible
 request to the JEOL reader's author for data/reference results is follow-up
 work, not a release prerequisite or authorization to contact them.
+
+## Replaced components and versioned fixtures
+
+A required component whose historical corpus path is not (and will not be)
+distributed may be satisfied by a committed, redistributable versioned fixture
+under `tests/fixtures/`. The generator records such a component with the
+component status `replaced` and a `replacement` declaration naming the fixture
+directory, license and provenance; the generator inventories and checksums
+every file in that directory under `[fixtures]` in the manifest. The verifier
+verifies those fixture checksums and requires the declared fixture to exist.
+`replaced` counts as availability coverage exactly like `present` for
+`derive_availability` and the release verdict, but it is never reported as
+`present`: the corpus path stays visibly absent and the fixture provenance is
+recorded explicitly. A component may not declare a replacement while its corpus
+path is present, and a `replaced` component must declare a replacement.
 
 ## Generated references
 

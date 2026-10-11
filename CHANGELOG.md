@@ -9,6 +9,17 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ### Changed
 
+- Replace the two historical Bruker processed-data (`pdata`) test dependencies
+  with the committed CC0 fixtures under
+  `tests/fixtures/fileio/data/bruker_pdata/` and record them in the test-data
+  manifest through a new `replaced` component status: a component whose corpus
+  path is absent but whose declared versioned fixture is inventoried and
+  checksummed counts as availability coverage without weakening corpus
+  integrity. The four historical `read_pdata`/`write_pdata` tests are retired
+  in favour of fixture-based metadata and read/write round-trip tests in
+  `tests/fileio/test_bruker_pdata.py`, so release-critical corpus absences drop
+  from four to two (the JCAMP-DX pair). No external data is committed or
+  redistributed. (#69)
 - Translate the approved first-release corpus scope decisions into the
   machine-readable test-data contract and integrate the validated NMRPipe and
   SIMPSON references into the local external corpus. The regenerated manifest

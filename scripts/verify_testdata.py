@@ -39,13 +39,15 @@ from generate_testdata_manifest import resolve_matches
 
 
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
+FIXTURES_DIR = Path(__file__).resolve().parents[1] / "tests" / "fixtures"
 MANIFEST_PATH = Path(__file__).resolve().parents[1] / "maintainer" / "testdata-manifest.toml"
 
 EXCLUDE_NAMES = {"README", "conversion_scripts"}
 EXCLUDE_SUFFIXES = {".com"}
 EXCLUDE_PREFIXES = {"make_"}
 
-VALID_STATUSES = {"present", "absent"}
+VALID_STATUSES = {"present", "absent", "replaced"}
+COVERED_STATUSES = ("present", "replaced")
 VALID_SCOPES = {"critical", "deferred", "extended"}
 
 
@@ -78,9 +80,9 @@ def iter_components(manifest: dict):
 
 
 def derive_availability(statuses: list) -> str:
-    if statuses and all(s == "present" for s in statuses):
+    if statuses and all(s in COVERED_STATUSES for s in statuses):
         return "complete"
-    if any(s == "present" for s in statuses):
+    if any(s in COVERED_STATUSES for s in statuses):
         return "partial"
     return "not_available"
 
@@ -114,6 +116,10 @@ def verify_structure(manifest: dict) -> list:
     components = list(iter_components(manifest))
     total_components = len(components)
     absent_components = sum(1 for *_, c in components if c.get("status") == "absent")
+    replaced_components = sum(1 for *_, c in components if c.get("status") == "replaced")
+
+    fixtures = manifest.get("fixtures", {})
+    fixture_files = fixtures.get("files", {}) if isinstance(fixtures, dict) else {}
 
     def is_scope(comp, scope):
         required_by = set(comp.get("required_by", []))
@@ -132,12 +138,17 @@ def verify_structure(manifest: dict) -> list:
         1 for *_, c in components
         if c.get("status") == "absent" and is_scope(c, "critical")
     )
+    replaced_critical_components = sum(
+        1 for *_, c in components
+        if c.get("status") == "replaced" and is_scope(c, "critical")
+    )
     deferred_components = sum(1 for *_, c in components if is_scope(c, "deferred"))
     absent_deferred_components = sum(
         1 for *_, c in components
         if c.get("status") == "absent" and is_scope(c, "deferred")
     )
 
+    fixture_total_size = sum(f.get("size", 0) for f in fixture_files.values())
     for key, actual in (
         ("total_groups", len(groups)),
         ("total_files", total_files),
@@ -145,10 +156,14 @@ def verify_structure(manifest: dict) -> list:
         ("missing_groups", len(missing)),
         ("total_components", total_components),
         ("absent_components", absent_components),
+        ("replaced_components", replaced_components),
         ("critical_components", critical_components),
         ("absent_critical_components", absent_critical_components),
+        ("replaced_critical_components", replaced_critical_components),
         ("deferred_components", deferred_components),
         ("absent_deferred_components", absent_deferred_components),
+        ("fixture_files", len(fixture_files)),
+        ("fixture_size", fixture_total_size),
     ):
         declared = info.get(key)
         if declared != actual:
@@ -190,6 +205,48 @@ def verify_structure(manifest: dict) -> list:
                 )
             else:
                 seen_paths[p] = label
+
+        replacement = comp.get("replacement")
+        if replacement is not None:
+            for field in ("replacement_license", "replacement_provenance"):
+                value = comp.get(field)
+                if not isinstance(value, str) or not value.strip():
+                    errors.append(
+                        f"STRUCTURAL: {label} must declare a non-empty {field}"
+                    )
+            if not isinstance(replacement, list) or not replacement:
+                errors.append(
+                    f"STRUCTURAL: {label} must declare a non-empty replacement list"
+                )
+            else:
+                for fpath in replacement:
+                    if not isinstance(fpath, str) or not fpath:
+                        errors.append(
+                            f"STRUCTURAL: {label} has invalid replacement entry "
+                            f"{fpath!r}"
+                        )
+                        continue
+                    if (FIXTURES_DIR / fpath).is_dir():
+                        if not resolve_matches(fixture_files, fpath):
+                            errors.append(
+                                f"STRUCTURAL: {label} replacement {fpath} has no "
+                                f"inventoried fixture file"
+                            )
+                    else:
+                        errors.append(
+                            f"STRUCTURAL: {label} replacement {fpath} is not a "
+                            f"directory under tests/fixtures/"
+                        )
+                if status == "present":
+                    errors.append(
+                        f"STRUCTURAL: {label} declares a replacement but its "
+                        f"corpus paths are present"
+                    )
+        elif status == "replaced":
+            errors.append(
+                f"STRUCTURAL: {label} has status 'replaced' without a "
+                f"replacement declaration"
+            )
 
     for entry, gdata in groups.items():
         comps = gdata.get("components", {})
@@ -303,12 +360,44 @@ def detect_extra_files(manifest_groups: dict, data_dir: Path) -> list:
     return sorted(actual - expected)
 
 
+def verify_fixtures(manifest: dict, fixtures_dir: Path) -> tuple:
+    """Verify the inventoried replacement fixtures exist and are unchanged.
+
+    Returns ``(errors, verified)``.
+    """
+    errors = []
+    files = manifest.get("fixtures", {}).get("files", {})
+    verified = 0
+    for rel_path, expected in files.items():
+        path = fixtures_dir / rel_path
+        if not path.is_file():
+            errors.append(f"MISSING FIXTURE: {rel_path}")
+            continue
+        data = path.read_bytes()
+        actual_sha256 = hashlib.sha256(data).hexdigest()
+        actual_size = len(data)
+        if actual_sha256 != expected.get("sha256"):
+            errors.append(
+                f"CORRUPT FIXTURE: {rel_path} "
+                f"(expected sha256 {expected.get('sha256', '')[:16]}..., "
+                f"got {actual_sha256[:16]}...)"
+            )
+        elif actual_size != expected.get("size"):
+            errors.append(
+                f"SIZE MISMATCH FIXTURE: {rel_path} "
+                f"(expected {expected.get('size')}, got {actual_size})"
+            )
+        else:
+            verified += 1
+    return errors, verified
+
+
 def verify_availability(manifest: dict, data_dir: Path) -> tuple:
     """Check component statuses against the corpus.
 
-    Returns ``(errors, stats, absent)`` where stats counts components per
-    scope/status and ``absent`` lists every absent component labeled by its
-    scope.
+    Returns ``(errors, stats, absent, replaced)`` where stats counts components
+    per scope/status and ``absent``/``replaced`` list the corresponding
+    components labeled by scope.
     """
     errors = []
     critical_tests = set(manifest.get("manifest", {}).get("critical_tests", []))
@@ -317,19 +406,23 @@ def verify_availability(manifest: dict, data_dir: Path) -> tuple:
         rel for gdata in manifest.get("groups", {}).values()
         for rel in gdata.get("files", {})
     }
+    fixture_files = manifest.get("fixtures", {}).get("files", {})
     on_disk = scan_data_dir(data_dir) if data_dir.is_dir() else None
 
     stats = {
         "total": 0,
         "present": 0,
         "absent": 0,
+        "replaced": 0,
         "critical": 0,
         "critical_present": 0,
         "critical_absent": 0,
+        "critical_replaced": 0,
         "deferred": 0,
         "deferred_absent": 0,
     }
     absent = []
+    replaced = []
     for section, entry, comp_id, comp in iter_components(manifest):
         label = f"{section}.{entry}.components.{comp_id}"
         status = comp.get("status")
@@ -350,9 +443,10 @@ def verify_availability(manifest: dict, data_dir: Path) -> tuple:
             matches = set()
             for p in comp.get("paths", []):
                 matches |= resolve_matches(on_disk, p)
-            if status == "absent" and matches:
+            if status in ("absent", "replaced") and matches:
                 errors.append(
-                    f"DECLARED ABSENT BUT PRESENT: {label} matches {sorted(matches)}"
+                    f"DECLARED {status.upper()} BUT PRESENT: {label} "
+                    f"matches {sorted(matches)}"
                 )
             if status == "present":
                 if not matches:
@@ -362,10 +456,26 @@ def verify_availability(manifest: dict, data_dir: Path) -> tuple:
                         f"NOT INVENTORIED: {label} matches {rel} which is not checksummed"
                     )
 
+        if status == "replaced":
+            replacement_matches = set()
+            for p in comp.get("replacement", []):
+                replacement_matches |= resolve_matches(
+                    manifest.get("fixtures", {}).get("files", {}), p
+                )
+            if not replacement_matches:
+                errors.append(
+                    f"REPLACEMENT UNINVENTORIED: {label} has no fixture file"
+                )
+
         if status == "present":
             stats["present"] += 1
             if scope == "critical":
                 stats["critical_present"] += 1
+        elif status == "replaced":
+            stats["replaced"] += 1
+            replaced.append((scope, label))
+            if scope == "critical":
+                stats["critical_replaced"] += 1
         else:
             stats["absent"] += 1
             absent.append((scope, label))
@@ -373,7 +483,7 @@ def verify_availability(manifest: dict, data_dir: Path) -> tuple:
                 stats["critical_absent"] += 1
             elif scope == "deferred":
                 stats["deferred_absent"] += 1
-    return errors, stats, absent
+    return errors, stats, absent, replaced
 
 
 def main():
@@ -434,8 +544,18 @@ def main():
         print(f"INTEGRITY: PASSED — {total_verified}/{total_declared} inventoried files verified, 0 errors")
     print()
 
+    print("FIXTURES")
+    fixture_errors, fixtures_verified = verify_fixtures(manifest, FIXTURES_DIR)
+    declared_fixtures = len(manifest.get("fixtures", {}).get("files", {}))
+    for e in fixture_errors:
+        print(f"  {e}")
+        total_errors += 1
+    if not fixture_errors:
+        print(f"  {fixtures_verified}/{declared_fixtures} replacement fixtures verified")
+    print()
+
     print("AVAILABILITY")
-    avail_errors, stats, absent = verify_availability(manifest, DATA_DIR)
+    avail_errors, stats, absent, replaced = verify_availability(manifest, DATA_DIR)
     for e in avail_errors:
         print(f"  {e}")
         total_errors += 1
@@ -444,10 +564,14 @@ def main():
         f"({stats['critical']} release-critical, {stats['deferred']} deferred), "
         f"absent: {stats['absent']} "
         f"({stats['critical_absent']} release-critical, "
-        f"{stats['deferred_absent']} deferred)"
+        f"{stats['deferred_absent']} deferred), "
+        f"replaced: {stats['replaced']} "
+        f"({stats['critical_replaced']} release-critical)"
     )
     for scope, label in absent:
         print(f"  ABSENT ({scope}): {label}")
+    for scope, label in replaced:
+        print(f"  REPLACED ({scope}): {label}")
     if stats["critical_absent"]:
         print(
             f"AVAILABILITY: INCOMPLETE — {stats['critical_absent']} of "

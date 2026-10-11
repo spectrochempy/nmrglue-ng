@@ -883,3 +883,147 @@ unchanged from the reviewed post-integration state. Final review conclusion:
 ready after follow-up for this scope, with the CHANGELOG PR number,
 pre-existing `test_convert.py` temporary-file hygiene, and absent
 `twine`/wheel-install execution still outside scope.
+
+## Bruker pdata replacement — 2026-10-09
+
+Baseline: master `1684a772` (squash-merged #68, "MAINT: apply release corpus
+contract and inventory local references"), clean working tree. This completes
+the last approval subject to validation in the 2026-10-08 first-release scope
+decisions: the two historical Bruker processed-data (`pdata`) components.
+
+### Approach
+
+The historical `data/bruker_1d/pdata/1` and `data/bruker_2d/pdata/1` sets are
+absent and their expected values are not reproducible (the `test_data_v0.5-dev`
+archive also lacks `bruker_1d/pdata`). The two components are therefore recorded
+in the manifest with a new three-valued status addition — `replaced` — rather
+than by subtracting them. A `replaced` component keeps its corpus path visible
+as absent, must declare a `replacement` (fixture directories, license,
+provenance), and is counted as availability coverage exactly like `present`.
+The declared fixtures are inventoried and checksummed under a new `[fixtures]`
+manifest table; the verifier verifies those checksums and requires the declared
+fixture to exist. A component may not declare a replacement while its corpus
+path is present, and a `replaced` component must declare one.
+
+Replacement fixtures: `tests/fixtures/fileio/data/bruker_pdata/exp1`
+(1D sucrose, nmrXiv P52), `exp2d_hsqc` and `exp2d_cosy` (nmrXiv P33), all
+committed CC0 1.0, 18 files / 21,514,331 bytes.
+
+The four historical tests (`test_read_pdata_1d`/`_2d`,
+`test_write_pdata_1d`/`_2d`) and their `write_readback_pdata` helper are retired
+from `tests/fileio/test_bruker_with_test_data.py`. The capability is rewritten
+in the autonomous `tests/fileio/test_bruker_pdata.py` with fixture-derived
+metadata assertions (`test_pdata_1d_procs_metadata`,
+`test_pdata_2d_procs_metadata`), submatrix-shape identity checks, and
+`read -> write -> read` round-trip tests (`test_write_pdata_1d_roundtrip`,
+`test_write_pdata_2d_roundtrip`) over both `pdata_folder` layouts for 1D and
+both 2D fixtures. Round-trip uses `scale_data=True` on both sides (the correct
+mode for the NC_proc-nonzero fixtures); the retired helper's `scale_data=False`
+does not hold for them. These four ids are the new release-critical members for
+the two `pdata` components.
+
+### Manifest and verifier changes
+
+- Generator `scripts/generate_testdata_manifest.py`: `CONTRACT_TEST_MODULES`
+  (scanned modules plus `fileio/test_bruker_pdata.py`) feeds `known_test_ids`;
+  `derive_component_status` gains `replaced`; a `collect_fixture_files` helper
+  inventories declared fixture directories; the manifest emits `[fixtures]`
+  and the new counters `replaced_components`, `replaced_critical_components`,
+  `fixture_files`, `fixture_size`, plus per-component `replacement`,
+  `replacement_license`, `replacement_provenance`.
+- Verifier `scripts/verify_testdata.py`: `VALID_STATUSES` gains `replaced`;
+  `derive_availability` treats `replaced` as coverage; `verify_fixtures`
+  checks the `[fixtures]` checksums; component rules reject `replaced`
+  without a replacement and a replacement while the corpus path is present.
+- Infrastructure `tests/infrastructure/test_testdata_manifest.py`: helpers
+  understand `replaced` and fixtures; new `TestReplacedComponents` (8 cases)
+  and `TestTrackedReplacement` (5 cases) pin the semantics, plus 2 derivation
+  tests.
+
+### Evidence
+
+- Baseline `data/` corpus digest unchanged: INTEGRITY **293/293**, 0 errors;
+  `tests/fixtures` replacement fixtures **18/18** verified; AVAILABILITY
+  **2 of 19** release-critical components absent (the JCAMP-DX pair),
+  **2 replaced** (both release-critical), 8 deferred; verifier exit **2**.
+  Manifest counters: `absent_components` 21 -> 19,
+  `absent_critical_components` 4 -> 2, `replaced_components` 2,
+  `fixture_files` 18, `fixture_size` 21,514,331.
+- `tests/fileio/test_bruker_pdata.py` + `tests/fileio/test_bruker_with_test_data.py`:
+  **49 passed**.
+- Infrastructure (`test_ci_validation.py` + `test_testdata_manifest.py`):
+  **72 passed** (was 57); CI sdist gate and `CONTRIBUTING.md` updated
+  `57 -> 72`.
+
+### Scope / status
+
+No product code, public API, scientific expected value or corpus file changed;
+no data is committed or redistributed. A new `replaced` status and `[fixtures]`
+inventory are additive to manifest schema v4. The tracked `[fixtures]` count is
+derived from the repository fixture tree, so the sdist manifest check remains
+valid.
+
+At initial implementation, independent review was pending because this change
+touches test infrastructure, corpus management and release gating. The review
+and successful follow-up are recorded below. The changelog reference is added
+on PR creation.
+
+### Independent review — 2026-10-11
+
+An independent review against base `1684a772` examined the uncommitted
+replacement change, including the historical four-test mapping, fixture bytes,
+NC_proc scaling, corpus isolation, manifest derivation and distribution
+artefacts. The sdist extracted outside the checkout passed all **70** required
+infrastructure cases without skips; its strict report gate passed, `twine check
+--strict` passed for both artefacts, and the runtime-only wheel harness passed
+all **64** staged cases while importing from site-packages. Focused fixture,
+historical-module and infrastructure tests passed **119** cases with no skips.
+The verifier independently reported 293/293 corpus files and 18/18 declared
+fixture files intact; it retained exactly two critical JCAMP-DX absences and
+listed the two pdata components as `replaced`, not `present`.
+
+The review found one introduced blocking defect: the verifier accepts a
+`replaced` component after `replacement_license` and
+`replacement_provenance` are removed, even though the approved policy requires
+both fields. The current declarations are complete, but the verifier and its
+negative tests must reject the malformed declaration before this replacement is
+accepted as coverage. Verdict: **Changes requested**. The full local review
+record is `maintainer/audits/2026-10-11-bruker-pdata-fixture-replacement-review.md`.
+
+### Implementer follow-up to the review — 2026-10-11
+
+The verifier now requires `replacement_license` and
+`replacement_provenance` to be non-empty strings whenever a component declares
+`replacement`. `TestReplacedComponents` adds negative coverage for both missing
+and blank values for each field, while existing synthetic replaced components
+declare CC0/test-fixture metadata by default. The focused infrastructure
+profile consequently moves **70 -> 72** cases and the CI sdist gate with it
+(`CONTRIBUTING.md`, `.github/workflows/ci.yml`: `check_test_report.py
+sdist.xml 72`).
+
+Closure checks after the fix: the malformed-manifest reproducer now reports a
+structural error; `tests/infrastructure/test_testdata_manifest.py` passes 64
+cases, the combined infrastructure sdist profile passes 72 and the strict gate
+accepts 72 while rejecting 70. The verifier result remains INTEGRITY 293/293,
+FIXTURES 18/18 and AVAILABILITY exit 2 with two JCAMP-DX critical absences and
+two critical pdata components explicitly `replaced`.
+
+### Independent follow-up review — 2026-10-11
+
+The reviewer rechecked the requested declaration-validation correction against
+the same `1684a772` base and working-tree target. Missing, empty and
+whitespace-only `replacement_license`/`replacement_provenance` values each
+produce structural errors; the added negative tests cover missing and empty
+values for both fields. The reviewer ran the combined infrastructure profile:
+**72 passed, 0 skipped**; its strict gate accepted 72 and rejected 70. A newly
+built sdist was extracted outside the checkout and ran the same two
+infrastructure modules: **72 passed, 0 skipped**, with the extracted strict
+gate accepting 72. The focused pdata, historical Bruker and infrastructure
+suite passed **121** cases with 10 existing pulse-program warnings. Verifier
+results remain corpus 293/293, fixtures 18/18, two critical JCAMP-DX absences
+and two pdata components visibly `replaced`.
+
+Verdict: **Ready to merge** for the reviewed replacement scope. The prior
+declaration-validation finding is resolved. Full autonomous, dataset and
+external-software profiles, plus wheel/twine artefact validation, were not
+repeated during this narrow follow-up; their earlier evidence remains dated.

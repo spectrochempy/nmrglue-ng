@@ -35,6 +35,7 @@ except ModuleNotFoundError:
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 MANIFEST_PATH = Path(__file__).resolve().parents[1] / "maintainer" / "testdata-manifest.toml"
 TESTS_DIR = Path(__file__).resolve().parents[1] / "tests"
+FIXTURES_DIR = TESTS_DIR / "fixtures"
 
 EXCLUDE_NAMES = {"README", "conversion_scripts"}
 EXCLUDE_SUFFIXES = {".com"}
@@ -228,10 +229,14 @@ GROUP_META = {
 # the historical 42-test contract (PR #26 assessment,
 # fdee69f:maintainer/audits/2026-10-release-critical-dataset.md) minus the
 # RNMRTK/Sparky and JEOL historical reference tests deferred by the maintainer
-# decisions of 2026-10-08 (maintainer/testdata-policy.md, PR #67). Bruker
-# pdata read/write and the JCAMP-DX encoding set remain in the contract
-# provisionally. The scope of a required component is "critical" when at
-# least one of its consumers is in this set.
+# decisions of 2026-10-08 (maintainer/testdata-policy.md, PR #67). The four
+# historical Bruker pdata read/write ids now name their equivalent autonomous
+# fixture tests in tests/fileio/test_bruker_pdata.py: the two external
+# processed datasets are replaced by the versioned CC0 fixtures declared in
+# the `replacement` field of the bruker_1d/bruker_2d `pdata` components. The
+# JCAMP-DX encoding set remains in the contract provisionally. The scope of a
+# required component is "critical" when at least one of its consumers is in
+# this set.
 CRITICAL_TESTS = frozenset({
     "tests/fileio/test_agilent.py::test_1d",
     "tests/fileio/test_agilent.py::test_2d",
@@ -245,10 +250,10 @@ CRITICAL_TESTS = frozenset({
     "tests/fileio/test_bruker_with_test_data.py::test_2d_lowmem",
     "tests/fileio/test_bruker_with_test_data.py::test_3d",
     "tests/fileio/test_bruker_with_test_data.py::test_3d_lowmem",
-    "tests/fileio/test_bruker_with_test_data.py::test_read_pdata_1d",
-    "tests/fileio/test_bruker_with_test_data.py::test_read_pdata_2d",
-    "tests/fileio/test_bruker_with_test_data.py::test_write_pdata_1d",
-    "tests/fileio/test_bruker_with_test_data.py::test_write_pdata_2d",
+    "tests/fileio/test_bruker_pdata.py::test_pdata_1d_procs_metadata",
+    "tests/fileio/test_bruker_pdata.py::test_pdata_2d_procs_metadata",
+    "tests/fileio/test_bruker_pdata.py::test_write_pdata_1d_roundtrip",
+    "tests/fileio/test_bruker_pdata.py::test_write_pdata_2d_roundtrip",
     "tests/fileio/test_convert.py::test_agilent_1d",
     "tests/fileio/test_convert.py::test_agilent_2d",
     "tests/fileio/test_convert.py::test_agilent_2d_lowmem",
@@ -302,6 +307,14 @@ SCANNED_TEST_MODULES = (
     "fileio/test_simpson.py",
     "fileio/test_sparky.py",
     "fileio/test_tecmag.py",
+)
+
+# Additional test modules whose ids participate in the release contract but
+# whose data references are versioned fixtures rather than the external
+# corpus. They are scanned for known test ids only; the corpus-reference
+# extractor does not apply to them.
+CONTRACT_TEST_MODULES = SCANNED_TEST_MODULES + (
+    "fileio/test_bruker_pdata.py",
 )
 
 # Required reference components, by owning entry. A component's paths are
@@ -399,10 +412,16 @@ REQUIRED_COMPONENTS = {
         "pdata": {
             "paths": ["bruker_1d/pdata/1"],
             "required_by": [
-                "tests/fileio/test_bruker_with_test_data.py::test_read_pdata_1d",
-                "tests/fileio/test_bruker_with_test_data.py::test_write_pdata_1d",
+                "tests/fileio/test_bruker_pdata.py::test_pdata_1d_procs_metadata",
+                "tests/fileio/test_bruker_pdata.py::test_write_pdata_1d_roundtrip",
             ],
-            "notes": "processed 1D dataset (1r/1i, procs and related files)",
+            "replacement": {
+                "fixtures": ["fileio/data/bruker_pdata/exp1/pdata/1"],
+                "license": "CC0-1.0",
+                "provenance": "nmrXiv project P52 (doi:10.57992/nmrxiv.p52), CC0 1.0",
+            },
+            "notes": "historical processed 1D dataset (1i/1r, procs, proc); "
+                     "replaced by the versioned CC0 sucrose fixture",
         },
         "pipe_reference": {
             "paths": ["bruker_1d/test.fid"],
@@ -430,10 +449,17 @@ REQUIRED_COMPONENTS = {
         "pdata": {
             "paths": ["bruker_2d/pdata/1"],
             "required_by": [
-                "tests/fileio/test_bruker_with_test_data.py::test_read_pdata_2d",
-                "tests/fileio/test_bruker_with_test_data.py::test_write_pdata_2d",
+                "tests/fileio/test_bruker_pdata.py::test_pdata_2d_procs_metadata",
+                "tests/fileio/test_bruker_pdata.py::test_write_pdata_2d_roundtrip",
             ],
-            "notes": "processed 2D dataset (2rr/2ri, proc2s and related files)",
+            "replacement": {
+                "fixtures": ["fileio/data/bruker_pdata/exp2d_hsqc/pdata/1",
+                             "fileio/data/bruker_pdata/exp2d_cosy/pdata/1"],
+                "license": "CC0-1.0",
+                "provenance": "nmrXiv project P33 (doi:10.57992/nmrxiv.p33), CC0 1.0",
+            },
+            "notes": "historical processed 2D dataset (2rr/2ri, proc2s, proc); "
+                     "replaced by the versioned CC0 HSQC and COSY fixtures",
         },
         "pipe_reference": {
             "paths": ["bruker_2d/test.fid"],
@@ -841,11 +867,18 @@ def resolve_matches(files: dict, path: str) -> set:
     return {f for f in files if f.startswith(prefix)}
 
 
-def derive_component_status(files: dict, paths: list) -> str:
+def derive_component_status(files: dict, paths: list,
+                            replacement_matches=None) -> str:
+    """Return the derived status of one required component.
+
+    ``present`` when every corpus path is inventoried, ``replaced`` when the
+    corpus paths are absent but the declared versioned-fixture replacement
+    materializes (``replacement_matches`` non-empty), and ``absent`` otherwise.
+    """
     per_path = {p: resolve_matches(files, p) for p in paths}
     matched = [p for p, m in per_path.items() if m]
     if not matched:
-        return "absent"
+        return "replaced" if replacement_matches else "absent"
     if len(paths) > 1 and len(matched) != len(paths):
         missing = [p for p in paths if not per_path[p]]
         raise ValueError(
@@ -867,10 +900,13 @@ def is_accounted(path: str, declared: set, files: set) -> bool:
     return False
 
 
+COVERED_STATUSES = ("present", "replaced")
+
+
 def derive_availability(statuses: list) -> str:
-    if statuses and all(s == "present" for s in statuses):
+    if statuses and all(s in COVERED_STATUSES for s in statuses):
         return "complete"
-    if any(s == "present" for s in statuses):
+    if any(s in COVERED_STATUSES for s in statuses):
         return "partial"
     return "not_available"
 
@@ -1129,7 +1165,7 @@ def extract_data_references(module_path: Path) -> dict:
 
 def known_test_ids() -> set:
     ids = set()
-    for module in SCANNED_TEST_MODULES:
+    for module in CONTRACT_TEST_MODULES:
         path = TESTS_DIR / module
         if not path.is_file():
             continue
@@ -1200,8 +1236,37 @@ def emit_component(lines, section, comp_id, comp, status):
     lines.append(f"scope = {_toml_value(scope)}")
     lines.append(f"paths = {_toml_value(list(comp['paths']))}")
     lines.append(f"required_by = {_toml_value(list(comp['required_by']))}")
+    replacement = comp.get("replacement")
+    if replacement:
+        lines.append(f"replacement = {_toml_value(list(replacement['fixtures']))}")
+        lines.append(f"replacement_license = {_toml_value(replacement['license'])}")
+        lines.append(
+            f"replacement_provenance = {_toml_value(replacement['provenance'])}"
+        )
     lines.append(f"notes = {_toml_value(comp['notes'])}")
     lines.append("")
+
+
+def collect_fixture_files(fixture_dirs) -> dict:
+    """Inventory the declared versioned-fixture directories.
+
+    Paths are relative to ``FIXTURES_DIR``. Only the directories named by a
+    component's ``replacement`` declaration are read.
+    """
+    files = {}
+    for rel in sorted(set(fixture_dirs)):
+        directory = FIXTURES_DIR / rel
+        if not directory.is_dir():
+            continue
+        for path in sorted(directory.rglob("*")):
+            if not path.is_file() or should_exclude(path.name):
+                continue
+            data = path.read_bytes()
+            files[path.relative_to(FIXTURES_DIR).as_posix()] = {
+                "sha256": hashlib.sha256(data).hexdigest(),
+                "size": len(data),
+            }
+    return files
 
 
 def main():
@@ -1246,15 +1311,33 @@ def main():
         return 1
 
     all_files = {f for g in groups.values() for f in g["files"]}
+    fixture_dirs = [
+        p for _, _, comp in iter_components()
+        for p in comp.get("replacement", {}).get("fixtures", [])
+    ]
+    fixture_files = collect_fixture_files(fixture_dirs)
     component_states = {}
     for entry, comp_id, comp in iter_components():
         matches = set()
         for p in comp["paths"]:
             matches |= resolve_matches(all_files, p)
+        replacement_matches = set()
+        for p in comp.get("replacement", {}).get("fixtures", []):
+            replacement_matches |= resolve_matches(fixture_files, p)
         try:
-            status = derive_component_status(all_files, comp["paths"])
+            status = derive_component_status(
+                all_files, comp["paths"], replacement_matches
+            )
         except ValueError as exc:
             print(f"ERROR: {entry}.{comp_id}: {exc}", file=sys.stderr)
+            return 1
+        if comp.get("replacement") and status == "replaced" \
+                and not replacement_matches:
+            print(
+                f"ERROR: {entry}.{comp_id} declares a replacement but no "
+                f"fixture file was found",
+                file=sys.stderr,
+            )
             return 1
         if entry in MISSING_GROUPS and status != "absent":
             print(
@@ -1279,8 +1362,10 @@ def main():
 
     total_components = 0
     absent_components = 0
+    replaced_components = 0
     critical_components = 0
     absent_critical_components = 0
+    replaced_critical_components = 0
     deferred_components = 0
     absent_deferred_components = 0
     for entry, comp_id, comp in iter_components():
@@ -1289,10 +1374,14 @@ def main():
         total_components += 1
         if status == "absent":
             absent_components += 1
+        elif status == "replaced":
+            replaced_components += 1
         if scope == "critical":
             critical_components += 1
             if status == "absent":
                 absent_critical_components += 1
+            elif status == "replaced":
+                replaced_critical_components += 1
         elif scope == "deferred":
             deferred_components += 1
             if status == "absent":
@@ -1309,8 +1398,10 @@ def main():
     lines.append("#   CLEAR         - explicit redistribution permission documented")
     lines.append("#")
     lines.append("# Component status values:")
-    lines.append("#   present - every listed path is inventoried below")
-    lines.append("#   absent  - explicitly declared missing; no file matches the paths")
+    lines.append("#   present  - every listed path is inventoried below")
+    lines.append("#   replaced - not in the corpus, but the declared versioned fixture")
+    lines.append("#              is inventoried under [fixtures] and checksummed")
+    lines.append("#   absent   - explicitly declared missing; no file matches the paths")
     lines.append("#")
     lines.append("# Component scope values:")
     lines.append("#   critical - consumed by at least one first-release critical test")
@@ -1327,12 +1418,28 @@ def main():
     lines.append(f"missing_groups = {len(MISSING_GROUPS)}")
     lines.append(f"total_components = {total_components}")
     lines.append(f"absent_components = {absent_components}")
+    lines.append(f"replaced_components = {replaced_components}")
     lines.append(f"critical_components = {critical_components}")
     lines.append(f"absent_critical_components = {absent_critical_components}")
+    lines.append(f"replaced_critical_components = {replaced_critical_components}")
     lines.append(f"deferred_components = {deferred_components}")
     lines.append(f"absent_deferred_components = {absent_deferred_components}")
+    lines.append(f"fixture_files = {len(fixture_files)}")
+    lines.append(f"fixture_size = {sum(f['size'] for f in fixture_files.values())}")
     lines.append(f"critical_tests = {_toml_value(sorted(CRITICAL_TESTS))}")
     lines.append(f"deferred_tests = {_toml_value(sorted(DEFERRED_TESTS))}")
+    lines.append("")
+
+    lines.append("# Versioned-fixture inventory for components replaced by committed")
+    lines.append("# fixtures (paths are relative to tests/fixtures/).")
+    lines.append("[fixtures]")
+    lines.append(f"file_count = {len(fixture_files)}")
+    lines.append(f"total_size = {sum(f['size'] for f in fixture_files.values())}")
+    lines.append("")
+    for fname, fdata in fixture_files.items():
+        lines.append(f'[fixtures.files."{fname}"]')
+        lines.append(f"sha256 = {_toml_value(fdata['sha256'])}")
+        lines.append(f"size = {fdata['size']}")
     lines.append("")
 
     for gname, gdata in groups.items():
@@ -1395,8 +1502,13 @@ def main():
     print(f"  Groups missing:   {len(MISSING_GROUPS)}")
     print(f"  Total files:      {sum(g['file_count'] for g in groups.values())}")
     print(f"  Total size:       {sum(g['total_size'] for g in groups.values())} bytes")
-    print(f"  Components:       {total_components} ({absent_components} absent)")
-    print(f"  Critical:         {critical_components} ({absent_critical_components} absent)")
+    print(f"  Components:       {total_components} ({absent_components} absent, "
+          f"{replaced_components} replaced)")
+    print(f"  Fixtures:         {len(fixture_files)} files "
+          f"({sum(f['size'] for f in fixture_files.values())} bytes)")
+    print(f"  Critical:         {critical_components} "
+          f"({absent_critical_components} absent, "
+          f"{replaced_critical_components} replaced)")
     print(f"  Deferred:         {deferred_components} ({absent_deferred_components} absent)")
     return 0
 

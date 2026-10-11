@@ -30,10 +30,15 @@ The recorded readiness verdict remains **BLOCKED**. See
   now carries 29 first-release critical tests plus 13 explicitly deferred
   (RNMRTK/Sparky/JEOL historical reference profiles, tests and declarations
   retained), and the validated NMRPipe/SIMPSON references are in the local
-  corpus with their inventory. Remaining: replace historical Bruker pdata
-  (requirements retained provisionally); JCAMP-DX scope remains open.
-  Historical counts (14/42 passes, 28 missing-file
-  failures at `34e057c`) remain evidence of the old contract, not a new result.
+  corpus with their inventory. The historical Bruker pdata replacement is
+  complete and independently rechecked: fixture-derived metadata and
+  read/write round-trip evidence pass, and the verifier rejects `replaced`
+  declarations without non-empty license and provenance. The two pdata
+  components count as explicit `replaced` coverage; the two remaining
+  release-critical absences are JCAMP-DX.
+  Historical counts (14/42 passes,
+  28 missing-file failures at `34e057c`) remain evidence of the old contract,
+  not a new result.
 - [x] Correct manifest scope: missing conversion references are inventoried
   or explicitly declared absent before calling groups complete; the verifier
   separates file integrity from required-component availability and returns 2
@@ -75,13 +80,13 @@ Neither missing data nor classified historical differences are passing tests.
 | Topic | Next action / decision |
 |---|---|
 | Version scheme | Maintainer decision 2026-10-11: `nmrglue-ng` adopts its own independent SemVer line rather than continuing the historical `0.13`, because the two distributions can evolve in parallel and a shared line would imply a linear succession that does not exist. First independent release targets `1.0.0` (optionally published first as `1.0.0rc1`). The number is a public-API compatibility contract internal to `nmrglue-ng`, not a comparison with historical `nmrglue`, which never left `0.x`. The `-dev` suffix stays until the authorized release-preparation change immediately before building release artifacts. |
-| Critical contract | The 2026-10-08 decisions are translated into the generator/manifest at `7a7f935` (2026-10-09, reviewed the same day; minor findings addressed the same day): `CRITICAL_TESTS` holds the 29 first-release ids, `DEFERRED_TESTS` the 13 deferred RNMRTK/Sparky/JEOL ids, component scope is three-valued (`critical`/`deferred`/`extended`), manifest schema v4. Bruker pdata replacement remains approved subject to validation. JCAMP-DX and SIMPSON requirements remain. [Corpus report](reports/2026-10-critical-corpus.md#contract-translation-and-local-reference-integration--2026-10-09). |
+| Critical contract | The 2026-10-08 decisions are translated into the generator/manifest at `7a7f935` (2026-10-09, reviewed the same day; minor findings addressed the same day): `CRITICAL_TESTS` holds the 29 first-release ids, `DEFERRED_TESTS` the 13 deferred RNMRTK/Sparky/JEOL ids, component scope is three-valued (`critical`/`deferred`/`extended`), manifest schema v4. Bruker pdata replacement is complete: the two components are explicitly `replaced` against committed CC0 fixtures, with checksummed inventory, fixture-derived read metadata and read/write round trips. Independent follow-up confirms malformed replacement license/provenance declarations fail structurally. JCAMP-DX and SIMPSON requirements remain. [Corpus report](reports/2026-10-critical-corpus.md#bruker-pdata-replacement--2026-10-09). |
 | Local corpus use | Historical archive accepted for local testing; `UNRESOLVED` redistribution status alone no longer blocks those tests. Identify missing references and record actual results. |
 | Data redistribution | Distribute only files/groups with recorded public-domain status, an applicable license or permission; keep other accepted inputs local/private. |
 | NMRPipe conversion references | The `FDDMXVAL` correction is integrated in #65 (`7ef9b8f`). Recorded NMRPipe 13.0 validation: all eight Agilent/Bruker full/low-memory cases pass in disposable copies. On 2026-10-09 the five references were regenerated (132 files) and validated with the FDDMXVAL regression (9 passed) then integrated into the local corpus; Bruker outputs are byte-identical to the 2026-10-08 receipts, Agilent outputs differ only in the var2pipe conversion-timestamp header fields. Independently reviewed 2026-10-09 (byte identity and timestamp property reproduced by the reviewer). [Corpus evidence](reports/2026-10-critical-corpus.md#contract-translation-and-local-reference-integration--2026-10-09). |
 | RNMRTK/Sparky references | Deferred from first-release critical scope by maintainer decision; retain tests and format support, document absent real-reference validation, and revisit with contributed data. The deferral is translated into the contract (`DEFERRED_TESTS`, component scope `deferred`); nothing remains to do on the manifest side. |
 | Packaged fixtures | Choose a consistent provenance/checksum verification scheme; the external manifest does not currently cover them. |
-| Bruker `pdata` | Replace the two historical processed datasets with licensed fixtures; add missing read/write/read evidence and reconcile the historical requirements. |
+| Bruker `pdata` | Replacement implemented and independently reviewed: fixture metadata and `read -> write -> read` evidence replace the four historical tests; the two components are `replaced` with checksummed CC0 fixtures. Missing, blank and whitespace-only license/provenance declarations fail structurally. Integration pending. |
 | Bruker JCAMP line endings | Reproduce CR-only decoding with a self-contained fixture, then consider the upstream #261 `StringIO(..., newline=None)` correction in a separate fix. |
 | JCAMP-DX encodings | Split the monolithic dataset test while preserving AFFN/PAC/SQZ/DIF equivalence and metadata checks. |
 | JCAMP-DX tuples | Validate `(XYW..XYW)` / `(XYM..XYM)` tuple-size behavior independently, then adapt upstream #262 in a separate change if the evidence supports it. |

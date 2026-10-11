@@ -1,5 +1,6 @@
 """Tests for test-data manifest generation and verification contracts."""
 
+import contextlib
 import hashlib
 import sys
 from pathlib import Path
@@ -21,7 +22,9 @@ DEFAULT_CRITICAL_TEST = "tests/fileio/test_dummy.py::test_critical"
 DEFAULT_DEFERRED_TEST = "tests/fileio/test_dummy.py::test_deferred"
 
 
-def make_component(paths, status="present", required_by=None, notes=""):
+def make_component(paths, status="present", required_by=None, notes="",
+                   replacement=None, replacement_license="CC0-1.0",
+                   replacement_provenance="test fixture"):
     if required_by is None:
         required_by = []
     if DEFAULT_CRITICAL_TEST in required_by:
@@ -30,17 +33,22 @@ def make_component(paths, status="present", required_by=None, notes=""):
         scope = "deferred"
     else:
         scope = "extended"
-    return {
+    comp = {
         "status": status,
         "scope": scope,
         "paths": list(paths),
         "required_by": list(required_by),
         "notes": notes,
     }
+    if replacement is not None:
+        comp["replacement"] = list(replacement)
+        comp["replacement_license"] = replacement_license
+        comp["replacement_provenance"] = replacement_provenance
+    return comp
 
 
 def make_manifest(groups=None, missing=None, critical_tests=None, deferred_tests=None,
-                  overrides=None):
+                  overrides=None, fixtures=None):
     """Build a manifest dict with self-consistent declared counters."""
     if groups is None:
         groups = {}
@@ -72,22 +80,35 @@ def make_manifest(groups=None, missing=None, critical_tests=None, deferred_tests
         "missing_groups": len(missing),
         "total_components": len(components),
         "absent_components": sum(1 for c in components if c.get("status") == "absent"),
+        "replaced_components": sum(1 for c in components if c.get("status") == "replaced"),
         "critical_components": sum(1 for c in components if is_critical(c)),
         "absent_critical_components": sum(
             1 for c in components
             if c.get("status") == "absent" and is_critical(c)
+        ),
+        "replaced_critical_components": sum(
+            1 for c in components
+            if c.get("status") == "replaced" and is_critical(c)
         ),
         "deferred_components": sum(1 for c in components if is_deferred(c)),
         "absent_deferred_components": sum(
             1 for c in components
             if c.get("status") == "absent" and is_deferred(c)
         ),
+        "fixture_files": len(fixtures.get("files", {})) if fixtures else 0,
+        "fixture_size": (
+            sum(f.get("size", 0) for f in fixtures.get("files", {}).values())
+            if fixtures else 0
+        ),
         "critical_tests": list(critical_tests),
         "deferred_tests": list(deferred_tests),
     }
     if overrides:
         info.update(overrides)
-    return {"manifest": info, "groups": groups, "missing": missing}
+    manifest = {"manifest": info, "groups": groups, "missing": missing}
+    if fixtures is not None:
+        manifest["fixtures"] = fixtures
+    return manifest
 
 
 def make_group(files=None, components=None, file_count=None, total_size=None):
@@ -101,10 +122,11 @@ def make_group(files=None, components=None, file_count=None, total_size=None):
     if components is None:
         components = {"raw": make_component(sorted(files), status="present")}
     statuses = [c.get("status") for c in components.values()]
+    covered = ("present", "replaced")
     absent = sorted(cid for cid, c in components.items() if c.get("status") == "absent")
-    if statuses and all(s == "present" for s in statuses):
+    if statuses and all(s in covered for s in statuses):
         availability = "complete"
-    elif any(s == "present" for s in statuses):
+    elif any(s in covered for s in statuses):
         availability = "partial"
     else:
         availability = "not_available"
@@ -137,10 +159,13 @@ def make_file_entry(content=b"data"):
     return {"sha256": hashlib.sha256(content).hexdigest(), "size": len(content)}
 
 
-def run_verify(manifest_path, data_dir, manifest):
+def run_verify(manifest_path, data_dir, manifest, fixtures_dir=None):
     """Run verify_testdata.main() with patched paths."""
-    with patch.object(verify_testdata, "MANIFEST_PATH", manifest_path), \
-         patch.object(verify_testdata, "DATA_DIR", data_dir):
+    with contextlib.ExitStack() as stack:
+        stack.enter_context(patch.object(verify_testdata, "MANIFEST_PATH", manifest_path))
+        stack.enter_context(patch.object(verify_testdata, "DATA_DIR", data_dir))
+        if fixtures_dir is not None:
+            stack.enter_context(patch.object(verify_testdata, "FIXTURES_DIR", fixtures_dir))
         manifest_path.write_text(_toml_dumps(manifest), encoding="utf-8")
         return verify_testdata.main()
 
@@ -177,6 +202,8 @@ def _toml_dumps(manifest):
             emit_table(f"{prefix}.{_toml_key(k)}" if prefix else _toml_key(k), v)
 
     emit_table("", manifest["manifest"])
+    if "fixtures" in manifest:
+        emit_table("fixtures", manifest["fixtures"])
     for gname, gdata in manifest.get("groups", {}).items():
         files = gdata.get("files", {})
         rest = {k: v for k, v in gdata.items() if k != "files"}
@@ -549,6 +576,21 @@ class TestDerivation:
         assert derive(["absent", "absent"]) == "not_available"
         assert derive([]) == "not_available"
 
+    def test_replaced_counts_as_coverage(self):
+        derive = generate_testdata_manifest.derive_availability
+        assert derive(["replaced"]) == "complete"
+        assert derive(["present", "replaced"]) == "complete"
+        assert derive(["replaced", "replaced"]) == "complete"
+        assert derive(["replaced", "absent"]) == "partial"
+        assert derive(["replaced", "present", "absent"]) == "partial"
+
+    def test_replaced_component_status(self):
+        derive = generate_testdata_manifest.derive_component_status
+        assert derive({}, ["grp/fid"], {"fixture/fid"}) == "replaced"
+        assert derive({}, ["grp/fid"], set()) == "absent"
+        assert derive({}, ["grp/fid"], None) == "absent"
+        assert derive({"grp/fid": {}}, ["grp/fid"], {"fixture/fid"}) == "present"
+
     def test_scope_derived_from_required_by(self):
         scope = generate_testdata_manifest.component_scope
         assert scope(["tests/fileio/test_convert.py::test_agilent_1d"]) == "critical"
@@ -779,3 +821,219 @@ class TestArchetypeRawPresentReferenceMissing:
         assert group["missing_components"] == "pipe_reference"
         manifest = make_manifest(groups={"grp": group})
         assert run_verify(tmp_path / "m.toml", data_dir, manifest) == 2
+
+
+class TestReplacedComponents:
+    """A component moved to a committed fixture is covered, not absent.
+
+    The versioned-fixture replacement is inventoried and checksummed under
+    ``[fixtures]``; it must count as availability coverage without weakening
+    the corpus-integrity checks.
+    """
+
+    def _corpus(self, tmp_path):
+        data_dir = tmp_path / "data"
+        (data_dir / "grp").mkdir(parents=True)
+        (data_dir / "grp" / "raw.bin").write_bytes(b"x")
+        return data_dir
+
+    def _fixtures(self, tmp_path, content=b"fx"):
+        fixtures_dir = tmp_path / "fixtures"
+        (fixtures_dir / "grp_fixture").mkdir(parents=True)
+        (fixtures_dir / "grp_fixture" / "fid").write_bytes(content)
+        return fixtures_dir
+
+    def _fixture_table(self, content=b"fx"):
+        return {
+            "file_count": 1,
+            "total_size": len(content),
+            "files": {"grp_fixture/fid": make_file_entry(content)},
+        }
+
+    def _group(self, status="replaced", replacement=("grp_fixture",)):
+        comp = make_component(
+            ["grp/pdata/1"], status=status,
+            required_by=[DEFAULT_CRITICAL_TEST],
+            replacement=replacement,
+        )
+        return make_group(
+            files={"grp/raw.bin": make_file_entry(b"x")},
+            components={
+                "raw": make_component(["grp/raw.bin"], status="present"),
+                "pdata": comp,
+            },
+        )
+
+    def test_replaced_critical_component_returns_zero(self, tmp_path):
+        data_dir = self._corpus(tmp_path)
+        fixtures_dir = self._fixtures(tmp_path)
+        group = self._group()
+        assert group["availability"] == "complete"
+        assert group["absent_component_count"] == 0
+        manifest = make_manifest(
+            groups={"grp": group}, fixtures=self._fixture_table()
+        )
+        assert run_verify(
+            tmp_path / "m.toml", data_dir, manifest, fixtures_dir=fixtures_dir
+        ) == 0
+
+    def test_replaced_without_replacement_declaration_fails(self, tmp_path):
+        data_dir = self._corpus(tmp_path)
+        fixtures_dir = self._fixtures(tmp_path)
+        group = self._group(replacement=None)
+        manifest = make_manifest(groups={"grp": group})
+        assert run_verify(
+            tmp_path / "m.toml", data_dir, manifest, fixtures_dir=fixtures_dir
+        ) == 1
+
+    def test_replacement_license_is_required(self, tmp_path):
+        data_dir = self._corpus(tmp_path)
+        fixtures_dir = self._fixtures(tmp_path)
+        for bad_value in (None, ""):
+            group = self._group()
+            comp = group["components"]["pdata"]
+            if bad_value is None:
+                comp.pop("replacement_license")
+            else:
+                comp["replacement_license"] = bad_value
+            manifest = make_manifest(
+                groups={"grp": group}, fixtures=self._fixture_table()
+            )
+            with patch.object(verify_testdata, "FIXTURES_DIR", fixtures_dir):
+                errors = verify_testdata.verify_structure(manifest)
+            assert any("replacement_license" in e for e in errors)
+            assert run_verify(
+                tmp_path / "m.toml", data_dir, manifest,
+                fixtures_dir=fixtures_dir,
+            ) == 1
+
+    def test_replacement_provenance_is_required(self, tmp_path):
+        data_dir = self._corpus(tmp_path)
+        fixtures_dir = self._fixtures(tmp_path)
+        for bad_value in (None, ""):
+            group = self._group()
+            comp = group["components"]["pdata"]
+            if bad_value is None:
+                comp.pop("replacement_provenance")
+            else:
+                comp["replacement_provenance"] = bad_value
+            manifest = make_manifest(
+                groups={"grp": group}, fixtures=self._fixture_table()
+            )
+            with patch.object(verify_testdata, "FIXTURES_DIR", fixtures_dir):
+                errors = verify_testdata.verify_structure(manifest)
+            assert any("replacement_provenance" in e for e in errors)
+            assert run_verify(
+                tmp_path / "m.toml", data_dir, manifest,
+                fixtures_dir=fixtures_dir,
+            ) == 1
+
+    def test_replacement_while_corpus_present_fails(self, tmp_path):
+        data_dir = self._corpus(tmp_path)
+        (data_dir / "grp" / "pdata").mkdir()
+        (data_dir / "grp" / "pdata" / "1").write_bytes(b"z")
+        fixtures_dir = self._fixtures(tmp_path)
+        group = make_group(
+            files={
+                "grp/raw.bin": make_file_entry(b"x"),
+                "grp/pdata/1": make_file_entry(b"z"),
+            },
+            components={
+                "raw": make_component(["grp/raw.bin"], status="present"),
+                "pdata": make_component(
+                    ["grp/pdata/1"], status="present",
+                    required_by=[DEFAULT_CRITICAL_TEST],
+                    replacement=["grp_fixture"],
+                ),
+            },
+        )
+        manifest = make_manifest(
+            groups={"grp": group}, fixtures=self._fixture_table()
+        )
+        assert run_verify(
+            tmp_path / "m.toml", data_dir, manifest, fixtures_dir=fixtures_dir
+        ) == 1
+
+    def test_uninventoried_replacement_fails(self, tmp_path):
+        data_dir = self._corpus(tmp_path)
+        fixtures_dir = self._fixtures(tmp_path)
+        group = self._group()
+        manifest = make_manifest(
+            groups={"grp": group},
+            fixtures={"file_count": 0, "total_size": 0, "files": {}},
+        )
+        assert run_verify(
+            tmp_path / "m.toml", data_dir, manifest, fixtures_dir=fixtures_dir
+        ) == 1
+        with patch.object(verify_testdata, "FIXTURES_DIR", fixtures_dir):
+            errors = verify_testdata.verify_structure(manifest)
+        assert any("inventoried fixture" in e for e in errors)
+
+    def test_fixture_checksum_mismatch_fails(self, tmp_path):
+        data_dir = self._corpus(tmp_path)
+        fixtures_dir = self._fixtures(tmp_path, content=b"fx")
+        table = self._fixture_table(b"WRONG")
+        group = self._group()
+        manifest = make_manifest(groups={"grp": group}, fixtures=table)
+        assert run_verify(
+            tmp_path / "m.toml", data_dir, manifest, fixtures_dir=fixtures_dir
+        ) == 1
+
+    def test_missing_fixture_file_fails(self, tmp_path):
+        data_dir = self._corpus(tmp_path)
+        fixtures_dir = tmp_path / "fixtures"
+        fixtures_dir.mkdir()
+        table = self._fixture_table(b"fx")
+        group = self._group()
+        manifest = make_manifest(groups={"grp": group}, fixtures=table)
+        assert run_verify(
+            tmp_path / "m.toml", data_dir, manifest, fixtures_dir=fixtures_dir
+        ) == 1
+
+
+class TestTrackedReplacement:
+    """The tracked manifest records the two replaced Bruker pdata components."""
+
+    def test_pdata_components_are_replaced(self):
+        manifest = load_tracked_manifest()
+        for group in ("bruker_1d", "bruker_2d"):
+            comp = manifest["groups"][group]["components"]["pdata"]
+            assert comp["status"] == "replaced"
+            assert comp["replacement"]
+            assert comp["replacement_license"] == "CC0-1.0"
+            assert comp["scope"] == "critical"
+
+    def test_replaced_components_have_inventoried_fixtures(self):
+        manifest = load_tracked_manifest()
+        fixtures = set(manifest["fixtures"]["files"])
+        assert fixtures
+        for group in ("bruker_1d", "bruker_2d"):
+            comp = manifest["groups"][group]["components"]["pdata"]
+            for repl in comp["replacement"]:
+                assert any(f.startswith(repl + "/") for f in fixtures), repl
+
+    def test_fixture_inventory_is_verified(self):
+        manifest = load_tracked_manifest()
+        errors, verified = verify_testdata.verify_fixtures(
+            manifest, verify_testdata.FIXTURES_DIR
+        )
+        assert not errors, "\n".join(errors)
+        assert verified == len(manifest["fixtures"]["files"])
+
+    def test_replaced_not_counted_as_absent(self):
+        manifest = load_tracked_manifest()
+        info = manifest["manifest"]
+        assert info["replaced_components"] == 2
+        assert info["replaced_critical_components"] == 2
+        assert info["absent_critical_components"] == 2
+        assert info["fixture_files"] == len(manifest["fixtures"]["files"])
+
+    def test_replaced_pdata_tests_are_declared(self):
+        manifest = load_tracked_manifest()
+        critical = set(manifest["manifest"]["critical_tests"])
+        for group in ("bruker_1d", "bruker_2d"):
+            comp = manifest["groups"][group]["components"]["pdata"]
+            assert set(comp["required_by"]) <= critical
+            assert all(
+                "test_bruker_pdata.py" in t for t in comp["required_by"]
+            )
