@@ -8,8 +8,10 @@
 #   CLEAR         - explicit redistribution permission documented
 #
 # Component status values:
-#   present - every listed path is inventoried below
-#   absent  - explicitly declared missing; no file matches the paths
+#   present  - every listed path is inventoried below
+#   replaced - not in the corpus, but the declared versioned fixture
+#              is inventoried under [fixtures] and checksummed
+#   absent   - explicitly declared missing; no file matches the paths
 #
 # Component scope values:
 #   critical - consumed by at least one first-release critical test
@@ -25,13 +27,78 @@ total_files = 293
 total_size = 460540851
 missing_groups = 8
 total_components = 42
-absent_components = 21
+absent_components = 19
+replaced_components = 2
 critical_components = 19
-absent_critical_components = 4
+absent_critical_components = 2
+replaced_critical_components = 2
 deferred_components = 8
 absent_deferred_components = 8
-critical_tests = ["tests/fileio/test_agilent.py::test_1d", "tests/fileio/test_agilent.py::test_2d", "tests/fileio/test_agilent.py::test_2d_lowmem", "tests/fileio/test_agilent.py::test_2d_tppi", "tests/fileio/test_agilent.py::test_2d_tppi_lowmem", "tests/fileio/test_agilent.py::test_3d", "tests/fileio/test_agilent.py::test_3d_lowmem", "tests/fileio/test_bruker_with_test_data.py::test_1d", "tests/fileio/test_bruker_with_test_data.py::test_2d", "tests/fileio/test_bruker_with_test_data.py::test_2d_lowmem", "tests/fileio/test_bruker_with_test_data.py::test_3d", "tests/fileio/test_bruker_with_test_data.py::test_3d_lowmem", "tests/fileio/test_bruker_with_test_data.py::test_read_pdata_1d", "tests/fileio/test_bruker_with_test_data.py::test_read_pdata_2d", "tests/fileio/test_bruker_with_test_data.py::test_write_pdata_1d", "tests/fileio/test_bruker_with_test_data.py::test_write_pdata_2d", "tests/fileio/test_convert.py::test_agilent_1d", "tests/fileio/test_convert.py::test_agilent_2d", "tests/fileio/test_convert.py::test_agilent_2d_lowmem", "tests/fileio/test_convert.py::test_agilent_3d", "tests/fileio/test_convert.py::test_agilent_3d_lowmem", "tests/fileio/test_convert.py::test_bruker_1d", "tests/fileio/test_convert.py::test_bruker_2d", "tests/fileio/test_convert.py::test_bruker_2d_lowmem", "tests/fileio/test_convert.py::test_bruker_3d", "tests/fileio/test_convert.py::test_bruker_3d_lowmem", "tests/fileio/test_jcampdx.py::test_jcampdx1", "tests/fileio/test_simpson.py::test_1d_time", "tests/fileio/test_simpson.py::test_2d_freq"]
+fixture_files = 18
+fixture_size = 21514331
+critical_tests = ["tests/fileio/test_agilent.py::test_1d", "tests/fileio/test_agilent.py::test_2d", "tests/fileio/test_agilent.py::test_2d_lowmem", "tests/fileio/test_agilent.py::test_2d_tppi", "tests/fileio/test_agilent.py::test_2d_tppi_lowmem", "tests/fileio/test_agilent.py::test_3d", "tests/fileio/test_agilent.py::test_3d_lowmem", "tests/fileio/test_bruker_pdata.py::test_pdata_1d_procs_metadata", "tests/fileio/test_bruker_pdata.py::test_pdata_2d_procs_metadata", "tests/fileio/test_bruker_pdata.py::test_write_pdata_1d_roundtrip", "tests/fileio/test_bruker_pdata.py::test_write_pdata_2d_roundtrip", "tests/fileio/test_bruker_with_test_data.py::test_1d", "tests/fileio/test_bruker_with_test_data.py::test_2d", "tests/fileio/test_bruker_with_test_data.py::test_2d_lowmem", "tests/fileio/test_bruker_with_test_data.py::test_3d", "tests/fileio/test_bruker_with_test_data.py::test_3d_lowmem", "tests/fileio/test_convert.py::test_agilent_1d", "tests/fileio/test_convert.py::test_agilent_2d", "tests/fileio/test_convert.py::test_agilent_2d_lowmem", "tests/fileio/test_convert.py::test_agilent_3d", "tests/fileio/test_convert.py::test_agilent_3d_lowmem", "tests/fileio/test_convert.py::test_bruker_1d", "tests/fileio/test_convert.py::test_bruker_2d", "tests/fileio/test_convert.py::test_bruker_2d_lowmem", "tests/fileio/test_convert.py::test_bruker_3d", "tests/fileio/test_convert.py::test_bruker_3d_lowmem", "tests/fileio/test_jcampdx.py::test_jcampdx1", "tests/fileio/test_simpson.py::test_1d_time", "tests/fileio/test_simpson.py::test_2d_freq"]
 deferred_tests = ["tests/fileio/test_convert.py::test_agilent_3d_rnmrtk", "tests/fileio/test_convert.py::test_bruker_3d_rnmrtk", "tests/fileio/test_convert.py::test_rnmrtk_3d", "tests/fileio/test_convert.py::test_sparky_2d", "tests/fileio/test_convert.py::test_sparky_2d_lowmem", "tests/fileio/test_jeol.py::test_1d_complex_1", "tests/fileio/test_jeol.py::test_1d_complex_1_udic", "tests/fileio/test_jeol.py::test_2d_cc_1", "tests/fileio/test_jeol.py::test_2d_cc_1_udic", "tests/fileio/test_rnmrtk.py::test_3d_freq", "tests/fileio/test_rnmrtk.py::test_3d_time", "tests/fileio/test_sparky.py::test_2d", "tests/fileio/test_sparky.py::test_2d_lowmem"]
+
+# Versioned-fixture inventory for components replaced by committed
+# fixtures (paths are relative to tests/fixtures/).
+[fixtures]
+file_count = 18
+total_size = 21514331
+
+[fixtures.files."fileio/data/bruker_pdata/exp1/pdata/1/1i"]
+sha256 = "1caa891d00a0ab76119b755a02540c9eed4a98b6b0b12954729a07d12920dc03"
+size = 262144
+[fixtures.files."fileio/data/bruker_pdata/exp1/pdata/1/1r"]
+sha256 = "0fc9527ba7075ca40e865520bdf734a14b10b65a4865d27c242c26462db5598e"
+size = 262144
+[fixtures.files."fileio/data/bruker_pdata/exp1/pdata/1/proc"]
+sha256 = "b32a4e56b165cf47b2249c562c17f51c09c369263dcb0e6bd1f5a907e730fb3d"
+size = 2299
+[fixtures.files."fileio/data/bruker_pdata/exp1/pdata/1/procs"]
+sha256 = "1b4cfc2fd31b2be0f98a61f20e9515ab8299447b6636ec6afd63b94cf6c7126f"
+size = 2338
+[fixtures.files."fileio/data/bruker_pdata/exp1/pdata/1/title"]
+sha256 = "eb6f06fedbdd25648e5929f3ae715f61f98180ebc098d13f3d6e89e6bb6eb84c"
+size = 105
+[fixtures.files."fileio/data/bruker_pdata/exp2d_cosy/pdata/1/2rr"]
+sha256 = "e64e82ff73af49679624355792e13caffdd8b81b19389655acdc9a5a43075747"
+size = 4194304
+[fixtures.files."fileio/data/bruker_pdata/exp2d_cosy/pdata/1/proc2"]
+sha256 = "bb2fb1885649afabb95c50d0da17e60f8b46f275631ea26527c267e879384704"
+size = 2217
+[fixtures.files."fileio/data/bruker_pdata/exp2d_cosy/pdata/1/proc2s"]
+sha256 = "accc8b05360d211b5dcdf64923bdee190cd60f0a302b6f55ebb4a15971c65ec0"
+size = 2242
+[fixtures.files."fileio/data/bruker_pdata/exp2d_cosy/pdata/1/procs"]
+sha256 = "869c95a56fdc1eb40432658862686c6f8c64996ffee84877c760247793da5237"
+size = 2281
+[fixtures.files."fileio/data/bruker_pdata/exp2d_cosy/pdata/1/title"]
+sha256 = "a38c6c91a897ca48b7c793e7e58ec53d9b64f1725a3d5b148d931ed4d7bfafcb"
+size = 138
+[fixtures.files."fileio/data/bruker_pdata/exp2d_hsqc/pdata/1/2ii"]
+sha256 = "d6a9fef8f3cf35a1cb6d4c58b619d8febd0ee7501160b83c87ff97482b383422"
+size = 4194304
+[fixtures.files."fileio/data/bruker_pdata/exp2d_hsqc/pdata/1/2ir"]
+sha256 = "c7f501e3fa5586558c486a65b905f4dd424b27072aa32ce641f6232c84757fa6"
+size = 4194304
+[fixtures.files."fileio/data/bruker_pdata/exp2d_hsqc/pdata/1/2ri"]
+sha256 = "0a932b6b5ad502251b990f8063abcc599b5eb0306504c298bd874188394f38fc"
+size = 4194304
+[fixtures.files."fileio/data/bruker_pdata/exp2d_hsqc/pdata/1/2rr"]
+sha256 = "f2f4ddd3dfe690f409bc070ed0f04588b6330d5f8932bb5179d15e1dcae37b7a"
+size = 4194304
+[fixtures.files."fileio/data/bruker_pdata/exp2d_hsqc/pdata/1/proc2"]
+sha256 = "e388266c9312f4f934f0ded0012fe9f1379932a1c4ff0a62ca417db7df6186bc"
+size = 2218
+[fixtures.files."fileio/data/bruker_pdata/exp2d_hsqc/pdata/1/proc2s"]
+sha256 = "492cb85e392e869d7d4b5dcae06b4a71ce779e3b8a92db4f074e330b7f53d340"
+size = 2233
+[fixtures.files."fileio/data/bruker_pdata/exp2d_hsqc/pdata/1/procs"]
+sha256 = "e242cda91aaeb5e289422096a23d7f507fd311ec7cc2b18b3d2d78c1e82df0ba"
+size = 2338
+[fixtures.files."fileio/data/bruker_pdata/exp2d_hsqc/pdata/1/title"]
+sha256 = "47da861020d3e1adef7183add5a3cad1b43c922c4229065825ad792008fda2c2"
+size = 114
 
 [groups.agilent_1d]
 format = "Varian/Agilent"
@@ -737,14 +804,14 @@ license = "BSD-3-Clause (nmrglue repository license; not separately applied to d
 redistribution_status = "UNRESOLVED"
 evidence = "release asset has no explicit data license; derived NMRPipe reference generated locally, no explicit license"
 availability = "partial"
-missing_components = "pdata, rnmrtk_reference"
+missing_components = "rnmrtk_reference"
 notes = "real FID, parameters, pulse program; read tests"
 file_count = 5
 original_count = 4
 derived_count = 1
 total_size = 52848
 component_count = 4
-absent_component_count = 2
+absent_component_count = 1
 
 [groups.bruker_1d.files."bruker_1d/acqu"]
 sha256 = "e9c7c326182614d23bebec1279f36a5e77b43827c08ca230023ce9ef942040e4"
@@ -768,11 +835,14 @@ size = 18432
 provenance_class = "derived"
 
 [groups.bruker_1d.components.pdata]
-status = "absent"
+status = "replaced"
 scope = "critical"
 paths = ["bruker_1d/pdata/1"]
-required_by = ["tests/fileio/test_bruker_with_test_data.py::test_read_pdata_1d", "tests/fileio/test_bruker_with_test_data.py::test_write_pdata_1d"]
-notes = "processed 1D dataset (1r/1i, procs and related files)"
+required_by = ["tests/fileio/test_bruker_pdata.py::test_pdata_1d_procs_metadata", "tests/fileio/test_bruker_pdata.py::test_write_pdata_1d_roundtrip"]
+replacement = ["fileio/data/bruker_pdata/exp1/pdata/1"]
+replacement_license = "CC0-1.0"
+replacement_provenance = "nmrXiv project P52 (doi:10.57992/nmrxiv.p52), CC0 1.0"
+notes = "historical processed 1D dataset (1i/1r, procs, proc); replaced by the versioned CC0 sucrose fixture"
 
 [groups.bruker_1d.components.pipe_reference]
 status = "present"
@@ -802,14 +872,14 @@ license = "BSD-3-Clause (nmrglue repository license; not separately applied to d
 redistribution_status = "UNRESOLVED"
 evidence = "release asset has no explicit data license; derived NMRPipe reference generated locally, no explicit license"
 availability = "partial"
-missing_components = "pdata, rnmrtk_reference"
+missing_components = "rnmrtk_reference"
 notes = "ser, padding, parameters; read/low-memory and conversion tests"
 file_count = 7
 original_count = 6
 derived_count = 1
 total_size = 7413547
 component_count = 4
-absent_component_count = 2
+absent_component_count = 1
 
 [groups.bruker_2d.files."bruker_2d/acqu"]
 sha256 = "44e7470c2244bb8bba301578c22ed7b4b735270ac3a5e54e7aad61fad81f367e"
@@ -841,11 +911,14 @@ size = 3688448
 provenance_class = "derived"
 
 [groups.bruker_2d.components.pdata]
-status = "absent"
+status = "replaced"
 scope = "critical"
 paths = ["bruker_2d/pdata/1"]
-required_by = ["tests/fileio/test_bruker_with_test_data.py::test_read_pdata_2d", "tests/fileio/test_bruker_with_test_data.py::test_write_pdata_2d"]
-notes = "processed 2D dataset (2rr/2ri, proc2s and related files)"
+required_by = ["tests/fileio/test_bruker_pdata.py::test_pdata_2d_procs_metadata", "tests/fileio/test_bruker_pdata.py::test_write_pdata_2d_roundtrip"]
+replacement = ["fileio/data/bruker_pdata/exp2d_hsqc/pdata/1", "fileio/data/bruker_pdata/exp2d_cosy/pdata/1"]
+replacement_license = "CC0-1.0"
+replacement_provenance = "nmrXiv project P33 (doi:10.57992/nmrxiv.p33), CC0 1.0"
+notes = "historical processed 2D dataset (2rr/2ri, proc2s, proc); replaced by the versioned CC0 HSQC and COSY fixtures"
 
 [groups.bruker_2d.components.pipe_reference]
 status = "present"

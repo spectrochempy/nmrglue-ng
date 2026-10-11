@@ -150,8 +150,8 @@ The sdist contains all `tests/`, fixtures, `pytest.ini`, the manifest and their
 infrastructure dependencies. The packaging job separately extracts it outside
 the checkout and executes `tests/infrastructure/test_ci_validation.py` and
 `tests/infrastructure/test_testdata_manifest.py` with the fresh environment's
-Python (`-I -m pytest`). It requires all 57 cases through the extracted
-`check_test_report.py sdist.xml 57`. This focused check does not claim that the
+Python (`-I -m pytest`). It requires all 72 cases through the extracted
+`check_test_report.py sdist.xml 72`. This focused check does not claim that the
 complete repository test suite runs from the sdist.
 
 ### Pre-commit
@@ -267,7 +267,16 @@ outputs. Each component lists its paths, the tests that need it
 (`required_by`), and a status:
 
 - `present` — every listed path is inventoried with a checksum;
+- `replaced` — historical corpus paths remain absent, but an explicit versioned
+  fixture replacement is inventoried under `[fixtures]`, with checksums and
+  non-empty license/provenance declarations;
 - `absent` — explicitly declared missing; no file matches the paths.
+
+The verifier checks replacement fixtures separately under `FIXTURES`.
+Successful fixture verification supplies availability coverage for `replaced`
+components; it does not report their historical corpus files as `present`.
+The corresponding tests are listed in `required_by` and must preserve the
+approved capability contract. See the replacement rules in the test-data policy.
 
 Two independent controls keep the declarations honest, each with a stated
 scope:
@@ -302,8 +311,9 @@ references; see
 `critical_tests` and `deferred_tests` in the manifest; deferred tests,
 their component declarations and the format support remain in the tree.
 Group availability is derived from its components and is never asserted by
-hand, so a group whose raw data is present while a conversion reference is
-missing is reported `partial`, not `complete`. References consumed only by
+hand. A component with a verified replacement counts as covered; an unfilled,
+unreplaced reference still makes a group `partial`, not `complete`, when other
+components are covered. References consumed only by
 extended-validation or low-priority tests are recorded under
 `[missing.extended_test_references]` so no consumed path stays silent;
 promoting any of them into the release-critical contract is a maintainer
@@ -324,14 +334,15 @@ The verifier reports two result axes that must not be conflated:
 - **integrity** — every inventoried file exists with the expected checksum
   and size, no extra file sits under `data/`, and the declared counters form
   a consistent chain;
-- **availability** — every required component is present or explicitly
-  declared absent, the declared statuses match the on-disk reality, and the
+- **availability** — every required component is present, explicitly replaced,
+  or declared absent, the statuses match the corpus and fixture evidence, and the
   declared group availability follows from the components.
 
 `INTEGRITY: PASSED` never claims that the critical corpus is complete; read
 the `AVAILABILITY` section or the exit code for that. Exit codes are:
 
-- `0` — integrity OK and every release-critical component is present
+- `0` — corpus and fixture integrity OK and every release-critical component
+  is present or covered by a verified replacement
   (deferred and extended-only absences are listed but do not change the exit
   code);
 - `1` — error: structural inconsistency, integrity failure, or a component

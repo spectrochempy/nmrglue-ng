@@ -39,22 +39,6 @@ def write_readback(dic, data):
     shutil.rmtree(td)
 
 
-def write_readback_pdata(dic, data, pdata_folder=False):
-    """ Write out and readback a Bruker processed dataset """
-    # write out and readback
-    td = tempfile.mkdtemp(dir=".")
-    ng.bruker.write_pdata(td, dic, data, write_procs=True,
-                          pdata_folder=pdata_folder)
-    if pdata_folder:
-        rdic, rdata = ng.bruker.read_pdata(os.path.join(td, 'pdata',
-                                           str(pdata_folder)), scale_data=False)
-    else:
-        rdic, rdata = ng.bruker.read_pdata(td, scale_data=False)
-    assert_array_equal(data, rdata)
-    assert dic_similar(dic, rdic)
-    shutil.rmtree(td)
-
-
 def lowmem_write_readback(dic, data):
     """ Lowmemory write out and readback of a Bruker directory """
     # write out and readback
@@ -130,51 +114,6 @@ def test_3d_lowmem():
     assert np.abs(data[5, 13, 91].real - 1138.0) <= 0.01
     assert np.abs(data[5, 13, 91].imag - 3482.0) <= 0.01
     lowmem_write_readback(dic, data)
-
-
-def test_read_pdata_1d():
-    """ read processed 1D data """
-    dic, data = ng.bruker.read_pdata(os.path.join(DATA_DIR, 'bruker_1d',
-                                                  'pdata', '1'))
-    assert dic['procs']['OFFSET'] == 13.03153
-    assert dic['procs']['SF'] == 600.13
-    assert dic['procs']['FT_mod'] == 6
-    assert abs(data[9] - 189610.5) <= 0.001
-    assert abs(data[644] - 398782.375) <= 0.001
-    assert abs(data[1144] - 288069.375) <= 0.001
-    assert abs(data[1486] - 281011.875) <= 0.001
-    assert abs(data[1708] - 170066.875) <= 0.001
-
-
-def test_read_pdata_2d():
-    """ read processed 2d data """
-    dic, data = ng.bruker.read_pdata(os.path.join(DATA_DIR, 'bruker_2d',
-                                                  'pdata', '1'))
-    assert dic['procs']['OFFSET'] == 11.60683
-    assert dic['procs']['SF'] == 800.13
-    assert dic['proc2s']['OFFSET'] == 143.1681
-    assert dic['proc2s']['SF'] == 81.076469
-    assert abs(data[2, 217] - 291066.5) <= 0.001
-    assert abs(data[10, 271] - 140808.375) <= 0.001
-    assert abs(data[24, 219] - 197628.75) <= 0.001
-    assert abs(data[405, 189] - 134437.75) <= 0.001
-    assert abs(data[507, 258] - 221842.125) <= 0.001
-
-
-def test_write_pdata_1d():
-    """ writing of processed 1D bruker data """
-    dic, data = ng.bruker.read_pdata(os.path.join(DATA_DIR, 'bruker_1d',
-                                     'pdata', '1'), read_acqus=False)
-    write_readback_pdata(dic=dic, data=data)
-    write_readback_pdata(dic=dic, data=data, pdata_folder=90)
-
-
-def test_write_pdata_2d():
-    """ writing of processed 2D bruker data """
-    dic, data = ng.bruker.read_pdata(os.path.join(DATA_DIR, 'bruker_2d',
-                                     'pdata', '1'), read_acqus=False)
-    write_readback_pdata(dic=dic, data=data)
-    write_readback_pdata(dic=dic, data=data, pdata_folder=90)
 
 
 def test_read_nuslist():
