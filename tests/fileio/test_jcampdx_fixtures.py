@@ -11,6 +11,7 @@ import numpy as np
 import pytest
 
 import nmrglue as ng
+from nmrglue.fileio import fileiobase
 
 
 DATA_DIR = os.path.join(
@@ -240,8 +241,11 @@ class TestJCAMPDXSynthetic:
             assert dic["DATATYPE"][0] == "nD NMR SPECTRUM"
             with _pytest.warns(UserWarning, match="direct dimension only"):
                 udic = ng.jcampdx.guess_udic(dic, data_all)
+            uc = fileiobase.uc_from_udic(udic)
             assert udic[0]["size"] == 2
-            assert udic[0]["sw"] == 200.0
+            assert udic[0]["sw"] == 400.0
+            assert uc.hz(0) == pytest.approx(400.0)
+            assert uc.hz(udic[0]["size"] - 1) == pytest.approx(200.0)
             assert udic[0]["obs"] == 100.0
             assert udic[0]["label"] == "1H"
         finally:
@@ -845,8 +849,8 @@ class TestJCAMPDXGuessUdic:
         "##DATA TYPE=NMR SPECTRUM\n"
         "##.OBSERVE FREQUENCY=400.13\n"
         "##.OBSERVE NUCLEUS=^1H\n"
-        "##FIRSTX=0\n"
-        "##LASTX=10.0\n"
+        "##FIRSTX=10.0\n"
+        "##LASTX=0\n"
         "##XUNITS=PPM\n"
         "##NPOINTS=4\n"
         "##XYDATA=(X++(Y..Y))\n"
@@ -916,10 +920,36 @@ class TestJCAMPDXGuessUdic:
         path.write_text(self._SPECTRUM_FILE)
         dic, data = ng.jcampdx.read(str(path))
         udic = ng.jcampdx.guess_udic(dic, data)
-        # car = (lastx + firstx) / 2 in Hz
-        # PPM: firstx=0, lastx=10, obs=400.13 -> Hz: 0, 4001.3
-        expected_car = (0 + 4001.3) / 2
+        # PPM: firstx=10, lastx=0, obs=400.13. The reader returns three
+        # intensity points for this compact XYDATA fixture, so the endpoint
+        # span is represented by two intervals.
+        expected_sw = 4001.3 * data.size / (data.size - 1)
+        expected_car = 4001.3 - expected_sw / 2
         assert abs(udic[0]["car"] - expected_car) < 1.0
+
+    def test_guess_udic_spectrum_preserves_endpoints(self, tmp_path):
+        """Processed FIRSTX/LASTX survive conversion through uc_from_udic."""
+        content = (
+            "##TITLE=Endpoint Spectrum\n"
+            "##JCAMPDX=5.0\n"
+            "##DATA TYPE=NMR SPECTRUM\n"
+            "##.OBSERVE FREQUENCY=100.0\n"
+            "##FIRSTX=100\n"
+            "##LASTX=93\n"
+            "##XUNITS=HZ\n"
+            "##XYDATA=(X++(Y..Y))\n"
+            "100 1 2 3 4 5 6 7 8\n"
+            "##END=\n"
+        )
+        path = tmp_path / "endpoint_spectrum.jdx"
+        path.write_text(content)
+        dic, data = ng.jcampdx.read(str(path))
+        udic = ng.jcampdx.guess_udic(dic, data)
+        uc = fileiobase.uc_from_udic(udic)
+
+        assert udic[0]["sw"] == pytest.approx(8.0)
+        assert uc.hz(0) == pytest.approx(100.0)
+        assert uc.hz(udic[0]["size"] - 1) == pytest.approx(93.0)
 
     def test_guess_udic_complex_array(self, tmp_path):
         """guess_udic detects complex data from get_complex_array()."""
