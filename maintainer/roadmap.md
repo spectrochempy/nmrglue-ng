@@ -104,7 +104,7 @@ Neither missing data nor classified historical differences are passing tests.
 | RNMRTK/Sparky references | Deferred from first-release critical scope by maintainer decision; retain tests and format support, document absent real-reference validation, and revisit with contributed data. The deferral is translated into the contract (`DEFERRED_TESTS`, component scope `deferred`); nothing remains to do on the manifest side. |
 | Packaged fixtures | Choose a consistent provenance/checksum verification scheme; the external manifest does not currently cover them. |
 | Bruker `pdata` | Replacement implemented and independently reviewed: fixture metadata and `read -> write -> read` evidence replace the four historical tests; the two components are `replaced` with checksummed CC0 fixtures. Missing, blank and whitespace-only license/provenance declarations fail structurally. Integrated in #69 (`9296e3f`). |
-| Bruker JCAMP line endings | Reproduce CR-only decoding with a self-contained fixture, then consider the upstream #261 `StringIO(..., newline=None)` correction in a separate fix. |
+| Bruker JCAMP line endings | Fixed in #81 (`2c50110`): `read_jcamp()` uses universal newline handling after deterministic decoding, with a self-contained CR-only regression and the installed-wheel functional count updated to 65. |
 | JCAMP-DX encodings | Synthetic CC0 replacement fixtures preserve the historical AFFN/PAC/SQZ/DIF equivalence, metadata, point-count and sampled-value checks for `test_jcampdx1`. |
 | JCAMP-DX tuples | Synthetic CC0 NTUPLES replacement fixtures preserve real/imaginary array shape, metadata, point-count and sampled-value checks for `test_jcampdx1`; `(XYW..XYW)` / `(XYM..XYM)` tuple-size behavior remains a separate P1 validation before adapting upstream #262. |
 | JCAMP-DX FID metadata | Aligned locally with final upstream #231/#291 semantics after #54: FID sweep width uses `(N - 1) / (LAST-FIRST)`, complex arrays use `np.iscomplexobj`, `as_complex=True` leaves incomplete R/I pairs unchanged, and NTUPLES fallback requires exact `NMR FID` when `DATATYPE` is absent. The synthetic FID fixture now uses sampling-consistent LAST coordinates. Targeted validation: `tests/fileio/test_jcampdx_fixtures.py` passed on 2026-10-08. |
@@ -114,6 +114,21 @@ Neither missing data nor classified historical differences are passing tests.
 | `data_nd` | Reviews approved at `23cdba1`; changelog references corrected to #56/#57. The documented Boolean-axis compatibility difference remains outside these fixes. |
 | Test hygiene | Make failed NMRPipe comparisons clean generated artifacts reliably. |
 | Single test tree | Integrated in #64 at `805c6f2`, following implementation/review based on `35fd95d`; [evidence](reports/2026-10-test-layout-plan.md) records parity and distribution validation. |
+
+Upstream gate audit on 2026-10-11 compared `jjhelmus/nmrglue` master
+`cd0c2c9` with local/origin master `443bbcf`, then #81 (`2c50110`) carried the
+missing #261 CR-only Bruker JCAMP newline correction. The only new
+upstream-master change since `812bfa0`, JCAMP-DX FID #231, is already carried
+by local #54/#63; EXT #289 is carried by #62 with the reviewed local clipping
+distinctions. Maintainer decision 2026-10-11: defer optional #258 bounded
+autophase to P2, exclude #283's conflicting ZD API/boxcar change for rc1, and
+classify the remaining optional upstream proposals as non-blocking for rc1.
+Existing P1 Bruker axis/processing-file and JCAMP-DX tuple-size follow-ups
+retain the approved non-blocking scope. With #81 merged and these dispositions
+recorded, **NMRNG-kb5.17 is closed**.
+The complete merged-change inventory, open-proposal screening, rationale and
+limits are in the
+[rc1 synchronization assessment](reports/2026-10-upstream-sync.md#release-candidate-reconciliation--2026-10-11).
 
 ## P1 — Scientific reliability
 
@@ -165,7 +180,7 @@ Neither missing data nor classified historical differences are passing tests.
   dependency markers/skips and external `data/` are retained. Fixtures match
   by SHA-256, size and mode.
 - [x] Test layout C — independent review of parity and artifact evidence:
-  execute the mapped 64 NMRPipe/Bruker wheel cases outside checkout with
+  execute the mapped 65 NMRPipe/Bruker wheel cases outside checkout with
   site-packages origin checks inside pytest; retain separate sdist functional
   validation and all CI guarantees. Report unavailable dataset/software
   coverage explicitly and clean disposable validation resources. No durable

@@ -80,3 +80,10 @@ examples/jbnmr_examples/s7-s9_s3e_processing/procpar
 !.agents/skills/*/
 !.agents/skills/*/*
 !.agents/skills/*/SKILL.md
+
+# Beads / Dolt files (added by bd init)
+.dolt/
+*.db
+.beads-credential-key
+.beads/proxieddb/
+*.gate.lock*
