@@ -5,7 +5,7 @@ All notable changes to nmrglue-ng are documented in this file.
 nmrglue-ng is an independent continuation of nmrglue. Entries in the Historical nmrglue changelog section below belong to the
 original nmrglue project and are preserved for attribution and continuity.
 
-## Unreleased
+## 1.0.0rc1 - 2026-10-11
 
 ### Changed
 
@@ -14,7 +14,7 @@ original nmrglue project and are preserved for attribution and continuity.
   equivalence and NTUPLES real/imaginary arrays. `test_jcampdx1` is now
   self-contained, the test-data manifest records the JCAMP-DX components with
   the existing `replaced` status, and release-critical corpus availability now
-  has zero absent components.
+  has zero absent components. (#74)
 - Replace the two historical Bruker processed-data (`pdata`) test dependencies
   with the committed CC0 fixtures under
   `tests/fixtures/fileio/data/bruker_pdata/` and record them in the test-data
@@ -48,7 +48,7 @@ original nmrglue project and are preserved for attribution and continuity.
 
 - Normalize CR-only line endings in `bruker.read_jcamp()` after deterministic
   decoding, so Bruker JCAMP records from such files are parsed as separate
-  lines. Adapted from upstream jjhelmus/nmrglue#261 (harivyasi).
+  lines. Adapted from upstream jjhelmus/nmrglue#261 (harivyasi). (#81)
 - Restore the Read the Docs configuration by selecting a current RTD build
   image and Python version compatible with nmrglue-ng's `>=3.10` requirement,
   and update the local documentation build instructions. (#70)
