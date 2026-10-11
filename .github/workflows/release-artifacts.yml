@@ -1,0 +1,56 @@
+name: release artifacts
+
+on:
+  workflow_dispatch:
+    inputs:
+      expected_version:
+        description: "Expected nmrglue-ng version, for example 1.0.0rc1"
+        required: false
+        type: string
+      retention_days:
+        description: "Artifact retention in days"
+        required: false
+        default: "30"
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  artifacts:
+    name: Build release artifacts
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+    - uses: actions/checkout@v7
+    - uses: actions/setup-python@v7
+      with:
+        python-version: "3.13"
+        cache: pip
+        cache-dependency-path: pyproject.toml
+    - name: Install build tools
+      run: python -m pip install build twine
+    - name: Check source release metadata
+      run: >-
+        python .github/scripts/check_release_artifacts.py
+        --expected-version "${{ inputs.expected_version }}"
+    - name: Build sdist and wheel from sdist
+      run: python -m build --outdir "${{ runner.temp }}/dist"
+    - name: Check artifact metadata and contents
+      run: >-
+        python .github/scripts/check_release_artifacts.py
+        --expected-version "${{ inputs.expected_version }}"
+        --dist "${{ runner.temp }}/dist"
+    - name: Check distribution rendering
+      run: python -m twine check --strict "${{ runner.temp }}"/dist/*
+    - name: Retain release artifacts
+      uses: actions/upload-artifact@v7
+      with:
+        name: release-artifacts-${{ github.run_number }}
+        path: ${{ runner.temp }}/dist/*
+        retention-days: ${{ inputs.retention_days }}
+        if-no-files-found: error
