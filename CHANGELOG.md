@@ -9,6 +9,11 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ### Changed
 
+- Add a manual, no-publish release artifact dry-run workflow that checks
+  version/changelog/tag coherence, builds sdist and wheel artifacts, verifies
+  their metadata and contents, and retains them for review. PyPI/TestPyPI
+  publishing remains deferred until a separately authorized final 1.0.0 release
+  workflow. (#84)
 - Replace the two release-critical JCAMP-DX historical data dependencies with
   committed synthetic CC0 fixtures covering AFFN/PAC/SQZ/DIF encoding
   equivalence and NTUPLES real/imaginary arrays. `test_jcampdx1` is now
