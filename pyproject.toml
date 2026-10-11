@@ -35,8 +35,11 @@ dependencies = [
 [project.optional-dependencies]
 docs = [
     "sphinx",
+    "sphinx-book-theme",
     "sphinx_rtd_theme",
+    "myst-nb",
     "numpydoc",
+    "matplotlib",
 ]
 test = [
     "pytest",

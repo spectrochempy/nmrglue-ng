@@ -6,6 +6,7 @@ extensions = [
     'sphinx.ext.mathjax',
     'numpydoc',
     'sphinx.ext.autosummary',
+    'myst_nb',
 ]
 
 # Numpy autodoc attributes
@@ -15,13 +16,16 @@ numpydoc_show_class_members = False
 templates_path = ['_templates']
 
 # The suffix of source filenames.
-source_suffix = '.rst'
+source_suffix = {
+    '.rst': 'restructuredtext',
+    '.md': 'myst-nb',
+}
 
 # The master toctree document.
 master_doc = 'index'
 
 # General information about the project.
-project = 'nmrglue'
+project = 'nmrglue-ng'
 copyright = '2010-%s, Jonathan J. Helmus and community' % date.today().year
 
 # The default replacements for |version| and |release|, also used in various
@@ -40,6 +44,9 @@ today_fmt = '%B %d, %Y'
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 exclude_patterns = []
+if tags.has('fastdocs'):
+    exclude_patterns.extend(['reference/**'])
+    suppress_warnings = ['toc.excluded', 'ref.doc', 'ref.ref']
 
 # The reST default role (used for this markup: `text`) to use for all documents.
 #default_role = None
@@ -66,22 +73,27 @@ pygments_style = 'sphinx'
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'sphinx_rtd_theme'
+html_theme = 'sphinx_book_theme'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-#html_theme_options = {}
+html_theme_options = {
+    'repository_url': 'https://github.com/spectrochempy/nmrglue-ng',
+    'use_repository_button': True,
+    'use_issues_button': True,
+    'show_navbar_depth': 2,
+}
 
 # Add any paths that contain custom themes here, relative to this directory.
 #html_theme_path = []
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
-#html_title = None
+html_title = 'nmrglue-ng documentation'
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
-#html_short_title = None
+html_short_title = 'nmrglue-ng'
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
@@ -96,6 +108,7 @@ html_theme = 'sphinx_rtd_theme'
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+html_css_files = ['nmrglue-ng.css']
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
@@ -140,6 +153,14 @@ html_static_path = ['_static']
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'nmrgluedoc'
+
+# Execute MyST-NB tutorials during normal documentation builds and reuse the
+# jupyter-cache result when the notebook source and dependencies are unchanged.
+nb_execution_mode = 'cache'
+nb_execution_cache_path = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), '..', 'build', '.jupyter_cache')
+)
+nb_execution_timeout = 120
 
 
 # -- Options for LaTeX output --------------------------------------------------
@@ -197,7 +218,7 @@ man_pages = [
 import glob
 
 #autosummary_generate = glob.glob("reference/*.rst")
-autosummary_generate = True
+autosummary_generate = not tags.has('fastdocs')
 
 # -----------------------------------------------------------------------------
 # Source code links
@@ -256,4 +277,4 @@ def linkcode_resolve(domain, info):
 
     fn = relpath(fn, start=dirname(nmrglue.__file__))
 
-    return f"http://github.com/jjhelmus/nmrglue/blob/master/nmrglue/{fn}{linespec}"
+    return f"https://github.com/spectrochempy/nmrglue-ng/blob/master/nmrglue/{fn}{linespec}"

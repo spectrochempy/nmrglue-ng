@@ -17,6 +17,7 @@ if "%1" == "help" (
 	:help
 	echo.Please use `make ^<target^>` where ^<target^> is one of
 	echo.  html       to make standalone HTML files
+	echo.  html-fast  to make HTML files without the generated API reference
 	echo.  dirhtml    to make HTML files named index.html in directories
 	echo.  singlehtml to make a single large HTML file
 	echo.  pickle     to make pickle files
@@ -45,6 +46,14 @@ if "%1" == "html" (
 	if errorlevel 1 exit /b 1
 	echo.
 	echo.Build finished. The HTML pages are in %BUILDDIR%/html.
+	goto end
+)
+
+if "%1" == "html-fast" (
+	%SPHINXBUILD% -b html -t fastdocs -D nb_execution_mode=off -d %BUILDDIR%/doctrees-fast %SPHINXOPTS% source %BUILDDIR%/html-fast
+	if errorlevel 1 exit /b 1
+	echo.
+	echo.Fast build finished. The HTML pages are in %BUILDDIR%/html-fast.
 	goto end
 )
 

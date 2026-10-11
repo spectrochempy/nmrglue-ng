@@ -1,0 +1,89 @@
+html[data-theme="light"] {
+  --pst-color-background: #f6f7f3;
+  --pst-color-on-background: #27302f;
+  --pst-color-surface: #ffffff;
+  --pst-color-primary: #276b73;
+  --pst-color-secondary: #6c7f43;
+  --pst-color-link: #1f6f8b;
+  --pst-color-link-hover: #164f63;
+  --pst-color-inline-code: #9a4b24;
+  --pst-color-target: #f0e7c6;
+}
+
+html[data-theme="dark"] {
+  --pst-color-background: #111817;
+  --pst-color-on-background: #e5ebe7;
+  --pst-color-surface: #17211f;
+  --pst-color-primary: #7cc7c0;
+  --pst-color-secondary: #b3c783;
+  --pst-color-link: #8fd6e1;
+  --pst-color-link-hover: #b6e8ee;
+  --pst-color-inline-code: #f1b48b;
+  --pst-color-target: #473f27;
+}
+
+body {
+  letter-spacing: 0.003em;
+}
+
+.bd-main .bd-content .bd-article-container {
+  max-width: 52rem;
+}
+
+.bd-sidebar-primary,
+.bd-sidebar-secondary {
+  background: color-mix(in srgb, var(--pst-color-background) 92%, var(--pst-color-primary));
+}
+
+.bd-header {
+  background: color-mix(in srgb, var(--pst-color-surface) 88%, var(--pst-color-primary));
+  border-bottom: 1px solid color-mix(in srgb, var(--pst-color-primary) 35%, transparent);
+}
+
+.bd-header .navbar-brand,
+.bd-header .navbar-nav li a.nav-link {
+  color: var(--pst-color-on-background);
+}
+
+h1,
+h2,
+h3 {
+  color: color-mix(in srgb, var(--pst-color-on-background) 86%, var(--pst-color-primary));
+}
+
+h1 {
+  border-bottom: 3px solid color-mix(in srgb, var(--pst-color-primary) 45%, transparent);
+  padding-bottom: 0.35rem;
+}
+
+.bd-content a.reference.external,
+.bd-content a.reference.internal {
+  text-underline-offset: 0.18em;
+}
+
+.highlight,
+div.cell_input,
+div.cell_output {
+  border-radius: 0.55rem;
+}
+
+div.cell {
+  margin-bottom: 1.35rem;
+}
+
+div.cell_input {
+  border-left: 4px solid var(--pst-color-primary);
+}
+
+div.cell_output {
+  border-left: 4px solid color-mix(in srgb, var(--pst-color-secondary) 75%, transparent);
+}
+
+.admonition,
+div.admonition {
+  border-radius: 0.55rem;
+}
+
+.toctree-wrapper.compound li {
+  margin-bottom: 0.2rem;
+}

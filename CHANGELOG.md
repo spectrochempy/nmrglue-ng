@@ -5,6 +5,18 @@ All notable changes to nmrglue-ng are documented in this file.
 nmrglue-ng is an independent continuation of nmrglue. Entries in the Historical nmrglue changelog section below belong to the
 original nmrglue project and are preserved for attribution and continuity.
 
+## Unreleased
+
+### Changed
+
+- Prototype the 1.0.0 documentation structure with Sphinx Book Theme,
+  tutorial-first navigation, and executable MyST-NB Markdown notebooks for 1D
+  and 2D NMRPipe walkthroughs while preserving the existing examples and API
+  reference. Include downloadable notebooks and synthetic data, explicit text
+  and figure outputs, instructions for running outside the checkout, and a
+  fast local documentation build that omits the generated API reference.
+  (PR pending)
+
 ## 1.0.0rc1 - 2026-10-11
 
 ### Changed
