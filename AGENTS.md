@@ -243,6 +243,22 @@ Load the relevant skill before starting work:
 **For other agents:** skills are in `.agents/skills/` — read the relevant
 `SKILL.md` directly.
 
+## Issue Tracking
+
+This project uses **bd (beads)** for maintainer task tracking. Run `bd prime`
+for workflow context and `bd ready` to find unblocked work before starting a
+new task. Keep release-readiness conclusions grounded in `maintainer/roadmap.md`
+and the curated reports; beads organize the work but do not replace the
+release gates or audit reports.
+
+Quick reference:
+
+- `bd ready` — find unblocked work.
+- `bd create "Title" --type task --priority 2` — create a task.
+- `bd show <id>` — inspect task context and dependencies.
+- `bd close <id>` — mark completed work.
+- `bd sync` — synchronize the beads database when a remote is configured.
+
 ---
 
 ## References

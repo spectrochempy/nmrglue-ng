@@ -63,7 +63,7 @@ decision* are not decided here.
 
 | Subject | nmrglue-ng decision | Upstream position | Status |
 |---|---|---|---|
-| ZD widths | #9: `proc_base.zd_*` discrete (fractional widths raise), NMRPipe rule `W = floor(wide + 0.5)` applied in `pipe_proc.zd`, boxcar unchanged | [#283](https://github.com/jjhelmus/nmrglue/pull/283) (open): same rule inside `proc_base.zd_*` for all four windows, so `zd_boxcar(5.5)` would round to 6 instead of truncating to 5 | **Awaiting maintainer decision** (deferred 2026-10-08). Same scientific rule, established against NMRPipe 13.0 Rev 2026.072.12.03 over 113 outputs; the disagreement is API placement and boxcar scope. If #283 merges, a later port would conflict with the #9 contract. |
+| ZD widths | #9: `proc_base.zd_*` discrete (fractional widths raise), NMRPipe rule `W = floor(wide + 0.5)` applied in `pipe_proc.zd`, boxcar unchanged | [#283](https://github.com/jjhelmus/nmrglue/pull/283) (open): same rule inside `proc_base.zd_*` for all four windows, so `zd_boxcar(5.5)` would round to 6 instead of truncating to 5 | Maintainer decision 2026-10-11: exclude #283 from rc1 to preserve the #9 API placement and boxcar scope. Same scientific rule, established against NMRPipe 13.0 Rev 2026.072.12.03 over 113 outputs; the disagreement is API placement and boxcar scope. If #283 merges upstream, any later port remains a separate compatibility decision. |
 | Bruker JCAMP encoding | #53: strict chain `utf-8-sig`, `cp1252`, `latin-1`, independent of the locale (documented in [maintenance report](2026-10-maintenance.md)) | [#261](https://github.com/jjhelmus/nmrglue/pull/261) commit `bc39452` inserts `locale.getpreferredencoding(False)` before latin-1, on review request | Divergence recorded. The documented decision stands; no change is proposed. |
 | JCAMP comma decimals | #47: no comma-to-dot in `(XY..XY)`; restricted comma-to-dot in `(X..XY)` and undeclared formats | [#262](https://github.com/jjhelmus/nmrglue/pull/262) commit `d5ef606` drops the heuristic entirely, citing the same file survey (253 CENAPTNMR files, no decimal comma observed) | Recommendation: evaluate removing the remaining restricted paths; integer-pair tables such as mass peak lists can still be rewritten by them. |
 
@@ -118,9 +118,94 @@ locale divergence and the tuple-size gap listed above.
 
 1. **Contribution pause #279–#282** — reformulate or lift (deferred by the
    maintainer on 2026-10-08).
-2. **ZD width contract versus upstream #283** — keep the #9 placement and
-   boxcar scope, or adopt the `proc_base`-level rule (deferred by the
-   maintainer on 2026-10-08).
+2. **ZD width contract versus upstream #283** — resolved for rc1 by maintainer
+   decision 2026-10-11: keep the #9 placement and boxcar scope; any later port
+   remains a separate compatibility decision.
 
 Approval of this report does not approve any scope reduction, change a
 release gate, or authorize an upstream submission.
+
+## Release-candidate reconciliation — 2026-10-11
+
+Fresh read-only upstream fetch and GitHub queries, compared with local source
+and recorded decisions; no scientific tests or independent review were run.
+Exact snapshots:
+
+- `jjhelmus/nmrglue:master`: `cd0c2c9d1cac4f1125a89dbe6ecdcd8ca194b59d`.
+- `spectrochempy/nmrglue-ng:master` and local `origin/master` after the
+  CR-only newline fix: `2c50110892ed7b74882fd137af70e870e03ae27f`.
+- Previous upstream snapshot: `812bfa0805952bc0edceab9783e022541a29b736`.
+
+**NMRNG-kb5.17 is closed.** The only new upstream master commit is
+`cd0c2c9` ([#231](https://github.com/jjhelmus/nmrglue/pull/231)), whose
+functional changes are already included through local #54/#63. Older gaps
+still need explicit release-candidate dispositions. Recommendations below
+are not maintainer decisions. The 2026-10-11 inherited-defect decision covers
+the named P1 scientific-reliability subjects; it does not explicitly settle
+bounded autophase or the pending ZD API choice. The local CR-only regression
+was carried after this audit in #81 (`2c50110`).
+
+### Complete upstream-master delta
+
+`git log --no-merges HEAD..upstream/master` contains nine commits, grouped
+below. Merge commits #258/#279/#289 introduce no additional subject.
+
+| Upstream commits | Classification at the local snapshot | rc1 disposition |
+|---|---|---|
+| `cd0c2c9` (#231) | Already included: FID `(N - 1) / (LAST-FIRST)`, processed sweep/carrier, complex-array helper, time/frequency/complex flags. Local #63 (`35fd95d`) aligns the final FID formula and `np.iscomplexobj`; local safeguards and NTUPLES support are retained. | No carry needed. Upstream's formatting-only hunks need no synchronization. |
+| `7851bef`, `b72a959` (#289) | Already adapted in #62 (`a662316`): original indirect counts and upper-bound assignment fixes, plus independently reviewed local coordinate clipping, rounded-window placement and saturation. | Keep local adaptation; do not replace it with upstream's shift-before-clipping algorithm. See [EXT evidence](2026-10-pipe-proc-ext.md). |
+| `1a1d2dc` (#279) | Already included in #14 (`71862fe`): `scipy.linalg.pinv` replaces removed `pinv2`. Source comparison differs only in the explanatory comment. | No carry needed. |
+| `61a45e6`, `c5aa626`, `b0514c4`, `9c6803d`, `2743c01` (#258) | Not included: optional `p1_bounds`, bounded solver path, option translation and tests. The unbounded default algorithm is retained upstream. | Maintainer decision 2026-10-11: defer to P2 processing coverage because this is optional new capability, with no identified repair to the existing default path. |
+
+### Known open proposals and divergences
+
+All PR numbers in this subsection refer to `jjhelmus/nmrglue`.
+
+| Subject | Current evidence | Recommended or existing disposition |
+|---|---|---|
+| #261 CR-only Bruker JCAMP newlines | Upstream head `bc39452212a3561ebd189478fda22527e76d825c` contains `StringIO(text, newline=None)` from `6034f64`. Local #81 (`2c50110`) now carries the newline-normalization part with a self-contained CR-only regression and leaves the locale policy unchanged. | Included before rc1; no further carry needed for the newline defect. |
+| #261 locale fallback | Local #53 deliberately uses strict UTF-8-BOM/CP1252/Latin-1 decoding independently of locale. | Exclude locale insertion under the existing [reader decision](2026-10-maintenance.md#bruker-reader-decisions); carrying newline normalization does not require it. |
+| #264 singular `proc`/`proc2` discovery | Still open at `04fc1b82d794551b0600f3b84d4cf935085d6010`; local singular-file priority remains unresolved. | P1 Bruker axis/pdata follow-up under the 2026-10-11 non-blocking first-release decision. Preserve current default pending coherent vendor evidence and compatibility decision. |
+| #262 `(XYW..XYW)` / `(XYM..XYM)` | Still open at `b531d16ddd5087a86b61cadc3366fad4872b349d`; local coordinate parser remains pair-based. | P1 JCAMP-DX tuple-size validation, explicitly non-blocking under the 2026-10-11 first-release decision. Synthetic critical replacements do not establish triple-column support. |
+| #262 remaining comma-decimal heuristic | Upstream removed it; local `(X..XY)` and undeclared-format normalization remains, whereas `(XY..XY)` preserves delimiters. | Retain the documented local reader choice for this audit. Broader real-data/encoding semantics remain P1 under the existing non-blocking decision; no evidence here approves removing the remaining paths. |
+| #283 ZD widths | Still open at `db649649bebc74346902732117dd46c2f269e592`. Local #9 rejects fractional `proc_base` triangle/sinebell/Gaussian widths, rounds at `pipe_proc.zd`, and preserves boxcar truncation. Upstream rounds all four base windows, including boxcar. | Maintainer decision 2026-10-11: exclude from rc1 to preserve the existing API placement and boxcar scope. This is not a new assertion of boxcar equivalence with NMRPipe; any later port remains a separate compatibility decision. |
+| #291 FID follow-ups | Still open at `22db649230f85828d824670c9d2d53fc3777610d`; diff inspected. Complete-pair-only `as_complex`, available-component size and exact NTUPLES FID fallback are present locally. | Already included through #54/#63; no carry needed. |
+| #275 reference frequency / Tecmag | Unintegrated semantics remain recorded in the maintenance report. | P1, explicitly non-blocking under the 2026-10-11 obs/ref/car and Tecmag decision. |
+
+Maintainer decision 2026-10-11: the remaining optional upstream proposals are
+not rc1 blockers under the dispositions below. The remaining open-PR inventory
+was also screened: #259/#260/#277 are the
+already-adapted reader work; #268/#270/#272 are the local Varian/`data_nd`
+fixes; #278/#280/#281/#282 originate in already-carried SAVE, HT and fixture
+work. These are source/history mappings, not fresh validation of every PR.
+For optional #254 performance work and older #48 autophase proposals,
+recommend P2 assessment after rc1. For #263 packaging, #243 test repairs and
+#244 Nox, recommend excluding wholesale import in favor of the independent
+packaging, reviewed single test tree and current CI contract. #265 denoising
+remains outside the retained scope; its 2026-10-10 discussion now favors a
+standalone package. These recommendations do not approve new scope decisions
+and need not turn every open upstream proposal into a product requirement.
+
+The two open issues updated since the prior snapshot were read: #290's
+positive-Y EXT defect is handled locally by #62 (the separately noted X-axis
+behavior remains outside that correction); #292's Pipe-to-Pipe `FDDMXVAL`
+loss is handled by #65 (`7ef9b8f`). Existing dimensional-metadata limitations
+remain under the recorded P1 non-blocking scope.
+
+### Evidence, limits and next action
+
+Commands executed on 2026-10-11 included `git fetch upstream`, exact-ref
+resolution, `git log 812bfa0..upstream/master`, the complete upstream-only
+commit inventory, `git show cd0c2c9`, source diffs (using
+`--ignore-space-at-eol` for historical CRLF files), and `gh pr list`,
+`gh pr view`, `gh pr diff`, `gh issue list` and `gh issue view` explicitly
+targeting `jjhelmus/nmrglue`. GitHub master API reads confirmed both exact
+remote snapshots above. Open PR metadata was screened in full (22 PRs),
+with targeted diffs for #261/#283/#291; this is not a full review of all
+unmerged proposals.
+
+Next: refresh this reconciliation if upstream advances before publication.
+NMRNG-kb5.6 is unblocked by this gate; its final pushed-commit validation,
+current G1–G6 evidence and release preparation are separate work. No
+release-readiness verdict is inferred from this source audit, and historical
+test results were not rerun.
