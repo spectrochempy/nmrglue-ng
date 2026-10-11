@@ -27,23 +27,23 @@ total_files = 293
 total_size = 460540851
 missing_groups = 8
 total_components = 42
-absent_components = 19
-replaced_components = 2
+absent_components = 17
+replaced_components = 4
 critical_components = 19
-absent_critical_components = 2
-replaced_critical_components = 2
+absent_critical_components = 0
+replaced_critical_components = 4
 deferred_components = 8
 absent_deferred_components = 8
-fixture_files = 18
-fixture_size = 21514331
+fixture_files = 28
+fixture_size = 23706610
 critical_tests = ["tests/fileio/test_agilent.py::test_1d", "tests/fileio/test_agilent.py::test_2d", "tests/fileio/test_agilent.py::test_2d_lowmem", "tests/fileio/test_agilent.py::test_2d_tppi", "tests/fileio/test_agilent.py::test_2d_tppi_lowmem", "tests/fileio/test_agilent.py::test_3d", "tests/fileio/test_agilent.py::test_3d_lowmem", "tests/fileio/test_bruker_pdata.py::test_pdata_1d_procs_metadata", "tests/fileio/test_bruker_pdata.py::test_pdata_2d_procs_metadata", "tests/fileio/test_bruker_pdata.py::test_write_pdata_1d_roundtrip", "tests/fileio/test_bruker_pdata.py::test_write_pdata_2d_roundtrip", "tests/fileio/test_bruker_with_test_data.py::test_1d", "tests/fileio/test_bruker_with_test_data.py::test_2d", "tests/fileio/test_bruker_with_test_data.py::test_2d_lowmem", "tests/fileio/test_bruker_with_test_data.py::test_3d", "tests/fileio/test_bruker_with_test_data.py::test_3d_lowmem", "tests/fileio/test_convert.py::test_agilent_1d", "tests/fileio/test_convert.py::test_agilent_2d", "tests/fileio/test_convert.py::test_agilent_2d_lowmem", "tests/fileio/test_convert.py::test_agilent_3d", "tests/fileio/test_convert.py::test_agilent_3d_lowmem", "tests/fileio/test_convert.py::test_bruker_1d", "tests/fileio/test_convert.py::test_bruker_2d", "tests/fileio/test_convert.py::test_bruker_2d_lowmem", "tests/fileio/test_convert.py::test_bruker_3d", "tests/fileio/test_convert.py::test_bruker_3d_lowmem", "tests/fileio/test_jcampdx.py::test_jcampdx1", "tests/fileio/test_simpson.py::test_1d_time", "tests/fileio/test_simpson.py::test_2d_freq"]
 deferred_tests = ["tests/fileio/test_convert.py::test_agilent_3d_rnmrtk", "tests/fileio/test_convert.py::test_bruker_3d_rnmrtk", "tests/fileio/test_convert.py::test_rnmrtk_3d", "tests/fileio/test_convert.py::test_sparky_2d", "tests/fileio/test_convert.py::test_sparky_2d_lowmem", "tests/fileio/test_jeol.py::test_1d_complex_1", "tests/fileio/test_jeol.py::test_1d_complex_1_udic", "tests/fileio/test_jeol.py::test_2d_cc_1", "tests/fileio/test_jeol.py::test_2d_cc_1_udic", "tests/fileio/test_rnmrtk.py::test_3d_freq", "tests/fileio/test_rnmrtk.py::test_3d_time", "tests/fileio/test_sparky.py::test_2d", "tests/fileio/test_sparky.py::test_2d_lowmem"]
 
 # Versioned-fixture inventory for components replaced by committed
 # fixtures (paths are relative to tests/fixtures/).
 [fixtures]
-file_count = 18
-total_size = 21514331
+file_count = 28
+total_size = 23706610
 
 [fixtures.files."fileio/data/bruker_pdata/exp1/pdata/1/1i"]
 sha256 = "1caa891d00a0ab76119b755a02540c9eed4a98b6b0b12954729a07d12920dc03"
@@ -99,6 +99,36 @@ size = 2338
 [fixtures.files."fileio/data/bruker_pdata/exp2d_hsqc/pdata/1/title"]
 sha256 = "47da861020d3e1adef7183add5a3cad1b43c922c4229065825ad792008fda2c2"
 size = 114
+[fixtures.files."fileio/data/jcampdx_encoding_set/BRUKAFFN.DX"]
+sha256 = "cd79958a44c1bd88389f3a1a514f7646c0172074f1dbb0ebf34687111e3fae15"
+size = 138023
+[fixtures.files."fileio/data/jcampdx_encoding_set/BRUKDIF.DX"]
+sha256 = "cd032309972dd8df153e8e17134a1847b21fd70de31f5ec4b3859e5d021ffca2"
+size = 87663
+[fixtures.files."fileio/data/jcampdx_encoding_set/BRUKPAC.DX"]
+sha256 = "dd77ee649b420f5301247e52049ccdd46b40bf371771190bd1fe7cf21113fd9e"
+size = 139642
+[fixtures.files."fileio/data/jcampdx_encoding_set/BRUKSQZ.DX"]
+sha256 = "7897258583b9f5c2597e8d6f3af2b4f52a6bbd1406dbb3dd94e41155a2cbf901"
+size = 123258
+[fixtures.files."fileio/data/jcampdx_encoding_set/README.md"]
+sha256 = "f71e010b97e242a4f99c2a9e8d37d53d8fd2a129a58cfcb55ece05430e47db48"
+size = 233
+[fixtures.files."fileio/data/jcampdx_encoding_set/TEST32.DX"]
+sha256 = "b693f3bee61b022e96bf33fd0205aa0247e5b39e65494faccd8b73c575343dfc"
+size = 138021
+[fixtures.files."fileio/data/jcampdx_encoding_set/TESTSPEC.DX"]
+sha256 = "e051de5880307fd8b8af4a33da21eb05f62626f9d7f6af0f91e69b4b1d5e3974"
+size = 138023
+[fixtures.files."fileio/data/jcampdx_ntuples/BRUKNTUP.DX"]
+sha256 = "b32de0712d7809bf0595701eb245b2d1c3cb1d7e6a318713d67b32a8f3133cb2"
+size = 713589
+[fixtures.files."fileio/data/jcampdx_ntuples/README.md"]
+sha256 = "f2df8f3da56c497a40d0543e682bc0ab94034569b40a87f5c2c83cb9e7528ced"
+size = 238
+[fixtures.files."fileio/data/jcampdx_ntuples/TESTNTUP.DX"]
+sha256 = "0f062e19e19f9f29227d2a4a25e22a43aacefa16f838b9c86c2d4ce2b1984b2d"
+size = 713589
 
 [groups.agilent_1d]
 format = "Varian/Agilent"
@@ -1752,33 +1782,39 @@ notes = "NMRPipe-generated 3D conversion reference; deferred from the first-rele
 
 [missing.jcampdx_affn_spectrum]
 format = "JCAMP-DX"
-redistribution_status = "UNRESOLVED"
-evidence = "not present in local corpus or v0.5 archive"
-notes = "human-auditable real spectrum; requires licensed test set"
+redistribution_status = "CLEAR"
+evidence = "historical files not present in local corpus or v0.5 archive; replaced by synthetic CC0 fixtures committed under tests/fixtures/fileio/data/jcampdx_encoding_set"
+notes = "synthetic replacement covers AFFN/PAC/SQZ/DIF parser equivalence, metadata, point count and sampled values"
 component_count = 1
-absent_component_count = 1
+absent_component_count = 0
 
 [missing.jcampdx_affn_spectrum.components.encoding_set]
-status = "absent"
+status = "replaced"
 scope = "critical"
 paths = ["jcampdx/BRUKAFFN.DX", "jcampdx/BRUKPAC.DX", "jcampdx/BRUKSQZ.DX", "jcampdx/BRUKDIF.DX", "jcampdx/TEST32.DX", "jcampdx/TESTSPEC.DX"]
 required_by = ["tests/fileio/test_jcampdx.py::test_jcampdx1"]
-notes = "AFFN/PAC/SQZ/DIF encoding equivalence cases; the historical encoding test is monolithic and also reads the NTUPLES cases"
+replacement = ["fileio/data/jcampdx_encoding_set"]
+replacement_license = "CC0-1.0"
+replacement_provenance = "synthetic JCAMP-DX fixtures generated for nmrglue-ng; no external source data"
+notes = "AFFN/PAC/SQZ/DIF encoding equivalence cases; the historical encoding files are replaced by synthetic CC0 fixtures that preserve the sampled value, metadata and encoding contracts"
 
 [missing.jcampdx_ntuples_spectrum]
 format = "JCAMP-DX"
-redistribution_status = "UNRESOLVED"
-evidence = "not present in local corpus or v0.5 archive"
-notes = "real NTUPLES arrays; requires licensed test set"
+redistribution_status = "CLEAR"
+evidence = "historical files not present in local corpus or v0.5 archive; replaced by synthetic CC0 fixtures committed under tests/fixtures/fileio/data/jcampdx_ntuples"
+notes = "synthetic replacement covers NTUPLES real/imaginary arrays, metadata, point count and sampled values"
 component_count = 1
-absent_component_count = 1
+absent_component_count = 0
 
 [missing.jcampdx_ntuples_spectrum.components.ntuples_arrays]
-status = "absent"
+status = "replaced"
 scope = "critical"
 paths = ["jcampdx/BRUKNTUP.DX", "jcampdx/TESTNTUP.DX"]
 required_by = ["tests/fileio/test_jcampdx.py::test_jcampdx1"]
-notes = "real 2D NTUPLES arrays; shared with the monolithic encoding test"
+replacement = ["fileio/data/jcampdx_ntuples"]
+replacement_license = "CC0-1.0"
+replacement_provenance = "synthetic JCAMP-DX NTUPLES fixtures generated for nmrglue-ng; no external source data"
+notes = "NTUPLES real/imaginary arrays replaced by synthetic CC0 fixtures that preserve the sampled value and metadata contract"
 
 [missing.extended_test_references]
 format = "various"

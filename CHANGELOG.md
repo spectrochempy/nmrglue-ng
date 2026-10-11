@@ -9,6 +9,12 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ### Changed
 
+- Replace the two release-critical JCAMP-DX historical data dependencies with
+  committed synthetic CC0 fixtures covering AFFN/PAC/SQZ/DIF encoding
+  equivalence and NTUPLES real/imaginary arrays. `test_jcampdx1` is now
+  self-contained, the test-data manifest records the JCAMP-DX components with
+  the existing `replaced` status, and release-critical corpus availability now
+  has zero absent components.
 - Replace the two historical Bruker processed-data (`pdata`) test dependencies
   with the committed CC0 fixtures under
   `tests/fixtures/fileio/data/bruker_pdata/` and record them in the test-data

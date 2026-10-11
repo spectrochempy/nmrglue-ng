@@ -6,6 +6,18 @@ import nmrglue as ng
 from _dataset_paths import DATA_DIR
 
 
+FIXTURE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)),
+                           "fixtures", "fileio", "data")
+ENCODING_SET_DIR = os.path.join(FIXTURE_DIR, "jcampdx_encoding_set")
+NTUPLES_DIR = os.path.join(FIXTURE_DIR, "jcampdx_ntuples")
+
+
+def _jcampdx1_case_path(case):
+    if case in {"BRUKNTUP.DX", "TESTNTUP.DX"}:
+        return os.path.join(NTUPLES_DIR, case)
+    return os.path.join(ENCODING_SET_DIR, case)
+
+
 def test_jcampdx1():
     '''JCAMP-DX read: format testset'''
     cases = []
@@ -57,7 +69,7 @@ def test_jcampdx1():
         print(case)
 
         # read
-        casepath = os.path.join(DATA_DIR, "jcampdx", case)
+        casepath = _jcampdx1_case_path(case)
         dic, data = ng.jcampdx.read(casepath)
 
         # check some dic entries:
