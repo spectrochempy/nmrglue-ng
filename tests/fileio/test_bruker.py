@@ -323,6 +323,16 @@ def test_read_jcamp_cp1252():
         os.remove(temp_path)
 
 
+def test_read_jcamp_cr_only_line_endings(tmp_path):
+    """CR-only JCAMP records are split like normal text-file reading."""
+    path = tmp_path / "acqus"
+    path.write_bytes(b"##TITLE= synthetic\r##$FOO= 1\r##END=\r")
+
+    dic = ng.bruker.read_jcamp(path)
+
+    assert dic["FOO"] == 1
+
+
 def test_read_jcamp_undecodable_bytes():
     """bytes invalid in both utf-8 and cp1252 do not crash the reader."""
     content = _real_acqus_bytes().replace(

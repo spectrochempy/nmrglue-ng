@@ -46,6 +46,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ### Fixed
 
+- Normalize CR-only line endings in `bruker.read_jcamp()` after deterministic
+  decoding, so Bruker JCAMP records from such files are parsed as separate
+  lines. Adapted from upstream jjhelmus/nmrglue#261 (harivyasi).
 - Restore the Read the Docs configuration by selecting a current RTD build
   image and Python version compatible with nmrglue-ng's `>=3.10` requirement,
   and update the local documentation build instructions. (#70)

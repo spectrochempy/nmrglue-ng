@@ -2324,7 +2324,7 @@ def read_jcamp(filename, encoding=None):
              "non-ASCII characters may be incorrect."
              % (filename, " or ".join(codecs_to_try[:-1])))
 
-    return parse_jcamp_file(io.StringIO(text), dic)
+    return parse_jcamp_file(io.StringIO(text, newline=None), dic)
 
 def parse_jcamp_file(f,dic):
     """
