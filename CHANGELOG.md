@@ -14,8 +14,7 @@ original nmrglue project and are preserved for attribution and continuity.
   and 2D NMRPipe walkthroughs while preserving the existing examples and API
   reference. Include downloadable notebooks and synthetic data, explicit text
   and figure outputs, instructions for running outside the checkout, and a
-  fast local documentation build that omits the generated API reference.
-  (PR pending)
+  fast local documentation build that omits the generated API reference. (#85)
 
 ## 1.0.0rc1 - 2026-10-11
 
