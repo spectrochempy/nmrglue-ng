@@ -19,7 +19,7 @@ original nmrglue project and are preserved for attribution and continuity.
   in favour of fixture-based metadata and read/write round-trip tests in
   `tests/fileio/test_bruker_pdata.py`, so release-critical corpus absences drop
   from four to two (the JCAMP-DX pair). No external data is committed or
-  redistributed.
+  redistributed. (#69)
 - Translate the approved first-release corpus scope decisions into the
   machine-readable test-data contract and integrate the validated NMRPipe and
   SIMPSON references into the local external corpus. The regenerated manifest
