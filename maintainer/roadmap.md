@@ -96,6 +96,7 @@ Neither missing data nor classified historical differences are passing tests.
 |---|---|
 | Version scheme | Maintainer decision 2026-10-11: `nmrglue-ng` adopts its own independent SemVer line rather than continuing the historical `0.13`, because the two distributions can evolve in parallel and a shared line would imply a linear succession that does not exist. First independent release targets `1.0.0` (optionally published first as `1.0.0rc1`). The number is a public-API compatibility contract internal to `nmrglue-ng`, not a comparison with historical `nmrglue`, which never left `0.x`. The `-dev` suffix stays until the authorized release-preparation change immediately before building release artifacts. |
 | Upstream synchronization before `1.0.0rc1` | New release-candidate gate (2026-10-11): before publishing `1.0.0rc1`, audit the then-current `jjhelmus/nmrglue` upstream and ensure `nmrglue-ng` either includes upstream changes that should be carried into the release, or explicitly records a maintainer decision to defer/exclude them with scope and rationale. This does not authorize upstream contribution and does not require adopting upstream changes whose behavior conflicts with documented `nmrglue-ng` decisions. |
+| Documentation identity before `1.0.0` | Before the final `1.0.0` release, differentiate the documentation from historical upstream `nmrglue`: review the template/theme, introduction, project positioning, and references that should say `nmrglue-ng` while preserving justified historical/API references to `nmrglue`. This is not a blocker for `1.0.0rc1` unless release-candidate review finds misleading public-facing text. |
 | Critical contract | The 2026-10-08 decisions are translated into the generator/manifest at `7a7f935` (2026-10-09, reviewed the same day; minor findings addressed the same day): `CRITICAL_TESTS` holds the 29 first-release ids, `DEFERRED_TESTS` the 13 deferred RNMRTK/Sparky/JEOL ids, component scope is three-valued (`critical`/`deferred`/`extended`), manifest schema v4. Bruker pdata replacement is complete: the two components are explicitly `replaced` against committed CC0 fixtures, with checksummed inventory, fixture-derived read metadata and read/write round trips. Independent follow-up confirms malformed replacement license/provenance declarations fail structurally. JCAMP-DX critical components are now replaced by synthetic CC0 fixtures with checksummed inventory for AFFN/PAC/SQZ/DIF and NTUPLES coverage. SIMPSON requirements remain. [Corpus report](reports/2026-10-critical-corpus.md#bruker-pdata-replacement--2026-10-09). |
 | Local corpus use | Historical archive accepted for local testing; `UNRESOLVED` redistribution status alone no longer blocks those tests. Identify missing references and record actual results. |
 | Data redistribution | Distribute only files/groups with recorded public-domain status, an applicable license or permission; keep other accepted inputs local/private. |
@@ -171,6 +172,11 @@ Neither missing data nor classified historical differences are passing tests.
   dual layout, scientific correction, new release gate or critical-scope
   reduction is implied by this work; integrated in #64 at `805c6f2`.
 - [ ] Modernize documentation and links incrementally.
+- [ ] Differentiate documentation identity before final `1.0.0`: update the
+  theme/template, introduction and `nmrglue`/`nmrglue-ng` references where
+  needed, while preserving historical and import-compatibility references.
+  This is not a blocker for `1.0.0rc1` unless candidate review identifies
+  misleading public-facing text.
 - [ ] Introduce linting, typing and benchmarks only through separately scoped
   work. Ruff linting/formatting remain deferred; minimal pre-commit is active.
 
