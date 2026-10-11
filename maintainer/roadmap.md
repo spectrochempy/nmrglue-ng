@@ -65,7 +65,9 @@ The recorded readiness verdict remains **BLOCKED**. See
   2026-10-07 at `23cdba1`: all three verdicts approved. PR #55 also has a
   recorded independent review; its documentation findings were addressed by #58.
 - [ ] Repair the documentation build and establish independent deployment.
-- [ ] Finalize version, release notes, artifact scope and publication procedure.
+- [ ] Finalize version, release notes, artifact scope and publication procedure
+  (version scheme decided 2026-10-11: independent SemVer line, target `1.0.0`;
+  see Decisions and near-term work).
 
 The [critical-corpus report](reports/2026-10-critical-corpus.md) records the
 42-test breakdown, all 16 groups, reference gaps and rights status. The
@@ -77,6 +79,7 @@ Neither missing data nor classified historical differences are passing tests.
 
 | Topic | Next action / decision |
 |---|---|
+| Version scheme | Maintainer decision 2026-10-11: `nmrglue-ng` adopts its own independent SemVer line rather than continuing the historical `0.13`, because the two distributions can evolve in parallel and a shared line would imply a linear succession that does not exist. First independent release targets `1.0.0` (optionally published first as `1.0.0rc1`). The number is a public-API compatibility contract internal to `nmrglue-ng`, not a comparison with historical `nmrglue`, which never left `0.x`. The `-dev` suffix stays until the authorized release-preparation change immediately before building release artifacts. |
 | Critical contract | The 2026-10-08 decisions are translated into the generator/manifest at `7a7f935` (2026-10-09, reviewed the same day; minor findings addressed the same day): `CRITICAL_TESTS` holds the 29 first-release ids, `DEFERRED_TESTS` the 13 deferred RNMRTK/Sparky/JEOL ids, component scope is three-valued (`critical`/`deferred`/`extended`), manifest schema v4. Bruker pdata replacement is complete: the two components are explicitly `replaced` against committed CC0 fixtures, with checksummed inventory, fixture-derived read metadata and read/write round trips. Independent follow-up confirms malformed replacement license/provenance declarations fail structurally. JCAMP-DX and SIMPSON requirements remain. [Corpus report](reports/2026-10-critical-corpus.md#bruker-pdata-replacement--2026-10-09). |
 | Local corpus use | Historical archive accepted for local testing; `UNRESOLVED` redistribution status alone no longer blocks those tests. Identify missing references and record actual results. |
 | Data redistribution | Distribute only files/groups with recorded public-domain status, an applicable license or permission; keep other accepted inputs local/private. |
