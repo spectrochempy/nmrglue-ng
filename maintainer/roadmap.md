@@ -1,6 +1,6 @@
 # nmrglue-ng roadmap
 
-Status updated on **2026-10-11**, against `55a2fd1`. This is the current
+Status updated on **2026-10-11**, against `5d5f78b`. This is the current
 action list; dated evidence and qualifications live in the
 [maintainer reports](README.md). Consolidation is not a new test run or a
 change to scientific validation results. The approved local-data policy below
@@ -78,9 +78,11 @@ The recorded readiness verdict remains **BLOCKED**. See
   environment. Public hosting/deployment remains deferred as a separate
   maintainer decision because the repository is public and free-tier Read the
   Docs hidden versions remain URL-accessible.
-- [ ] Finalize version, release notes, artifact scope and publication procedure
+- [x] Finalize version, release notes, artifact scope and publication procedure
   (version scheme decided 2026-10-11: independent SemVer line, target `1.0.0`;
-  see Decisions and near-term work).
+  the `-dev` suffix, dated changelog heading, known PR-reference cleanup,
+  artifact build, tag and publication all remain explicit maintainer-authorized
+  release-preparation steps; see Decisions and near-term work).
 
 The [critical-corpus report](reports/2026-10-critical-corpus.md) records the
 42-test breakdown, all 16 groups, reference gaps and rights status. The
