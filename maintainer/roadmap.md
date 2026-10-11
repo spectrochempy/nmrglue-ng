@@ -1,6 +1,6 @@
 # nmrglue-ng roadmap
 
-Status updated on **2026-10-11**, against `3369943`. This is the current
+Status updated on **2026-10-11**, against `55a2fd1`. This is the current
 action list; dated evidence and qualifications live in the
 [maintainer reports](README.md). Consolidation is not a new test run or a
 change to scientific validation results. The approved local-data policy below
@@ -62,9 +62,14 @@ The recorded readiness verdict remains **BLOCKED**. See
 - [ ] Document reproducible, checksum-verified acquisition and record complete
   critical-dataset validation. Local/manual evidence is acceptable; public
   dataset CI and redistribution of the whole corpus are not prerequisites.
-- [ ] Complete the broader inherited-defect assessment; the targeted reviews
-  below do not settle all scientific questions, including the reference-frequency
-  and Tecmag work discussed under P1.
+- [x] Complete the broader inherited-defect assessment for first-release scope.
+  Maintainer decision 2026-10-11: tracked release-critical inherited defects are
+  fixed, independently reviewed, replaced, or deferred under the current
+  first-release contract. Remaining scientific-reliability topics under P1
+  (Bruker axis coverage, observation/reference/carrier and Tecmag semantics,
+  JCAMP-DX real-data and tuple-size validation, and NMRPipe/JRES dimensional
+  metadata) remain visible follow-up work but do not block the first independent
+  release.
 - [x] Independent review of PRs #56/#57 and their interaction, completed
   2026-10-07 at `23cdba1`: all three verdicts approved. PR #55 also has a
   recorded independent review; its documentation findings were addressed by #58.
