@@ -92,7 +92,15 @@ python -m pytest -m external_software
 ```
 
 They are skipped explicitly unless `nmrPipe` and `/bin/csh` are available.
-Document the external software and version used when reporting their results.
+`nmrPipe` is not on `PATH` by default, so expose the NMRPipe binary directory
+first. The reference workstation uses:
+
+```bash
+export PATH="$HOME/pipe/nmrbin.linux239_64:$PATH"
+```
+
+Adjust the `nmrbin.*` directory to the installed platform build. Document the
+external software and version used when reporting their results.
 
 Tests that use an optional Python package also carry the
 `optional_dependency` marker and skip explicitly when that package is absent.

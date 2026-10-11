@@ -196,6 +196,8 @@ python -m pytest tests/fileio/test_x.py::test_y -v
 python -m pytest -m dataset
 
 # external software (only when nmrPipe is available)
+# nmrPipe is not on PATH by default; expose the installed platform build first
+export PATH="$HOME/pipe/nmrbin.linux239_64:$PATH"
 python -m pytest -m external_software
 ```
 
