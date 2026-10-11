@@ -127,12 +127,13 @@ form another additive test inventory.
 | `rnmrtk_3d_frequency_pipe_reference` | Still needed | Missing real frequency/conversion reference. |
 | `simpson_1d_time_encoding_set` | Proposed scope decision | Regeneration needed; error-path tests do not prove equivalence. |
 | `simpson_2d_frequency_encoding_set` | Proposed scope decision | Same. |
-| `jcampdx_affn_spectrum` | Replaceable after test split/equivalence work | Current compressed spectra do not supply all four equivalent encodings. |
-| `jcampdx_ntuples_spectrum` | Replaceable after test split/equivalence work | Real 2D NTUPLES and synthetic cases available; shared historical test remains. |
+| `jcampdx_affn_spectrum` | Replaced by synthetic fixture | CC0 fixtures cover AFFN/PAC/SQZ/DIF equivalence, metadata, point count and sampled values. |
+| `jcampdx_ntuples_spectrum` | Replaced by synthetic fixture | CC0 NTUPLES fixtures cover real/imaginary arrays, metadata, point count and sampled values. |
 
-Summary: 1 data-covered, 2 partially replaceable, 4 proposed replacements,
-7 still needed, 2 proposed scope decisions. The historical requirements remain
-in force until the maintainer approves the revised mapping.
+Summary: 1 data-covered, 2 partially replaceable, 2 synthetic replacements,
+2 proposed replacements, 7 still needed, 2 proposed scope decisions. The
+historical requirements remain in force until the maintainer approves the
+revised mapping.
 ## Manifest completeness, rights and integrity
 
 The [manifest](../testdata-manifest.toml) and

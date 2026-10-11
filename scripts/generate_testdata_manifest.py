@@ -234,8 +234,9 @@ GROUP_META = {
 # fixture tests in tests/fileio/test_bruker_pdata.py: the two external
 # processed datasets are replaced by the versioned CC0 fixtures declared in
 # the `replacement` field of the bruker_1d/bruker_2d `pdata` components. The
-# JCAMP-DX encoding set remains in the contract provisionally. The scope of a
-# required component is "critical" when at least one of its consumers is in
+# historical JCAMP-DX encoding/NTUPLES data are replaced by synthetic CC0
+# fixtures declared in the `replacement` fields of their components. The scope
+# of a required component is "critical" when at least one of its consumers is in
 # this set.
 CRITICAL_TESTS = frozenset({
     "tests/fileio/test_agilent.py::test_1d",
@@ -628,15 +629,29 @@ REQUIRED_COMPONENTS = {
                       "jcampdx/BRUKSQZ.DX", "jcampdx/BRUKDIF.DX",
                       "jcampdx/TEST32.DX", "jcampdx/TESTSPEC.DX"],
             "required_by": ["tests/fileio/test_jcampdx.py::test_jcampdx1"],
+            "replacement": {
+                "fixtures": ["fileio/data/jcampdx_encoding_set"],
+                "license": "CC0-1.0",
+                "provenance": "synthetic JCAMP-DX fixtures generated for "
+                              "nmrglue-ng; no external source data",
+            },
             "notes": "AFFN/PAC/SQZ/DIF encoding equivalence cases; the historical "
-                     "encoding test is monolithic and also reads the NTUPLES cases",
+                     "encoding files are replaced by synthetic CC0 fixtures that "
+                     "preserve the sampled value, metadata and encoding contracts",
         },
     },
     "jcampdx_ntuples_spectrum": {
         "ntuples_arrays": {
             "paths": ["jcampdx/BRUKNTUP.DX", "jcampdx/TESTNTUP.DX"],
             "required_by": ["tests/fileio/test_jcampdx.py::test_jcampdx1"],
-            "notes": "real 2D NTUPLES arrays; shared with the monolithic encoding test",
+            "replacement": {
+                "fixtures": ["fileio/data/jcampdx_ntuples"],
+                "license": "CC0-1.0",
+                "provenance": "synthetic JCAMP-DX NTUPLES fixtures generated "
+                              "for nmrglue-ng; no external source data",
+            },
+            "notes": "NTUPLES real/imaginary arrays replaced by synthetic CC0 "
+                     "fixtures that preserve the sampled value and metadata contract",
         },
     },
     "extended_test_references": {
@@ -752,15 +767,21 @@ MISSING_GROUPS = {
     },
     "jcampdx_affn_spectrum": {
         "format": "JCAMP-DX",
-        "redistribution_status": "UNRESOLVED",
-        "evidence": "not present in local corpus or v0.5 archive",
-        "notes": "human-auditable real spectrum; requires licensed test set",
+        "redistribution_status": "CLEAR",
+        "evidence": "historical files not present in local corpus or v0.5 "
+                    "archive; replaced by synthetic CC0 fixtures committed "
+                    "under tests/fixtures/fileio/data/jcampdx_encoding_set",
+        "notes": "synthetic replacement covers AFFN/PAC/SQZ/DIF parser "
+                 "equivalence, metadata, point count and sampled values",
     },
     "jcampdx_ntuples_spectrum": {
         "format": "JCAMP-DX",
-        "redistribution_status": "UNRESOLVED",
-        "evidence": "not present in local corpus or v0.5 archive",
-        "notes": "real NTUPLES arrays; requires licensed test set",
+        "redistribution_status": "CLEAR",
+        "evidence": "historical files not present in local corpus or v0.5 "
+                    "archive; replaced by synthetic CC0 fixtures committed "
+                    "under tests/fixtures/fileio/data/jcampdx_ntuples",
+        "notes": "synthetic replacement covers NTUPLES real/imaginary arrays, "
+                 "metadata, point count and sampled values",
     },
     "extended_test_references": {
         "format": "various",
@@ -1339,7 +1360,7 @@ def main():
                 file=sys.stderr,
             )
             return 1
-        if entry in MISSING_GROUPS and status != "absent":
+        if entry in MISSING_GROUPS and matches:
             print(
                 f"ERROR: {entry}.{comp_id} is declared in a missing entry but "
                 f"matches {sorted(matches)}",

@@ -992,7 +992,7 @@ class TestReplacedComponents:
 
 
 class TestTrackedReplacement:
-    """The tracked manifest records the two replaced Bruker pdata components."""
+    """The tracked manifest records replaced critical components."""
 
     def test_pdata_components_are_replaced(self):
         manifest = load_tracked_manifest()
@@ -1003,12 +1003,32 @@ class TestTrackedReplacement:
             assert comp["replacement_license"] == "CC0-1.0"
             assert comp["scope"] == "critical"
 
+    def test_jcampdx_components_are_replaced(self):
+        manifest = load_tracked_manifest()
+        cases = {
+            "jcampdx_affn_spectrum": "encoding_set",
+            "jcampdx_ntuples_spectrum": "ntuples_arrays",
+        }
+        for group, component in cases.items():
+            comp = manifest["missing"][group]["components"][component]
+            assert comp["status"] == "replaced"
+            assert comp["replacement"]
+            assert comp["replacement_license"] == "CC0-1.0"
+            assert comp["scope"] == "critical"
+
     def test_replaced_components_have_inventoried_fixtures(self):
         manifest = load_tracked_manifest()
         fixtures = set(manifest["fixtures"]["files"])
         assert fixtures
-        for group in ("bruker_1d", "bruker_2d"):
-            comp = manifest["groups"][group]["components"]["pdata"]
+        components = [
+            manifest["groups"]["bruker_1d"]["components"]["pdata"],
+            manifest["groups"]["bruker_2d"]["components"]["pdata"],
+            manifest["missing"]["jcampdx_affn_spectrum"]
+                    ["components"]["encoding_set"],
+            manifest["missing"]["jcampdx_ntuples_spectrum"]
+                    ["components"]["ntuples_arrays"],
+        ]
+        for comp in components:
             for repl in comp["replacement"]:
                 assert any(f.startswith(repl + "/") for f in fixtures), repl
 
@@ -1023,9 +1043,9 @@ class TestTrackedReplacement:
     def test_replaced_not_counted_as_absent(self):
         manifest = load_tracked_manifest()
         info = manifest["manifest"]
-        assert info["replaced_components"] == 2
-        assert info["replaced_critical_components"] == 2
-        assert info["absent_critical_components"] == 2
+        assert info["replaced_components"] == 4
+        assert info["replaced_critical_components"] == 4
+        assert info["absent_critical_components"] == 0
         assert info["fixture_files"] == len(manifest["fixtures"]["files"])
 
     def test_replaced_pdata_tests_are_declared(self):
