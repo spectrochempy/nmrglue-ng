@@ -68,7 +68,11 @@ The recorded readiness verdict remains **BLOCKED**. See
 - [x] Independent review of PRs #56/#57 and their interaction, completed
   2026-10-07 at `23cdba1`: all three verdicts approved. PR #55 also has a
   recorded independent review; its documentation findings were addressed by #58.
-- [ ] Repair the documentation build and establish independent deployment.
+- [ ] Private documentation build verified on 2026-10-11 at `fe85fe2` with
+  `python -m sphinx -W -b html doc/source <local-html-output>` in a disposable
+  environment. Public hosting/deployment remains deferred as a separate
+  maintainer decision because the repository is public and free-tier Read the
+  Docs hidden versions remain URL-accessible.
 - [ ] Finalize version, release notes, artifact scope and publication procedure
   (version scheme decided 2026-10-11: independent SemVer line, target `1.0.0`;
   see Decisions and near-term work).
