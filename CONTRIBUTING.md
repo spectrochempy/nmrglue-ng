@@ -149,18 +149,36 @@ fixtures, and no longer exposes `nmrglue.fileio.tests` or
 packaging into a fresh virtual environment. Extract that exact sdist outside
 the checkout, then use the environment's Python with `-I` to run its
 `.github/scripts/check_installed_wheel.py`, passing the extracted sdist root
-and an absolute JUnit output path. The harness stages the 45 NMRPipe and 19
-Bruker functional tests from the sdist, requires all 64 cases to execute, and
+and an absolute JUnit output path. The harness stages the 45 NMRPipe and 20
+Bruker functional tests from the sdist, requires all 65 cases to execute, and
 verifies `nmrglue` imports from site-packages inside pytest. Run
-`check_test_report.py wheel.xml 64` as well.
+`check_test_report.py wheel.xml 65` as well.
 
 The sdist contains all `tests/`, fixtures, `pytest.ini`, the manifest and their
 infrastructure dependencies. The packaging job separately extracts it outside
 the checkout and executes `tests/infrastructure/test_ci_validation.py` and
 `tests/infrastructure/test_testdata_manifest.py` with the fresh environment's
-Python (`-I -m pytest`). It requires all 72 cases through the extracted
-`check_test_report.py sdist.xml 72`. This focused check does not claim that the
+Python (`-I -m pytest`). It requires all 73 cases through the extracted
+`check_test_report.py sdist.xml 73`. This focused check does not claim that the
 complete repository test suite runs from the sdist.
+
+### Release artifact dry run
+
+The `release artifacts` workflow is manual-only and does not publish. Use it to
+build release-candidate or final-release files for review:
+
+1. Run the workflow with `expected_version` set to the exact version in
+   `nmrglue.__version__` (for example `1.0.0rc1`).
+2. The workflow verifies `pyproject.toml`, the dated `CHANGELOG.md` heading,
+   and, when run on a tag, that the tag is `v<version>`.
+3. It builds the sdist and runtime-only wheel from the checked-out ref, checks
+   their metadata and required contents, runs `twine check --strict`, and
+   uploads the artifacts to the workflow run.
+
+This workflow intentionally has only read permissions. It does not create tags,
+GitHub releases, PyPI/TestPyPI uploads, or any other publication. PyPI
+publication for `nmrglue-ng` is deferred until a separately authorized final
+`1.0.0` release workflow with credentials or trusted publishing is configured.
 
 ### Pre-commit
 
