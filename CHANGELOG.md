@@ -12,7 +12,7 @@ original nmrglue project and are preserved for attribution and continuity.
 - Preserve processed JCAMP-DX `FIRSTX`/`LASTX` endpoints when axes are
   reconstructed through `guess_udic()` and `uc_from_udic()` by converting the
   endpoint span to the universal dictionary spectral-width convention.
-  (PR pending; fixes issue #86)
+  (#87; fixes issue #86)
 
 ### Changed
 
