@@ -2,22 +2,21 @@
 Building documentation for nmrglue
 ==================================
 
-nmrglue uses Sphinx for building it's documentation.  Sphinx version 2.1.0 has
-been tested, earlier and later version may work.
+nmrglue-ng uses Sphinx for building its documentation. The documented build
+uses the ``docs`` optional dependency extra from ``pyproject.toml``.
 
 Instructions
 ------------
 
-1.  Create and activate a environment with nmrglue dependencies, sphinx,
-    numpydoc and sphinx_rtd_theme installed.  For example using conda:
+1.  Create and activate a Python environment. For example:
 
-        conda create -n nmrglue_dev_38 python=3.8 numpy scipy pytest sphinx pip numpydoc sphinx_rtd_theme -c conda-forge
-        conda activate nmrglue_dev_38
+        python -m venv .venv
+        . .venv/bin/activate
 
-2.  Install nmrglue in editable mode using the following from the root
-    directory.
+2.  Install nmrglue-ng and the documentation dependencies in editable mode from
+    the repository root directory.
 
-    pip install -e .
+        python -m pip install -e '.[docs]'
 
 3.  Run ``make html``. in this directory.
 
@@ -27,5 +26,6 @@ The html documentation should be stored in the build/html directory.
 ReadTheDocs
 -----------
 
-The documentation is automatically built for each commit by ReadTheDocs and
-published to https://nmrglue.readthedocs.io
+Read the Docs builds are configured by ``../.readthedocs.yml``. The configured
+Python version must remain compatible with ``requires-python`` in
+``pyproject.toml``.
