@@ -6,6 +6,8 @@ Provenance:
   (CC0 1.0). Sample: Rutin 400 MHz DMSO-d6.
 - betapinene_1h.jdf: nmrXiv CENAPTNMR P33 (doi:10.57992/nmrxiv.p33), CC0 1.0.
   Sample: (-)-beta-Pinene 400 MHz CDCl3.
+- epicatechin_1h.jdf: nmrXiv CENAPTNMR P33 (doi:10.57992/nmrxiv.p33), CC0 1.0.
+  Sample: (-)-Epicatechin 400 MHz DMSO-d6.
 """
 
 import os
@@ -29,9 +31,24 @@ RUTIN_13C_JDF = os.path.join(
     PACKAGED_DIR, "Rutin_3080ug200uL_DMSOd6_13CNMR_400MHz_Jeol.jdf"
 )
 BETAPINENE_1H_JDF = os.path.join(PACKAGED_DIR, "betapinene_1h.jdf")
+EPICATECHIN_1H_JDF = os.path.join(PACKAGED_DIR, "epicatechin_1h.jdf")
 
-ALL_JDF = [FLUORINE_JDF, PHOSPHORUS_JDF, RUTIN_1H_JDF, RUTIN_13C_JDF, BETAPINENE_1H_JDF]
-ALL_IDS = ["fluorine", "phosphorus", "rutin_1h", "rutin_13c", "betapinene_1h"]
+ALL_JDF = [
+    FLUORINE_JDF,
+    PHOSPHORUS_JDF,
+    RUTIN_1H_JDF,
+    RUTIN_13C_JDF,
+    BETAPINENE_1H_JDF,
+    EPICATECHIN_1H_JDF,
+]
+ALL_IDS = [
+    "fluorine",
+    "phosphorus",
+    "rutin_1h",
+    "rutin_13c",
+    "betapinene_1h",
+    "epicatechin_1h",
+]
 
 # Reference values independently decoded from file headers.
 # Tolerances: obs/sw/car use rtol=1e-9 (float64 header fields);
@@ -81,6 +98,15 @@ REFERENCES = {
         "label": "Proton",
         "data0": complex(2.2085355861803515e-05, -1.7638300730708127e-05),
         "data_last": complex(0.005702196020709063, -0.0040669821388828005),
+    },
+    "epicatechin_1h": {
+        "size": 65536,
+        "obs": 399.78219837825003,
+        "sw": 7494.00479616307,
+        "car": 1998.9109918912502,
+        "label": "Proton",
+        "data0": complex(6.808864404022095e-06, -2.313670511658661e-06),
+        "data_last": complex(0.0032360816577650053, -0.002474596629919714),
     },
 }
 
