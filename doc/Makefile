@@ -12,12 +12,15 @@ PAPEROPT_a4     = -D latex_paper_size=a4
 PAPEROPT_letter = -D latex_paper_size=letter
 ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source
 
-.PHONY: help clean html html-fast dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub latex latexpdf text man changes linkcheck doctest
+.PHONY: help clean html html-fast html-fr html-es html-all html-language gettext dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub latex latexpdf text man changes linkcheck doctest
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
-	@echo "  html       to make standalone HTML files"
-	@echo "  html-fast  to make HTML files without the generated API reference"
+	@echo "  html       to make English HTML with API reference (build/html/en/)"
+	@echo "  html-fast  to make English HTML without API reference (build/html/en/)"
+	@echo "  html-fr    to make French HTML without API reference (build/html/fr/)"
+	@echo "  html-es    to make Spanish HTML without API reference (build/html/es/)"
+	@echo "  html-all   to make all languages + root redirect (build/html/)"
 	@echo "  dirhtml    to make HTML files named index.html in directories"
 	@echo "  singlehtml to make a single large HTML file"
 	@echo "  pickle     to make pickle files"
@@ -38,14 +41,36 @@ clean:
 	-rm -rf $(BUILDDIR)/*
 
 html:
-	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
+	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html/en
 	@echo
-	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
+	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html/en."
 
 html-fast:
-	$(SPHINXBUILD) -b html -t fastdocs -D nb_execution_mode=off -d $(BUILDDIR)/doctrees-fast $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source $(BUILDDIR)/html-fast
+	$(SPHINXBUILD) -b html -t fastdocs -D nb_execution_mode=cache -D nb_execution_raise_on_error=1 -d $(BUILDDIR)/doctrees-fast $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source $(BUILDDIR)/html/en
 	@echo
-	@echo "Fast build finished. The HTML pages are in $(BUILDDIR)/html-fast."
+	@echo "Fast build finished. The HTML pages are in $(BUILDDIR)/html/en."
+
+html-fr:
+	$(SPHINXBUILD) -b html -t fastdocs -D language=fr -D nb_execution_mode=cache -D nb_execution_raise_on_error=1 -d $(BUILDDIR)/doctrees-fr $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source $(BUILDDIR)/html/fr
+	@echo
+	@echo "French build finished. The HTML pages are in $(BUILDDIR)/html/fr."
+
+html-es:
+	$(SPHINXBUILD) -b html -t fastdocs -D language=es -D nb_execution_mode=cache -D nb_execution_raise_on_error=1 -d $(BUILDDIR)/doctrees-es $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source $(BUILDDIR)/html/es
+	@echo
+	@echo "Spanish build finished. The HTML pages are in $(BUILDDIR)/html/es."
+
+html-all: html-fast html-fr html-es
+	@printf '%b' '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<meta http-equiv="refresh" content="0; url=en/">\n<title>nmrglue-ng</title>\n</head>\n<body>\n<p><a href="en/">English</a> | <a href="fr/">Francais</a> | <a href="es/">Espanol</a></p>\n</body>\n</html>\n' > $(BUILDDIR)/html/index.html
+	@echo
+	@echo "All language builds finished. Open $(BUILDDIR)/html/index.html"
+
+gettext:
+	$(SPHINXBUILD) -b gettext $(ALLSPHINXOPTS) $(BUILDDIR)/gettext
+
+html-language:
+	@test -n "$(LANGUAGE)" || (echo "Set LANGUAGE=en, fr, or es" && exit 1)
+	$(SPHINXBUILD) -b html -t fastdocs -D language=$(LANGUAGE) -D nb_execution_mode=cache $(ALLSPHINXOPTS) $(BUILDDIR)/html/$(LANGUAGE)
 
 dirhtml:
 	$(SPHINXBUILD) -b dirhtml $(ALLSPHINXOPTS) $(BUILDDIR)/dirhtml

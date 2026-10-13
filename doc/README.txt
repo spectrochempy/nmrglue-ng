@@ -1,10 +1,10 @@
-==================================
-Building documentation for nmrglue
-==================================
+=====================================
+Building documentation for nmrglue-ng
+=====================================
 
-nmrglue-ng uses Sphinx for building its documentation. The prototype for the
-1.0.0 documentation uses Sphinx Book Theme and MyST-NB, installed through the
-``docs`` optional dependency extra from ``pyproject.toml``.
+nmrglue-ng uses Sphinx, Sphinx Book Theme, and MyST-NB for building its
+documentation. Install them through the ``docs`` optional dependency extra
+from ``pyproject.toml``.
 
 Instructions
 ------------
@@ -14,31 +14,58 @@ Instructions
         python -m venv .venv
         . .venv/bin/activate
 
+    Or use the project's mamba environment:
+
+        mamba activate nmrglue-ng-dev
+
 2.  Install nmrglue-ng and the documentation dependencies in editable mode from
     the repository root directory.
 
         python -m pip install -e '.[docs]'
 
-3.  Run ``make html`` in this directory.
+3.  Run ``make html-fast`` in this directory for the default build (no API
+    reference), or ``make html-all`` for all languages.
 
-The html documentation should be stored in the build/html directory.
+The HTML pages are written to ``build/html/<language>/``.
 
-Fast local builds
------------------
+Build targets
+-------------
 
-During tutorial, navigation, or theme work, run a fast HTML build that omits the
-generated API reference and skips notebook execution:
+The default build is fast and omits the generated API reference. The API
+reference is built only on explicit request (``make html``).
 
-    make html-fast
+========================  ============================================================
+Target                    Output
+========================  ============================================================
+``make html-fast``        English, no API reference → ``build/html/en/``
+``make html-fr``          French, no API reference → ``build/html/fr/``
+``make html-es``          Spanish, no API reference → ``build/html/es/``
+``make html-all``         All languages + root redirect → ``build/html/``
+``make html``             English with API reference → ``build/html/en/``
+``make gettext``          Extract translation templates → ``build/gettext/``
+========================  ============================================================
 
-Equivalently, from the repository root:
+The API reference is expensive to build and is not needed for tutorial,
+navigation, or theme work. Use ``make html`` only when API pages and links
+must be verified.
 
-    python -m sphinx -b html -t fastdocs -D nb_execution_mode=off \
-        -d doc/build/doctrees-fast doc/source doc/build/html-fast
+Multilingual builds
+-------------------
 
-The fast build is only for local iteration. Run the full ``make html`` build, or
-force notebook execution with ``-D nb_execution_mode=force``, before release
-review.
+English is the canonical documentation language. Translation catalogs live in
+``source/locale/<language>/LC_MESSAGES/``. Extract messages with ``make gettext``
+and update catalogs with ``sphinx-intl update -p build/gettext -l fr -l es``.
+
+Build all languages with:
+
+    make html-all
+
+This creates ``build/html/en/``, ``build/html/fr/``, ``build/html/es/``, and a
+root ``build/html/index.html`` redirect. The top-bar language selector links
+between the ``en/``, ``fr/``, and ``es/`` directories.
+
+The API reference remains English-only for now; translate tutorial prose and
+headings, but never translate Python identifiers or code-cell input.
 
 MyST-NB execution cache
 ----------------------
@@ -58,7 +85,6 @@ small versioned synthetic fixture into the HTML downloads. Markdown remains
 the notebook source of truth; there is no separately maintained notebook copy.
 To check portability, save both linked files into a folder outside the checkout
 and run all cells with a fresh kernel using an installed nmrglue-ng wheel.
-
 
 ReadTheDocs
 -----------

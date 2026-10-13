@@ -1,0 +1,20 @@
+{% from "macros/buttons.html" import render_funcs with context %}
+
+<div class="article-header-buttons ng-global-actions">
+{%- for button in header_buttons -%}
+{% set button_type = button.get("type") %}
+{% set button_options = button.copy() %}
+{% set _ = button_options.pop("type") %}
+{{ render_funcs[button_type](**button_options) }}
+{%- endfor -%}
+<label class="ng-language-switcher">
+  <span class="visually-hidden">Language</span>
+  <select onchange="if (this.value) window.location.href = this.value">
+    {% set language_prefix = '../' * (pagename.count('/') + 1) %}
+    {% for code, label in [('en', 'English'), ('fr', 'Français'), ('es', 'Español')] %}
+    <option value="{{ language_prefix }}{{ code }}/{{ pagename }}.html"{% if code == language %} selected{% endif %}>{{ label }}</option>
+    {% endfor %}
+  </select>
+</label>
+{% include "theme-switcher.html" %}
+</div>

@@ -6,11 +6,21 @@ extensions = [
     'sphinx.ext.mathjax',
     'numpydoc',
     'sphinx.ext.autosummary',
+    'sphinx.ext.intersphinx',
     'myst_nb',
+    'sphinx_design',
 ]
 
 # Numpy autodoc attributes
 numpydoc_show_class_members = False
+
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/3', None),
+    'numpy': ('https://numpy.org/doc/stable/', None),
+    'scipy': ('https://docs.scipy.org/doc/scipy/', None),
+    'matplotlib': ('https://matplotlib.org/stable/', None),
+    'ipython': ('https://ipython.readthedocs.io/en/stable/', None),
+}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -21,12 +31,19 @@ source_suffix = {
     '.md': 'myst-nb',
 }
 
+# Keep English as the source language. Translated tutorial builds use the
+# gettext catalogs under ``locale/`` and select a language with
+# ``-D language=fr`` or ``-D language=es``.
+language = 'en'
+locale_dirs = ['locale/']
+gettext_compact = False
+
 # The master toctree document.
 master_doc = 'index'
 
 # General information about the project.
 project = 'nmrglue-ng'
-copyright = '2010-%s, Jonathan J. Helmus and community' % date.today().year
+copyright = '2010-%s, Jonathan J. Helmus and contributors' % date.today().year
 
 # The default replacements for |version| and |release|, also used in various
 # other places throughout the built documents.
@@ -82,7 +99,19 @@ html_theme_options = {
     'repository_url': 'https://github.com/spectrochempy/nmrglue-ng',
     'use_repository_button': True,
     'use_issues_button': True,
+    'home_page_in_toc': False,
     'show_navbar_depth': 2,
+    'collapse_navbar': True,
+    'navbar_start': ['global-brand.html'],
+    'navbar_center': ['navbar-nav'],
+    'navbar_end': ['global-actions.html'],
+    'header_links_before_dropdown': 5,
+    'article_header_end': [],
+    'footer_content_items': [
+        'copyright.html',
+        'last-updated.html',
+        'extra-footer.html',
+    ],
 }
 
 # Add any paths that contain custom themes here, relative to this directory.
@@ -119,7 +148,13 @@ html_css_files = ['nmrglue-ng.css']
 #html_use_smartypants = True
 
 # Custom sidebar templates, maps document names to template names.
-#html_sidebars = {}
+html_sidebars = {
+    'index': [],
+    '**': [
+        'icon-links.html',
+        'sbt-sidebar-nav.html',
+    ],
+}
 
 # Additional templates that should be rendered to pages, maps page names to
 # template names.

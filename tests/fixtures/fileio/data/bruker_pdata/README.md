@@ -25,6 +25,30 @@ These Bruker TopSpin directories contain raw and processed data for testing
 | exp2d_hsqc | [Sample S208](https://nmrxiv.org/sample/S208) Ginsenoside Rg1, dir `Ginsenoside_3110ug200uL_HSQC_600MHz_Bruker/` |
 | exp2d_cosy | [Sample S213](https://nmrxiv.org/sample/S213) Gossypol, dir `Gossypol_3650ug200uL_CDCl3_COSY_600MHz_JDX/` |
 
+### Derived NMRPipe tutorial fixture — Gossypol COSY
+
+| Field | Value |
+|---|---|
+| File | `../nmrpipe_2d_cosy_example.ft2` |
+| Source | Processed `exp2d_cosy/pdata/1/2rr` spectrum above |
+| Original dataset | nmrXiv CENAPTNMR project P33, sample S213 |
+| License | CC0 1.0 (inherited from the source dataset) |
+| Conversion | `tests/fixtures/fileio/convert_bruker_cosy_to_pipe.py` |
+| Contents | Processed real-real TopSpin COSY component converted to NMRPipe; shape 512×2048 |
+
+The conversion reads the processed TopSpin spectrum and its `procs`/`proc2s`
+axis parameters (`pdata=True`), then writes a NMRPipe file with the converted
+array and corresponding axes. It does not reprocess the raw FID or reconstruct
+the other quadrature components. The plotting tutorial reads this derived
+fixture to produce its contour view.
+
+Regenerate both documentation assets from the repository root with:
+
+```bash
+python tests/fixtures/fileio/convert_bruker_cosy_to_pipe.py \
+  tests/fixtures/fileio/data/nmrpipe_2d_cosy_example.ft2 --overwrite
+```
+
 ### exp2d_hsqc — discordant parameter provenance
 
 The processed files and the acquisition files of `exp2d_hsqc` do not come
@@ -143,3 +167,9 @@ What the fixture demonstrates, and what it does not:
 | `exp2d_cosy/pdata/1/proc2` | `bb2fb1885649afabb95c50d0da17e60f8b46f275631ea26527c267e879384704` |
 | `exp2d_cosy/pdata/1/proc2s` | `accc8b05360d211b5dcdf64923bdee190cd60f0a302b6f55ebb4a15971c65ec0` |
 | `exp2d_cosy/pdata/1/title` | `a38c6c91a897ca48b7c793e7e58ec53d9b64f1725a3d5b148d931ed4d7bfafcb` |
+
+### Derived NMRPipe tutorial fixture
+
+| File | SHA-256 |
+|---|---|
+| `../nmrpipe_2d_cosy_example.ft2` | `d13dc13c928394d2f8c7c57c0f65bdeab510d935093793406f53d7609ee70cb5` |

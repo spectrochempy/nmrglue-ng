@@ -36,10 +36,12 @@ dependencies = [
 docs = [
     "sphinx",
     "sphinx-book-theme",
+    "sphinx-design",
     "sphinx_rtd_theme",
     "myst-nb",
     "numpydoc",
     "matplotlib",
+    "sphinx-intl",
 ]
 test = [
     "pytest",

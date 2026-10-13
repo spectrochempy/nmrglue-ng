@@ -5,7 +5,10 @@ Development Guide
 =================
 
 This guide provides instructions for setting up an environment for developing
-nmrglue and an overview of the project layout and contribution process.
+the historical upstream nmrglue project and an overview of its original
+project layout and contribution process. It does not describe development of
+nmrglue-ng. For the current distribution, import name, and contributor
+instructions, see :doc:`../about/index` and :doc:`../install`.
 
 
 Requirements
