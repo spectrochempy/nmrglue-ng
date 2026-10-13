@@ -25,6 +25,12 @@ original nmrglue project and are preserved for attribution and continuity.
   reference. Include downloadable notebooks and synthetic data, explicit text
   and figure outputs, instructions for running outside the checkout, and a
   fast local documentation build that omits the generated API reference. (#85)
+- Extend the documentation prototype into a progressive path from file reading
+  through unit-aware axes, plotting, array manipulation, writing, conversion,
+  processing, and low-memory access. Convert the guides to downloadable,
+  executable MyST-NB notebooks; add 1D JCAMP-DX and 2D NMRPipe examples, data
+  credits, and an archive for exploratory notebooks outside the published
+  documentation. (#90)
 
 ## 1.0.0rc1 - 2026-10-11
 
