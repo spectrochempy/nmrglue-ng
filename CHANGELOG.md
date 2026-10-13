@@ -18,7 +18,7 @@ original nmrglue project and are preserved for attribution and continuity.
 
 - Stop retaining built distributions from routine CI and manual release dry-run
   workflows as GitHub Actions artifacts; the workflows still build and validate
-  the files, and CI keeps only its JUnit reports for diagnostics. (#TBD)
+  the files, and CI keeps only its JUnit reports for diagnostics. (#89)
 - Prototype the 1.0.0 documentation structure with Sphinx Book Theme,
   tutorial-first navigation, and executable MyST-NB Markdown notebooks for 1D
   and 2D NMRPipe walkthroughs while preserving the existing examples and API
