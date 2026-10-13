@@ -30,16 +30,16 @@ These JEOL JDF files are packaged test fixtures for the nmrglue JEOL reader.
 | Sample | Rutin, 3080 µg / 200 µL DMSO-d6, 400 MHz |
 | Redistribution | Permitted under CC0 1.0 |
 
-### Group 3 — Epicatechin 2D (HSQC, COSY, HMBC)
+### Group 3 — Epicatechin 1D and 2D (1H, HSQC, COSY, HMBC)
 
 | Field | Value |
 |---|---|
-| Files | `epicatechin_hsqc.jdf`, `epicatechin_cosy.jdf`, `epicatechin_hmbc.jdf` |
+| Files | `epicatechin_1h.jdf`, `epicatechin_hsqc.jdf`, `epicatechin_cosy.jdf`, `epicatechin_hmbc.jdf` |
 | Source | [nmrXiv CENAPTNMR project P33](https://nmrxiv.org/project/P33) |
 | DOI | [10.57992/nmrxiv.p33](https://doi.org/10.57992/nmrxiv.p33) |
 | License | **CC0 1.0** |
 | Sample | (-)-Epicatechin 2880 µg / 200 µL DMSO-d6, 400 MHz |
-| Experiments | HSQC (64×1024), COSY (256×1280), HMBC (128×2048) |
+| Experiments | 1H 1D (65536), HSQC (64×1024), COSY (256×1280), HMBC (128×2048) |
 | Directory | `(-)-Epicatechin 400 MHz in DMSOd6 NMR data /` |
 
 ### Group 4 — Beta-Pinene 1H
@@ -66,6 +66,7 @@ These JEOL JDF files are packaged test fixtures for the nmrglue JEOL reader.
 | `epicatechin_cosy.jdf` | `f109351f2102435faa7d302659e073b77ecc1184f1c3ef8817087ca91b9df3aa` |
 | `epicatechin_hmbc.jdf` | `578db932e166b04beeb0e9a5db443ff7a042b50e24af2789e535c06c1f6af859` |
 | `betapinene_1h.jdf` | `eb6ae9f4b68929f10c6def69ec9d3428dc3537d24d82fd77dda7cb39d9aba7e2` |
+| `epicatechin_1h.jdf` | `6ab899b72d314f05d187e07c69389efae30572bae9b0c74fb0249cfa468ae7e0` |
 
 ## MIT License (cheminfo/jeol-data-test)
 

@@ -16,6 +16,8 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ### Changed
 
+- Add a versioned CC0 JEOL 1H epicatechin fixture and extend autonomous reader,
+  universal-dictionary, and data-point checks. (#91)
 - Stop retaining built distributions from routine CI and manual release dry-run
   workflows as GitHub Actions artifacts; the workflows still build and validate
   the files, and CI keeps only its JUnit reports for diagnostics. (#89)
