@@ -124,9 +124,10 @@ branch protection after their first successful runs.
 
 All pytest invocations use strict marker/configuration validation and `-ra` to
 report skips. JUnit reports are retained for seven days, including after test
-failures; the packaging job also retains its distributions. Reports can be
-absent if installation or collection fails before they are produced. These
-profiles do not validate the external corpus or NMRPipe executable comparisons.
+failures. The packaging job builds and validates distributions but retains only
+its JUnit reports, not the built files. Reports can be absent if installation or
+collection fails before they are produced. These profiles do not validate the
+external corpus or NMRPipe executable comparisons.
 
 To reproduce the CSDM job in a disposable development environment:
 
@@ -172,13 +173,14 @@ build release-candidate or final-release files for review:
 2. The workflow verifies `pyproject.toml`, the dated `CHANGELOG.md` heading,
    and, when run on a tag, that the tag is `v<version>`.
 3. It builds the sdist and runtime-only wheel from the checked-out ref, checks
-   their metadata and required contents, runs `twine check --strict`, and
-   uploads the artifacts to the workflow run.
+   their metadata and required contents, and runs `twine check --strict` without
+   retaining the built files as workflow artifacts.
 
 This workflow intentionally has only read permissions. It does not create tags,
-GitHub releases, PyPI/TestPyPI uploads, or any other publication. PyPI
-publication for `nmrglue-ng` is deferred until a separately authorized final
-`1.0.0` release workflow with credentials or trusted publishing is configured.
+GitHub releases, PyPI/TestPyPI uploads, workflow artifacts, or any other
+publication. PyPI publication for `nmrglue-ng` is deferred until a separately
+authorized final `1.0.0` release workflow with credentials or trusted publishing
+is configured.
 
 ### Pre-commit
 

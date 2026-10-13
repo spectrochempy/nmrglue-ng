@@ -7,11 +7,6 @@ on:
         description: "Expected nmrglue-ng version, for example 1.0.0rc1"
         required: false
         type: string
-      retention_days:
-        description: "Artifact retention in days"
-        required: false
-        default: "30"
-        type: string
 
 permissions:
   contents: read
@@ -47,10 +42,3 @@ jobs:
         --dist "${{ runner.temp }}/dist"
     - name: Check distribution rendering
       run: python -m twine check --strict "${{ runner.temp }}"/dist/*
-    - name: Retain release artifacts
-      uses: actions/upload-artifact@v7
-      with:
-        name: release-artifacts-${{ github.run_number }}
-        path: ${{ runner.temp }}/dist/*
-        retention-days: ${{ inputs.retention_days }}
-        if-no-files-found: error
