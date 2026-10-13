@@ -5,7 +5,10 @@
 Examples
 ########
 
-The following is a series of python scripts which show some uses of nmrglue
+The following inherited scripts demonstrate the ``nmrglue`` import API now
+distributed as nmrglue-ng. Some examples and data-download links originate in
+the historical nmrglue project; see the :doc:`../how-to/index` page for this
+material's status.
 
 .. _application_examples:
 

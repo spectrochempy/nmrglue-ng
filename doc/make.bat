@@ -50,7 +50,7 @@ if "%1" == "html" (
 )
 
 if "%1" == "html-fast" (
-	%SPHINXBUILD% -b html -t fastdocs -D nb_execution_mode=off -d %BUILDDIR%/doctrees-fast %SPHINXOPTS% source %BUILDDIR%/html-fast
+	%SPHINXBUILD% -b html -t fastdocs -D nb_execution_mode=cache -D nb_execution_raise_on_error=1 -d %BUILDDIR%/doctrees-fast %SPHINXOPTS% source %BUILDDIR%/html-fast
 	if errorlevel 1 exit /b 1
 	echo.
 	echo.Fast build finished. The HTML pages are in %BUILDDIR%/html-fast.

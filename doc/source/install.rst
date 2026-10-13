@@ -1,68 +1,195 @@
-==================
-Installation Guide
-==================
+Installation
+============
 
-Where to get nmrglue
---------------------
+Package names
+-------------
 
-Install files for all platforms are available for `download
-<https://github.com/jjhelmus/nmrglue/releases>`_.
-The .tar.gz file should be used on Linux and OS X and a binary, .exe file for
-Windows.
+Install the distribution named ``nmrglue-ng``. Import it in Python as
+``nmrglue``:
+
+.. code-block:: python
+
+    import nmrglue as ng
+
+The distinct distribution name identifies this independent continuation while
+the unchanged import preserves compatibility with existing nmrglue scripts.
+Do not install the historical ``nmrglue`` distribution when you intend to use
+``nmrglue-ng``.
 
 Requirements
 ------------
 
+The package supports Python 3.10 and newer. Its required runtime dependencies
+are installed automatically:
 
-nmrglue depends on the following open-source packages for scientific computing
-in the Python ecosystem.
+=================  ===============================
+Dependency         Supported version
+=================  ===============================
+Python             3.10 or newer
+NumPy              1.21.2 or newer
+SciPy              1.7.2 or newer
+=================  ===============================
 
-+------------+------------+---------------------------------------+
-| Package    | Version    | Details                               |
-+============+============+=======================================+
-| Python     | 3.6.0+     |                                       |
-+------------+------------+---------------------------------------+
-| Numpy      | 1.16+      | Required for all basic data types     |
-+------------+------------+---------------------------------------+
-| Scipy      | 0.16+      | Required for processing functions     |
-+------------+------------+---------------------------------------+
-| Matplotlib | 2.2.3+     | Optional, required for some functions |
-|            |            | such as interactive phase correction  |
-+------------+------------+---------------------------------------+
+Matplotlib and JupyterLab are optional. Install them when you want to run the
+plotting tutorials and notebooks.
 
-Additionally, an interactive environment such as `IPython <http://ipython.org/>`_, (available via several distributions such as `Jupyterlab <https://jupyterlab.readthedocs.io/en/stable/>`_, `Spyder <https://www.spyder-ide.org/>`_, `Google Colaboratory <https://colab.research.google.com/>`_, etc.) is highly recommended. An easy way of obtaining and installing these packages is to use a Python distribution which provides these packages, such as `Anaconda/Miniconda <https://www.anaconda.com/>`_. Detailed information on `installing a Scipy stack <https://scipy.org/install.html>`_ is available. The nmrglue codebase no longer supports Python 2, the last version to support Python 2.7 was 0.8.
+Install with uv
+---------------
 
+`uv <https://docs.astral.sh/uv/>`_ is the recommended option for a new project.
+It manages the environment, Python version, dependencies, and lock file
+together.
 
-Platform Independent Installation
----------------------------------
+``uv`` is not included with Python. If it is not already installed, follow the
+`official installation instructions
+<https://docs.astral.sh/uv/getting-started/installation/>`_. Confirm the
+installation before continuing:
 
-nmrglue is available for installation via the Python Package Index. The latest
-stable version can be installed using::
+.. code-block:: console
 
-    $ python -m pip install nmrglue
+    uv --version
 
-The current development version can be installed directly from GitHub using::
+In a new working directory, run:
 
-    $ python -m pip install git+git://github.com/jjhelmus/nmrglue
+.. code-block:: console
 
-This requires `git` to be installed and available.
+    uv init --bare
+    uv add nmrglue-ng
 
+Use ``uv run`` for commands that should run in this environment:
 
-Unix/OSX Installation
----------------------
+.. code-block:: console
 
-After installing the above dependencies download and extract the source
-distribution and run::
+    uv run python -c "import nmrglue as ng; print(ng.__version__)"
 
-    $ python setup.py install
+For the tutorials, add the optional interactive tools to the same project:
 
-Windows Installation
---------------------
+.. code-block:: console
 
-Installation of the Scipy stack via a distribution such as `Anaconda/Miniconda`_ is recommended. nmrglue can then be installed using pip, as described above. Alternately, you can download the binary installer and run it.
+    uv add matplotlib jupyterlab
+    uv run jupyter lab
 
-Installing from source code
----------------------------
+If you already have a uv project, only ``uv add nmrglue-ng`` is needed.
 
-nmrglue can also be installed from source code.  See the :ref:`source_code`
-section of the :ref:`development-guide` for details on this process.
+Install with pip
+----------------
+
+Create a virtual environment before installing with ``pip``:
+
+.. tab-set::
+
+   .. tab-item:: macOS and Linux
+
+      .. code-block:: console
+
+          python -m venv .venv
+          source .venv/bin/activate
+          python -m pip install --upgrade pip
+          python -m pip install nmrglue-ng
+
+   .. tab-item:: Windows PowerShell
+
+      .. code-block:: powershell
+
+          py -m venv .venv
+          .venv\Scripts\Activate.ps1
+          python -m pip install --upgrade pip
+          python -m pip install nmrglue-ng
+
+Verify which package and interpreter are active:
+
+.. code-block:: console
+
+    python -c "import sys, nmrglue as ng; print(sys.executable); print(ng.__version__)"
+
+Upgrade an existing installation
+--------------------------------
+
+In a uv project, update the locked dependency with:
+
+.. code-block:: console
+
+    uv lock --upgrade-package nmrglue-ng
+    uv sync
+
+For a ``pip`` environment, run:
+
+.. code-block:: console
+
+    python -m pip install --upgrade nmrglue-ng
+
+Install from a source checkout
+------------------------------
+
+Installing a checkout is intended for contributors and for testing unreleased
+changes. Clone the repository, then create the development environment:
+
+.. code-block:: console
+
+    git clone https://github.com/spectrochempy/nmrglue-ng.git
+    cd nmrglue-ng
+    uv sync --extra test
+
+Run commands through that environment, for example:
+
+.. code-block:: console
+
+    uv run python -c "import nmrglue as ng; print(ng.__version__)"
+    uv run pytest
+
+See the :ref:`development-guide` for the complete contributor workflow and the
+documentation-specific dependencies.
+
+Use in Google Colab
+-------------------
+
+Install the stable PyPI release in a Colab code cell:
+
+.. code-block:: ipython3
+
+    %pip install nmrglue-ng==1.0.0
+
+To use the latest development version, install directly from the repository's
+``master`` branch in a Colab cell:
+
+.. code-block:: ipython3
+
+    %pip install "git+https://github.com/spectrochempy/nmrglue-ng.git@master"
+
+For reproducible work, replace ``master`` with a tag or specific commit.
+
+To test uncommitted changes from a local checkout, build a wheel locally:
+
+.. code-block:: console
+
+    python -m pip wheel --no-deps --wheel-dir dist .
+
+Upload the resulting ``dist/nmrglue_ng-*.whl`` file to the Colab runtime:
+
+.. code-block:: ipython3
+
+    from google.colab import files
+    files.upload()
+
+Then install the uploaded wheel:
+
+.. code-block:: ipython3
+
+    from pathlib import Path
+    wheel = next(Path("/content").glob("nmrglue_ng-*.whl"))
+    %pip install {wheel}
+
+Verify that the expected package is imported:
+
+.. code-block:: python
+
+    import nmrglue as ng
+    print(f"nmrglue-ng version: {ng.__version__}")
+
+To run the :doc:`getting-started/index` notebook, also upload its downloadable
+synthetic NMRPipe fixture to the runtime so it is beside the notebook file.
+
+Next step
+---------
+
+Continue to :doc:`tutorials/index` to begin the tutorial path.

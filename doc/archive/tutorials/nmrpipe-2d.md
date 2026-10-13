@@ -35,10 +35,8 @@ chemical-shift axis to each array dimension.
 
 Download both files above into the same folder, keeping their filenames.
 Use a Python environment with nmrglue-ng, Matplotlib, and a Jupyter frontend
-installed. For this release candidate, install the wheel from the
-[v1.0.0rc1 release](https://github.com/spectrochempy/nmrglue-ng/releases/tag/v1.0.0rc1)
-with `python -m pip install /path/to/nmrglue_ng-1.0.0rc1-py3-none-any.whl`,
-then install the notebook tools with `python -m pip install matplotlib jupyterlab`.
+installed. Install the package and notebook tools with
+`python -m pip install nmrglue-ng matplotlib jupyterlab`.
 Launch `jupyter lab` from the download folder, select that environment's kernel,
 and run the notebook from top to bottom.
 
@@ -82,8 +80,8 @@ the dimensions as `C13` and `H1`.
 
 ```{code-cell} ipython3
 udic = ng.pipe.guess_udic(dic, data)
-axis_c13 = ng.fileiobase.uc_from_udic(udic, dim=0)
-axis_h1 = ng.fileiobase.uc_from_udic(udic, dim=1)
+uc_indirect = ng.fileiobase.uc_from_udic(udic, dim=0)
+uc_direct = ng.fileiobase.uc_from_udic(udic, dim=1)
 
 for dim in range(data.ndim):
     print(f"Dimension {dim}: {udic[dim]['label']}, {data.shape[dim]} points")
@@ -103,13 +101,21 @@ Columns (the last array dimension, `H1`) map to the horizontal axis; rows
 in arbitrary units, chosen only to illustrate this small fixture.
 
 ```{code-cell} ipython3
-c13_ppm = axis_c13.ppm_scale()
-h1_ppm = axis_h1.ppm_scale()
+:tags: [hide-input]
+
+ppm_indirect_axis = uc_indirect.ppm_scale()
+ppm_direct_axis = uc_direct.ppm_scale()
 
 fig, ax = plt.subplots(figsize=(6, 4))
 levels = [0.5, 1.5]
 print(f"Contour levels (arbitrary units): {levels}")
-ax.contour(h1_ppm, c13_ppm, data.real, levels=levels, colors="navy")
+ax.contour(
+    ppm_direct_axis,
+    ppm_indirect_axis,
+    data.real,
+    levels=levels,
+    colors="navy",
+)
 ax.set_xlabel(f"{udic[1]['label']} chemical shift / ppm")
 ax.set_ylabel(f"{udic[0]['label']} chemical shift / ppm")
 ax.set_title("Synthetic 2D NMRPipe fixture")
