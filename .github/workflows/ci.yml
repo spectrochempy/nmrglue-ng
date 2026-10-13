@@ -127,13 +127,12 @@ jobs:
         "${{ runner.temp }}/wheel.xml"
     - name: Require executed packaged tests
       run: python .github/scripts/check_test_report.py "${{ runner.temp }}/wheel.xml" 65
-    - name: Retain distribution and test report
+    - name: Retain packaging test reports
       if: always()
       uses: actions/upload-artifact@v7
       with:
-        name: distribution-py3.13
+        name: packaging-reports-py3.13
         path: |
-          ${{ runner.temp }}/dist/*
           ${{ runner.temp }}/wheel.xml
           ${{ runner.temp }}/sdist.xml
         retention-days: 7
