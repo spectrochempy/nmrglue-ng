@@ -30,7 +30,7 @@ These JEOL JDF files are packaged test fixtures for the nmrglue JEOL reader.
 | Sample | Rutin, 3080 µg / 200 µL DMSO-d6, 400 MHz |
 | Redistribution | Permitted under CC0 1.0 |
 
-### Group 3 — Epicatechin 2D (HSQC, COSY, HMBC)
+### Group 3 — Epicatechin 1D and 2D (1H, HSQC, COSY, HMBC)
 
 | Field | Value |
 |---|---|
