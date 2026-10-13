@@ -1,6 +1,6 @@
 # nmrglue-ng roadmap
 
-Status updated on **2026-10-11**, against `5d5f78b`. This is the current
+Status updated on **2026-10-13**, against `a7315a7`. This is the current
 action list; dated evidence and qualifications live in the
 [maintainer reports](README.md). Consolidation is not a new test run or a
 change to scientific validation results. The approved local-data policy below
@@ -131,6 +131,17 @@ recorded, **NMRNG-kb5.17 is closed**.
 The complete merged-change inventory, open-proposal screening, rationale and
 limits are in the
 [rc1 synchronization assessment](reports/2026-10-upstream-sync.md#release-candidate-reconciliation--2026-10-11).
+
+Follow-up upstream review on 2026-10-13 found `jjhelmus/nmrglue` master still
+at `cd0c2c9`, with no new upstream commits since the 2026-10-11 gate review.
+Upstream PRs #291 and #293 are open and cleanly mergeable with no maintainer
+feedback; their corresponding JCAMP-DX fixes are already carried locally by the
+recorded FID and descending-endpoint work. Upstream issues #290 and #292 are
+also already covered locally by the reviewed `pipe_proc.ext` clipping and
+FDDMXVAL corrections. PRs #280-#282 remain open without comments or reviews, so
+the nonurgent test-infrastructure contribution hold remains in force. No new
+local release-blocking backport was selected; review again before `1.0.0rc1` or
+when upstream master/PR feedback changes.
 
 ## P1 — Scientific reliability
 
