@@ -16,6 +16,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ### Changed
 
+- Convert plotting, integration, and peak-picking examples to executable
+  MyST-NB notebooks, add packaged 1D example data, and reuse the existing 2D
+  processing archive for plotting and quantification walkthroughs. (#93)
 - Restructure the example documentation into task-oriented How-to pages,
   promote JBNMR examples to top-level navigation, convert conversion and
   processing examples to executable MyST-NB notebooks, and package the
