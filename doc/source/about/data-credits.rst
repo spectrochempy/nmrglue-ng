@@ -24,6 +24,14 @@ The coadd how-to notebooks generate deterministic synthetic NMRPipe inputs at
 execution time. They demonstrate averaging workflows and are not experimental
 spectra.
 
+The separation how-to notebooks generate deterministic synthetic Agilent/Varian
+and Bruker inputs at execution time. They demonstrate de-interleaving workflows
+and are not experimental spectra.
+
+The simulation how-tos generate deterministic synthetic peak positions and line
+shapes at execution time. They demonstrate file creation and line-shape
+construction, not experimental spectra.
+
 Experimental examples
 ---------------------
 
@@ -63,8 +71,9 @@ derived NMRPipe fixture are in the
 Packaged example archives
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The conversion, processing, and plotting how-to notebooks use compact archives
-from the nmrglue example collection originally distributed through the Google
-Code archive. They are included here to make the notebooks reproducible during
-documentation builds. The archives are used as example inputs for nmrglue and
-retain their original file names under ``doc/source/_data/historical_examples/``.
+The conversion, processing, plotting, quantification, and interactive how-to
+notebooks use compact archives from the nmrglue example collection originally
+distributed through the Google Code archive. They are included here to make the
+notebooks reproducible during documentation builds. The archives are used as
+example inputs for nmrglue and retain their original file names under
+``doc/source/_data/historical_examples/``.

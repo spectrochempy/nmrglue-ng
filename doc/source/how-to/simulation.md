@@ -6,4 +6,5 @@ Create a synthetic UCSF file.
 :maxdepth: 1
 
 ../examples/simulate_ucsf
+../examples/simulate_lineshapes_1d
 ```
