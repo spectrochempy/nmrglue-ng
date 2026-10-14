@@ -60,8 +60,9 @@ reproducible without external data (provenance in
 | `exp2d_cosy/pdata/1/procs`  | `869c95a5…93da5237` | `dataserver.exe` | 16.00128 | 10204.0816326531 | -4 | 2048 |
 | `exp2d_cosy/pdata/1/proc2s` | `accc8b05…1c65ec0` | `proc2d.exe` | 16.00128 | 10204.081632653 | -4 | 512 |
 
-The singular files are written by `edparproc.exe` (the parameter editor) and
-carry `NC_proc = 0`, `XDIM = 0`, `STSI = 0`. The status files are written by the
+The two 2D singular files are written by `edparproc.exe` (the parameter
+editor), while the 1D singular file is written by `proc1d.exe`; all three carry
+`NC_proc = 0`, `XDIM = 0`, `STSI = 0`. The status files are written by the
 processing engine (`proc1d.exe`, `proc2d.exe`, `dataserver.exe`) and carry the
 `NC_proc`, `XDIM` and `STSI` values that actually produced the stored
 `1r`/`2rr`. The status files are also the later write in every fixture (e.g.

@@ -366,10 +366,9 @@ class TestBrukerProcessedSubmatrix:
 class TestBrukerProcessingFileFamilies:
     """Status (`procs`/`procNs`) and singular (`proc`/`procN`) files are distinct.
 
-    The status files are written by the processing engine and carry the
-    applied `NC_proc`/`XDIM`; the singular files are written by the TopSpin
-    parameter editor and may hold editor-only parameters (`ABSF1`/`ABSF2`)
-    and stale `NC_proc`/`XDIM`. Only the status files drive the default
+    The status files carry the applied `NC_proc`/`XDIM`; the singular files may
+    hold editor-only parameters (`ABSF1`/`ABSF2`) and stale
+    `NC_proc`/`XDIM`. Only the status files drive the default
     scaling, shape and axis; the singular files are available through explicit
     `procs_files` selection. See
     maintainer/reports/2026-10-bruker-processing-file-selection.md. These tests
