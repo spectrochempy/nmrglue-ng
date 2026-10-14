@@ -5,13 +5,15 @@ All notable changes to nmrglue-ng are documented in this file.
 nmrglue-ng is an independent continuation of nmrglue. Entries in the Historical nmrglue changelog section below belong to the
 original nmrglue project and are preserved for attribution and continuity.
 
-## Unreleased
+## 1.0.1 - 2026-10-14
 
 ### Changed
 
 - Add the stable Read the Docs URL to the README and package metadata.
 - Build the English API reference at the Read the Docs version root instead of
   under an extra `en/` path.
+- Remove the JBNMR examples and glossary pages from the top-level documentation
+  navigation while keeping the pages available by direct link.
 
 ## 1.0.0 - 2026-10-14
 

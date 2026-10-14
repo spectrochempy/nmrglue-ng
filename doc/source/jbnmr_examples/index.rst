@@ -1,4 +1,6 @@
 
+:orphan:
+
 .. _jbnmr_examples-index:
 
 ###########################
