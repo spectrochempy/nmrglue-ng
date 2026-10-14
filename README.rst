@@ -16,7 +16,7 @@ Documentation
 =============
 
 The stable documentation is available on Read the Docs:
-`nmrglue-ng.readthedocs.io/en/stable/ <https://nmrglue-ng.readthedocs.io/en/stable/>`_.
+`nmrglue-ng.readthedocs.io/stable/ <https://nmrglue-ng.readthedocs.io/stable/>`_.
 
 Why nmrglue-ng?
 ===============
@@ -148,11 +148,12 @@ As the project develops, contribution and maintenance practices may evolve to ma
 Installation
 ============
 
-Install ``nmrglue-ng`` with pip::
+The current stable release is published on PyPI:
+`nmrglue-ng <https://pypi.org/project/nmrglue-ng/>`_. Install it with pip::
 
     python -m pip install nmrglue-ng
 
-Conda packages are planned after the stable 1.0.0 release. See
+Conda packages are not currently available. See
 `INSTALL.txt <INSTALL.txt>`_ for source and development installation options.
 
 The distribution is named ``nmrglue-ng``, while the Python import remains::

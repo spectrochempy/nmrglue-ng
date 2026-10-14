@@ -17,25 +17,18 @@ release — not even with a plausible justification. Those require a separate,
 explicit maintainer authorization that this skill does not grant and does not
 assume.
 
-### Why this skill exists in its current form
+### Scope
 
-The SpectroChemPy release skill assumes a mature release pipeline. `nmrglue-ng`
-does not have one yet: there is no publication workflow in
-`.github/workflows/` (only `ci.yml`), no checksum-verifying fetcher, and
-unresolved provenance questions on release-critical data. A versioned
-test-data manifest and local verifier now exist; assess their current scope
-against the repository rather than treating this historical description as
-evidence.
+`nmrglue-ng` has versioned release-artifact and PyPI publication workflows, a
+test-data manifest, and a local verifier. The stable 1.0.x releases are
+published on PyPI. Assess the current repository, deployed services, and
+recorded evidence rather than treating historical planning documents as the
+current release status.
 
-What *can* honestly be automated today is the **gate audit**: checking the
-documented preconditions and reporting exactly which ones still block. So this
-skill is a readiness auditor, not a release procedure. It is expected to
-return "not ready" for as long as the P0 items below are open, and that result
-is a success, not a failure.
-
-If a future change makes the pipeline real (manifest, fetcher, dataset
-validation, publication workflow), this skill should be extended then — not
-guessed at now.
+This skill remains a **gate audit**, not a release procedure. It checks the
+documented preconditions and reports any blockers for a proposed release. A
+blocked or not-ready result is a valid audit outcome; it does not authorize
+changes to the release process or publication.
 
 ---
 
@@ -96,10 +89,9 @@ source acceptance for test execution or waive missing components. No public
 dataset CI job is required to close G4 if sufficient local evidence is recorded.
 
 The same policy separately records approved first-release scope dispositions.
-While the generator/manifest still describe the historical contract, report
-that implementation gap explicitly; do not silently treat deferred components
-as present, relabel skipped tests as passing, or claim that the verifier already
-implements the approved scope. Any contract translation needs its own review.
+Verify that the generator and manifest reflect the approved scope; do not
+silently treat deferred components as present or relabel skipped tests as
+passing. Any change to the contract needs its own review.
 
 Failures confined to the historical low-priority set do not block release. An
 extended-profile failure blocks only if it reveals a defect in a capability
