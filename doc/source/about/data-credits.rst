@@ -20,6 +20,10 @@ values by
 <https://github.com/spectrochempy/nmrglue-ng/blob/master/tests/fixtures/fileio/create_test_data_nmrpipe.sh>`_.
 They are test data, not experimental spectra.
 
+The coadd how-to notebooks generate deterministic synthetic NMRPipe inputs at
+execution time. They demonstrate averaging workflows and are not experimental
+spectra.
+
 Experimental examples
 ---------------------
 

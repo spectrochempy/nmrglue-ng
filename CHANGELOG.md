@@ -16,6 +16,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ### Changed
 
+- Convert the coadd examples to executable MyST-NB notebooks using
+  deterministic synthetic NMRPipe inputs, and modernize the downloadable
+  pseudo-3D coadd script for Python 3. (#94)
 - Convert plotting, integration, and peak-picking examples to executable
   MyST-NB notebooks, add packaged 1D example data, and reuse the existing 2D
   processing archive for plotting and quantification walkthroughs. (#93)
