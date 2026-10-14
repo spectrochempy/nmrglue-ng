@@ -61,13 +61,23 @@ body { letter-spacing: 0.002em; }
 }
 
 .ng-global-brand {
+  align-items: baseline;
   color: var(--ng-ink);
+  display: inline-flex;
   font-size: 1.35rem;
   font-weight: 750;
+  gap: 0.45rem;
   letter-spacing: -0.025em;
   line-height: 1;
   text-decoration: none;
   white-space: nowrap;
+}
+
+.ng-global-version {
+  color: var(--ng-muted);
+  font-size: 0.78rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
 }
 
 .ng-global-brand:hover {
