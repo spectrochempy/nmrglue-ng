@@ -152,6 +152,7 @@
     getting-started/index
     tutorials/index
     how-to/index
+    jbnmr_examples/index
     reference/index
     glossary/index
     about/index

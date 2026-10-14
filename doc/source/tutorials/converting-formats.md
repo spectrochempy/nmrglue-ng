@@ -77,6 +77,6 @@ with TemporaryDirectory() as output_dir:
 ```
 
 The converter also supports other source and destination formats. See the
-[conversion examples](../examples/index) for additional workflows and the
+[conversion examples](../how-to/conversion) for additional workflows and the
 <a href="../reference/index.html">API reference</a> for format-specific
 readers and writers.

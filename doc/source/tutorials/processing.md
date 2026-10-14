@@ -272,4 +272,4 @@ for dim in range(processed_udic["ndim"]):
 
 For larger 3D or 4D datasets, a full in-memory copy may be impractical. The
 [Low-memory guide](low-memory.md) introduces on-demand slicing, and the
-[NMRPipe examples](../examples/index) show plane-by-plane `iter3D` processing.
+[processing examples](../how-to/processing) show plane-by-plane `iter3D` processing.

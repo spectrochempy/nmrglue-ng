@@ -13,9 +13,7 @@ Start by reading a data file and inspecting its metadata. Next, learn how the
 universal dictionary describes the axes, then visualize the spectrum. Later
 guides cover array manipulation, writing and converting data, processing, and
 low-memory access. Read them in order or choose a topic directly. The NMRPipe
-walkthroughs provide practical examples with downloadable data. Some inherited
-examples use archives from historical nmrglue; those are identified on their
-pages.
+walkthroughs provide practical examples with downloadable data.
 
 Guide
 -----

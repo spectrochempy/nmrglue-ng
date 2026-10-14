@@ -50,6 +50,7 @@ repos:
         args: ['--enforce-all']
         exclude: |
           (?x)(
+            ^doc/source/_data/historical_examples/|
             ^tests/fixtures/fileio/data/|
             ^tests/fixtures/process/pipe_proc_tests/
           )
