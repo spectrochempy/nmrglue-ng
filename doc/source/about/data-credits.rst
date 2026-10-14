@@ -55,3 +55,12 @@ defined by ``procs``/``proc2s``; it does not reconstruct the raw FID or the
 other quadrature components. The conversion recipe and checksum for the
 derived NMRPipe fixture are in the
 `Bruker fixture record <https://github.com/spectrochempy/nmrglue-ng/blob/master/tests/fixtures/fileio/data/bruker_pdata/README.md>`_.
+
+Packaged example archives
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The conversion, processing, and plotting how-to notebooks use compact archives
+from the nmrglue example collection originally distributed through the Google
+Code archive. They are included here to make the notebooks reproducible during
+documentation builds. The archives are used as example inputs for nmrglue and
+retain their original file names under ``doc/source/_data/historical_examples/``.

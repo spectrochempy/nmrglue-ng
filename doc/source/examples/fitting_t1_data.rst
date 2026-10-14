@@ -7,6 +7,13 @@ This example shows how to use nmrglue and the `SciPy <http://www.scipy.org/>`_
 optimize module to fit T1 relaxation trajectories.  Three scripts are used in
 the process.
 
+.. note::
+
+   This example remains in legacy script form. The source archive is large and
+   contains time-domain inputs that are processed by the accompanying NMRPipe
+   scripts before fitting. The integration and peak-picking examples in this
+   section are available as executable notebooks.
+
 The data used in this example is available for
 `download. <https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/nmrglue/example_fitting_t1_data.zip>`_
 
