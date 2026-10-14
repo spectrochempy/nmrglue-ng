@@ -5,7 +5,7 @@ All notable changes to nmrglue-ng are documented in this file.
 nmrglue-ng is an independent continuation of nmrglue. Entries in the Historical nmrglue changelog section below belong to the
 original nmrglue project and are preserved for attribution and continuity.
 
-## Unreleased
+## 1.0.0 - 2026-10-14
 
 ### Fixed
 

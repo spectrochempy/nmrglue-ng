@@ -1,6 +1,6 @@
 # nmrglue-ng roadmap
 
-Status updated on **2026-10-13**, against `a7315a7`. This is the current
+Status updated on **2026-10-14**, against `677a622`. This is the current
 action list; dated evidence and qualifications live in the
 [maintainer reports](README.md). Consolidation is not a new test run or a
 change to scientific validation results. The approved local-data policy below
@@ -9,8 +9,11 @@ require maintainer approval where they change the release contract.
 
 ## P0 — First independent release
 
-The recorded readiness verdict remains **BLOCKED**. See
-[release validation](reports/2026-10-release-validation.md) for gates G1–G6.
+The release preparation branch for **1.0.0** is now authorized: documentation is
+complete for the current structure, CI is green on `master`, and the remaining
+scientific reliability topics below are tracked follow-up work rather than
+first-release blockers. Tag creation, PyPI upload, GitHub release publication
+and any Conda publication remain separately authorized release actions.
 
 - [x] Independent identity, attribution and contribution governance.
 - [x] Independent packaging: distribution `nmrglue-ng`, import `nmrglue`.
@@ -18,7 +21,7 @@ The recorded readiness verdict remains **BLOCKED**. See
   installed-distribution validation and minimal pre-commit checks.
 - [x] Historical critical contract identified: 16 logical groups / 42 tests.
 - [x] Versioned external-data manifest and local size/SHA-256 verifier.
-- [ ] Implement the approved first-release corpus dispositions in the
+- [x] Implement the approved first-release corpus dispositions in the
   capability/test/reference contract (see [policy](testdata-policy.md)).
   Contract translation and local reference integration were completed on
   2026-10-09 at `7a7f935` and reviewed the same day in a separate session
@@ -59,9 +62,12 @@ The recorded readiness verdict remains **BLOCKED**. See
   remain `UNRESOLVED` for redistribution under the policy and are not cleared for
   publication; the distributed Bruker `pdata` and JCAMP-DX replacement fixtures
   record CC0 provenance/license and checksummed fixture inventory.
-- [ ] Document reproducible, checksum-verified acquisition and record complete
+- [x] Document reproducible, checksum-verified acquisition and record complete
   critical-dataset validation. Local/manual evidence is acceptable; public
   dataset CI and redistribution of the whole corpus are not prerequisites.
+  Maintainer decision 2026-10-14: the recorded local validation, manifest,
+  replacement fixtures, deferred historical references and non-blocking P1
+  scientific follow-ups are sufficient to prepare the stable 1.0.0 release.
 - [x] Complete the broader inherited-defect assessment for first-release scope.
   Maintainer decision 2026-10-11: tracked release-critical inherited defects are
   fixed, independently reviewed, replaced, or deferred under the current
@@ -73,11 +79,13 @@ The recorded readiness verdict remains **BLOCKED**. See
 - [x] Independent review of PRs #56/#57 and their interaction, completed
   2026-10-07 at `23cdba1`: all three verdicts approved. PR #55 also has a
   recorded independent review; its documentation findings were addressed by #58.
-- [ ] Private documentation build verified on 2026-10-11 at `fe85fe2` with
+- [x] Documentation build and public documentation structure verified. Private
+  documentation build verified on 2026-10-11 at `fe85fe2` with
   `python -m sphinx -W -b html doc/source <local-html-output>` in a disposable
-  environment. Public hosting/deployment remains deferred as a separate
-  maintainer decision because the repository is public and free-tier Read the
-  Docs hidden versions remain URL-accessible.
+  environment. PRs #90 and #92–#96 completed the tutorial-first public path,
+  example notebook migration, top-level contribution docs, English/French
+  documentation build and targeted French translations. Final RTD project setup
+  remains an operational publication step, not a content blocker.
 - [x] Finalize version, release notes, artifact scope and publication procedure
   (version scheme decided 2026-10-11: independent SemVer line, target `1.0.0`;
   the `-dev` suffix, dated changelog heading, known PR-reference cleanup,
@@ -98,7 +106,9 @@ Neither missing data nor classified historical differences are passing tests.
 | Upstream synchronization before `1.0.0rc1` | New release-candidate gate (2026-10-11): before publishing `1.0.0rc1`, audit the then-current `jjhelmus/nmrglue` upstream and ensure `nmrglue-ng` either includes upstream changes that should be carried into the release, or explicitly records a maintainer decision to defer/exclude them with scope and rationale. This does not authorize upstream contribution and does not require adopting upstream changes whose behavior conflicts with documented `nmrglue-ng` decisions. |
 | Documentation and RTD before final `1.0.0` | Maintainer decision 2026-10-11: do not rush the final release before public Read the Docs documentation is substantially useful to new users. Additional release candidates such as `1.0.0rc2` or `rc3` are acceptable if needed for documentation review. Keep a mixed source model: reStructuredText remains appropriate for API/reference and stable inherited pages, while MyST-NB is preferred for modern tutorials and rewritten examples. Before final `1.0.0`, differentiate the documentation from historical upstream `nmrglue`, provide a tutorial-first public path, and progressively migrate selected historical examples into pedagogical notebooks with figures, explicit outputs, downloadable data and provenance. Preserve historical attribution and keep unmigrated examples accessible as legacy material rather than converting them mechanically. |
 | Critical contract | The 2026-10-08 decisions are translated into the generator/manifest at `7a7f935` (2026-10-09, reviewed the same day; minor findings addressed the same day): `CRITICAL_TESTS` holds the 29 first-release ids, `DEFERRED_TESTS` the 13 deferred RNMRTK/Sparky/JEOL ids, component scope is three-valued (`critical`/`deferred`/`extended`), manifest schema v4. Bruker pdata replacement is complete: the two components are explicitly `replaced` against committed CC0 fixtures, with checksummed inventory, fixture-derived read metadata and read/write round trips. Independent follow-up confirms malformed replacement license/provenance declarations fail structurally. JCAMP-DX critical components are now replaced by synthetic CC0 fixtures with checksummed inventory for AFFN/PAC/SQZ/DIF and NTUPLES coverage. SIMPSON requirements remain. [Corpus report](reports/2026-10-critical-corpus.md#bruker-pdata-replacement--2026-10-09). |
-| Coverage badge before `1.0.0` | Define the autonomous-CI coverage profile and badge scope before final `1.0.0` (`NMRNG-kb5.19.1`). The badge must not imply full external-corpus or scientific validation. Document excluded or separately reported areas, especially formats whose meaningful tests require absent/deferred data such as Sparky, RS2D, Spinsolve and other corpus-only references unless redistributable fixtures are added. Prefer targeted autonomous coverage improvements in commonly used and locally well-supported modules first. |
+| Coverage badge | Maintainer decision 2026-10-14: coverage badge policy is postponed until after stable `1.0.0` and is not a release blocker. Track as `NMRNG-kb5.22`; any badge must describe autonomous CI coverage only and must not imply external-corpus or NMRPipe differential validation. |
+| Conda packages | Maintainer decision 2026-10-14: Conda publication is postponed until after stable `1.0.0` and is not a release blocker. Track as `NMRNG-kb5.20`; evaluate conda-forge, spectrocat, or both after official stable artifacts exist. |
+| Google Colab validation | Maintainer decision 2026-10-14: hosted Colab validation is postponed until after stable `1.0.0` and is not a release blocker. Track as `NMRNG-kb5.21`, when public install commands and artifacts are available. |
 | Local corpus use | Historical archive accepted for local testing; `UNRESOLVED` redistribution status alone no longer blocks those tests. Identify missing references and record actual results. |
 | Data redistribution | Distribute only files/groups with recorded public-domain status, an applicable license or permission; keep other accepted inputs local/private. |
 | NMRPipe conversion references | The `FDDMXVAL` correction is integrated in #65 (`7ef9b8f`). Recorded NMRPipe 13.0 validation: all eight Agilent/Bruker full/low-memory cases pass in disposable copies. On 2026-10-09 the five references were regenerated (132 files) and validated with the FDDMXVAL regression (9 passed) then integrated into the local corpus; Bruker outputs are byte-identical to the 2026-10-08 receipts, Agilent outputs differ only in the var2pipe conversion-timestamp header fields. Independently reviewed 2026-10-09 (byte identity and timestamp property reproduced by the reviewer). [Corpus evidence](reports/2026-10-critical-corpus.md#contract-translation-and-local-reference-integration--2026-10-09). |
@@ -173,8 +183,11 @@ when upstream master/PR feedback changes.
 
 ## P2 — Broader maintenance
 
-- [ ] Repair historical examples, including the Bruker processed 1D example,
-  and retain an extraction/`strip_fake` demonstration.
+- [x] Repair and modernize historical examples selected for the current docs
+  structure. PRs #92–#95 converted conversion, processing, plotting,
+  quantification, coadd, separation/acquisition, interactive and simulation
+  examples to executable MyST-NB pages or retained them as explicit historical
+  material.
 - [ ] Define optional-dependency extras where useful.
 - [ ] Increase autonomous processing-module coverage.
 - [x] Prepare the dedicated test-reorganization plan after EXT #62:
@@ -199,20 +212,19 @@ when upstream master/PR feedback changes.
   coverage explicitly and clean disposable validation resources. No durable
   dual layout, scientific correction, new release gate or critical-scope
   reduction is implied by this work; integrated in #64 at `805c6f2`.
-- [ ] Modernize documentation and links incrementally.
-- [ ] Differentiate documentation identity before final `1.0.0`: update the
+- [x] Modernize documentation and links for the current release structure.
+- [x] Differentiate documentation identity before final `1.0.0`: update the
   theme/template, introduction and `nmrglue`/`nmrglue-ng` references where
   needed, while preserving historical and import-compatibility references.
-  This is not a blocker for `1.0.0rc1` unless candidate review identifies
-  misleading public-facing text.
-- [ ] Prepare public RTD-quality documentation before final `1.0.0`, using
+- [x] Prepare public RTD-quality documentation before final `1.0.0`, using
   additional release candidates if useful. The planned work is tracked under
   `NMRNG-kb5.18.1`: add a fast documentation build without the expensive API
   reference for iteration, rewrite the public skeleton, modernize the core
   tutorials as MyST-NB notebooks, triage legacy examples for notebook migration
   versus archive/defer status, and define RTD-ready validation criteria. The
   reference API remains available in the full build; mixed `.rst` and `.md`
-  sources are intentional.
+  sources are intentional. Completed for the current structure by PRs #90–#96;
+  future improvements should be opened as focused post-release beads.
 - [ ] Introduce linting, typing and benchmarks only through separately scoped
   work. Ruff linting/formatting remain deferred; minimal pre-commit is active.
 
