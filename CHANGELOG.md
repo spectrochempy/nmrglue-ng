@@ -16,6 +16,10 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ### Changed
 
+- Restructure the example documentation into task-oriented How-to pages,
+  promote JBNMR examples to top-level navigation, convert conversion and
+  processing examples to executable MyST-NB notebooks, and package the
+  redistributable historical example archives used by those notebooks. (#92)
 - Add a versioned CC0 JEOL 1H epicatechin fixture and extend autonomous reader,
   universal-dictionary, and data-point checks. (#91)
 - Stop retaining built distributions from routine CI and manual release dry-run

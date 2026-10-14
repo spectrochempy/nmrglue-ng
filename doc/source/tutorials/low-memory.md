@@ -101,6 +101,6 @@ with TemporaryDirectory() as output_dir:
 ```
 
 For 3D NMRPipe processing plane by plane, see the `iter3D` examples in the
-[examples guide](../examples/index). The [Processing tutorial](processing.md)
+[How-to guides](../how-to/index). The [Processing tutorial](processing.md)
 compares array-only processing with NMRPipe operations that also update header
 metadata.

@@ -197,6 +197,13 @@ nb_execution_cache_path = os.path.abspath(
 )
 nb_execution_timeout = 120
 
+if os.environ.get('READTHEDOCS') == 'True':
+    nb_execution_excludepatterns = [
+        'examples/agilent2pipe_3d.md',
+        'examples/bruker2pipe_3d.md',
+        'examples/process_pipe_3d.md',
+    ]
+
 
 # -- Options for LaTeX output --------------------------------------------------
 
