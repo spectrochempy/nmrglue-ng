@@ -2,15 +2,17 @@
 Installation Guide
 ==================
 
-Status
-------
-
-``nmrglue-ng`` is under development and has not yet been published as an
-independent release on PyPI or conda. Install it from the source repository as
-described below.
-
 The distribution is named ``nmrglue-ng``. The Python package and import name
 remain ``nmrglue`` for compatibility with existing code.
+
+Installing from PyPI
+--------------------
+
+Install the stable release with::
+
+    python -m pip install nmrglue-ng
+
+Conda packages are planned after the stable 1.0.0 release.
 
 Requirements
 ------------
