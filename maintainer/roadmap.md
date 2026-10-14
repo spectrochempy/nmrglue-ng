@@ -1,6 +1,6 @@
 # nmrglue-ng roadmap
 
-Status updated on **2026-10-14**, against `677a622`. This is the current
+Status updated on **2026-10-14**, against `27f1909` (tag `v1.0.2`). This is the current
 action list; dated evidence and qualifications live in the
 [maintainer reports](README.md). Consolidation is not a new test run or a
 change to scientific validation results. The approved local-data policy below
@@ -9,11 +9,14 @@ require maintainer approval where they change the release contract.
 
 ## P0 — First independent release
 
-The release preparation branch for **1.0.0** is now authorized: documentation is
-complete for the current structure, CI is green on `master`, and the remaining
-scientific reliability topics below are tracked follow-up work rather than
-first-release blockers. Tag creation, PyPI upload, GitHub release publication
-and any Conda publication remain separately authorized release actions.
+The first independent release line is published: **1.0.0**, **1.0.1** and
+**1.0.2** were released on 2026-10-14 and uploaded to PyPI by the manual
+`publish-pypi` workflow; Read the Docs `stable` and `latest` are live. Versions
+are derived from Git tags with `setuptools_scm` (#99), so the release tag is the
+version source. Publication stays an explicit maintainer action for every
+release: tag creation, PyPI/GitHub release publication and any Conda
+publication are never implied by a merge. The remaining scientific reliability
+topics below are tracked follow-up work rather than first-release blockers.
 
 - [x] Independent identity, attribution and contribution governance.
 - [x] Independent packaging: distribution `nmrglue-ng`, import `nmrglue`.
@@ -102,13 +105,14 @@ Neither missing data nor classified historical differences are passing tests.
 
 | Topic | Next action / decision |
 |---|---|
-| Version scheme | Maintainer decision 2026-10-11: `nmrglue-ng` adopts its own independent SemVer line rather than continuing the historical `0.13`, because the two distributions can evolve in parallel and a shared line would imply a linear succession that does not exist. First independent release targets `1.0.0` (optionally published first as `1.0.0rc1`). The number is a public-API compatibility contract internal to `nmrglue-ng`, not a comparison with historical `nmrglue`, which never left `0.x`. The `-dev` suffix stays until the authorized release-preparation change immediately before building release artifacts. |
+| Release publication | Manual `publish-pypi` workflow (`workflow_dispatch` with `tag` and `expected_version`) using Trusted Publishing; each release is a separate maintainer action. Stable `1.0.0`, `1.0.1` and `1.0.2` were published on 2026-10-14; `1.0.2` shipped the documentation `What's new` page and navigation/sidebar updates. |
+| Version scheme | Maintainer decision 2026-10-11: `nmrglue-ng` adopts its own independent SemVer line rather than continuing the historical `0.13`, because the two distributions can evolve in parallel and a shared line would imply a linear succession that does not exist. First independent release targets `1.0.0` (optionally published first as `1.0.0rc1`). The number is a public-API compatibility contract internal to `nmrglue-ng`, not a comparison with historical `nmrglue`, which never left `0.x`. Since #99 the version is derived from Git tags with `setuptools_scm`, so the release tag is the version source and no version file is edited. Stable `1.0.0`, `1.0.1` and `1.0.2` were published on 2026-10-14. |
 | Upstream synchronization before `1.0.0rc1` | New release-candidate gate (2026-10-11): before publishing `1.0.0rc1`, audit the then-current `jjhelmus/nmrglue` upstream and ensure `nmrglue-ng` either includes upstream changes that should be carried into the release, or explicitly records a maintainer decision to defer/exclude them with scope and rationale. This does not authorize upstream contribution and does not require adopting upstream changes whose behavior conflicts with documented `nmrglue-ng` decisions. |
 | Documentation and RTD before final `1.0.0` | Maintainer decision 2026-10-11: do not rush the final release before public Read the Docs documentation is substantially useful to new users. Additional release candidates such as `1.0.0rc2` or `rc3` are acceptable if needed for documentation review. Keep a mixed source model: reStructuredText remains appropriate for API/reference and stable inherited pages, while MyST-NB is preferred for modern tutorials and rewritten examples. Before final `1.0.0`, differentiate the documentation from historical upstream `nmrglue`, provide a tutorial-first public path, and progressively migrate selected historical examples into pedagogical notebooks with figures, explicit outputs, downloadable data and provenance. Preserve historical attribution and keep unmigrated examples accessible as legacy material rather than converting them mechanically. |
 | Critical contract | The 2026-10-08 decisions are translated into the generator/manifest at `7a7f935` (2026-10-09, reviewed the same day; minor findings addressed the same day): `CRITICAL_TESTS` holds the 29 first-release ids, `DEFERRED_TESTS` the 13 deferred RNMRTK/Sparky/JEOL ids, component scope is three-valued (`critical`/`deferred`/`extended`), manifest schema v4. Bruker pdata replacement is complete: the two components are explicitly `replaced` against committed CC0 fixtures, with checksummed inventory, fixture-derived read metadata and read/write round trips. Independent follow-up confirms malformed replacement license/provenance declarations fail structurally. JCAMP-DX critical components are now replaced by synthetic CC0 fixtures with checksummed inventory for AFFN/PAC/SQZ/DIF and NTUPLES coverage. SIMPSON requirements remain. [Corpus report](reports/2026-10-critical-corpus.md#bruker-pdata-replacement--2026-10-09). |
-| Coverage badge | Maintainer decision 2026-10-14: coverage badge policy is postponed until after stable `1.0.0` and is not a release blocker. Track as `NMRNG-kb5.22`; any badge must describe autonomous CI coverage only and must not imply external-corpus or NMRPipe differential validation. |
-| Conda packages | Maintainer decision 2026-10-14: Conda publication is postponed until after stable `1.0.0` and is not a release blocker. Track as `NMRNG-kb5.20`; evaluate conda-forge, spectrocat, or both after official stable artifacts exist. |
-| Google Colab validation | Maintainer decision 2026-10-14: hosted Colab validation is postponed until after stable `1.0.0` and is not a release blocker. Track as `NMRNG-kb5.21`, when public install commands and artifacts are available. |
+| Coverage badge | Maintainer decision 2026-10-14: coverage badge policy is postponed until after stable `1.0.0` (now released) and is not a release blocker. Track as `NMRNG-kb5.22`; any badge must describe autonomous CI coverage only and must not imply external-corpus or NMRPipe differential validation. |
+| Conda packages | Maintainer decision 2026-10-14: Conda publication is postponed until after stable `1.0.0` (now released) and is not a release blocker. Track as `NMRNG-kb5.20`; evaluate conda-forge, spectrocat, or both using the published 1.0.x artifacts. |
+| Google Colab validation | Maintainer decision 2026-10-14: hosted Colab validation is postponed until after stable `1.0.0` (now released) and is not a release blocker. Track as `NMRNG-kb5.21`; public install commands and stable artifacts now exist. |
 | Local corpus use | Historical archive accepted for local testing; `UNRESOLVED` redistribution status alone no longer blocks those tests. Identify missing references and record actual results. |
 | Data redistribution | Distribute only files/groups with recorded public-domain status, an applicable license or permission; keep other accepted inputs local/private. |
 | NMRPipe conversion references | The `FDDMXVAL` correction is integrated in #65 (`7ef9b8f`). Recorded NMRPipe 13.0 validation: all eight Agilent/Bruker full/low-memory cases pass in disposable copies. On 2026-10-09 the five references were regenerated (132 files) and validated with the FDDMXVAL regression (9 passed) then integrated into the local corpus; Bruker outputs are byte-identical to the 2026-10-08 receipts, Agilent outputs differ only in the var2pipe conversion-timestamp header fields. Independently reviewed 2026-10-09 (byte identity and timestamp property reproduced by the reviewer). [Corpus evidence](reports/2026-10-critical-corpus.md#contract-translation-and-local-reference-integration--2026-10-09). |
