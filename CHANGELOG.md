@@ -11,6 +11,7 @@ original nmrglue project and are preserved for attribution and continuity.
 
 - Show the current package version next to the documentation title in the top
   navigation.
+- Point the package homepage metadata to the stable Read the Docs site.
 
 ## 1.0.1 - 2026-10-14
 
