@@ -16,6 +16,11 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ### Changed
 
+- Convert the Agilent/Varian and Bruker separation examples, interactive
+  plotting examples, and simulation examples to executable MyST-NB notebooks
+  using deterministic or packaged inputs; add a 1D line-shape simulation
+  how-to; and modernize the downloadable separation scripts for Python 3.
+  (#95)
 - Convert the coadd examples to executable MyST-NB notebooks using
   deterministic synthetic NMRPipe inputs, and modernize the downloadable
   pseudo-3D coadd script for Python 3. (#94)

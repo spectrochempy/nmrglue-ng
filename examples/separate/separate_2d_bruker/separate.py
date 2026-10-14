@@ -10,7 +10,7 @@ dic, data = ng.bruker.read('arrayed_data.dir', shape=(7360, 640), cplex=True)
 array_size = 23
 
 # loop over the arrayed data, separating and saving each 2D
-for i in xrange(array_size):
+for i in range(array_size):
     dir_name = str(i+1)
-    print "Creating directory:", dir_name
+    print("Creating directory:", dir_name)
     ng.bruker.write(dir_name, dic, data[i::array_size], overwrite=True)

@@ -13,5 +13,5 @@ arrayed_param = dic['procpar']['array']['values'][0]
 # loop over the echo times, separating and saving each 1D
 for i, array_val in enumerate(dic['procpar'][arrayed_param]['values']):
     dir_name = arrayed_param + '_' + array_val + '.fid'
-    print "Creating directory:", dir_name
+    print("Creating directory:", dir_name)
     ng.varian.write(dir_name, dic, data[i], overwrite=True)
