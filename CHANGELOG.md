@@ -11,6 +11,7 @@ original nmrglue project and are preserved for attribution and continuity.
 
 - Show the current package version next to the documentation title in the top
   navigation.
+- Start the next development cycle as `1.0.2.dev0` after the `1.0.1` release.
 
 ## 1.0.1 - 2026-10-14
 
