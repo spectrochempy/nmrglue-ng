@@ -1,0 +1,22 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: nmrglue-ng 1.0.0\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Reference Guide"
+msgstr "Guide de référence"
+
+msgid "fileio modules"
+msgstr "modules fileio"
+
+msgid "process modules"
+msgstr "modules process"
+
+msgid "analysis modules"
+msgstr "modules analysis"
+
+msgid "util modules"
+msgstr "modules util"

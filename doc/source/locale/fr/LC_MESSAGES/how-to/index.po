@@ -1,0 +1,16 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: nmrglue-ng 1.0.0\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "How-to guides"
+msgstr "Guides pratiques"
+
+msgid "Use these task-oriented entry points when you want a concrete recipe for a specific format, operation, or workflow."
+msgstr "Utilisez ces points d'entrée orientés tâche lorsque vous cherchez une recette concrète pour un format, une opération ou un workflow précis."
+
+msgid "For a progressive introduction to the modern notebook workflow, follow the {doc}`tutorial sequence <../tutorials/index>`."
+msgstr "Pour une introduction progressive au workflow moderne par notebooks, suivez la {doc}`séquence de tutoriels <../tutorials/index>`."

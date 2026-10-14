@@ -1,0 +1,34 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: nmrglue-ng 1.0.0\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "About"
+msgstr "À propos"
+
+msgid "``nmrglue-ng`` is an independent continuation of historical nmrglue. The project preserves attribution to Jonathan J. Helmus and the nmrglue contributors while maintaining the established Python import name, ``nmrglue``."
+msgstr "``nmrglue-ng`` est une continuation indépendante du nmrglue historique. Le projet préserve l'attribution à Jonathan J. Helmus et aux contributeurs de nmrglue tout en conservant le nom d'import Python établi, ``nmrglue``."
+
+msgid "Project and package names"
+msgstr "Noms du projet et du paquet"
+
+msgid "This documentation uses ``nmrglue-ng`` for the current project and the distribution installed with package managers. It uses ``nmrglue`` for the Python import, module paths, and API names used in code. References to the historical project are identified as historical or upstream nmrglue; original paper titles and archive links retain their original names."
+msgstr "Cette documentation utilise ``nmrglue-ng`` pour le projet actuel et la distribution installée par les gestionnaires de paquets. Elle utilise ``nmrglue`` pour l'import Python, les chemins de modules et les noms d'API employés dans le code. Les références au projet historique sont identifiées comme nmrglue historique ou amont ; les titres d'articles originaux et les liens d'archives conservent leurs noms d'origine."
+
+msgid "Project goals"
+msgstr "Objectifs du projet"
+
+msgid "Preserve the established API exposed through the ``nmrglue`` import where practical."
+msgstr "Préserver autant que possible l'API établie exposée via l'import ``nmrglue``."
+
+msgid "Keep the distribution identity clear: install ``nmrglue-ng``, import ``nmrglue``."
+msgstr "Garder une identité de distribution claire : installez ``nmrglue-ng``, importez ``nmrglue``."
+
+msgid "Improve reproducibility and test-data accounting before expanding public claims."
+msgstr "Améliorer la reproductibilité et l'inventaire des données de test avant d'élargir les affirmations publiques."
+
+msgid "Modernize documentation incrementally while preserving historical attribution."
+msgstr "Moderniser la documentation progressivement tout en préservant l'attribution historique."

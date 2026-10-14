@@ -1,0 +1,19 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: nmrglue-ng 1.0.0\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Tutorials"
+msgstr "Tutoriels"
+
+msgid "``nmrglue-ng`` is a Python package for reading, writing, converting, processing, and analysing data from common NMR file formats. In Python, its modules are imported as ``nmrglue``. This progressive tutorial assumes basic familiarity with Python and introduces the package's file readers, data arrays, metadata, unit-aware axes, format conversion, processing, and plotting APIs."
+msgstr "``nmrglue-ng`` est un paquet Python pour lire, écrire, convertir, traiter et analyser des données issues des formats RMN courants. En Python, ses modules s'importent sous le nom ``nmrglue``. Ce parcours progressif suppose une connaissance de base de Python et présente les lecteurs de fichiers du paquet, les tableaux de données, les métadonnées, les axes avec unités, la conversion de formats, le traitement et les API de tracé."
+
+msgid "Start by reading a data file and inspecting its metadata. Next, learn how the universal dictionary describes the axes, then visualize the spectrum. Later guides cover array manipulation, writing and converting data, processing, and low-memory access. Read them in order or choose a topic directly. The NMRPipe walkthroughs provide practical examples with downloadable data."
+msgstr "Commencez par lire un fichier de données et examiner ses métadonnées. Découvrez ensuite comment le dictionnaire universel décrit les axes, puis visualisez le spectre. Les guides suivants couvrent la manipulation des tableaux, l'écriture et la conversion de données, le traitement et l'accès à faible mémoire. Lisez-les dans l'ordre ou choisissez directement un sujet. Les parcours NMRPipe fournissent des exemples pratiques avec des données téléchargeables."
+
+msgid "Guide"
+msgstr "Guide"

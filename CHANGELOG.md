@@ -16,6 +16,12 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ### Changed
 
+- Move contributor guidance and issue-reporting information into a top-level
+  documentation sidebar section, replacing the obsolete historical development
+  guide with current nmrglue-ng contribution guidance, and publish local
+  English/French documentation builds together on Read the Docs. Add French
+  translations for the main documentation entry pages and glossary while
+  leaving API and code examples untranslated. (#96)
 - Convert the Agilent/Varian and Bruker separation examples, interactive
   plotting examples, and simulation examples to executable MyST-NB notebooks
   using deterministic or packaged inputs; add a 1D line-shape simulation

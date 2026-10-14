@@ -155,4 +155,5 @@
     jbnmr_examples/index
     reference/index
     glossary/index
+    contribute/index
     about/index

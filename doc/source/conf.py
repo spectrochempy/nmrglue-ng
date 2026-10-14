@@ -31,9 +31,8 @@ source_suffix = {
     '.md': 'myst-nb',
 }
 
-# Keep English as the source language. Translated tutorial builds use the
-# gettext catalogs under ``locale/`` and select a language with
-# ``-D language=fr`` or ``-D language=es``.
+# Keep English as the source language. The French build uses the gettext
+# catalogs under ``locale/`` and selects the language with ``-D language=fr``.
 language = 'en'
 locale_dirs = ['locale/']
 gettext_compact = False
