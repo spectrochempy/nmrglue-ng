@@ -5,6 +5,15 @@ All notable changes to nmrglue-ng are documented in this file.
 nmrglue-ng is an independent continuation of nmrglue. Entries in the Historical nmrglue changelog section below belong to the
 original nmrglue project and are preserved for attribution and continuity.
 
+## Unreleased
+
+### Documentation
+
+- Clarify the `read_pdata` documentation on the two Bruker processed-parameter
+  file families (status `procs`/`procNs` versus singular `proc`/`procN`), and
+  add an autonomous regression covering the default status-file behavior and
+  explicit `procs_files` selection using the packaged fixtures. (#104)
+
 ## 1.0.2 - 2026-10-14
 
 ### Changed

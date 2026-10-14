@@ -1276,6 +1276,18 @@ def read_pdata(dir=".", bin_files=None, procs_files=None, read_procs=True,
     acquisition files on disk were produced by different runs; when the two
     sets agree, both give the same axis.
 
+    TopSpin stores processed parameters in two file families under
+    `pdata/<n>`: the status files (`procs`, `proc2s`, ...) and the singular
+    files (`proc`, `proc2`, ...). This reader reads the status files by default;
+    they carry the parameters that produced the stored data, including the
+    ones used here for scaling and shape (`NC_proc`, `XDIM`, `STSI`) and for
+    the axis (`OFFSET`, `SF`, `SW_p`). The singular files may hold editor-only
+    parameters such as `ABSF1`/`ABSF2` (which this reader does not use) and
+    stale `NC_proc`/`XDIM` values. To expose them too, pass
+    `procs_files=["proc", "procs", "proc2", "proc2s"]`; the extra files are
+    returned under their own keys (`dic["proc"]`, `dic["proc2"]`) without
+    changing the default scaling, shape or axis.
+
     """
     # TODO read_pdata_lowmem, write_pdata
 
