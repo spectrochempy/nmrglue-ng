@@ -672,6 +672,9 @@ html[lang="fr"] .ng-home-en {
 html[lang="fr"] .ng-home-fr {
   display: block;
 }
-.navbar-nav a.nav-link[href$="whats-new.html"] {
+
+#pst-header .navbar-nav a.nav-link[href*="whats-new"],
+#pst-header .navbar-nav a.nav-link[href*="jbnmr_examples"],
+#pst-header .navbar-nav a.nav-link[href*="glossary"] {
   display: none;
 }

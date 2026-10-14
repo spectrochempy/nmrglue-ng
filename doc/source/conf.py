@@ -148,7 +148,7 @@ html_theme_options = {
     'navbar_start': ['global-brand.html'],
     'navbar_center': ['navbar-nav'],
     'navbar_end': ['global-actions.html'],
-    'header_links_before_dropdown': 5,
+    'header_links_before_dropdown': 8,
     'article_header_end': [],
     'footer_content_items': [
         'copyright.html',
