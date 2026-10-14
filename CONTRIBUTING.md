@@ -168,8 +168,8 @@ complete repository test suite runs from the sdist.
 The `release artifacts` workflow is manual-only and does not publish. Use it to
 build release-candidate or final-release files for review:
 
-1. Run the workflow with `expected_version` set to the exact version in
-   `nmrglue.__version__` (for example `1.0.0rc1`).
+1. Run the workflow with `expected_version` set to the exact version derived
+   from the checked-out Git tag (for example `1.0.0rc1`).
 2. The workflow verifies `pyproject.toml`, the dated `CHANGELOG.md` heading,
    and, when run on a tag, that the tag is `v<version>`.
 3. It builds the sdist and runtime-only wheel from the checked-out ref, checks

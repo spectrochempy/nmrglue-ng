@@ -126,24 +126,25 @@ Do not invent user-facing claims for changes that have none.
 
 ## Step 4 — Version and artifact coherence
 
-The version is dynamic:
+The version is derived from Git tags with `setuptools_scm`:
 
 ```toml
 # pyproject.toml
-[tool.setuptools.dynamic]
-version = {attr = "nmrglue.__version__"}
+[build-system]
+requires = ["setuptools>=77", "setuptools_scm>=8"]
+
+[tool.setuptools_scm]
 ```
 
 ```bash
-grep -n "__version__" nmrglue/__init__.py
 git describe --tags
+python -m setuptools_scm
 ```
 
 Check that:
 
-* `nmrglue.__version__` states the intended next version, and that a
-  development suffix (for example `-dev`) is either intentional and documented
-  or removed deliberately;
+* the Git tag or branch state produces the intended version, and development
+  versions are intentional and documented;
 * `CHANGELOG.md` and the version agree;
 * `pyproject.toml` distribution name is `nmrglue-ng`, readme and license files
   resolve, and the package list covers the intended modules;

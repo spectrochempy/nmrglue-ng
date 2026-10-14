@@ -1,6 +1,8 @@
 import sys, os
 from datetime import date
 
+sys.path.insert(0, os.path.abspath(os.path.join('..', '..')))
+
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.mathjax',
@@ -50,6 +52,11 @@ import nmrglue
 version = nmrglue.__version__
 # The full version, including alpha/beta/rc tags.
 release = version
+docs_version_label = (
+    'dev'
+    if os.environ.get('READTHEDOCS_VERSION') == 'latest' or '.dev' in release
+    else release
+)
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
@@ -115,6 +122,7 @@ html_theme_options = {
 
 html_context = {
     'rtd_layout': os.environ.get('READTHEDOCS') == 'True',
+    'docs_version_label': docs_version_label,
 }
 
 # Add any paths that contain custom themes here, relative to this directory.

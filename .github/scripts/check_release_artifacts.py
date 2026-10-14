@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import ast
 import os
 from pathlib import Path
 import re
@@ -16,13 +15,12 @@ RELEASE_HEADING = re.compile(r"^## (?P<version>\S+) - \d{4}-\d{2}-\d{2}$", re.M)
 
 
 def read_source_version(source_root: Path) -> str:
-    module = ast.parse((source_root / "nmrglue" / "__init__.py").read_text())
-    for node in module.body:
-        if isinstance(node, ast.Assign):
-            for target in node.targets:
-                if isinstance(target, ast.Name) and target.id == "__version__":
-                    return ast.literal_eval(node.value)
-    raise RuntimeError("nmrglue.__version__ was not found")
+    try:
+        from setuptools_scm import get_version
+    except ModuleNotFoundError as exc:
+        raise RuntimeError("setuptools_scm is required to check source version") from exc
+
+    return get_version(root=source_root)
 
 
 def metadata_value(metadata: str, field: str) -> str:
@@ -44,15 +42,14 @@ def check_source(source_root: Path, expected_version: str | None) -> str:
     if project["dynamic"] != ["version"]:
         raise RuntimeError("project version must remain dynamic")
 
-    dynamic = tomllib.loads((source_root / "pyproject.toml").read_text())["tool"][
-        "setuptools"
-    ]["dynamic"]
-    if dynamic["version"] != {"attr": "nmrglue.__version__"}:
-        raise RuntimeError("dynamic version must come from nmrglue.__version__")
+    if "setuptools_scm" not in tomllib.loads(
+        (source_root / "pyproject.toml").read_text()
+    )["tool"]:
+        raise RuntimeError("dynamic version must come from setuptools_scm")
 
     changelog = (source_root / "CHANGELOG.md").read_text()
     headings = [match.group("version") for match in RELEASE_HEADING.finditer(changelog)]
-    if version not in headings:
+    if ".dev" not in version and version not in headings:
         raise RuntimeError(f"CHANGELOG.md has no dated heading for {version}")
 
     ref_type = os.environ.get("GITHUB_REF_TYPE")
