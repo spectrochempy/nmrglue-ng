@@ -6,4 +6,4 @@ build:
     python: "3.12"
   commands:
     - python -m pip install -e '.[docs]'
-    - make -C doc html-all BUILDDIR="$READTHEDOCS_OUTPUT" SPHINXOPTS="-W"
+    - make -C doc html-rtd BUILDDIR="$READTHEDOCS_OUTPUT" SPHINXOPTS="-W"

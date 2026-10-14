@@ -113,6 +113,10 @@ html_theme_options = {
     ],
 }
 
+html_context = {
+    'rtd_layout': os.environ.get('READTHEDOCS') == 'True',
+}
+
 # Add any paths that contain custom themes here, relative to this directory.
 #html_theme_path = []
 

@@ -50,6 +50,7 @@ test = [
 
 [project.urls]
 Homepage = "https://github.com/spectrochempy/nmrglue-ng"
+Documentation = "https://nmrglue-ng.readthedocs.io/en/stable/"
 Repository = "https://github.com/spectrochempy/nmrglue-ng"
 Issues = "https://github.com/spectrochempy/nmrglue-ng/issues"
 

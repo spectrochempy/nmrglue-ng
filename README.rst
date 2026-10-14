@@ -12,6 +12,12 @@ The project aims to preserve the simplicity, scientific capabilities, and establ
 
    ``nmrglue-ng`` is an independent project. It is not the official nmrglue distribution and is not maintained or endorsed by the maintainers of the original project.
 
+Documentation
+=============
+
+The stable documentation is available on Read the Docs:
+`nmrglue-ng.readthedocs.io/en/stable/ <https://nmrglue-ng.readthedocs.io/en/stable/>`_.
+
 Why nmrglue-ng?
 ===============
 

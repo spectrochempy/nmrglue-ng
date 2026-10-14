@@ -12,7 +12,7 @@ PAPEROPT_a4     = -D latex_paper_size=a4
 PAPEROPT_letter = -D latex_paper_size=letter
 ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source
 
-.PHONY: help clean html html-fast html-fr html-all html-language gettext dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub latex latexpdf text man changes linkcheck doctest
+.PHONY: help clean html html-fast html-fr html-all html-rtd html-rtd-en html-rtd-fr html-language gettext dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub latex latexpdf text man changes linkcheck doctest
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
@@ -20,6 +20,7 @@ help:
 	@echo "  html-fast  to make English HTML without API reference (build/html/en/)"
 	@echo "  html-fr    to make French HTML with API reference (build/html/fr/)"
 	@echo "  html-all   to make all languages + root redirect (build/html/)"
+	@echo "  html-rtd   to make RTD HTML with English at root + French in fr/"
 	@echo "  dirhtml    to make HTML files named index.html in directories"
 	@echo "  singlehtml to make a single large HTML file"
 	@echo "  pickle     to make pickle files"
@@ -54,10 +55,24 @@ html-fr:
 	@echo
 	@echo "French build finished. The HTML pages are in $(BUILDDIR)/html/fr."
 
-html-all: html-fast html-fr
+html-all: html html-fr
 	@printf '%b' '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<meta http-equiv="refresh" content="0; url=en/">\n<title>nmrglue-ng</title>\n</head>\n<body>\n<p><a href="en/">English</a> | <a href="fr/">Francais</a></p>\n</body>\n</html>\n' > $(BUILDDIR)/html/index.html
 	@echo
 	@echo "All language builds finished. Open $(BUILDDIR)/html/index.html"
+
+html-rtd: html-rtd-en html-rtd-fr
+	@echo
+	@echo "Read the Docs build finished. Open $(BUILDDIR)/html/index.html"
+
+html-rtd-en:
+	$(SPHINXBUILD) -b html -D nb_execution_mode=cache -D nb_execution_raise_on_error=1 -d $(BUILDDIR)/doctrees-rtd-en $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source $(BUILDDIR)/html
+	@echo
+	@echo "RTD English build finished. The HTML pages are in $(BUILDDIR)/html."
+
+html-rtd-fr:
+	$(SPHINXBUILD) -b html -D language=fr -D nb_execution_mode=cache -D nb_execution_raise_on_error=1 -d $(BUILDDIR)/doctrees-rtd-fr $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source $(BUILDDIR)/html/fr
+	@echo
+	@echo "RTD French build finished. The HTML pages are in $(BUILDDIR)/html/fr."
 
 gettext:
 	$(SPHINXBUILD) -b gettext $(ALLSPHINXOPTS) $(BUILDDIR)/gettext
