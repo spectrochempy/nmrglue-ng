@@ -1,0 +1,91 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: nmrglue-ng 1.0.0\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Glossary"
+msgstr "Glossaire"
+
+msgid "This glossary defines terms used throughout the tutorials. Format-specific parameter names and operation mappings are documented separately when an authoritative manual and implementation evidence are available."
+msgstr "Ce glossaire définit les termes utilisés dans les tutoriels. Les noms de paramètres propres à un format et les correspondances d'opérations sont documentés séparément lorsqu'un manuel faisant autorité et des preuves d'implémentation sont disponibles."
+
+msgid "NMR data and dimensions"
+msgstr "Données RMN et dimensions"
+
+msgid "direct dimension"
+msgstr "dimension directe"
+
+msgid "The dimension sampled during acquisition of one FID. In the usual NumPy array ordering, it is the last axis and therefore the final dimension in nmrglue's universal dictionary."
+msgstr "La dimension échantillonnée pendant l'acquisition d'un FID. Dans l'ordre habituel des tableaux NumPy, c'est le dernier axe et donc la dernière dimension dans le dictionnaire universel de nmrglue."
+
+msgid "FID"
+msgstr "FID"
+
+msgid "Free induction decay: time-domain signal measured after excitation."
+msgstr "Free induction decay : signal temporel mesuré après excitation."
+
+msgid "indirect dimension"
+msgstr "dimension indirecte"
+
+msgid "A dimension incremented between FIDs. In 2D array data this is normally the first axis."
+msgstr "Une dimension incrémentée entre les FID. Dans les données de tableau 2D, il s'agit normalement du premier axe."
+
+msgid "quadrature"
+msgstr "quadrature"
+
+msgid "The encoding of phase-sensitive information in real and imaginary components. Acquisition and indirect-dimension modes determine how the data are represented."
+msgstr "L'encodage de l'information sensible à la phase dans les composantes réelle et imaginaire. Les modes d'acquisition et de dimension indirecte déterminent la représentation des données."
+
+msgid "spectrum"
+msgstr "spectre"
+
+msgid "Data represented in the frequency domain, commonly after Fourier transformation of an FID."
+msgstr "Données représentées dans le domaine fréquentiel, généralement après transformation de Fourier d'un FID."
+
+msgid "Axes and universal dictionary"
+msgstr "Axes et dictionnaire universel"
+
+msgid "carrier frequency (car)"
+msgstr "fréquence porteuse (car)"
+
+msgid "Reference position for the axis, in hertz, used together with ``sw``, ``obs``, and ``size`` to construct a unit-conversion axis."
+msgstr "Position de référence de l'axe, en hertz, utilisée avec ``sw``, ``obs`` et ``size`` pour construire un axe de conversion d'unités."
+
+msgid "observation frequency (obs)"
+msgstr "fréquence d'observation (obs)"
+
+msgid "Nucleus observation frequency in megahertz. It converts between ppm and hertz: a chemical-shift difference of 1 ppm corresponds to ``obs`` Hz."
+msgstr "Fréquence d'observation du noyau en mégahertz. Elle convertit entre ppm et hertz : une différence de déplacement chimique de 1 ppm correspond à ``obs`` Hz."
+
+msgid "size"
+msgstr "size"
+
+msgid "Number of values along one array axis. In nmrglue this is taken from the returned data array's shape."
+msgstr "Nombre de valeurs le long d'un axe du tableau. Dans nmrglue, il est déduit de la forme du tableau de données retourné."
+
+msgid "spectral width (sw)"
+msgstr "largeur spectrale (sw)"
+
+msgid "Width of an axis in hertz in the universal dictionary. Its conversion from vendor parameters depends on the format, dimension, and whether the input represents acquired or processed data."
+msgstr "Largeur d'un axe en hertz dans le dictionnaire universel. Sa conversion depuis les paramètres fournisseur dépend du format, de la dimension et du fait que l'entrée représente des données acquises ou traitées."
+
+msgid "unit-conversion object"
+msgstr "objet de conversion d'unités"
+
+msgid "An nmrglue object created from axis metadata that converts between array points, hertz, ppm, and other supported coordinate units."
+msgstr "Un objet nmrglue créé à partir des métadonnées d'axe, qui convertit entre points de tableau, hertz, ppm et autres unités de coordonnées prises en charge."
+
+msgid "universal dictionary (udic)"
+msgstr "dictionnaire universel (udic)"
+
+msgid "A format-independent description of the data dimensions and their core spectral parameters. ``udic[dim]`` describes the corresponding NumPy axis; dimension 0 is the first array axis and the final dimension is normally the direct dimension."
+msgstr "Une description indépendante du format des dimensions des données et de leurs paramètres spectraux essentiels. ``udic[dim]`` décrit l'axe NumPy correspondant ; la dimension 0 est le premier axe du tableau et la dernière dimension est normalement la dimension directe."
+
+msgid "Related Python array and numerical APIs include :external+numpy:py:class:`numpy.ndarray`, :external+numpy:py:func:`numpy.fft.fft`, :external+scipy:py:mod:`scipy.fft`, and :external+matplotlib:py:mod:`matplotlib.pyplot`."
+msgstr "Les API Python de tableaux et de calcul numérique associées incluent :external+numpy:py:class:`numpy.ndarray`, :external+numpy:py:func:`numpy.fft.fft`, :external+scipy:py:mod:`scipy.fft` et :external+matplotlib:py:mod:`matplotlib.pyplot`."
+
+msgid "Format-specific pages"
+msgstr "Pages propres aux formats"

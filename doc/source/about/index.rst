@@ -25,17 +25,8 @@ Project goals
   claims.
 - Modernize documentation incrementally while preserving historical attribution.
 
-Development notes
------------------
-
-The legacy development guide below documents the historical upstream project
-and is retained for reference. For current nmrglue-ng contribution procedures,
-see the `nmrglue-ng contributor guide
-<https://github.com/spectrochempy/nmrglue-ng/blob/master/CONTRIBUTING.md>`_.
-
 .. toctree::
     :maxdepth: 2
 
     contributors
     data-credits
-    ../devel/index

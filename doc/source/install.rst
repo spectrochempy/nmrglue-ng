@@ -137,8 +137,8 @@ Run commands through that environment, for example:
     uv run python -c "import nmrglue as ng; print(ng.__version__)"
     uv run pytest
 
-See the :ref:`development-guide` for the complete contributor workflow and the
-documentation-specific dependencies.
+See the :doc:`contributor guide <contribute/guide>` for the current contributor
+workflow and documentation-specific dependencies.
 
 Use in Google Colab
 -------------------

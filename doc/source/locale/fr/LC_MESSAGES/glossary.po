@@ -1,0 +1,19 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: nmrglue-ng 1.0.0\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Glossary"
+msgstr "Glossaire"
+
+msgid "The glossary has been reorganized into a vendor-neutral general glossary and separate format-specific pages. Continue to:"
+msgstr "Le glossaire a été réorganisé en un glossaire général neutre vis-à-vis des fournisseurs et en pages séparées propres aux formats. Continuez vers :"
+
+msgid ":doc:`General NMR glossary <glossary/index>`"
+msgstr ":doc:`Glossaire RMN général <glossary/index>`"
+
+msgid ":doc:`Bruker TopSpin parameter mapping <glossary/topspin>`"
+msgstr ":doc:`Correspondance des paramètres Bruker TopSpin <glossary/topspin>`"

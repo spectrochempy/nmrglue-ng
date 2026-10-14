@@ -1,0 +1,133 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: nmrglue-ng 1.0.0\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Installation"
+msgstr "Installation"
+
+msgid "Package names"
+msgstr "Noms des paquets"
+
+msgid "Install the distribution named ``nmrglue-ng``. Import it in Python as ``nmrglue``:"
+msgstr "Installez la distribution nommée ``nmrglue-ng``. Importez-la en Python sous le nom ``nmrglue`` :"
+
+msgid "The distinct distribution name identifies this independent continuation while the unchanged import preserves compatibility with existing nmrglue scripts. Do not install the historical ``nmrglue`` distribution when you intend to use ``nmrglue-ng``."
+msgstr "Le nom de distribution distinct identifie cette continuation indépendante, tandis que l'import inchangé préserve la compatibilité avec les scripts nmrglue existants. N'installez pas la distribution historique ``nmrglue`` si vous voulez utiliser ``nmrglue-ng``."
+
+msgid "Requirements"
+msgstr "Prérequis"
+
+msgid "The package supports Python 3.10 and newer. Its required runtime dependencies are installed automatically:"
+msgstr "Le paquet prend en charge Python 3.10 et les versions plus récentes. Ses dépendances d'exécution obligatoires sont installées automatiquement :"
+
+msgid "Dependency"
+msgstr "Dépendance"
+
+msgid "Supported version"
+msgstr "Version prise en charge"
+
+msgid "3.10 or newer"
+msgstr "3.10 ou plus récent"
+
+msgid "1.21.2 or newer"
+msgstr "1.21.2 ou plus récent"
+
+msgid "1.7.2 or newer"
+msgstr "1.7.2 ou plus récent"
+
+msgid "Matplotlib and JupyterLab are optional. Install them when you want to run the plotting tutorials and notebooks."
+msgstr "Matplotlib et JupyterLab sont optionnels. Installez-les si vous voulez exécuter les tutoriels de tracé et les notebooks."
+
+msgid "Install with uv"
+msgstr "Installer avec uv"
+
+msgid "`uv <https://docs.astral.sh/uv/>`_ is the recommended option for a new project. It manages the environment, Python version, dependencies, and lock file together."
+msgstr "`uv <https://docs.astral.sh/uv/>`_ est l'option recommandée pour un nouveau projet. Il gère ensemble l'environnement, la version de Python, les dépendances et le fichier de verrouillage."
+
+msgid "``uv`` is not included with Python. If it is not already installed, follow the `official installation instructions <https://docs.astral.sh/uv/getting-started/installation/>`_. Confirm the installation before continuing:"
+msgstr "``uv`` n'est pas inclus avec Python. S'il n'est pas déjà installé, suivez les `instructions officielles d'installation <https://docs.astral.sh/uv/getting-started/installation/>`_. Vérifiez l'installation avant de continuer :"
+
+msgid "In a new working directory, run:"
+msgstr "Dans un nouveau répertoire de travail, exécutez :"
+
+msgid "Use ``uv run`` for commands that should run in this environment:"
+msgstr "Utilisez ``uv run`` pour les commandes qui doivent s'exécuter dans cet environnement :"
+
+msgid "For the tutorials, add the optional interactive tools to the same project:"
+msgstr "Pour les tutoriels, ajoutez les outils interactifs optionnels au même projet :"
+
+msgid "If you already have a uv project, only ``uv add nmrglue-ng`` is needed."
+msgstr "Si vous avez déjà un projet uv, seul ``uv add nmrglue-ng`` est nécessaire."
+
+msgid "Install with pip"
+msgstr "Installer avec pip"
+
+msgid "Create a virtual environment before installing with ``pip``:"
+msgstr "Créez un environnement virtuel avant d'installer avec ``pip`` :"
+
+msgid "macOS and Linux"
+msgstr "macOS et Linux"
+
+msgid "Windows PowerShell"
+msgstr "Windows PowerShell"
+
+msgid "Verify which package and interpreter are active:"
+msgstr "Vérifiez quel paquet et quel interpréteur sont actifs :"
+
+msgid "Upgrade an existing installation"
+msgstr "Mettre à jour une installation existante"
+
+msgid "In a uv project, update the locked dependency with:"
+msgstr "Dans un projet uv, mettez à jour la dépendance verrouillée avec :"
+
+msgid "For a ``pip`` environment, run:"
+msgstr "Pour un environnement ``pip``, exécutez :"
+
+msgid "Install from a source checkout"
+msgstr "Installer depuis une copie source"
+
+msgid "Installing a checkout is intended for contributors and for testing unreleased changes. Clone the repository, then create the development environment:"
+msgstr "L'installation depuis une copie source est destinée aux contributeurs et au test de changements non publiés. Clonez le dépôt, puis créez l'environnement de développement :"
+
+msgid "Run commands through that environment, for example:"
+msgstr "Exécutez les commandes dans cet environnement, par exemple :"
+
+msgid "See the :doc:`contributor guide <contribute/guide>` for the current contributor workflow and documentation-specific dependencies."
+msgstr "Consultez le :doc:`guide contributeur <contribute/guide>` pour le workflow contributeur actuel et les dépendances propres à la documentation."
+
+msgid "Use in Google Colab"
+msgstr "Utiliser dans Google Colab"
+
+msgid "Install the stable PyPI release in a Colab code cell:"
+msgstr "Installez la version PyPI stable dans une cellule de code Colab :"
+
+msgid "To use the latest development version, install directly from the repository's ``master`` branch in a Colab cell:"
+msgstr "Pour utiliser la dernière version de développement, installez directement depuis la branche ``master`` du dépôt dans une cellule Colab :"
+
+msgid "For reproducible work, replace ``master`` with a tag or specific commit."
+msgstr "Pour un travail reproductible, remplacez ``master`` par un tag ou un commit précis."
+
+msgid "To test uncommitted changes from a local checkout, build a wheel locally:"
+msgstr "Pour tester des changements non commités depuis une copie locale, construisez une roue localement :"
+
+msgid "Upload the resulting ``dist/nmrglue_ng-*.whl`` file to the Colab runtime:"
+msgstr "Téléversez le fichier ``dist/nmrglue_ng-*.whl`` obtenu vers l'environnement d'exécution Colab :"
+
+msgid "Then install the uploaded wheel:"
+msgstr "Installez ensuite la roue téléversée :"
+
+msgid "Verify that the expected package is imported:"
+msgstr "Vérifiez que le paquet attendu est importé :"
+
+msgid "To run the :doc:`getting-started/index` notebook, also upload its downloadable synthetic NMRPipe fixture to the runtime so it is beside the notebook file."
+msgstr "Pour exécuter le notebook :doc:`getting-started/index`, téléversez aussi son fixture NMRPipe synthétique téléchargeable dans l'environnement d'exécution afin qu'il se trouve à côté du fichier notebook."
+
+msgid "Next step"
+msgstr "Étape suivante"
+
+msgid "Continue to :doc:`tutorials/index` to begin the tutorial path."
+msgstr "Continuez vers :doc:`tutorials/index` pour commencer le parcours de tutoriels."
