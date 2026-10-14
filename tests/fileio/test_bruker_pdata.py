@@ -363,6 +363,62 @@ class TestBrukerProcessedSubmatrix:
         assert submatrix == (512, 2048)
 
 
+class TestBrukerProcessingFileFamilies:
+    """Status (`procs`/`procNs`) and singular (`proc`/`procN`) files are distinct.
+
+    The status files are written by the processing engine and carry the
+    applied `NC_proc`/`XDIM`; the singular files are written by the TopSpin
+    parameter editor and may hold editor-only parameters (`ABSF1`/`ABSF2`)
+    and stale `NC_proc`/`XDIM`. Only the status files drive the default
+    scaling, shape and axis; the singular files are available through explicit
+    `procs_files` selection. See
+    maintainer/reports/2026-10-bruker-processing-file-selection.md. These tests
+    verify the current behavior and do not change default discovery.
+    """
+
+    def test_default_reads_status_files_only_1d(self):
+        """1D default read uses only the status `procs` file."""
+        pdic, _ = ng.bruker.read_pdata(PDATA_DIR)
+        assert "procs" in pdic
+        assert "proc" not in pdic
+        assert pdic["procs"]["NC_proc"] == 13
+
+    def test_default_reads_status_files_only_2d(self):
+        """2D default read uses status files and ignores the singular `proc2`."""
+        pdic, _ = ng.bruker.read_pdata(HSQC_PDATA_DIR)
+        assert "procs" in pdic
+        assert "proc2s" in pdic
+        assert "proc2" not in pdic
+        assert pdic["proc2s"]["XDIM"] == 256
+
+    def test_explicit_selection_exposes_singular_1d(self):
+        """Passing `proc` alongside `procs` exposes the editor parameters."""
+        pdic, _ = ng.bruker.read_pdata(PDATA_DIR, procs_files=["proc", "procs"])
+        assert pdic["proc"]["ABSF1"] == 10
+        assert pdic["procs"]["ABSF1"] == 15.11424
+        assert pdic["proc"]["NC_proc"] == 0
+        assert pdic["procs"]["NC_proc"] == 13
+
+    def test_explicit_selection_exposes_singular_2d(self):
+        """Passing `proc2` alongside the status files exposes it unchanged."""
+        pdic, _ = ng.bruker.read_pdata(
+            HSQC_PDATA_DIR, procs_files=["proc2", "procs", "proc2s"])
+        assert pdic["proc2"]["NC_proc"] == 0
+        assert pdic["proc2"]["XDIM"] == 0
+        assert pdic["proc2s"]["NC_proc"] == -12
+        assert pdic["proc2s"]["XDIM"] == 256
+
+    def test_singular_file_does_not_change_scaling_or_shape(self):
+        """Adding the singular file leaves scaling, shape and axis unchanged."""
+        default, ddata = ng.bruker.read_pdata(PDATA_DIR)
+        explicit, edata = ng.bruker.read_pdata(
+            PDATA_DIR, procs_files=["proc", "procs"])
+        assert edata.shape == ddata.shape
+        assert_array_equal(edata, ddata)
+        assert (ng.bruker.guess_udic(explicit, edata)
+                == ng.bruker.guess_udic(default, ddata))
+
+
 # Capability tests that replace the historical external pdata datasets
 # (`data/bruker_1d/pdata/1`, `data/bruker_2d/pdata/1`) with the versioned CC0
 # fixtures. They are module-level so that their ids match the contract ids

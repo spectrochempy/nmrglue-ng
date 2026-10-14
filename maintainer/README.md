@@ -20,6 +20,7 @@ user documentation belongs in `doc/`, contributor instructions in
 | [NMRPipe EXT extraction](reports/2026-10-pipe-proc-ext.md) | Indirect extraction metadata correction, evidence and review status. |
 | [Single test-tree plan](reports/2026-10-test-layout-plan.md) | Complete relocation mapping, collection parity, fixture integrity and functional wheel/sdist validation proposal. |
 | [GitHub Actions storage](reports/2026-10-actions-storage.md) | Actions artifact and cache audit; decision to stop retaining built distributions as workflow artifacts. |
+| [Bruker processing-file selection](reports/2026-10-bruker-processing-file-selection.md) | `proc`/`procNs` versus `procs`/`proc2s` roles, real-file evidence and the decision to keep the status-file default. |
 | [External-data manifest](testdata-manifest.toml) | Machine-readable inventory, sizes, hashes and rights evidence; managed by the corpus scripts. |
 | [Test-data policy](testdata-policy.md) | Accepted local validation sources, per-group redistribution decisions and release evidence requirements. |
 
