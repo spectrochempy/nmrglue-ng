@@ -6,6 +6,7 @@
 *.*~
 
 # Documentation intermediates
+doc/source/_generated
 doc/source/reference/generated
 doc/source/locale/**/LC_MESSAGES/**/*.mo
 doc/build

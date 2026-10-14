@@ -14,6 +14,8 @@ original nmrglue project and are preserved for attribution and continuity.
 - Derive package versions from Git tags with `setuptools_scm`, and show `dev`
   instead of the full development version in the latest documentation header.
 - Point the package homepage metadata to the stable Read the Docs site.
+- Add a documentation `What's new` page generated from the current changelog
+  cycle.
 
 ## 1.0.1 - 2026-10-14
 

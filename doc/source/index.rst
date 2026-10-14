@@ -150,8 +150,11 @@
     :maxdepth: 2
 
     getting-started/index
+    whats-new
     tutorials/index
     how-to/index
+    jbnmr_examples/index
     reference/index
+    glossary/index
     contribute/index
     about/index
