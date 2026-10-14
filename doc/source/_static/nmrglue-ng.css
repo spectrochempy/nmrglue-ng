@@ -672,3 +672,6 @@ html[lang="fr"] .ng-home-en {
 html[lang="fr"] .ng-home-fr {
   display: block;
 }
+.navbar-nav a.nav-link[href$="whats-new.html"] {
+  display: none;
+}
