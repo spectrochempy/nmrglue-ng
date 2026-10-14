@@ -12,7 +12,7 @@ Install the stable release with::
 
     python -m pip install nmrglue-ng
 
-Conda packages are planned after the stable 1.0.0 release.
+Conda packages are not currently available.
 
 Requirements
 ------------

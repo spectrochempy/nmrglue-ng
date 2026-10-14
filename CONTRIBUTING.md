@@ -178,9 +178,9 @@ build release-candidate or final-release files for review:
 
 This workflow intentionally has only read permissions. It does not create tags,
 GitHub releases, PyPI/TestPyPI uploads, workflow artifacts, or any other
-publication. PyPI publication for `nmrglue-ng` is deferred until a separately
-authorized final `1.0.0` release workflow with credentials or trusted publishing
-is configured.
+publication. PyPI releases use the separate manual `publish PyPI` workflow with
+Trusted Publishing. That workflow is an explicit maintainer action for an
+existing release tag; it is not part of the dry run or an ordinary pull request.
 
 ### Pre-commit
 
