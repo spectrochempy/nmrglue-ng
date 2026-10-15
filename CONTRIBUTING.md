@@ -123,9 +123,8 @@ preserved. New check requirements must be configured separately in repository
 branch protection after their first successful runs.
 
 All pytest invocations use strict marker/configuration validation and `-ra` to
-report skips. JUnit reports are retained for seven days, including after test
-failures. The packaging job builds and validates distributions but retains only
-its JUnit reports, not the built files. Reports can be absent if installation or
+report skips. JUnit reports are generated for in-job validation but are not
+retained after the job finishes. Reports can be absent if installation or
 collection fails before they are produced. These profiles do not validate the
 external corpus or NMRPipe executable comparisons.
 
