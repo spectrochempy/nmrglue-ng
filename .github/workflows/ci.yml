@@ -48,15 +48,6 @@ jobs:
         python -m pytest -m "not dataset and not external_software"
         --strict-markers --strict-config -ra
         --junitxml="${{ runner.temp }}/autonomous.xml"
-    - name: Retain test report
-      if: always()
-      uses: actions/upload-artifact@v7
-      with:
-        name: autonomous-${{ matrix.os }}-py${{ matrix.python-version }}
-        path: ${{ runner.temp }}/autonomous.xml
-        retention-days: 7
-        if-no-files-found: warn
-
   csdm:
     name: CSDM conversion (3.13)
     runs-on: ubuntu-latest
@@ -79,15 +70,6 @@ jobs:
         --junitxml="${{ runner.temp }}/csdm.xml"
     - name: Require executed CSDM tests
       run: python .github/scripts/check_test_report.py "${{ runner.temp }}/csdm.xml" 3
-    - name: Retain test report
-      if: always()
-      uses: actions/upload-artifact@v7
-      with:
-        name: csdm-py3.13
-        path: ${{ runner.temp }}/csdm.xml
-        retention-days: 7
-        if-no-files-found: warn
-
   packaging:
     name: Installed wheel (3.13)
     runs-on: ubuntu-latest
@@ -127,17 +109,6 @@ jobs:
         "${{ runner.temp }}/wheel.xml"
     - name: Require executed packaged tests
       run: python .github/scripts/check_test_report.py "${{ runner.temp }}/wheel.xml" 65
-    - name: Retain packaging test reports
-      if: always()
-      uses: actions/upload-artifact@v7
-      with:
-        name: packaging-reports-py3.13
-        path: |
-          ${{ runner.temp }}/wheel.xml
-          ${{ runner.temp }}/sdist.xml
-        retention-days: 7
-        if-no-files-found: warn
-
   quality:
     name: Pre-commit (3.13)
     runs-on: ubuntu-latest
