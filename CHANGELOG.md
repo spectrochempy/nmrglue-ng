@@ -13,7 +13,7 @@ original nmrglue project and are preserved for attribution and continuity.
   installation workflow and an explicit constraint against co-installing the
   historical `nmrglue` distribution. (#117)
 - Add scoped Codespell validation to pre-commit while excluding historical
-  examples, documentation and scientific fixtures. (PR number pending)
+  examples, documentation and scientific fixtures. (#118)
 
 ## 1.1.0 - 2026-10-16
 
