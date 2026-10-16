@@ -7,6 +7,12 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+### Added
+
+- Add noarch Conda packaging for the `spectrocat` channel, including an
+  installation workflow and an explicit constraint against co-installing the
+  historical `nmrglue` distribution. (#117)
+
 ## 1.1.0 - 2026-10-16
 
 ### Added
