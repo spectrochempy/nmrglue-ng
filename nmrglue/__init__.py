@@ -2,6 +2,7 @@ from .fileio import *
 from .process import *
 from .util import *
 from .analysis import *
+from . import interop as interop
 
 try:
     from setuptools_scm import get_version
