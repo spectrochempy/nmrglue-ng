@@ -469,9 +469,11 @@ to one entry, reference each of them. A purely internal change may instead state
 ## Relationship With Upstream nmrglue
 
 The historical upstream project remains
-[`jjhelmus/nmrglue`](https://github.com/jjhelmus/nmrglue). A generic fix made
-for `nmrglue-ng` may also be suitable for upstream, but contributing here does
-not automatically create or authorize an upstream contribution.
+[`jjhelmus/nmrglue`](https://github.com/jjhelmus/nmrglue); `nmrglue-ng`
+continues it rather than replacing it, and does not seek to compete with it. A
+generic fix made for `nmrglue-ng` may also be suitable for upstream, but
+contributing here does not automatically create or authorize an upstream
+contribution.
 
 When work is shared or adapted between the projects, preserve authorship,
 reference the original issue or pull request, and explain substantial changes.
