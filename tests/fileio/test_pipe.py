@@ -191,7 +191,7 @@ def test_1d_freq():
 
 
 def test_1d_ext():
-    """ read/write of 1D NMRPipe file with an EXTacted region. """
+    """ read/write of 1D NMRPipe file with an extracted region. """
     dic, data = ng.pipe.read(NMRPIPE_1D_EXT)
     assert data.shape == (8, )
     assert data.dtype == 'float32'

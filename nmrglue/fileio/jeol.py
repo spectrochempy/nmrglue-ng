@@ -25,7 +25,7 @@ def read(fname):
     Returns
     -------
     dict, np.ndarray
-        A dictionary with data informations, parameters, and an array of
+        A dictionary with data information, parameters, and an array of
         NMR data
 
     """

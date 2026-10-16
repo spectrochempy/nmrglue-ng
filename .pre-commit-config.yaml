@@ -54,3 +54,17 @@ repos:
             ^tests/fixtures/fileio/data/|
             ^tests/fixtures/process/pipe_proc_tests/
           )
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.4.1
+    hooks:
+      - id: codespell
+        args: [--config, .codespellrc]
+        exclude: |
+          (?x)(
+            ^examples/|
+            ^doc/|
+            ^tests/fixtures/fileio/data/|
+            ^tests/fixtures/fileio/bruker_test_data/|
+            ^tests/fixtures/process/pipe_proc_tests/|
+            \.(fid|ft2|ft3|ft4|ser|acqus|procs|jdf|ucsf|par|sec|1r|2r|in|com|tab|png|zip|txt|dat|jdx)$
+          )

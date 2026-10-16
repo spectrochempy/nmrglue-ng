@@ -1647,7 +1647,7 @@ def read_binary(filename, shape=(1), cplex=True, big=True, isfloat=False, estima
             data = data.reshape(-1, shape[-1])
             if estimated_dims and (estimated_dims > 2):
                 warn(
-                    "Data is inconsistent with acquistion parameters. "
+                    "Data is inconsistent with acquisition parameters. "
                     "This usually happens with partially acquired datasets with dims >2. "
                     "A 2D dataset will be returned. This will requires further reshaping before processing."
                 )
@@ -2342,7 +2342,7 @@ def parse_jcamp_file(f,dic):
     """
     Parse a Bruker JCAMP-DX file into the given dictionary.
 
-    The dictionary shoul contain the keys _coreheader and _comments intialized
+    The dictionary should contain the keys _coreheader and _comments initialized
     with empty lists. Bruker parameter "$FOO" are extracted into strings,
     floats or lists and assigned to dic["FOO"]
     """
