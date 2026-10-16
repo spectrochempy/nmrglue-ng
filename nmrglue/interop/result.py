@@ -12,9 +12,11 @@ Immutability is part of the contract:
   the top level.  Deep immutability of nested values is not promised.
 
 Diagnostic codes and their ``context`` schemas are declared normatively in
-:data:`DIAGNOSTIC_CONTEXT_SCHEMA`.  Constructing a :class:`Diagnostic` whose
-code is unknown, whose ``context`` is out of schema, or whose severity is not
-``info`` or ``warning`` raises ``ValueError``.
+:data:`DIAGNOSTIC_CONTEXT_SCHEMA`, which fixes the keys and the container
+types.  The elements of those containers are validated too: processing
+parameter names, component names and sizes must be coherent.  Constructing a
+:class:`Diagnostic` whose code is unknown, whose ``context`` is out of schema,
+or whose severity is not ``info`` or ``warning`` raises ``ValueError``.
 """
 
 from __future__ import annotations
@@ -36,6 +38,57 @@ DIAGNOSTIC_CONTEXT_SCHEMA: Mapping[str, Mapping[str, Any]] = {
     "axis.size-mismatch": {"SI": (int, float), "N": int},
     "component.missing": {"expected": tuple, "missing": tuple},
 }
+
+_AXIS_PARAMETER_NAMES = frozenset({"OFFSET", "SF", "SW_p"})
+
+
+def _validate_context_elements(code, context):
+    """Validate the contents of a ``Diagnostic`` context.
+
+    ``DIAGNOSTIC_CONTEXT_SCHEMA`` fixes the keys and the container types; this
+    refines them to the elements the normative schema names, so that a
+    ``context`` cannot carry an incoherent parameter name, component name or
+    size.
+    """
+    if code == "axis.missing-parameter":
+        names = context["missing"]
+        if any(not isinstance(name, str) for name in names):
+            raise ValueError(
+                "diagnostic %r context['missing'] must name processing parameters, "
+                "got %r" % (code, names)
+            )
+        unknown = [name for name in names if name not in _AXIS_PARAMETER_NAMES]
+        if unknown:
+            raise ValueError(
+                "diagnostic %r context['missing'] must name processing parameters "
+                "%s, got %s" % (code, sorted(_AXIS_PARAMETER_NAMES), sorted(unknown))
+            )
+    elif code == "axis.size-mismatch":
+        for key in ("SI", "N"):
+            value = context[key]
+            if isinstance(value, bool) or not isinstance(value, (int, float)):
+                raise ValueError(
+                    "diagnostic %r context[%r] must be a real number, got %r"
+                    % (code, key, value)
+                )
+        if context["N"] <= 0:
+            raise ValueError(
+                "diagnostic %r context['N'] must be positive, got %r"
+                % (code, context["N"])
+            )
+    elif code == "component.missing":
+        for key in ("expected", "missing"):
+            names = context[key]
+            if any(not isinstance(name, str) or not name for name in names):
+                raise ValueError(
+                    "diagnostic %r context[%r] must name non-empty components, "
+                    "got %r" % (code, key, names)
+                )
+        if not set(context["missing"]) <= set(context["expected"]):
+            raise ValueError(
+                "diagnostic %r context['missing'] %r must be a subset of "
+                "'expected' %r" % (code, context["missing"], context["expected"])
+            )
 
 
 def _freeze_array(values: Any) -> np.ndarray:
@@ -115,6 +168,7 @@ class Diagnostic:
                     "diagnostic %r context[%r] must be %r, got %r"
                     % (self.code, key, expected, self.context[key])
                 )
+        _validate_context_elements(self.code, self.context)
         object.__setattr__(self, "context", _readonly(self.context))
 
 

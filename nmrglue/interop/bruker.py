@@ -17,6 +17,11 @@ three processing parameters are present and valid.  The convention (first point
 at ``OFFSET``, bin ``SW_p / SI``) is documented in the Bruker *TopSpin -
 Processing Commands and Parameters* manual (doc H9776SA3_7_007) and is already
 relied on by ``nmrglue.fileio.bruker``.
+
+A present parameter must be numeric and finite, ``SF`` and ``SW_p`` must be
+strictly positive, and the computed axis must stay finite: otherwise a
+``ValueError`` is raised, so the announced equivalence can never silently
+degrade into a non-usable axis.
 """
 
 from __future__ import annotations
@@ -73,9 +78,10 @@ shape, submatrix_shape, all_components, big, isfloat
     ValueError
         For interop-contract violations: no primary ``1r`` component, an
         ``all_components=False`` call whose effective files are not exactly
-        ``["1r"]``, a reader return whose shape cannot be associated with the
-        requested files, a non-1D result, or a present-but-incoherent
-        processing parameter.
+        ``["1r"]``, duplicated component names, a reader return whose shape
+        cannot be associated with the requested files, a non-1D result, or a
+        present-but-incoherent processing parameter (non-numeric, non-finite,
+        ``SF <= 0``, ``SW_p <= 0``, or an axis that would not stay finite).
     """
     if not os.path.isdir(dir):
         raise OSError("directory %s does not exist" % (dir,))
@@ -163,8 +169,18 @@ shape, submatrix_shape, all_components, big, isfloat
 def _resolve_candidates(bin_files, all_components):
     """Return the ordered candidate file names before existence filtering."""
     if bin_files is None:
-        return ["1r", "1i"] if all_components else [_PRIMARY]
-    return list(bin_files)
+        candidates = ["1r", "1i"] if all_components else [_PRIMARY]
+    else:
+        candidates = list(bin_files)
+    seen = []
+    for name in candidates:
+        if name in seen:
+            raise ValueError(
+                "duplicate component name %r in %r is ambiguous for the "
+                "name-to-array mapping" % (name, candidates)
+            )
+        seen.append(name)
+    return candidates
 
 
 def _normalize_components(returned, count):
@@ -225,6 +241,8 @@ def _build_axis(dic, data):
             raise ValueError("incoherent Bruker parameter %s=%r" % (name, value))
     if sw_p is not None and float(sw_p) <= 0.0:
         raise ValueError("incoherent Bruker parameter SW_p=%r (must be > 0)" % (sw_p,))
+    if sf is not None and float(sf) <= 0.0:
+        raise ValueError("incoherent Bruker parameter SF=%r (must be > 0)" % (sf,))
 
     reference = _build_reference(offset, sf)
 
@@ -259,6 +277,11 @@ def _build_axis(dic, data):
     values = float(offset) * float(sf) - np.arange(n, dtype=np.float64) * (
         float(sw_p) / n
     )
+    if not np.isfinite(values).all():
+        raise ValueError(
+            "the processed axis overflows to non-finite values with OFFSET=%r, "
+            "SF=%r, SW_p=%r and N=%d" % (offset, sf, sw_p, n)
+        )
 
     si = procs.get("SI")
     if isinstance(si, (int, float)) and not isinstance(si, bool) and int(si) != n:

@@ -204,6 +204,17 @@ class TestAxis:
         with pytest.raises(ValueError):
             ng.interop.read_bruker_pdata(pdata)
 
+    def test_finite_parameters_but_non_finite_axis_raises(self, tmp_path):
+        pdata = _write_pdata(tmp_path, offset=1e308, sf=1e308, sw_p=1.0)
+        with pytest.raises(ValueError):
+            ng.interop.read_bruker_pdata(pdata)
+
+    @pytest.mark.parametrize("bad_sf", [0.0, -400.0])
+    def test_non_positive_observation_frequency_raises(self, tmp_path, bad_sf):
+        pdata = _write_pdata(tmp_path, sf=bad_sf, sw_p=1.0)
+        with pytest.raises(ValueError):
+            ng.interop.read_bruker_pdata(pdata)
+
 
 class TestComponents:
     def test_default_single_component(self, tmp_path):
@@ -260,6 +271,13 @@ class TestComponents:
             pdata, all_components=False, bin_files=["1r"]
         )
         assert [c.name for c in result.components] == ["1r"]
+
+    def test_duplicate_component_names_rejected(self, tmp_path):
+        pdata = _write_pdata(tmp_path)
+        with pytest.raises(ValueError):
+            ng.interop.read_bruker_pdata(
+                pdata, all_components=True, bin_files=["1r", "1r"]
+            )
 
     def test_primary_absent_raises(self, tmp_path):
         pdata = _write_pdata(tmp_path, {"1i": [10, 20, 30, 40]})
@@ -379,6 +397,51 @@ class TestDiagnostics:
                 severity="warning",
                 message="x",
                 context={"expected": ["1r"], "missing": ()},
+            )
+
+    def test_missing_parameter_names_are_restricted(self):
+        with pytest.raises(ValueError):
+            Diagnostic(
+                code="axis.missing-parameter",
+                severity="warning",
+                message="x",
+                context={"missing": ("SOMETHING",)},
+            )
+
+    def test_component_names_must_be_non_empty_strings(self):
+        with pytest.raises(ValueError):
+            Diagnostic(
+                code="component.missing",
+                severity="warning",
+                message="x",
+                context={"expected": (1,), "missing": ()},
+            )
+
+    def test_missing_components_must_be_a_subset_of_expected(self):
+        with pytest.raises(ValueError):
+            Diagnostic(
+                code="component.missing",
+                severity="warning",
+                message="x",
+                context={"expected": ("1r",), "missing": ("1i",)},
+            )
+
+    def test_size_mismatch_must_not_use_a_bool(self):
+        with pytest.raises(ValueError):
+            Diagnostic(
+                code="axis.size-mismatch",
+                severity="warning",
+                message="x",
+                context={"SI": True, "N": 2},
+            )
+
+    def test_size_mismatch_n_must_be_positive(self):
+        with pytest.raises(ValueError):
+            Diagnostic(
+                code="axis.size-mismatch",
+                severity="warning",
+                message="x",
+                context={"SI": 4, "N": 0},
             )
 
 
