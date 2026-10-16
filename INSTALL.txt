@@ -12,7 +12,16 @@ Install the stable release with::
 
     python -m pip install nmrglue-ng
 
-Conda packages are not currently available.
+Installing with Conda
+---------------------
+
+Install the stable release from the ``spectrocat`` channel with::
+
+    mamba install -c spectrocat -c conda-forge nmrglue-ng
+
+Do not install ``nmrglue`` and ``nmrglue-ng`` in the same environment: both
+distributions provide the ``nmrglue`` Python package. Use separate environments
+when both distributions are needed.
 
 Requirements
 ------------

@@ -16,6 +16,10 @@ the unchanged import preserves compatibility with existing nmrglue scripts.
 Do not install the historical ``nmrglue`` distribution when you intend to use
 ``nmrglue-ng``.
 
+The distributions must not be installed together in one environment because
+both provide the ``nmrglue`` Python package. Use separate environments if you
+need to work with both projects.
+
 Requirements
 ------------
 
@@ -117,6 +121,21 @@ For a ``pip`` environment, run:
 .. code-block:: console
 
     python -m pip install --upgrade nmrglue-ng
+
+Install with Conda
+------------------
+
+Install the stable release from the ``spectrocat`` channel with ``conda-forge``
+for dependencies:
+
+.. code-block:: console
+
+    mamba create -n nmrglue-ng -c spectrocat -c conda-forge nmrglue-ng
+    mamba activate nmrglue-ng
+
+The Conda recipe prevents co-installation with the historical ``nmrglue``
+package. This constraint cannot protect ``pip`` environments; install only one
+of the two distributions in each environment.
 
 Install from a source checkout
 ------------------------------
