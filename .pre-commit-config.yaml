@@ -68,3 +68,11 @@ repos:
             ^tests/fixtures/process/pipe_proc_tests/|
             \.(fid|ft2|ft3|ft4|ser|acqus|procs|jdf|ucsf|par|sec|1r|2r|in|com|tab|png|zip|txt|dat|jdx)$
           )
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.17.1
+    hooks:
+      - id: ruff
+        name: ruff F821 (package)
+        args: [--select, F821]
+        files: ^nmrglue/
+        exclude: ^(nmrglue/fileio/glue\.py|nmrglue/util/xcpy\.py)$
