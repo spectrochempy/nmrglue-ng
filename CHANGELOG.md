@@ -7,6 +7,16 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+### Added
+
+- Add an optional, additive `nmrglue.interop` layer exposing a neutral
+  `ReadResult` built from existing readers. It imports no SpectroChemPy,
+  NDDataset, Pint or CSDM dependency, and the historical `(dic, data)` reader
+  APIs are unchanged. The first supported profile is Bruker/TopSpin processed
+  1D data (`interop.read_bruker_pdata`), with a normative Hz axis
+  (`f[i] = OFFSET * SF - i * (SW_p / N)`), name-to-array components, and
+  schema-validated diagnostics. (#113)
+
 ### Documentation
 
 - Clarify in the README that `nmrglue-ng` continues `nmrglue` rather than

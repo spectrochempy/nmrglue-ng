@@ -60,6 +60,7 @@ packages = [
     "nmrglue",
     "nmrglue.analysis",
     "nmrglue.fileio",
+    "nmrglue.interop",
     "nmrglue.process",
     "nmrglue.process.nmrtxt",
     "nmrglue.util",
