@@ -24,9 +24,9 @@ Instructions
         python -m pip install -e '.[docs]'
 
 3.  Run ``make html-fast`` in this directory for the default build (no API
-    reference), or ``make html-all`` for all languages.
+    reference).
 
-The HTML pages are written to ``build/html/<language>/``.
+The HTML pages are written to ``build/html/``.
 
 Build targets
 -------------
@@ -37,35 +37,21 @@ reference is built only on explicit request (``make html``).
 ========================  ============================================================
 Target                    Output
 ========================  ============================================================
-``make html-fast``        English, no API reference → ``build/html/en/``
-``make html-fr``          French, no API reference → ``build/html/fr/``
-``make html-es``          Spanish, no API reference → ``build/html/es/``
-``make html-all``         All languages + root redirect → ``build/html/``
-``make html``             English with API reference → ``build/html/en/``
-``make gettext``          Extract translation templates → ``build/gettext/``
+``make html-fast``        English, no API reference → ``build/html/``
+``make html``             English with API reference → ``build/html/``
 ========================  ============================================================
 
 The API reference is expensive to build and is not needed for tutorial,
 navigation, or theme work. Use ``make html`` only when API pages and links
 must be verified.
 
-Multilingual builds
--------------------
+English-only documentation
+--------------------------
 
-English is the canonical documentation language. Translation catalogs live in
-``source/locale/<language>/LC_MESSAGES/``. Extract messages with ``make gettext``
-and update catalogs with ``sphinx-intl update -p build/gettext -l fr -l es``.
-
-Build all languages with:
-
-    make html-all
-
-This creates ``build/html/en/``, ``build/html/fr/``, ``build/html/es/``, and a
-root ``build/html/index.html`` redirect. The top-bar language selector links
-between the ``en/``, ``fr/``, and ``es/`` directories.
-
-The API reference remains English-only for now; translate tutorial prose and
-headings, but never translate Python identifiers or code-cell input.
+English is the only documentation language. There is no gettext catalog and no
+language selector; the site is built once, in English, at the version root.
+Translate tutorial prose and headings when rewriting pages, but never translate
+Python identifiers or code-cell input.
 
 MyST-NB execution cache
 ----------------------

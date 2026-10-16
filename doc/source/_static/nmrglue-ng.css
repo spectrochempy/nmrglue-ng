@@ -646,32 +646,6 @@ html[data-theme="dark"] .ng-project .ng-eyebrow { color: #d3f7f2; }
 @media (prefers-reduced-motion: reduce) {
   .ng-home * { transition: none !important; }
 }
-.ng-language-switcher {
-  display: inline-flex;
-  align-items: center;
-  margin-inline: 0.35rem;
-}
-
-.ng-language-switcher select {
-  border: 1px solid var(--pst-color-border);
-  border-radius: 0.35rem;
-  background: var(--pst-color-background);
-  color: var(--pst-color-text-base);
-  font-size: 0.82rem;
-  padding: 0.2rem 0.35rem;
-}
-
-.ng-home-fr {
-  display: none;
-}
-
-html[lang="fr"] .ng-home-en {
-  display: none;
-}
-
-html[lang="fr"] .ng-home-fr {
-  display: block;
-}
 
 #pst-header .navbar-nav a.nav-link[href*="whats-new"],
 #pst-header .navbar-nav a.nav-link[href*="jbnmr_examples"],

@@ -7,20 +7,5 @@
 {% set _ = button_options.pop("type") %}
 {{ render_funcs[button_type](**button_options) }}
 {%- endfor -%}
-<label class="ng-language-switcher">
-  <span class="visually-hidden">Language</span>
-  <select onchange="if (this.value) window.location.href = this.value">
-    {% if rtd_layout %}
-    {% set language_prefix = '../' * (pagename.count('/') + (1 if language == 'fr' else 0)) %}
-    <option value="{{ language_prefix }}{{ pagename }}.html"{% if language == 'en' %} selected{% endif %}>English</option>
-    <option value="{{ language_prefix }}fr/{{ pagename }}.html"{% if language == 'fr' %} selected{% endif %}>Français</option>
-    {% else %}
-    {% set language_prefix = '../' * (pagename.count('/') + 1) %}
-    {% for code, label in [('en', 'English'), ('fr', 'Français')] %}
-    <option value="{{ language_prefix }}{{ code }}/{{ pagename }}.html"{% if code == language %} selected{% endif %}>{{ label }}</option>
-    {% endfor %}
-    {% endif %}
-  </select>
-</label>
 {% include "theme-switcher.html" %}
 </div>

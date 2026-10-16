@@ -41,7 +41,6 @@ docs = [
     "myst-nb",
     "numpydoc",
     "matplotlib",
-    "sphinx-intl",
 ]
 test = [
     "pytest",
