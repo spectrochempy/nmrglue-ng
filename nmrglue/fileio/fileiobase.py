@@ -7,7 +7,6 @@ used by multiple nmrglue.fileio modules.
 import numbers
 import os
 import string
-import sys
 import itertools
 from functools import reduce
 import operator

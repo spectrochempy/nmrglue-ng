@@ -13,7 +13,6 @@ Please inform upstream if you find a bug or to request additional features.
 
 """
 
-import io
 import os
 import struct
 import re

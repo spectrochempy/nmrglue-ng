@@ -11,15 +11,17 @@ import datetime
 import os
 
 try:
-    from StringIO import StringIO
+    from StringIO import StringIO as StringIO
 except ImportError:
-    from io import StringIO
+    from io import StringIO as StringIO
 from warnings import warn
 
 import numpy as np
 
 from . import fileiobase
-from .table import pipe2glue, glue2pipe, guess_pformat
+from .table import pipe2glue as pipe2glue
+from .table import glue2pipe as glue2pipe
+from .table import guess_pformat as guess_pformat
 
 #########################
 # table reading/writing #
