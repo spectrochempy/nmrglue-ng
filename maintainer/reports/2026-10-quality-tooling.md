@@ -1,7 +1,8 @@
 # Quality-tooling baseline
 
 **Date:** 2026-10-16
-**Audited commit:** `10bf7d2` (`DOC: record Conda packaging`)
+**Historical diagnostic baseline:** `10bf7d2` (`DOC: record Conda packaging`)
+**Ruff F821 validation commit:** `4c7a213` (`DOC: record Ruff gate pull request`, PR #120 head)
 **Scope:** Ruff adoption baseline, scoped Codespell introduction and the first
 Ruff F821 gate; no formatter, typing, benchmark, runtime-behavior or public-API
 change was made. Source docstrings were corrected.
