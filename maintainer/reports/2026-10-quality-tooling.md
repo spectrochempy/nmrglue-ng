@@ -4,15 +4,15 @@
 **Historical diagnostic baseline:** `10bf7d2` (`DOC: record Conda packaging`)
 **Ruff F821 validation commit:** `4c7a213` (`DOC: record Ruff gate pull request`, PR #120 head)
 **Scope:** Ruff adoption baseline, scoped Codespell introduction and the first
-Ruff F821 gate; no formatter, typing, benchmark, runtime-behavior or public-API
-change was made. Source docstrings were corrected.
+Ruff F401/F821 gate; no formatter, typing, benchmark, runtime-behavior or
+public-API change was made. Source docstrings were corrected.
 
 ## Evidence
 
 The existing pre-commit configuration provides structural and text-hygiene
 checks. It deliberately excludes historical examples, documentation and data
-fixtures from rewriting hooks. Codespell and the bounded Ruff F821 gate are
-active; broader Ruff rules, typing and benchmarks are not quality gates.
+fixtures from rewriting hooks. Codespell and the bounded Ruff F401/F821 gate
+are active; broader Ruff rules, typing and benchmarks are not quality gates.
 
 The following commands were run locally with Python 3.13.13 and Ruff 0.15.20:
 
@@ -45,7 +45,7 @@ Adding broader Ruff coverage merely with broad exclusions or blanket per-file
 ignores would hide unclassified defects and would not meet the project
 requirement for a minimal, reviewable change.
 
-## Ruff F821 gate
+## Ruff F401/F821 gate
 
 The first Ruff gate runs only `F821` on maintained paths under `nmrglue/`.
 Forty in-scope package files are clean. Two explicit exclusions have distinct
@@ -55,9 +55,17 @@ TopSpin/Jython host, while `nmrglue/fileio/glue.py` is tracked by
 Its public indexing fails earlier with an axis-order contract error, so the
 reported `sX` is not treated as a one-line correction or silently suppressed.
 
-`ruff-pre-commit` v0.17.1 runs `--select F821` for changed package files and
-the existing CI quality job runs it on the complete scoped package tree. The
-combined configuration passed `pre-commit run ruff --all-files` and
+The F401 baseline contained 36 diagnostics: 29 intentional public-module
+re-exports in package `__init__.py` files, four legacy exports from
+`fileio.pipe`, two internally unused imports, and one import in the excluded
+`glue` wrapper. The public and legacy re-exports now use explicit aliases,
+retaining their namespaces; the two internal imports were removed after import
+and focused file-I/O tests. No public function, parameter or scientific
+behavior changed.
+
+`ruff-pre-commit` v0.17.1 runs `--select F401,F821` for changed package files
+and the existing CI quality job runs it on the complete scoped package tree.
+The combined configuration passed `pre-commit run ruff --all-files` and
 `pre-commit run --all-files` with ten hooks.
 
 ## Codespell baseline and scope
@@ -95,6 +103,7 @@ The quality-tooling parent item is divided into independent Beads work:
 - `NMRNG-kb5.15.5`: implement the validated scoped Codespell hook;
 - `NMRNG-kb5.15.6`: implement the bounded Ruff F821 gate;
 - `NMRNG-kb5.15.7`: investigate the excluded `glue_2d` indexing contract;
+- `NMRNG-kb5.15.8`: extend the gate to F401 without changing public re-exports;
 - `NMRNG-kb5.15.3`: assess static typing without annotating the legacy tree
   wholesale;
 - `NMRNG-kb5.15.4`: define a reproducible benchmark policy and first target.

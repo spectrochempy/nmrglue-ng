@@ -1,16 +1,16 @@
-from . import bruker
-from . import convert
-from . import jcampdx
-from . import jeol
-from . import nmrml
-from . import pipe
-from . import rnmrtk
-from . import rs2d
-from . import simpson
-from . import sparky
-from . import spinsolve
-from . import table
-from . import tecmag
-from . import varian
+from . import bruker as bruker
+from . import convert as convert
+from . import jcampdx as jcampdx
+from . import jeol as jeol
+from . import nmrml as nmrml
+from . import pipe as pipe
+from . import rnmrtk as rnmrtk
+from . import rs2d as rs2d
+from . import simpson as simpson
+from . import sparky as sparky
+from . import spinsolve as spinsolve
+from . import table as table
+from . import tecmag as tecmag
+from . import varian as varian
 # replicate varian namespace in agilent
-from . import varian as agilent
+agilent = varian

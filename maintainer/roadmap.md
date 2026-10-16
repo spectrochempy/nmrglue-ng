@@ -235,8 +235,8 @@ when upstream master/PR feedback changes.
   future improvements should be opened as focused post-release beads.
 - [ ] Introduce linting, typing and benchmarks only through separately scoped
   work. The 2026-10-16 [quality-tooling baseline](reports/2026-10-quality-tooling.md)
-  records the active Ruff F821 gate for maintained package code; broader linting
-  and formatting remain deferred until their diagnostics are classified. The
+  records the active Ruff F401/F821 gate for maintained package code; broader
+  linting and formatting remain deferred until their diagnostics are classified. The
   remaining work is `NMRNG-kb5.15.3` (typing), `NMRNG-kb5.15.4` (benchmarks),
   and `NMRNG-kb5.15.7` (the excluded `glue_2d` contract).
 

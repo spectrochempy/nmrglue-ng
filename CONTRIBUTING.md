@@ -186,11 +186,11 @@ existing release tag; it is not part of the dry run or an ordinary pull request.
 The repository uses [pre-commit](https://pre-commit.com) with a minimal,
 incremental configuration in `.pre-commit-config.yaml`. Hooks cover trailing
 whitespace, final newlines, line endings, YAML/TOML syntax, merge conflicts,
-Python AST validation, a large-file guard, Codespell, and Ruff's undefined-name
-rule (`F821`) for maintained package code. Ruff formatting and broader lint
-rules remain deferred to separately scoped work. The F821 hook excludes the
-TopSpin Jython bridge and the `glue` low-memory wrapper while their distinct
-contracts are investigated.
+Python AST validation, a large-file guard, Codespell, and Ruff's unused-import
+and undefined-name rules (`F401`, `F821`) for maintained package code. Ruff
+formatting and broader lint rules remain deferred to separately scoped work.
+The Ruff hook excludes the TopSpin Jython bridge and the `glue` low-memory
+wrapper while their distinct contracts are investigated.
 
 The CI `quality` job runs `pre-commit run --all-files` on Python 3.13. Run the
 same command locally before opening a pull request:
