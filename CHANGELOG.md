@@ -9,6 +9,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ### Documentation
 
+- Make the public documentation English-only: remove the top-bar language
+  selector, the French gettext catalogs and the bilingual build targets, so the
+  site is built once, in English, at the version root. (#115)
 - Clarify in the README that `nmrglue-ng` continues `nmrglue` rather than
   replacing or competing with it, and mirror the continuation stance in
   `CONTRIBUTING.md`. (#114)

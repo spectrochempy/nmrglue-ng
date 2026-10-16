@@ -2,51 +2,7 @@
 
 .. raw:: html
 
-   <main class="ng-home ng-home-fr" lang="fr" aria-labelledby="ng-hero-title-fr">
-     <section class="ng-hero" aria-labelledby="ng-hero-title-fr">
-       <div class="ng-hero-copy">
-         <p class="ng-eyebrow">Données RMN · workflows Python</p>
-         <h1 id="ng-hero-title-fr">nmrglue-ng</h1>
-         <p class="ng-hero-lede">Lire, écrire, convertir, traiter et analyser des données RMN avec les outils Python scientifiques que vous utilisez déjà.</p>
-         <p class="ng-hero-note">Une continuation indépendante de nmrglue, qui conserve l’import familier <code>nmrglue</code> et son API historique.</p>
-         <div class="ng-actions">
-           <a class="ng-button ng-button-primary" href="getting-started/index.html">Commencer <span aria-hidden="true">→</span></a>
-           <a class="ng-button ng-button-secondary" href="tutorials/index.html">Explorer les tutoriels</a>
-         </div>
-       </div>
-       <div class="ng-terminal" aria-label="Exemple d’installation et d’import">
-         <div class="ng-terminal-bar" aria-hidden="true"><span></span><span></span><span></span></div>
-         <pre><span class="ng-prompt">$</span> uv add nmrglue-ng&#10;&#10;<span class="ng-code-keyword">import</span> nmrglue <span class="ng-code-keyword">as</span> ng&#10;dic, data = ng.pipe.read(<span class="ng-code-string">"spectrum.ft2"</span>)</pre>
-       </div>
-     </section>
-     <nav class="ng-quick-nav" aria-label="Raccourcis de documentation">
-       <a href="getting-started/index.html"><span>01</span> Installer</a>
-       <a href="tutorials/index.html"><span>02</span> Apprendre</a>
-       <a href="how-to/index.html"><span>03</span> Guides pratiques</a>
-       <a href="reference/index.html"><span>04</span> Référence API</a>
-     </nav>
-     <section class="ng-section" aria-labelledby="ng-capabilities-title-fr">
-       <div class="ng-section-heading"><p class="ng-eyebrow">Un seul toolkit, des workflows complets</p><h2 id="ng-capabilities-title-fr">Des données RMN au graphique</h2><p>Utilisez les modules séparément ou combinez-les dans des workflows Python reproductibles.</p></div>
-       <div class="ng-feature-grid">
-         <a class="ng-feature ng-feature-wide" href="reference/index.html"><span class="ng-feature-index">01</span><span class="ng-feature-copy"><strong>Lire et écrire</strong><span>Travaillez avec les formats NMRPipe, Bruker, Agilent/Varian, Sparky et d’autres formats RMN courants.</span></span><span class="ng-feature-arrow" aria-hidden="true">↗</span></a>
-         <a class="ng-feature" href="reference/pipe_proc.html"><span class="ng-feature-index">02</span><span class="ng-feature-copy"><strong>Traiter</strong><span>Construisez des pipelines transparents avec apodisation, transformées, mise en phase et correction de ligne de base.</span></span><span class="ng-feature-arrow" aria-hidden="true">↗</span></a>
-         <a class="ng-feature" href="reference/convert.html"><span class="ng-feature-index">03</span><span class="ng-feature-copy"><strong>Convertir</strong><span>Déplacez les données entre les formats pris en charge en conservant les métadonnées d’acquisition.</span></span><span class="ng-feature-arrow" aria-hidden="true">↗</span></a>
-         <a class="ng-feature ng-feature-wide ng-feature-accent" href="reference/analysisbase.html"><span class="ng-feature-index">04</span><span class="ng-feature-copy"><strong>Analyser</strong><span>Combinez détection de pics, intégration et ajustement de formes de raies avec NumPy et SciPy.</span></span><span class="ng-feature-arrow" aria-hidden="true">↗</span></a>
-       </div>
-     </section>
-     <section class="ng-section ng-paths" aria-labelledby="ng-paths-title-fr">
-       <div class="ng-section-heading"><p class="ng-eyebrow">Choisissez votre parcours</p><h2 id="ng-paths-title-fr">Le bon niveau de détail</h2></div>
-       <div class="ng-path-grid">
-         <a class="ng-path" href="getting-started/index.html"><span class="ng-path-label">Nouveau dans nmrglue-ng ?</span><strong>Commencer par l’installation</strong><span>Installez le paquet, vérifiez l’import compatible et trouvez votre premier workflow.</span><b>Premiers pas <span aria-hidden="true">→</span></b></a>
-         <a class="ng-path" href="tutorials/index.html"><span class="ng-path-label">Apprendre en pratiquant</span><strong>Suivre les tutoriels exécutables</strong><span>Lisez les formats, examinez les métadonnées, créez des axes et tracez des spectres pas à pas.</span><b>Voir les tutoriels <span aria-hidden="true">→</span></b></a>
-         <a class="ng-path" href="reference/index.html"><span class="ng-path-label">Vous savez ce qu’il vous faut ?</span><strong>Consulter la référence API</strong><span>Parcourez les modules, fonctions, paramètres et liens vers le code source.</span><b>Parcourir l’API <span aria-hidden="true">→</span></b></a>
-       </div>
-     </section>
-   </main>
-
-.. raw:: html
-
-   <main class="ng-home ng-home-en">
+   <main class="ng-home">
      <section class="ng-hero" aria-labelledby="ng-hero-title">
        <div class="ng-hero-copy">
          <p class="ng-eyebrow">NMR data · Python workflows</p>

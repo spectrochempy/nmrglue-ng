@@ -70,11 +70,8 @@ source_suffix = {
     '.md': 'myst-nb',
 }
 
-# Keep English as the source language. The French build uses the gettext
-# catalogs under ``locale/`` and selects the language with ``-D language=fr``.
+# English-only documentation; no gettext catalogs are maintained.
 language = 'en'
-locale_dirs = ['locale/']
-gettext_compact = False
 
 # The master toctree document.
 master_doc = 'index'
@@ -158,7 +155,6 @@ html_theme_options = {
 }
 
 html_context = {
-    'rtd_layout': os.environ.get('READTHEDOCS') == 'True',
     'docs_version_label': docs_version_label,
 }
 
