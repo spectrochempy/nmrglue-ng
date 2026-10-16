@@ -12,6 +12,8 @@ original nmrglue project and are preserved for attribution and continuity.
 - Add noarch Conda packaging for the `spectrocat` channel, including an
   installation workflow and an explicit constraint against co-installing the
   historical `nmrglue` distribution. (#117)
+- Add scoped Codespell validation to pre-commit while excluding historical
+  examples, documentation and scientific fixtures. (#118)
 
 ## 1.1.0 - 2026-10-16
 

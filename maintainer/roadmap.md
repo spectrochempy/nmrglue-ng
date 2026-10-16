@@ -234,7 +234,12 @@ when upstream master/PR feedback changes.
   sources are intentional. Completed for the current structure by PRs #90–#96;
   future improvements should be opened as focused post-release beads.
 - [ ] Introduce linting, typing and benchmarks only through separately scoped
-  work. Ruff linting/formatting remain deferred; minimal pre-commit is active.
+  work. The 2026-10-16 [quality-tooling baseline](reports/2026-10-quality-tooling.md)
+  confirms that Ruff linting/formatting remain deferred: current diagnostics and
+  formatter churn require classification before any gate is enabled. The work is
+  divided into `NMRNG-kb5.15.1` (Ruff), `NMRNG-kb5.15.2` (Codespell),
+  `NMRNG-kb5.15.3` (typing), and `NMRNG-kb5.15.4` (benchmarks); minimal
+  pre-commit remains active.
 
 ## Contribution boundary
 

@@ -23,7 +23,7 @@ def read(filename, data_dtype=None, read_processed=False):
         information is incorrect and this argument can be used to explicitly
         supply this information.
     read_processed : bool
-        Option to read processed data instead of FID (dafault=False)
+        Option to read processed data instead of FID (default=False)
 
     Returns
     -------

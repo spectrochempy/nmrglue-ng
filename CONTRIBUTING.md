@@ -208,8 +208,9 @@ configuration deliberately excludes historical example scripts under
 `.jdx`). These exclusions prevent hooks from modifying scientific fixtures or
 historical example material.
 
-The existing `.codespellrc` is preserved but codespell is not part of the
-pre-commit configuration; it remains an optional manual check.
+Codespell runs through pre-commit with the conservative project vocabulary in
+`.codespellrc`. Its scope excludes the same historical examples, documentation
+and scientific fixtures protected from rewriting hooks.
 
 ## Maintainer records
 
