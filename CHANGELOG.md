@@ -9,6 +9,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ### Documentation
 
+- Clarify in the README that `nmrglue-ng` continues `nmrglue` rather than
+  replacing or competing with it, and mirror the continuation stance in
+  `CONTRIBUTING.md`. (#114)
 - Clarify the `read_pdata` documentation on the two Bruker processed-parameter
   file families (status `procs`/`procNs` versus singular `proc`/`procN`), and
   add an autonomous regression covering the default status-file behavior and

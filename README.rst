@@ -10,7 +10,7 @@ The project aims to preserve the simplicity, scientific capabilities, and establ
 
 .. important::
 
-   ``nmrglue-ng`` is an independent project. It is not the official nmrglue distribution and is not maintained or endorsed by the maintainers of the original project.
+   ``nmrglue-ng`` is an independent project. It is not the official nmrglue distribution and is not maintained or endorsed by the maintainers of the original project. It is a continuation of that work, **not a replacement for it**: nmrglue remains the reference project, and ``nmrglue-ng`` aims to sustain its maintenance rather than to supersede or compete with it.
 
 Documentation
 =============
@@ -25,7 +25,9 @@ nmrglue has provided the NMR community with a lightweight and powerful Python to
 
 Its broad support for NMR formats and its NumPy-oriented API make it particularly valuable for scientific scripting and interoperability.
 
-``nmrglue-ng`` builds on that work rather than replacing it.
+``nmrglue-ng`` builds on that work rather than replacing it, and does not seek to compete with the historical project.
+
+One motivation for the fork was a concrete downstream need: `SpectroChemPy <https://www.spectrochempy.fr/>`_, whose NMR support depends on nmrglue, needed a base that is actively maintained and kept compatible with current Python, NumPy, and SciPy releases. Providing that up-to-date base is part of why ``nmrglue-ng`` exists.
 
 The main goals of this fork are:
 
@@ -118,7 +120,7 @@ Changes to parsers are expected to include regression tests demonstrating the co
 Relationship with upstream nmrglue
 ==================================
 
-``nmrglue-ng`` retains the complete Git history of nmrglue and acknowledges the original authors and all contributors whose work forms the basis of this project.
+``nmrglue-ng`` is a continuation of nmrglue, not a replacement for it. It retains the complete Git history of nmrglue and acknowledges the original authors and all contributors whose work forms the basis of this project.
 
 Where practical, fixes developed here that are applicable to the original nmrglue project may also be proposed upstream through pull requests or reported as issues in the original repository. This may include bug fixes, regression tests, documentation improvements, compatibility updates, and clarifications of scientific or format-specific behaviour.
 
