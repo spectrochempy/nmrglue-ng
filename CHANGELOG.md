@@ -7,6 +7,8 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+## 1.1.0 - 2026-10-16
+
 ### Added
 
 - Add an optional, additive `nmrglue.interop` layer exposing a neutral
