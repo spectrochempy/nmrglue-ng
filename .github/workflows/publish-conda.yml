@@ -1,0 +1,63 @@
+name: publish Conda package
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version declared in recipe/recipe.yaml, for example 1.1.0
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Build and publish to spectrocat
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Build Conda package
+        uses: prefix-dev/rattler-build-action@v0.2.39
+        env:
+          CONDA_BLD_PATH: ../output
+        with:
+          recipe-path: recipe/recipe.yaml
+          upload-artifact: false
+          build-args: -c conda-forge -c spectrocat
+
+      - name: Check artifact identity
+        id: artifact
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob globstar
+          packages=(../output/**/*.conda ../output/**/*.tar.bz2)
+          matches=()
+          for package in "${packages[@]}"; do
+            if [[ "$(basename "$package")" == "nmrglue-ng-${VERSION}-"* ]]; then
+              matches+=("$package")
+            fi
+          done
+          test "${#matches[@]}" -eq 1
+          echo "path=${matches[0]}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload to Anaconda.org
+        env:
+          ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_API_TOKEN }}
+          PACKAGE: ${{ steps.artifact.outputs.path }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          test -n "${ANACONDA_API_TOKEN:-}"
+          python -m pip install --disable-pip-version-check anaconda-client
+          if anaconda --token "$ANACONDA_API_TOKEN" show "spectrocat/nmrglue-ng/$VERSION"; then
+            echo "nmrglue-ng $VERSION is already published on spectrocat" >&2
+            exit 1
+          fi
+          anaconda --token "$ANACONDA_API_TOKEN" upload \
+            --user spectrocat --label main "$PACKAGE"

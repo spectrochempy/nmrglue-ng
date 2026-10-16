@@ -155,7 +155,12 @@ The current stable release is published on PyPI:
 
     python -m pip install nmrglue-ng
 
-Conda packages are not currently available. See
+It is also available from the ``spectrocat`` Conda channel::
+
+    mamba install -c spectrocat -c conda-forge nmrglue-ng
+
+Do not install ``nmrglue`` and ``nmrglue-ng`` in the same environment: both
+distributions provide the ``nmrglue`` Python package. See
 `INSTALL.txt <INSTALL.txt>`_ for source and development installation options.
 
 The distribution is named ``nmrglue-ng``, while the Python import remains::
