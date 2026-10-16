@@ -14,7 +14,7 @@ original nmrglue project and are preserved for attribution and continuity.
   historical `nmrglue` distribution. (#117)
 - Add scoped Codespell validation to pre-commit while excluding historical
   examples, documentation and scientific fixtures. (#118)
-- Add a scoped Ruff undefined-name check for maintained package code. (PR number pending)
+- Add a scoped Ruff undefined-name check for maintained package code. (#120)
 
 ## 1.1.0 - 2026-10-16
 
