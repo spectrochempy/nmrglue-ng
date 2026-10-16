@@ -47,7 +47,7 @@ requirement for a minimal, reviewable change.
 
 ## Ruff F401/F821 gate
 
-The first Ruff gate runs only `F821` on maintained paths under `nmrglue/`.
+The initial Ruff gate ran only `F821` on maintained paths under `nmrglue/`.
 Forty in-scope package files are clean. Two explicit exclusions have distinct
 dispositions: `nmrglue/util/xcpy.py` receives its 20 reported globals from the
 TopSpin/Jython host, while `nmrglue/fileio/glue.py` is tracked by
