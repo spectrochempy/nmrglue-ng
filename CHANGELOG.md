@@ -27,7 +27,7 @@ original nmrglue project and are preserved for attribution and continuity.
   the base class. Regression coverage uses the optional `h5py` HDF5 path, which
   is added to the test dependencies and runs in CI. The wrapper's undefined-name
   and unused-import findings are resolved, so `glue.py` is no longer excluded
-  from the Ruff gate. (PR number pending)
+  from the Ruff gate. (#122)
 
 ## 1.1.0 - 2026-10-16
 
