@@ -24,7 +24,6 @@ time        True for time domain data, False otherwise
 
 """
 
-import numpy as np
 import h5py
 from . import fileiobase
 
@@ -179,7 +178,7 @@ class glue_2d(fileiobase.data_nd):
 
     """
 
-    def __init__(self, Dataset, order=["y", "x"]):
+    def __init__(self, Dataset, order=(0, 1)):
         """
         Create and set up object
         """
@@ -187,26 +186,25 @@ class glue_2d(fileiobase.data_nd):
         self.Dataset = Dataset
         self.lenX = int(Dataset.shape[1])
         self.lenY = int(Dataset.shape[0])
-        a = [self.lenY, self.lenX]
+        self.fshape = (self.lenY, self.lenX)
         self.order = order
-        self.shape = tuple([a[order.index(k)] for k in ["y", "x"]])
-        self.ndim = 2
         self.dtype = Dataset.dtype
+        self.__setdimandshape__()
 
     def __fcopy__(self, order):
         """
         Create a copy
         """
-        n = glue_3d(self.Dataset, order)
+        n = glue_2d(self.Dataset, order)
         return n
 
     def __fgetitem__(self, slices):
         """
         Return ndarray of selected values
 
-        (sY,sX) is a well formatted tuple of slices
+        (sY, sX) is a well formatted tuple of slices
         """
-        sY, sY = slices
+        sY, sX = slices
         return self.Dataset[sY, sX]
 
 
@@ -222,7 +220,7 @@ class glue_3d(fileiobase.data_nd):
 
     """
 
-    def __init__(self, Dataset, order=["z", "y", "x"]):
+    def __init__(self, Dataset, order=(0, 1, 2)):
         """
         Create and set up object
         """
@@ -231,11 +229,10 @@ class glue_3d(fileiobase.data_nd):
         self.lenX = int(Dataset.shape[2])
         self.lenY = int(Dataset.shape[1])
         self.lenZ = int(Dataset.shape[0])
-        a = [self.lenZ, self.lenY, self.lenX]
+        self.fshape = (self.lenZ, self.lenY, self.lenX)
         self.order = order
-        self.shape = tuple([a[order.index(k)] for k in ["z", "y", "x"]])
-        self.ndim = 3
         self.dtype = Dataset.dtype
+        self.__setdimandshape__()
 
     def __fcopy__(self, order):
         """

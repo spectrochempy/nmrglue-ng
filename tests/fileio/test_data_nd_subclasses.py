@@ -1,11 +1,29 @@
 """Test ``data_nd`` operations on concrete file-format subclasses."""
 
 import copy
+import importlib.util
 import os
+import sys
+import types
 
 import numpy as np
 from numpy.testing import assert_array_equal
 import pytest
+
+# ``nmrglue.fileio.glue`` imports the optional ``h5py`` package at module
+# import time.  Its low-memory wrappers only need an array-like dataset, so
+# when h5py is missing a throwaway stub lets the wrapper-contract tests run;
+# the stub is removed immediately so h5py stays absent for the rest of the
+# session and the optional-dependency classification stays accurate.
+HAS_H5PY = importlib.util.find_spec("h5py") is not None
+if HAS_H5PY:
+    from nmrglue.fileio import glue
+else:
+    sys.modules["h5py"] = types.ModuleType("h5py")
+    try:
+        from nmrglue.fileio import glue
+    finally:
+        del sys.modules["h5py"]
 
 from nmrglue.fileio import bruker, fileiobase, pipe, rnmrtk
 
@@ -96,3 +114,44 @@ def test_rnmrtk_data_nd_contract(tmp_path):
     )
 
     assert_data_nd_contract(data, expected)
+
+
+def test_glue_2d_data_nd_contract():
+    expected = np.arange(12, dtype=np.float32).reshape(3, 4)
+    data = glue.glue_2d(expected)
+
+    assert_data_nd_contract(data, expected)
+
+
+def test_glue_3d_data_nd_contract():
+    expected = np.arange(24, dtype=np.float32).reshape(2, 3, 4)
+    data = glue.glue_3d(expected)
+
+    assert_view(data, expected, (0, 1, 2))
+
+    reversed_axes = data.transpose()
+    assert type(reversed_axes) is glue.glue_3d
+    assert_array_equal(reversed_axes[:], expected.transpose(2, 1, 0))
+
+    swapped = data.swapaxes(-1, 0)
+    assert type(swapped) is glue.glue_3d
+    assert_array_equal(swapped[:], expected.swapaxes(-1, 0))
+
+
+@pytest.mark.skipif(not HAS_H5PY, reason="optional dependency not installed: h5py")
+def test_glue_hdf5_roundtrip_contract(tmp_path):
+    expected_2d = np.arange(12, dtype=np.float32).reshape(3, 4)
+    path_2d = tmp_path / "glue_2d.h5"
+    glue.write(str(path_2d), {"ndim": 2}, expected_2d)
+    _, data_2d = glue.read_lowmem(str(path_2d))
+    assert_data_nd_contract(data_2d, expected_2d)
+
+    expected_3d = np.arange(24, dtype=np.float32).reshape(2, 3, 4)
+    path_3d = tmp_path / "glue_3d.h5"
+    glue.write(str(path_3d), {"ndim": 3}, expected_3d)
+    _, data_3d = glue.read_lowmem(str(path_3d))
+    assert_array_equal(data_3d[:], expected_3d)
+
+    reversed_axes = data_3d.transpose()
+    assert type(reversed_axes) is glue.glue_3d
+    assert_array_equal(reversed_axes[:], expected_3d.transpose(2, 1, 0))

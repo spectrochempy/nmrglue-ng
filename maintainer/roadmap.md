@@ -236,9 +236,10 @@ when upstream master/PR feedback changes.
 - [ ] Introduce linting, typing and benchmarks only through separately scoped
   work. The 2026-10-16 [quality-tooling baseline](reports/2026-10-quality-tooling.md)
   records the active Ruff F401/F821 gate for maintained package code; broader
-  linting and formatting remain deferred until their diagnostics are classified. The
-  remaining work is `NMRNG-kb5.15.3` (typing), `NMRNG-kb5.15.4` (benchmarks),
-  and `NMRNG-kb5.15.7` (the excluded `glue_2d` contract).
+  linting and formatting remain deferred until their diagnostics are classified.
+  The `glue_2d`/`glue_3d` order contract is corrected and `glue.py` is no longer
+  excluded (issue #119). The remaining work is `NMRNG-kb5.15.3` (typing) and
+  `NMRNG-kb5.15.4` (benchmarks).
 
 ## Contribution boundary
 

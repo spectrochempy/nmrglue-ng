@@ -38,6 +38,7 @@ OPTIONAL_DEPENDENCIES = {
     "tests/fileio/test_convert_csdm.py::test_csdm_2d": "csdmpy",
     "tests/fileio/test_convert_csdm.py::test_csdm_3d": "csdmpy",
     "tests/fileio/test_rs2d.py::test_rs2d": "xmltodict",
+    "tests/fileio/test_data_nd_subclasses.py::test_glue_hdf5_roundtrip_contract": "h5py",
 }
 
 
