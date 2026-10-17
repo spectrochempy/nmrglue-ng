@@ -17,6 +17,18 @@ original nmrglue project and are preserved for attribution and continuity.
 - Add a scoped Ruff undefined-name check for maintained package code. (#120)
 - Add a scoped Ruff unused-import check for maintained package code. (#121)
 
+### Fixed
+
+- Correct the `nmrglue.fileio.glue` low-memory wrappers (`glue_2d`, `glue_3d`)
+  to use the numeric axis-order contract of `fileiobase.data_nd`, restoring
+  public slicing, iteration, and axis transforms. The `order` constructor
+  argument is now the numeric file-axis order (`(0, 1)` / `(0, 1, 2)`) like
+  every other `data_nd` subclass; the previous string labels were unusable with
+  the base class. Regression coverage uses the optional `h5py` HDF5 path, which
+  is added to the test dependencies and runs in CI. The wrapper's undefined-name
+  and unused-import findings are resolved, so `glue.py` is no longer excluded
+  from the Ruff gate. (PR number pending)
+
 ## 1.1.0 - 2026-10-16
 
 ### Added

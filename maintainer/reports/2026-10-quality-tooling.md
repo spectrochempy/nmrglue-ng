@@ -48,19 +48,27 @@ requirement for a minimal, reviewable change.
 ## Ruff F401/F821 gate
 
 The initial Ruff gate ran only `F821` on maintained paths under `nmrglue/`.
-Forty in-scope package files are clean. Two explicit exclusions have distinct
-dispositions: `nmrglue/util/xcpy.py` receives its 20 reported globals from the
-TopSpin/Jython host, while `nmrglue/fileio/glue.py` is tracked by
-`NMRNG-kb5.15.7` and [issue #119](https://github.com/spectrochempy/nmrglue-ng/issues/119).
-Its public indexing fails earlier with an axis-order contract error, so the
-reported `sX` is not treated as a one-line correction or silently suppressed.
+The active gate selects `F401,F821` and covers the whole `nmrglue/` package.
+Forty-one in-scope package files are clean. One explicit exclusion remains:
+`nmrglue/util/xcpy.py` receives its 20 reported globals from the TopSpin/Jython
+host at runtime.
+
+`nmrglue/fileio/glue.py` was initially excluded because its public 2D/3D
+indexing failed before the reported `sX` name could be reached. The wrapper
+axis-order contract was corrected under `NMRNG-kb5.15.7`
+([issue #119](https://github.com/spectrochempy/nmrglue-ng/issues/119)): the
+`glue_2d`/`glue_3d` wrappers now store the numeric `data_nd`-style order, the
+`sX` unpacking is fixed, and the unused import is removed. The file is therefore
+no longer excluded from the gate. Regression coverage combines self-contained
+wrapper-contract tests with an `h5py`-backed HDF5 round trip; `h5py` is added to
+the test dependencies so the real path runs in CI.
 
 The F401 baseline contained 36 diagnostics: 29 intentional public-module
 re-exports in package `__init__.py` files, four legacy exports from
-`fileio.pipe`, two internally unused imports, and one import in the excluded
-`glue` wrapper. The public and legacy re-exports now use explicit aliases,
-retaining their namespaces; the two internal imports were removed after import
-and focused file-I/O tests. No public function, parameter or scientific
+`fileio.pipe`, two internally unused imports, and one unused import in
+`fileio/glue.py`. The public and legacy re-exports use explicit aliases,
+retaining their namespaces; the internal unused imports were removed after
+import and focused file-I/O tests. No public function, parameter or scientific
 behavior changed.
 
 `ruff-pre-commit` v0.17.1 runs `--select F401,F821` for changed package files
@@ -102,7 +110,8 @@ The quality-tooling parent item is divided into independent Beads work:
   domain-specific false positives;
 - `NMRNG-kb5.15.5`: implement the validated scoped Codespell hook;
 - `NMRNG-kb5.15.6`: implement the bounded Ruff F821 gate;
-- `NMRNG-kb5.15.7`: investigate the excluded `glue_2d` indexing contract;
+- `NMRNG-kb5.15.7`: `glue_2d`/`glue_3d` order contract corrected and the Ruff
+  exclusion removed (issue #119);
 - `NMRNG-kb5.15.8`: extend the gate to F401 without changing public re-exports;
 - `NMRNG-kb5.15.3`: assess static typing without annotating the legacy tree
   wholesale;

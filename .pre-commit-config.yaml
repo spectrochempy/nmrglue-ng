@@ -75,4 +75,4 @@ repos:
         name: ruff F401/F821 (package)
         args: [--select, "F401,F821"]
         files: ^nmrglue/
-        exclude: ^(nmrglue/fileio/glue\.py|nmrglue/util/xcpy\.py)$
+        exclude: ^nmrglue/util/xcpy\.py$
