@@ -69,14 +69,15 @@ packages = [
 [tool.setuptools_scm]
 
 [tool.mypy]
-# Scoped static-typing gate. The `files` list below is the SINGLE source of truth
-# for the scope: it grows only by deliberate addition, never by "all new files".
+# Static-typing gate. The `files` list below is the SINGLE source of truth for
+# the scope, and that scope is now the whole package: any module added under
+# `nmrglue/` is checked, so the gate no longer depends on deliberate additions.
 # The pre-commit hook deliberately carries no `files:` filter, so a renamed or
 # removed target fails here ("Cannot read file") instead of silently disabling
-# the gate. `follow_imports = "silent"` lets mypy resolve imported types while
-# reporting diagnostics only for the listed targets, so the legacy tree is not
-# checked. Do not add `nmrglue/py.typed`: it is a downstream-facing statement,
-# not an internal gate detail.
+# the gate. `follow_imports = "silent"` reports diagnostics for the package only
+# and `ignore_missing_imports` tolerates missing third-party stubs; `--strict`
+# and `nmrglue/py.typed` remain out of scope, the latter being a downstream-facing
+# statement rather than an internal gate detail.
 python_version = "3.10"
 follow_imports = "silent"
 ignore_missing_imports = true
