@@ -2,6 +2,7 @@
 
 
 import nmrglue as ng
+import pytest
 from pathlib import Path
 
 from _dataset_paths import DATA_DIR
@@ -55,3 +56,11 @@ def test_guess_jcamp_dx():
     assert 206 < udic[0]["car"] < 207
     assert udic[0]["size"] == 32768
     assert udic[0]["label"] == "1H"
+
+
+def test_get_udic_from_acqu_dict_missing_key():
+    """ a missing acqu key must be reported by name, not as a float() TypeError """
+    with pytest.raises(KeyError, match="bandwidth"):
+        ng.spinsolve.get_udic_from_acqu_dict(
+            {"b1Freq": "400", "lowestFrequency": "1000", "rxChannel": "1H"}
+        )

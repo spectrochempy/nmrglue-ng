@@ -18,6 +18,9 @@ original nmrglue project and are preserved for attribution and continuity.
 - Add a scoped Ruff unused-import check for maintained package code. (#121)
 - Add a scoped mypy static-typing check for the maintained `nmrglue.interop`
   package. (#124)
+- Widen the default-mode mypy gate to the whole `nmrglue` package, including
+  typing cleanup for legacy fallbacks and a clearer missing-key failure in
+  Spinsolve acquisition metadata. (#125)
 
 ### Fixed
 
