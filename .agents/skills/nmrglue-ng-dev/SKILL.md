@@ -273,10 +273,12 @@ the answer explicitly — do not act on it:
   test infrastructure, or roadmap choices.
 
 Even when portable: **do not open an upstream issue or pull request, and do
-not prepare an upstream branch or commit.** Additional upstream contributions
-are paused until PRs #279–#282 receive significant maintainer feedback. Any
-future portage must restart from the then-current `jjhelmus/nmrglue:master`.
-See `maintainer/roadmap.md`.
+not prepare an upstream branch or commit, unless the maintainer has authorized
+that specific contribution.** The automatic pause tied to PRs #279–#282 no
+longer applies by default, but no general lifting has been granted: each
+upstream contribution remains an individually authorized decision. Any future
+portage must restart from the then-current `jjhelmus/nmrglue:master`. See
+`maintainer/roadmap.md`.
 
 ---
 

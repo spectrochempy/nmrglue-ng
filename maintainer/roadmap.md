@@ -254,11 +254,14 @@ when upstream master/PR feedback changes.
 
 Generic improvements may be candidates for the historical project, but local
 development and external submission are separate decisions. Follow
-[AGENTS.md](../AGENTS.md): the existing pause is tied to meaningful feedback on
+[AGENTS.md](../AGENTS.md): upstream contribution pacing is at the maintainer's
+discretion, and no general lifting of the earlier restriction has been granted.
+The automatic pause tied to meaningful feedback on
 [PRs #279–#282](https://github.com/jjhelmus/nmrglue/pulls?q=is%3Apr+author%3Afernandezc)
-and concerns QR solving, HT, NMRPipe fixtures and Bruker text fixtures.
-Live check on 2026-10-08 confirms [#279](https://github.com/jjhelmus/nmrglue/pull/279)
-was merged (`255855d`), providing substantive upstream action on this group.
+(QR solving, HT, NMRPipe fixtures and Bruker text fixtures) no longer applies by
+default; the maintainer may authorize an individual contribution case by case.
+Live check on 2026-10-08 confirmed
+[#279](https://github.com/jjhelmus/nmrglue/pull/279) was merged (`255855d`).
 Other contribution and publication permissions remain explicit. Any future
 port starts from the then-current `jjhelmus/nmrglue:master`.
 
