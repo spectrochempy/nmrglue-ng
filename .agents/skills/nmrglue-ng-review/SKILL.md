@@ -185,8 +185,10 @@ expected versus actual behavior.
 * Would it be acceptable upstream (`jjhelmus/nmrglue`) on its own? If the
   change carries `nmrglue-ng`-specific packaging, governance, or test
   infrastructure into a fix, that is a scope problem.
-* Does the change propose, prepare, or imply an upstream contribution while
-  PRs #279–#282 remain unanswered?
+* Does the change propose, prepare, or imply an upstream contribution that the
+  maintainer has not authorized case by case? Upstream pacing is at the
+  maintainer's discretion: the automatic pause tied to PRs #279–#282 no longer
+  applies by default, and no general lifting has been granted.
 
 ---
 

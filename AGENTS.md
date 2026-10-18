@@ -181,10 +181,13 @@ choices, and compatible with upstream's API and scope is a *candidate* for
 upstream contribution — never an automatic one. Report the opportunity in the
 work summary.
 
-**No additional upstream contribution while PRs #279–#282 have received no
-significant maintainer feedback.** See `maintainer/roadmap.md` for the current
-list and for the obligation to restart any future portage from the
-then-current `jjhelmus/nmrglue:master`.
+**Upstream contribution pacing is at the maintainer's discretion, and no
+general lifting of the earlier restriction has been granted.** The automatic
+pause tied to feedback on PRs #279–#282 no longer applies by default: the
+maintainer authorizes individual upstream contributions case by case, under the
+authorization limits above, one coherent subject per pull request. See
+`maintainer/roadmap.md` for the current state and for the obligation to restart
+any future portage from the then-current `jjhelmus/nmrglue:master`.
 
 Branding, packaging, governance, and roadmap choices specific to
 `nmrglue-ng` are never proposed upstream. Do not withhold a generally useful
