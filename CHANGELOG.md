@@ -16,6 +16,8 @@ original nmrglue project and are preserved for attribution and continuity.
   examples, documentation and scientific fixtures. (#118)
 - Add a scoped Ruff undefined-name check for maintained package code. (#120)
 - Add a scoped Ruff unused-import check for maintained package code. (#121)
+- Add a scoped mypy static-typing check for the maintained `nmrglue.interop`
+  package. (#124)
 
 ### Fixed
 
