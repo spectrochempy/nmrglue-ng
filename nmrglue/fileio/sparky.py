@@ -17,10 +17,7 @@ import os
 import struct
 import datetime
 from warnings import warn
-try:
-    from html.parser import HTMLParser
-except ImportError:
-    from HTMLParser import HTMLParser
+from html.parser import HTMLParser
 
 import numpy as np
 
@@ -615,7 +612,10 @@ class SparkySaveParser(HTMLParser):
     """
 
     # main dictionaries to parse data into
-    user, spectrum, view, ornament = {}, {}, {}, {}
+    user: dict = {}
+    spectrum: dict = {}
+    view: dict = {}
+    ornament: dict = {}
 
     # tracker if there are multiple views
     viewnum = -1

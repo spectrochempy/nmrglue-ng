@@ -212,13 +212,13 @@ def get_udic_from_acqu_dict(param: dict):
     return_dict = dict()
 
     # Spectral Width (sw, in Hz)
-    return_dict['sw'] = float(param.get('bandwidth')) * 1000
+    return_dict['sw'] = float(param['bandwidth']) * 1000
 
     # Observation Frequency (obs, in MHz)
-    return_dict['obs'] = float(param.get('b1Freq'))
+    return_dict['obs'] = float(param['b1Freq'])
 
     # Carrier frequency (car, in Hz)
-    return_dict['car'] = float(param.get('lowestFrequency')) + (return_dict['sw'] / 2)
+    return_dict['car'] = float(param['lowestFrequency']) + (return_dict['sw'] / 2)
 
     # Label (str describing the axis name)
     return_dict['label'] = param['rxChannel']

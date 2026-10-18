@@ -9,11 +9,7 @@ try:
 
     __version__ = get_version(root="..", relative_to=__file__)
 except Exception:
-    try:
-        from importlib.metadata import PackageNotFoundError, version
-    except ImportError:  # pragma: no cover - Python >= 3.10 always has importlib.metadata
-        PackageNotFoundError = Exception
-        version = None
+    from importlib.metadata import PackageNotFoundError, version
 
     try:
         __version__ = version("nmrglue-ng")
