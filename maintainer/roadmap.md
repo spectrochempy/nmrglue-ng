@@ -238,8 +238,14 @@ when upstream master/PR feedback changes.
   records the active Ruff F401/F821 gate for maintained package code; broader
   linting and formatting remain deferred until their diagnostics are classified.
   The `glue_2d`/`glue_3d` order contract is corrected and `glue.py` is no longer
-  excluded (issue #119). The remaining work is `NMRNG-kb5.15.3` (typing) and
-  `NMRNG-kb5.15.4` (benchmarks).
+  excluded (issue #119). The 2026-10-18 typing-scope assessment
+  (`NMRNG-kb5.15.3`, audited at `8be0be0`) measured mypy 2.4.0 and pyright
+  1.1.414: `nmrglue/interop` is already clean under mypy default mode, the whole
+  package carries 11 default-mode errors in three files, and package-wide strict
+  mode is not viable. The recommendation — a scoped mypy gate on
+  `nmrglue/interop` with imports followed silently, extended only by explicit
+  additions — **awaits a maintainer decision** and is not agreed policy.
+  Benchmarks (`NMRNG-kb5.15.4`) remain open.
 
 ## Contribution boundary
 
