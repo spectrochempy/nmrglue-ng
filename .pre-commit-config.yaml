@@ -76,3 +76,15 @@ repos:
         args: [--select, "F401,F821"]
         files: ^nmrglue/
         exclude: ^nmrglue/util/xcpy\.py$
+  - repo: local
+    hooks:
+      # The scope lives only in [tool.mypy] `files` (pyproject.toml). Do not add a
+      # `files:` filter here: pre-commit would then skip the hook on a renamed or
+      # removed scope before mypy could fail on the missing target, silently
+      # disabling the gate.
+      - id: mypy
+        name: mypy (static typing gate)
+        entry: mypy
+        language: python
+        additional_dependencies: ["mypy==2.4.0", "numpy"]
+        pass_filenames: false
