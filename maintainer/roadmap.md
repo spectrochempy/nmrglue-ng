@@ -242,9 +242,10 @@ when upstream master/PR feedback changes.
   (`NMRNG-kb5.15.3`, audited at `8be0be0`) measured mypy 2.4.0 and pyright
   1.1.414: `nmrglue/interop` is already clean under mypy default mode, the whole
   package carries 11 default-mode errors in three files, and package-wide strict
-  mode is not viable. The recommendation — a scoped mypy gate on
-  `nmrglue/interop` with imports followed silently, extended only by explicit
-  additions — **awaits a maintainer decision** and is not agreed policy.
+  mode is not viable. The recommendation for a scoped mypy gate on
+  `nmrglue/interop` was implemented in #124 and then widened in #125 after the
+  package-wide default-mode findings were cleaned up. The gate still follows
+  imports silently; package-wide strict mode remains out of scope.
   Benchmarks (`NMRNG-kb5.15.4`) remain open.
 
 ## Contribution boundary
