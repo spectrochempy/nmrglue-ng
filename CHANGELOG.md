@@ -7,6 +7,11 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+### Documentation
+
+- Simplify the documentation home page section labels while retaining its
+  established visual design. (#127)
+
 ### Added
 
 - Add noarch Conda packaging for the `spectrocat` channel, including an
