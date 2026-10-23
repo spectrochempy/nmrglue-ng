@@ -65,16 +65,16 @@ jobs:
 
       - name: Upload to Anaconda.org
         env:
-          ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_API_TOKEN }}
+          NMRGLUE_NG_ANACONDA_API_TOKEN: ${{ secrets.NMRGLUE_NG_ANACONDA_API_TOKEN }}
           PACKAGE: ${{ steps.artifact.outputs.path }}
           VERSION: ${{ inputs.version }}
         run: |
           set -euo pipefail
-          test -n "${ANACONDA_API_TOKEN:-}"
-          python -m pip install --disable-pip-version-check "certifi>=2026.10.19" anaconda-client
-          if anaconda --token "$ANACONDA_API_TOKEN" show "spectrocat/nmrglue-ng/$VERSION"; then
+          test -n "${NMRGLUE_NG_ANACONDA_API_TOKEN:-}"
+          python -m pip install --disable-pip-version-check "certifi>=2026.10.19" anaconda-client==1.16.0
+          if anaconda --token "$NMRGLUE_NG_ANACONDA_API_TOKEN" show "spectrocat/nmrglue-ng/$VERSION"; then
             echo "nmrglue-ng $VERSION is already published on spectrocat" >&2
             exit 1
           fi
-          anaconda --token "$ANACONDA_API_TOKEN" upload \
+          anaconda --token "$NMRGLUE_NG_ANACONDA_API_TOKEN" upload \
             --user spectrocat --label main "$PACKAGE"
