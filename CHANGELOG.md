@@ -7,6 +7,12 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+### Security
+
+- Upgrade the PyPI and Conda publication and release-artifact workflows to the
+  hash-verified `pip` security release, and document the temporary
+  certificate-authority incident guidance for installers. (#130)
+
 ## 1.1.1 - 2026-10-23
 
 ### Documentation

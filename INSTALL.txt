@@ -30,6 +30,17 @@ Requirements
 supported versions are declared in ``pyproject.toml``, which is the source of
 truth for packaging metadata.
 
+.. note::
+
+   **Installation security notice**
+
+   Due to a recent security issue affecting Python package managers, please
+   make sure your installation tools are up to date before installing
+   nmrglue-ng.
+
+   See the `official Python Packaging Authority guidance
+   <https://discuss.python.org/t/information-for-python-users-regarding-emudhra-emsign-ca-certificate-security-incident/109576>`_ for instructions.
+
 Installing from source
 ----------------------
 

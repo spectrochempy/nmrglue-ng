@@ -180,6 +180,9 @@ GitHub releases, PyPI/TestPyPI uploads, workflow artifacts, or any other
 publication. PyPI releases use the separate manual `publish PyPI` workflow with
 Trusted Publishing. That workflow is an explicit maintainer action for an
 existing release tag; it is not part of the dry run or an ordinary pull request.
+Run the current workflow from `master` and supply the existing tag: it checks
+out that tag before installing build tools, so the current security bootstrap
+also applies to releases whose tags were created before the workflow update.
 
 ### Pre-commit
 
