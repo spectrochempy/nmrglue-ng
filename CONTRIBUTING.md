@@ -179,10 +179,14 @@ This workflow intentionally has only read permissions. It does not create tags,
 GitHub releases, PyPI/TestPyPI uploads, workflow artifacts, or any other
 publication. PyPI releases use the separate manual `publish PyPI` workflow with
 Trusted Publishing. That workflow is an explicit maintainer action for an
-existing release tag; it is not part of the dry run or an ordinary pull request.
-Run the current workflow from `master` and supply the existing tag: it checks
-out that tag before installing build tools, so the current security bootstrap
-also applies to releases whose tags were created before the workflow update.
+existing release tag; after PyPI accepts the checked `dist/` files, it creates
+or updates the matching GitHub Release with those same files and notes extracted
+from the dated changelog entry. It is not part of the dry run or an ordinary
+pull request.
+Run the current workflow from `master` and supply the existing tag: it uses the
+tagged source for building and notes while retaining the current checked-in
+workflow scripts and security bootstrap, so it also supports tags created before
+the workflow update.
 
 ### Pre-commit
 
