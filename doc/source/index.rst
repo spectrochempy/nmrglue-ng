@@ -12,9 +12,10 @@
            scientific Python tools you already use.
           </p>
           <div class="ng-actions">
-            <a class="ng-button ng-button-primary" href="install.html">Install <span aria-hidden="true">→</span></a>
-            <a class="ng-button ng-button-secondary" href="getting-started/index.html">Get started <span aria-hidden="true">→</span></a>
+            <a class="ng-button ng-button-primary" href="install.html">Install</a>
+            <a class="ng-button ng-button-secondary" href="getting-started/index.html">Get started</a>
             <a class="ng-button ng-button-secondary" href="tutorials/index.html">Explore tutorials</a>
+            <a class="ng-button ng-button-secondary" href="whats-new.html">What's new</a>
           </div>
        </div>
         <div class="ng-terminal" aria-label="Installation and import example">

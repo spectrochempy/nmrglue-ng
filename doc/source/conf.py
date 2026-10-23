@@ -15,7 +15,7 @@ def _write_whats_new():
     changelog = (source_dir.parent.parent / 'CHANGELOG.md').read_text()
     sections = re.split(r'^## ', changelog, flags=re.M)
     selected = []
-    for section in sections[1:3]:
+    for section in sections[1:]:
         title, _, body = section.partition('\n')
         selected.append((title.strip(), body.strip()))
 
@@ -29,6 +29,10 @@ def _write_whats_new():
             if line.startswith('### '):
                 heading = line[4:].strip()
                 lines.extend([heading, '^' * len(heading), ''])
+            elif title == 'Historical nmrglue changelog' and re.fullmatch(r'=+', line):
+                lines.append('^' * len(line))
+            elif title == 'Historical nmrglue changelog' and re.fullmatch(r'-+', line):
+                lines.append('~' * len(line))
             else:
                 lines.append(_markdown_inline_to_rst(line))
         lines.append('')
