@@ -37,6 +37,16 @@ SciPy              1.7.2 or newer
 Matplotlib and JupyterLab are optional. Install them when you want to run the
 plotting tutorials and notebooks.
 
+.. warning::
+
+   A certificate-authority incident announced in October 2026 affects old
+   versions of package-management tools. Before downloading packages, update
+   the package manager you use: ``pip`` to 26.2.2 or newer, or ``uv`` to 0.13.4
+   or newer. Update ``certifi`` to 2026.10.19 or newer when it is installed. The
+   Python Packaging Authority
+   provides a `hash-verified pip upgrade command and current guidance
+   <https://discuss.python.org/t/information-for-python-users-regarding-emudhra-emsign-ca-certificate-security-incident/109576>`_.
+
 Install with uv
 ---------------
 
