@@ -7,6 +7,8 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+## 1.1.2 - 2026-10-23
+
 ### Documentation
 
 - Add a home-page link and button for the complete in-document "What's new" changelog.
