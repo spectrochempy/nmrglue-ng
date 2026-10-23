@@ -3,8 +3,8 @@ name: publish Conda package
 on:
   workflow_dispatch:
     inputs:
-      version:
-        description: Version declared in recipe/recipe.yaml, for example 1.1.0
+      tag:
+        description: Release tag to publish, for example v1.1.3
         required: true
         type: string
 
@@ -19,6 +19,18 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.tag }}
+
+      - name: Resolve release version
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          VERSION="${TAG#v}"
+          test "$TAG" = "v$VERSION"
+          test -n "$VERSION"
+          echo "NMRGLUE_NG_VERSION=$VERSION" >> "$GITHUB_ENV"
 
       - name: Setup Python
         uses: actions/setup-python@v7
@@ -48,15 +60,13 @@ jobs:
 
       - name: Check artifact identity
         id: artifact
-        env:
-          VERSION: ${{ inputs.version }}
         run: |
           set -euo pipefail
           shopt -s nullglob globstar
           packages=(../output/**/*.conda ../output/**/*.tar.bz2)
           matches=()
           for package in "${packages[@]}"; do
-            if [[ "$(basename "$package")" == "nmrglue-ng-${VERSION}-"* ]]; then
+            if [[ "$(basename "$package")" == "nmrglue-ng-${NMRGLUE_NG_VERSION}-"* ]]; then
               matches+=("$package")
             fi
           done
@@ -67,7 +77,6 @@ jobs:
         env:
           NMRGLUE_NG_ANACONDA_API_TOKEN: ${{ secrets.NMRGLUE_NG_ANACONDA_API_TOKEN }}
           PACKAGE: ${{ steps.artifact.outputs.path }}
-          VERSION: ${{ inputs.version }}
         run: |
           set -euo pipefail
           test -n "${NMRGLUE_NG_ANACONDA_API_TOKEN:-}"
