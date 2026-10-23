@@ -7,6 +7,10 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+### Documentation
+
+- Add a home-page link and button for the complete in-document "What's new" changelog.
+
 ### Security
 
 - Upgrade the PyPI and Conda publication and release-artifact workflows to the
