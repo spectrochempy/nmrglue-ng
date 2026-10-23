@@ -156,10 +156,18 @@ Upstream PRs #291 and #293 are open and cleanly mergeable with no maintainer
 feedback; their corresponding JCAMP-DX fixes are already carried locally by the
 recorded FID and descending-endpoint work. Upstream issues #290 and #292 are
 also already covered locally by the reviewed `pipe_proc.ext` clipping and
-FDDMXVAL corrections. PRs #280-#282 remain open without comments or reviews, so
-the nonurgent test-infrastructure contribution hold remains in force. No new
-local release-blocking backport was selected; review again before `1.0.0rc1` or
-when upstream master/PR feedback changes.
+FDDMXVAL corrections. PRs #280-#282 remain open without comments or reviews. Future upstream
+contributions remain subject to case-by-case maintainer authorization. No new
+local release-blocking backport was selected; review again before a future
+release or when upstream master/PR feedback changes.
+
+JCAMP upstream refresh on 2026-10-23: upstream master remains `cd0c2c9` and
+the heads of #261, #277, #291 and #293 are unchanged. PR #262 advanced from
+`b531d16` to `9346fee`: its 2026-10-16 AFFN comma dispatch change is already
+covered by local #47, while its 2026-10-19 coordinate-list tokenization and
+continuation behavior is not carried. Keep this latter change within the
+existing P1 JCAMP coordinate-table/tuple-size validation scope; it needs
+self-contained reproduction and real-file scientific evidence before a port.
 
 ## P1 — Scientific reliability
 
