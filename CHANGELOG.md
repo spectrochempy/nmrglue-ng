@@ -29,6 +29,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ### Fixed
 
+- Correct 1D and n-dimensional integration noise estimates to use the same
+  bin width or bin volume as their integrated values; n-dimensional noise
+  regions now use valid multidimensional slice indexing. (upstream #295, #296)
 - Correct the `nmrglue.fileio.glue` low-memory wrappers (`glue_2d`, `glue_3d`)
   to use the numeric axis-order contract of `fileiobase.data_nd`, restoring
   public slicing, iteration, and axis transforms. The `order` constructor

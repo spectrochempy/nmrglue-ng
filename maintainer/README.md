@@ -17,6 +17,7 @@ user documentation belongs in `doc/`, contributor instructions in
 | [Low-memory array operations](reports/2026-10-data-nd.md) | `data_nd` fixes, behavior contracts and validation/review status. |
 | [Reader and infrastructure maintenance](reports/2026-10-maintenance.md) | Durable reader decisions, corpus safety and CI design rationale. |
 | [Quality tooling](reports/2026-10-quality-tooling.md) | Ruff baseline, scoped Codespell policy and deferred typing/benchmark work. |
+| [Integration-noise uncertainty](reports/2026-10-integration-noise.md) | Baseline-noise uncertainty propagation correction for 1D and n-dimensional integration. |
 | [Upstream synchronization](reports/2026-10-upstream-sync.md) | Upstream merges/PR/issues mapped to roadmap items, shared-scope divergences and pending decisions. |
 | [NMRPipe EXT extraction](reports/2026-10-pipe-proc-ext.md) | Indirect extraction metadata correction, evidence and review status. |
 | [Single test-tree plan](reports/2026-10-test-layout-plan.md) | Complete relocation mapping, collection parity, fixture integrity and functional wheel/sdist validation proposal. |
