@@ -143,6 +143,26 @@ when a general correction exists.
 * Preserve upstream attribution: keep authorship, reference the original
   issue or PR, and never present existing work as new.
 
+### Adapted upstream work — mandatory attribution check
+
+Before delivering a change that adapts, ports, or substantially derives from
+an upstream pull request:
+
+1. Identify the upstream pull request author from its GitHub record; do not
+   infer authorship from the local committer or merger.
+2. Preserve the upstream pull-request reference in the code, test, changelog,
+   or PR description as appropriate.
+3. Inspect `doc/source/about/contributors.rst`, especially **Adapted upstream
+   work**. If the author is not already credited for that work, add their name
+   and GitHub profile, the upstream pull-request link, and the local
+   nmrglue-ng pull-request link before delivery.
+4. If an existing credit is incomplete, correct it rather than adding a
+   duplicate entry.
+
+This applies even when the upstream pull request is unmerged. The Git history
+remains the authoritative attribution record; the contributors page makes the
+adaptation visible to readers.
+
 ### Writer changes
 
 Add a round-trip test (`read -> write -> read`) when reasonably possible.
