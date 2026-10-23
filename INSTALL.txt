@@ -30,14 +30,16 @@ Requirements
 supported versions are declared in ``pyproject.toml``, which is the source of
 truth for packaging metadata.
 
-Security notice
----------------
+.. note::
 
-Before downloading packages, update the package manager you use: ``pip`` to
-26.2.2 or newer, or ``uv`` to 0.13.4 or newer. Update ``certifi`` to
-2026.10.19 or newer when it is installed. See the Python Packaging Authority's `current guidance
-<https://discuss.python.org/t/information-for-python-users-regarding-emudhra-emsign-ca-certificate-security-incident/109576>`_ for the hash-verified pip
-upgrade command.
+   **Installation security notice**
+
+   Due to a recent security issue affecting Python package managers, please
+   make sure your installation tools are up to date before installing
+   nmrglue-ng.
+
+   See the `official Python Packaging Authority guidance
+   <https://discuss.python.org/t/information-for-python-users-regarding-emudhra-emsign-ca-certificate-security-incident/109576>`_ for instructions.
 
 Installing from source
 ----------------------
