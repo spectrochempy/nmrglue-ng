@@ -198,6 +198,11 @@ when upstream master/PR feedback changes.
   material.
 - [ ] Define optional-dependency extras where useful.
 - [ ] Increase autonomous processing-module coverage.
+  The integration baseline-noise uncertainty correction from upstream #295/#296
+  is tracked as `NMRNG-kb5.13.4`; its propagation rationale and current
+  implementer validation are recorded in the
+  [integration-noise report](reports/2026-10-integration-noise.md). Delivery
+  remains subject to independent review.
 - [x] Prepare the dedicated test-reorganization plan after EXT #62:
   [inventory, mapping and validation design](reports/2026-10-test-layout-plan.md),
   assessed on 2026-10-08 at `a662316`: 269 tracked files, 35 collected modules,
