@@ -42,6 +42,11 @@ The GitHub contributor graph does not include authors whose upstream pull
 requests have not been merged. ``nmrglue-ng`` nevertheless credits their work
 when it adapts their solutions:
 
+- `Anthony <https://github.com/antonsoo>`_ authored upstream pull requests
+  `#295 <https://github.com/jjhelmus/nmrglue/pull/295>`_ and
+  `#296 <https://github.com/jjhelmus/nmrglue/pull/296>`_, whose integration
+  noise-estimate corrections were adapted in nmrglue-ng pull request
+  `#128 <https://github.com/spectrochempy/nmrglue-ng/pull/128>`_.
 - `Shashank S. Harivyasi <https://github.com/harivyasi>`_ authored upstream
   pull requests `#259 <https://github.com/jjhelmus/nmrglue/pull/259>`_,
   `#260 <https://github.com/jjhelmus/nmrglue/pull/260>`_,
