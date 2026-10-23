@@ -64,6 +64,18 @@ Read, in this order:
 3. `maintainer/roadmap.md`
 4. `.agents/skills/` — only the sections you need
 
+Establish the Beads context before beginning work:
+
+```bash
+bd prime
+bd ready
+bd show <issue-id>
+```
+
+Use the issue that actually represents the work, rather than a historical
+release epic or a completed release-preparation task. Create and claim a
+specific issue before modifying code when no suitable issue exists.
+
 ---
 
 ## Step 2 — Establish and announce the baseline
@@ -376,6 +388,12 @@ The implementer's report is information to verify, not authority.
 
 Only on explicit request, and only for the files of this task:
 
+Before creating the PR, reconcile its Beads issue: verify that its scope,
+acceptance criteria, priority, labels, parent, and dependencies still describe
+the proposed change. Record the PR number in the issue notes once it exists.
+Do not leave work attached to a completed release epic or labelled as a
+pre-release gate merely because it originated there.
+
 ```bash
 git add <files>                 # stage explicitly; never `git add -A`
 git diff --cached --check
@@ -396,3 +414,12 @@ gh pr create --base master --head <branch> ...
 Open the PR against `spectrochempy/nmrglue-ng:master`, from `origin`, never
 from a fork of the maintainer's choosing and never against the upstream
 repository. **Stop after the PR is opened.** Do not merge, tag, or release.
+
+### After an authorized merge
+
+The maintainer or an agent explicitly authorized to handle the merge must
+reconcile the linked Beads issue before starting unrelated work: record the
+merged PR and commit, close it when its acceptance criteria are met (or update
+its remaining scope), then run `bd ready` and correct any stale parentage,
+release labels, priorities, or dependencies exposed by the merge. A completed
+release-preparation task must not remain open after its release tag exists.

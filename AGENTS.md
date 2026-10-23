@@ -262,6 +262,15 @@ Quick reference:
 - `bd close <id>` — mark completed work.
 - `bd sync` — synchronize the beads database when a remote is configured.
 
+Before opening a pull request, reconcile its Beads issue: its scope,
+acceptance criteria, priority, labels, parent and dependencies must describe
+the proposed change, and its notes must identify the PR once it exists. After
+an authorized merge, record the merged PR and commit, close the issue when its
+acceptance criteria are met (or update its remaining scope), then run
+`bd ready` and correct stale parentage, release labels, priorities or
+dependencies before starting unrelated work. Do not keep a completed release
+preparation issue open after its release tag exists.
+
 ---
 
 ## References

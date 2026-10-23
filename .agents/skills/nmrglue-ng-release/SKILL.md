@@ -167,6 +167,12 @@ Then list open blockers:
 * inherited defects not yet reviewed;
 * any uncommitted change in the working tree.
 
+When a Beads issue tracks the proposed release, inspect it as a tracking aid:
+its target version, status and linked PR or commit must agree with the audited
+ref. Report stale or historical release issues, but do not let their labels
+override evidence from the release gates. A tag that already exists requires
+the corresponding preparation issue to be reconciled after the audit.
+
 ---
 
 ## Step 6 — Validate after the final commit is actually pushed

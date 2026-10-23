@@ -87,6 +87,10 @@ Restate the requirement in your own words. Identify:
 Then check the diff actually solves *that* problem, and nothing else. Scope
 creep is a finding.
 
+When a Beads issue and pull request are available, compare their stated scope
+and acceptance criteria with the diff. Report a mismatch as a tracking or
+scope finding; do not change Beads state during an independent review.
+
 ### 3. Verify the scientific behavior
 
 This is the part a general-purpose reviewer is most likely to get wrong. For
