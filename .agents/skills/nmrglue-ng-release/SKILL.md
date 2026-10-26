@@ -196,10 +196,10 @@ Rules:
 
 ## Step 7 — Report
 
-Save the canonical private release-readiness report under the sibling
-`spectrochempy_maintainer/notes/audits/nmrglue-ng/` location, including when
-the verdict is **BLOCKED**. Preserve previous reports; add a distinct suffix if
-the path already exists. The report must identify the exact audited commit, date,
+Save a self-contained release-readiness report under
+`maintainer/reports/YYYY-MM-<topic>.md`, including when the verdict is
+**BLOCKED**. Preserve previous reports; add a distinct suffix if the path
+already exists. The report must identify the exact audited commit, date,
 branch and initial working-tree state. Use the structure below:
 
 ```text
@@ -238,9 +238,9 @@ validation. Do not turn a recommendation into an agreed policy or
 change the release-critical contract without a maintainer decision. If no
 roadmap update is warranted, record the reason in the report.
 
-Canonical private reports, curated public reports and warranted roadmap updates
-are the only default file edits authorized by this audit. Keep local working
-notes ignored and out of PRs; shared reports may be versioned through the normal
+Curated public reports and warranted roadmap updates are the only default file
+edits authorized by this audit. Keep local working notes out of PRs; shared
+reports may be versioned through the normal
 authorized delivery workflow. Finish with a
 concise verdict, the saved report path, roadmap changes (or their absence),
 and the next actions. A chat-only report is not completion of the audit.

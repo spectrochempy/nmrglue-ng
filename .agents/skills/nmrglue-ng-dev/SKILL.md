@@ -263,23 +263,17 @@ structure: heading levels, table syntax, list indentation, code fences closed.
 Update the relevant maintainer document when the task produces a decision or
 durable knowledge that must outlive it:
 
-* The sibling private `spectrochempy_maintainer` repository is the canonical
-  home for cross-project NMR audits, under
-  `notes/audits/nmr/nmrglue-ng/`. Resolve its local path from the workspace or
-  `SCPY_MAINTAINER_REPO`; do not create a second canonical copy here.
-* `maintainer/audits/` is legacy local working material and is ignored; it is
-  never added to a PR and must not receive new canonical audit reports.
 * `maintainer/reports/` holds curated, versioned technical evidence, following
   `maintainer/README.md`. Link to it from the roadmap rather than duplicating
   long validation records. Preserve the distinction between new execution,
   historical results and independent review.
 
-After every audit, persist the dated canonical report in the private maintainer
-repository and review the nmrglue-ng roadmap as required by `AGENTS.md`, even
-when the task ends with a blocked verdict. Include the central report path and
-any roadmap update (or why none was needed) in the final reply. Public-facing
-conclusions belong in `maintainer/reports/` only when they are self-contained
-and intentionally suitable for publication.
+After every audit, persist a self-contained public report in
+`maintainer/reports/` when appropriate and review the nmrglue-ng roadmap as
+required by `AGENTS.md`, even when the task ends with a blocked verdict.
+Include the report path and any roadmap update (or why none was needed) in the
+final reply. Maintainer-only cross-project routing is handled by workspace
+skills, not by this public project skill.
 
 `CHANGELOG.md` `Unreleased` must be updated for every user- or
 developer-visible change, referencing the pull request number as `(#NNN)`.
