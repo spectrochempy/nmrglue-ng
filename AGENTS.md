@@ -141,15 +141,13 @@ scientific correctness. Any incompatible change must be explicitly
 identified, justified, tested, documented, and accompanied by migration
 guidance when needed.
 
-After every audit, save a dated report under
-`maintainer/audits/YYYY-MM-DD-<topic>.md`. Preserve previous reports; use a
-distinct suffix for another audit of the same topic on the same day. Record
-the audited commit, evidence, validation performed and omitted, conclusions,
-and next steps. That ignored directory is never part of a PR. Curated,
-self-contained technical reports belong in versioned `maintainer/reports/`;
-see `maintainer/README.md` for consolidation and evidence rules. Preserve local
-originals when preparing a shared report; exclude session logistics and draft
-correspondence, but retain relevant sources and attribution.
+After an audit, write a dated, self-contained public report under
+`maintainer/reports/YYYY-MM-<topic>.md` when the result is suitable for public
+readers. Preserve previous reports; use a distinct suffix for another audit of
+the same topic on the same day. Record the audited commit, evidence,
+validation performed and omitted, conclusions, and next steps. Private
+cross-project audit routing is maintainer-workspace policy and is not part of
+this public repository's contributor instructions.
 
 Review `maintainer/roadmap.md` after every audit and update it when findings
 add or change durable knowledge, priorities, or a shared decision. Keep the
