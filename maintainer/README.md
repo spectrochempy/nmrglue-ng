@@ -8,6 +8,13 @@ user documentation belongs in `doc/`, contributor instructions in
 
 ## Shared documents
 
+Cross-project private audits concerning SpectroChemPy, NMR, NMRPipe or
+integration with other repositories are canonically stored in the sibling
+private repository `spectrochempy_maintainer/notes/audits/nmrglue-ng/`.
+This repository keeps only public/curated reports in `maintainer/reports/`.
+The local `maintainer/audits/` directory is a legacy ignored migration area and
+must not receive new canonical reports.
+
 | Document | Purpose |
 |---|---|
 | [Roadmap](roadmap.md) | Current actions and decisions; links to evidence instead of repeating session histories. |

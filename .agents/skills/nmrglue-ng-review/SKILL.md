@@ -153,7 +153,9 @@ Then audit the report against reality:
 * Is a `CHANGELOG.md` entry required? For user- or developer-visible changes:
   yes. If the PR claims `Changelog: not required`, judge whether the reason
   holds.
-* Are local `maintainer/audits/` notes absent from the diff?
+* Is the canonical private report in the sibling
+  `spectrochempy_maintainer/notes/audits/nmrglue-ng/` location, rather than a
+  new local `maintainer/audits/` note?
 * Are shared `maintainer/reports/` documents self-contained, dated and clear
   about new versus historical validation and reviewer versus implementer
   evidence? Apply `maintainer/README.md` rather than treating shared reports
