@@ -18,7 +18,18 @@ def test_version_from_tag(tag, version):
     assert version_from_tag(tag) == version
 
 
-@pytest.mark.parametrize("tag", ["1.1.2", "release-1.1.2", "v1.1", "v1.1.2.dev1"])
+@pytest.mark.parametrize(
+    "tag",
+    [
+        "1.1.2",
+        "release-1.1.2",
+        "v1.1",
+        "v1.1.2.dev1",
+        "v1.1.2dev1",
+        "v1.1.2foo99",
+        "v1.1.2RC1",
+    ],
+)
 def test_version_from_tag_rejects_non_release_tags(tag):
     with pytest.raises(ValueError, match="release tag"):
         version_from_tag(tag)

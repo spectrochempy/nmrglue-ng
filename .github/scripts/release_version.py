@@ -6,7 +6,7 @@ import argparse
 import re
 
 
-TAG_PATTERN = re.compile(r"^v(?P<version>\d+\.\d+\.\d+(?:[a-zA-Z]+\d+)?)$")
+TAG_PATTERN = re.compile(r"^v(?P<version>\d+\.\d+\.\d+(?:rc\d+)?)$")
 
 
 def version_from_tag(tag: str) -> str:

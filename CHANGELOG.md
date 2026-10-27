@@ -7,6 +7,10 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+### CI
+
+- Automate PyPI and GitHub Release publication from validated release tags. (#139)
+
 ## 1.1.2 - 2026-10-23
 
 ### Documentation
