@@ -1,14 +1,13 @@
 name: publish PyPI
 
 on:
+  push:
+    tags:
+      - "v*"
   workflow_dispatch:
     inputs:
       tag:
         description: "Release tag to publish, for example v1.0.0"
-        required: true
-        type: string
-      expected_version:
-        description: "Expected nmrglue-ng version, for example 1.0.0"
         required: true
         type: string
 
@@ -17,7 +16,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: ${{ github.workflow }}-${{ inputs.tag }}
+  group: ${{ github.workflow }}-${{ inputs.tag || github.ref_name }}
   cancel-in-progress: false
 
 jobs:
@@ -26,17 +25,24 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-    - name: Check requested tag
-      run: |
-        test "${{ inputs.tag }}" = "v${{ inputs.expected_version }}"
-
     - uses: actions/checkout@v7
       with:
         fetch-depth: 0
 
+    - name: Resolve release tag and version
+      id: release
+      env:
+        TAG: ${{ inputs.tag || github.ref_name }}
+      run: |
+        set -euo pipefail
+        VERSION=$(python .github/scripts/release_version.py "$TAG")
+        git show-ref --verify --quiet "refs/tags/$TAG"
+        echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+        echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
     - name: Check out release source
       env:
-        TAG: ${{ inputs.tag }}
+        TAG: ${{ steps.release.outputs.tag }}
       run: git worktree add --detach "$RUNNER_TEMP/release-source" "$TAG"
 
     - uses: actions/setup-python@v7
@@ -57,7 +63,7 @@ jobs:
       run: >-
         python .github/scripts/check_release_artifacts.py
         --source-root "$RUNNER_TEMP/release-source"
-        --expected-version "${{ inputs.expected_version }}"
+        --expected-version "${{ steps.release.outputs.version }}"
 
     - name: Build sdist and wheel from sdist
       run: python -m build "$RUNNER_TEMP/release-source" --outdir dist
@@ -66,7 +72,7 @@ jobs:
       run: >-
         python .github/scripts/check_release_artifacts.py
         --source-root "$RUNNER_TEMP/release-source"
-        --expected-version "${{ inputs.expected_version }}"
+        --expected-version "${{ steps.release.outputs.version }}"
         --dist dist
 
     - name: Check distribution rendering
@@ -90,9 +96,18 @@ jobs:
       with:
         fetch-depth: 0
 
+    - name: Resolve release tag and version
+      id: release
+      env:
+        TAG: ${{ inputs.tag || github.ref_name }}
+      run: |
+        set -euo pipefail
+        VERSION=$(python .github/scripts/release_version.py "$TAG")
+        echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+        echo "version=$VERSION" >> "$GITHUB_OUTPUT"
     - name: Check out release source
       env:
-        TAG: ${{ inputs.tag }}
+        TAG: ${{ steps.release.outputs.tag }}
       run: git worktree add --detach "$RUNNER_TEMP/release-source" "$TAG"
 
     - uses: actions/setup-python@v7
@@ -102,21 +117,21 @@ jobs:
     - name: Download PyPI artifacts
       run: >-
         python .github/scripts/download_pypi_release_artifacts.py
-        --version "${{ inputs.expected_version }}"
+        --version "${{ steps.release.outputs.version }}"
         --output dist
 
     - name: Extract GitHub Release notes
       run: >-
         python .github/scripts/extract_release_notes.py
         --changelog "$RUNNER_TEMP/release-source/CHANGELOG.md"
-        --version "${{ inputs.expected_version }}"
+        --version "${{ steps.release.outputs.version }}"
         --output release-notes.md
 
     - name: Create or update GitHub Release
       env:
         GH_TOKEN: ${{ github.token }}
-        TAG: ${{ inputs.tag }}
-        VERSION: ${{ inputs.expected_version }}
+        TAG: ${{ steps.release.outputs.tag }}
+        VERSION: ${{ steps.release.outputs.version }}
       run: |
         set -euo pipefail
         if gh release view "$TAG"; then

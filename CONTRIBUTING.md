@@ -178,15 +178,14 @@ build release-candidate or final-release files for review:
 This workflow intentionally has only read permissions. It does not create tags,
 GitHub releases, PyPI/TestPyPI uploads, workflow artifacts, or any other
 publication. PyPI releases use the separate manual `publish PyPI` workflow with
-Trusted Publishing. That workflow is an explicit maintainer action for an
-existing release tag; after PyPI accepts the checked `dist/` files, it creates
-or updates the matching GitHub Release with those same files and notes extracted
-from the dated changelog entry. It is not part of the dry run or an ordinary
-pull request.
-Run the current workflow from `master` and supply the existing tag: it uses the
-tagged source for building and notes while retaining the current checked-in
-workflow scripts and security bootstrap, so it also supports tags created before
-the workflow update.
+Trusted Publishing. Pushing a tag named `vX.Y.Z` (or `vX.Y.ZrcN`) starts
+publication automatically; the workflow derives the version from the tag,
+validates the tagged source and changelog, publishes to PyPI, and then creates
+or updates the matching GitHub Release with those same files and notes. The
+workflow can also be dispatched manually with an existing tag to retry a failed
+publication. Tag creation and publication remain explicit maintainer actions.
+The workflow uses the tagged source while retaining the current checked-in
+workflow scripts, so it also supports tags created before a workflow update.
 
 ### Pre-commit
 
