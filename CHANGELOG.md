@@ -13,6 +13,9 @@ original nmrglue project and are preserved for attribution and continuity.
 - Add an experimental, validated 1D `ReadResult` to NMRPipe export using the
   existing NMRPipe writer, with explicit float32 storage and raw real/complex
   quadrature validation.
+- Add an additive Bruker raw 2D QF `ReadResult` profile preserving physical
+  and storage dimensions, per-axis acquisition metadata, and explicit trace
+  conventions without constructing hypercomplex components. (#142)
 
 ### CI
 
