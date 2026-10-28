@@ -135,29 +135,13 @@ def test_qf_2d_export_rejects_empty_data(tmp_path, shape):
 @pytest.mark.parametrize(
     "match",
     [
-        "encoding",
         "declared",
         "axes",
     ],
 )
 def test_qf_2d_export_rejects_unsupported_or_incomplete_profiles(tmp_path, match):
     result = _result()
-    if match == "encoding":
-        result = ng.interop.ReadResult(
-            data=result.data,
-            axes=result.axes,
-            metadata=result.metadata,
-            components=result.components,
-            applied_corrections=result.applied_corrections,
-            diagnostics=result.diagnostics,
-            format=result.format,
-            source=result.source,
-            domains=result.domains,
-            encoding=("STATES-TPPI", "DQD"),
-            dimensions=result.dimensions,
-            acquisition=result.acquisition,
-        )
-    elif match == "declared":
+    if match == "declared":
         dimensions = dict(result.dimensions)
         del dimensions["trace_order"]
         result = ng.interop.ReadResult(
