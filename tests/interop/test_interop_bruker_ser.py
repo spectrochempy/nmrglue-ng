@@ -123,7 +123,7 @@ def test_bruker_qf_ser_filter_is_explicit_and_recorded(monkeypatch, tmp_path):
 @pytest.mark.parametrize(
     "change, message",
     [
-        (lambda dic: dic["acqu2s"].update(FnMODE=5), "FnMODE"),
+        (lambda dic: dic["acqu2s"].update(FnMODE=3), "FnMODE"),
         (lambda dic: dic["acqus"].update(SW_h=0.0), "positive"),
         (lambda dic: dic["acqus"].update(TD=7), "even"),
     ],
