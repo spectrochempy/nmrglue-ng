@@ -1,8 +1,9 @@
-"""Bruker/TopSpin processed 1D adapter for the neutral interop layer.
+"""Bruker/TopSpin adapters for the neutral interop layer.
 
 The first supported profile is deliberately narrow: processed 1D data read
-through :func:`nmrglue.fileio.bruker.read_pdata`.  No raw, 2D, HyperComplex
-reconstruction, or universal component handling is promised.
+through :func:`nmrglue.fileio.bruker.read_pdata`. An additive raw 1D profile is
+also provided by :func:`read_bruker_fid`; raw 2D and hypercomplex reconstruction
+remain outside this module's contract.
 
 The Hz axis is a *normative* scale, not a guess.  With ``OFFSET`` (ppm),
 ``SF`` (MHz) and ``SW_p`` (Hz) from ``procs``/``procNs`` and ``N`` points
@@ -36,6 +37,178 @@ from .result import Axis, Component, Diagnostic, ReadResult, Reference
 
 _FORMAT = "bruker-pdata"
 _PRIMARY = "1r"
+
+
+def _raw_number(dic, section, key):
+    value = dic.get(section, {}).get(key)
+    if value is None:
+        return None
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise ValueError("Bruker %s parameter %s must be numeric" % (section, key))
+    if not np.isfinite(float(value)):
+        raise ValueError("Bruker %s parameter %s must be finite" % (section, key))
+    return float(value)
+
+
+def _raw_integer(dic, section, key):
+    value = dic.get(section, {}).get(key)
+    if value is None:
+        return None
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise ValueError("Bruker %s parameter %s must be an integer" % (section, key))
+    if not np.isfinite(float(value)) or int(value) != value:
+        raise ValueError(
+            "Bruker %s parameter %s must be a finite integer" % (section, key)
+        )
+    if int(value) <= 0:
+        raise ValueError("Bruker %s parameter %s must be positive" % (section, key))
+    return int(value)
+
+
+def read_bruker_fid(
+    dir=".",
+    *,
+    remove_digital_filter=False,
+    shape=None,
+    cplex=None,
+    big=None,
+    isfloat=None,
+    read_pulseprogram=True,
+    read_acqus=True,
+):
+    """Read a raw Bruker 1D FID as a neutral :class:`ReadResult`.
+
+    No RG/NS normalization is applied. If ``remove_digital_filter`` is true,
+    the existing Bruker correction is applied once and recorded in
+    ``applied_corrections``.
+    """
+    if not os.path.isdir(dir):
+        raise OSError("directory %s does not exist" % (dir,))
+
+    dic, data = bruker.read(
+        dir,
+        shape=shape,
+        cplex=cplex,
+        big=big,
+        isfloat=isfloat,
+        read_pulseprogram=read_pulseprogram,
+        read_acqus=read_acqus,
+        read_procs=False,
+    )
+    data = np.asarray(data)
+    if data.ndim != 1 or not np.issubdtype(data.dtype, np.number):
+        raise ValueError("the raw Bruker 1D profile requires one numeric dimension")
+
+    corrections = {
+        "digital_filter": {
+            "applied": bool(remove_digital_filter),
+            "parameters": {
+                key: dic.get("acqus", {}).get(key)
+                for key in ("DECIM", "DSPFVS", "GRPDLY")
+                if key in dic.get("acqus", {})
+            },
+        },
+        "normalization": "none",
+    }
+    if remove_digital_filter:
+        data = bruker.remove_digital_filter(dic, data, truncate=True)
+
+    acqus = dic.get("acqus", {})
+    required = ("TD", "SW_h", "SFO1", "O1", "AQ_mod")
+    missing = tuple(name for name in required if acqus.get(name) is None)
+    diagnostics = []
+    if missing:
+        diagnostics.append(
+            Diagnostic(
+                code="acquisition.missing-parameter",
+                severity="warning",
+                message="Raw Bruker acquisition parameters are incomplete.",
+                context={"missing": missing},
+            )
+        )
+
+    sw_h = _raw_number(dic, "acqus", "SW_h") if acqus.get("SW_h") is not None else None
+    sfo1 = _raw_number(dic, "acqus", "SFO1") if acqus.get("SFO1") is not None else None
+    o1 = _raw_number(dic, "acqus", "O1") if acqus.get("O1") is not None else None
+    td = _raw_integer(dic, "acqus", "TD") if acqus.get("TD") is not None else None
+    if td is not None and np.iscomplexobj(data) and td % 2:
+        raise ValueError("Bruker acqus parameter TD must be even for complex data")
+    if sw_h is not None and sw_h <= 0:
+        raise ValueError("Bruker acqus parameter SW_h must be positive")
+
+    values = None if sw_h is None else np.arange(data.size, dtype=float) / sw_h
+    reference = (
+        Reference(
+            observation_frequency=sfo1,
+            observation_frequency_unit="MHz" if sfo1 is not None else None,
+            offset=None,
+            offset_unit=None,
+            source="acquisition",
+        )
+        if sfo1 is not None
+        else None
+    )
+    axis = Axis(
+        values=values,
+        unit="s" if values is not None else None,
+        label=acqus.get("NUC1"),
+        domain="time",
+        direction="increasing" if values is not None else "unknown",
+        reference=reference,
+    )
+    aq_mod = acqus.get("AQ_mod")
+    encodings = {0: "QF", 1: "QSIM", 2: "QSEQ", 3: "DQD"}
+    encoding = (encodings.get(aq_mod, "undefined"),) if aq_mod is not None else ()
+    dimensions = {
+        "TD": td,
+        "TDeff": acqus.get("TDeff"),
+        "returned_points": int(data.size),
+        "returned_raw_points": int(
+            data.size * 2 if np.iscomplexobj(data) else data.size
+        ),
+        "complex_points": int(data.size),
+    }
+    acquisition = {
+        key: acqus[key]
+        for key in (
+            "TD",
+            "SW_h",
+            "SFO1",
+            "O1",
+            "AQ_mod",
+            "RG",
+            "NS",
+            "DECIM",
+            "DSPFVS",
+            "GRPDLY",
+        )
+        if key in acqus
+    }
+    if sw_h is not None:
+        acquisition["spectral_width_hz"] = sw_h
+        acquisition["dwell_time_s"] = 1.0 / sw_h
+    if sfo1 is not None:
+        acquisition["observation_frequency_mhz"] = sfo1
+    if o1 is not None:
+        acquisition["carrier_hz"] = o1
+    if "NUC1" in acqus:
+        acquisition["nucleus"] = acqus["NUC1"]
+    return ReadResult(
+        data=data,
+        axes=(axis,),
+        metadata=dic,
+        components=(
+            Component(name="complex" if np.iscomplexobj(data) else "real", data=data),
+        ),
+        applied_corrections=corrections,
+        diagnostics=tuple(diagnostics),
+        format="bruker-fid",
+        source=dir,
+        domains=("time",),
+        encoding=encoding,
+        dimensions=dimensions,
+        acquisition=acquisition,
+    )
 
 
 def read_bruker_pdata(

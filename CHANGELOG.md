@@ -7,6 +7,10 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Add an additive raw Bruker 1D `ReadResult` interop profile with explicit
+  acquisition metadata, digital-filter corrections, and no implicit RG/NS
+  normalization.
+
 ### CI
 
 - Automate PyPI and GitHub Release publication from validated release tags. (#139)

@@ -37,6 +37,7 @@ DIAGNOSTIC_CONTEXT_SCHEMA: Mapping[str, Mapping[str, Any]] = {
     "axis.missing-parameter": {"missing": tuple},
     "axis.size-mismatch": {"SI": (int, float), "N": int},
     "component.missing": {"expected": tuple, "missing": tuple},
+    "acquisition.missing-parameter": {"missing": tuple},
 }
 
 _AXIS_PARAMETER_NAMES = frozenset({"OFFSET", "SF", "SW_p"})
@@ -88,6 +89,12 @@ def _validate_context_elements(code, context):
             raise ValueError(
                 "diagnostic %r context['missing'] %r must be a subset of "
                 "'expected' %r" % (code, context["missing"], context["expected"])
+            )
+    elif code == "acquisition.missing-parameter":
+        if any(not isinstance(name, str) or not name for name in context["missing"]):
+            raise ValueError(
+                "diagnostic %r context['missing'] must name non-empty parameters, "
+                "got %r" % (code, context["missing"])
             )
 
 
@@ -182,6 +189,10 @@ class ReadResult:
     diagnostics: tuple[Diagnostic, ...]
     format: str
     source: str | os.PathLike[str]
+    domains: tuple[Domain, ...] = ()
+    encoding: tuple[str, ...] = ()
+    dimensions: Mapping[str, Any] = field(default_factory=dict)
+    acquisition: Mapping[str, Any] = field(default_factory=dict)
 
     def __post_init__(self):
         object.__setattr__(self, "data", _freeze_array(self.data))
@@ -192,3 +203,7 @@ class ReadResult:
             self, "applied_corrections", _readonly(self.applied_corrections)
         )
         object.__setattr__(self, "diagnostics", tuple(self.diagnostics))
+        object.__setattr__(self, "domains", tuple(self.domains))
+        object.__setattr__(self, "encoding", tuple(self.encoding))
+        object.__setattr__(self, "dimensions", _readonly(self.dimensions))
+        object.__setattr__(self, "acquisition", _readonly(self.acquisition))
