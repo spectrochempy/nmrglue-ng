@@ -21,7 +21,7 @@ original nmrglue project and are preserved for attribution and continuity.
   headers and F1/F2 storage order. (#143)
 - Add an additive Bruker raw 2D States-TPPI `ReadResult` profile exposing
   stored traces and canonical RR/RI/IR/II components without applying TPPI or
-  quaternion processing.
+  quaternion processing. (#144)
 
 ### CI
 
