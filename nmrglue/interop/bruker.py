@@ -2,8 +2,8 @@
 
 The supported profiles are deliberately narrow: processed 1D data read
 through :func:`nmrglue.fileio.bruker.read_pdata`, raw 1D FIDs, and raw 2D QF
-SER data. Hypercomplex reconstruction and NMRPipe 2D export remain outside
-this module's contract.
+or States-TPPI SER data. Quaternion reconstruction and NMRPipe 2D export
+remain outside this module's contract.
 
 The Hz axis is a *normative* scale, not a guess.  With ``OFFSET`` (ppm),
 ``SF`` (MHz) and ``SW_p`` (Hz) from ``procs``/``procNs`` and ``N`` points
@@ -222,13 +222,14 @@ def read_bruker_ser(
     read_pulseprogram=True,
     read_acqus=True,
 ):
-    """Read a raw Bruker 2D QF SER as a neutral :class:`ReadResult`.
+    """Read a raw Bruker 2D QF or States-TPPI SER as a ReadResult.
 
     The returned matrix keeps the historical reader's ``(F1, F2)`` storage
     order: rows are successive F1 traces and the last axis is contiguous F2
     data. QF indirect data are represented by one complex component because
-    the direct dimension is complex and the indirect dimension is real. No
-    RR/RI/IR/II components are fabricated.
+    the direct dimension is complex and the indirect dimension is real. For
+    States-TPPI, adjacent trace pairs additionally expose canonical RR, RI,
+    IR and II components; the stored trace matrix remains in ``data``.
 
     No RG/NS normalization, FFT, apodization, phasing, or linear prediction is
     applied. Digital-filter removal is explicit and recorded when requested.
@@ -276,11 +277,6 @@ def read_bruker_ser(
             "raw Bruker 2D QF profile requires direct AQ_mod=3 (DQD), got %r"
             % (aq_mod,)
         )
-    if fnmode != 1:
-        raise ValueError(
-            "raw Bruker 2D QF profile requires indirect FnMODE=1, got %r" % (fnmode,)
-        )
-
     td_f2 = _raw_integer(dic, "acqus", "TD")
     td_f1 = _raw_integer({"acqus": acqu2s}, "acqus", "TD")
     sw_f2 = _raw_number(dic, "acqus", "SW_h")
@@ -291,7 +287,133 @@ def read_bruker_ser(
     car_f1 = _raw_number({"acqus": acqu2s}, "acqus", "O1")
     if sw_f2 <= 0 or obs_f2 <= 0 or sw_f1_ppm <= 0 or obs_f1 <= 0:
         raise ValueError(
-            "raw Bruker QF 2D spectral widths and observations must be positive"
+            "raw Bruker 2D spectral widths and observations must be positive"
+        )
+    if fnmode == 5:
+        if aq_mod != 3:
+            raise ValueError(
+                "raw Bruker States-TPPI profile requires direct AQ_mod=3 (DQD), "
+                "got %r" % (aq_mod,)
+            )
+        if data.shape[0] % 2:
+            raise ValueError(
+                "raw Bruker States-TPPI SER requires an even number of stored traces"
+            )
+        if td_f2 % 2 or data.shape[1] != td_f2 // 2:
+            raise ValueError(
+                "raw Bruker States-TPPI direct shape does not match TD-derived shape"
+            )
+        storage_shape = tuple(data.shape)
+        corrections = {
+            "digital_filter": {
+                "applied": bool(remove_digital_filter),
+                "parameters": {
+                    key: acqus[key]
+                    for key in ("DECIM", "DSPFVS", "GRPDLY")
+                    if key in acqus
+                },
+            },
+            "normalization": "none",
+            "processing": "none",
+            "states_tppi_alternation": "declared_not_applied",
+        }
+        if remove_digital_filter:
+            data = np.asarray(bruker.remove_digital_filter(dic, data, truncate=True))
+        pair_count = data.shape[0] // 2
+        components = (
+            Component("RR", np.array(data[0::2].real, copy=True)),
+            Component("RI", np.array(data[0::2].imag, copy=True)),
+            Component("IR", np.array(data[1::2].real, copy=True)),
+            Component("II", np.array(data[1::2].imag, copy=True)),
+        )
+        sw_f1 = sw_f1_ppm * obs_f1
+        axes = (
+            Axis(
+                values=np.arange(pair_count, dtype=float) / sw_f1,
+                unit="s",
+                label=acqu2s.get("NUC1"),
+                domain="time",
+                direction="increasing",
+                reference=Reference(
+                    observation_frequency=obs_f1,
+                    observation_frequency_unit="MHz",
+                    source="acquisition",
+                ),
+            ),
+            Axis(
+                values=np.arange(data.shape[1], dtype=float) / sw_f2,
+                unit="s",
+                label=acqus.get("NUC1"),
+                domain="time",
+                direction="increasing",
+                reference=Reference(
+                    observation_frequency=obs_f2,
+                    observation_frequency_unit="MHz",
+                    source="acquisition",
+                ),
+            ),
+        )
+        dimensions = {
+            "physical_shape": (pair_count, int(data.shape[1])),
+            "canonical_shape": (pair_count, int(data.shape[1])),
+            "storage_shape": storage_shape,
+            "axis_order": ("F1", "F2"),
+            "trace_order": "F1-major, F2-contiguous",
+            "trace_pairing": "trace[2a]=RR+i*RI; trace[2a+1]=IR+i*II",
+            "tppi_alternation": "declared_not_applied",
+            "component_basis": ("RR", "RI", "IR", "II"),
+            "TD": (td_f1, td_f2),
+            "TDeff": (acqu2s.get("TDeff"), acqus.get("TDeff")),
+            "returned_shape": tuple(int(size) for size in data.shape),
+        }
+        acquisition = {
+            "axes": (
+                {
+                    "name": "F1",
+                    "TD": td_f1,
+                    "TDeff": acqu2s.get("TDeff"),
+                    "returned_points": pair_count,
+                    "SW_ppm": sw_f1_ppm,
+                    "SW_hz": sw_f1,
+                    "dwell_time_s": 1.0 / sw_f1,
+                    "observation_frequency_mhz": obs_f1,
+                    "carrier_hz": car_f1,
+                    "FnMODE": fnmode,
+                },
+                {
+                    "name": "F2",
+                    "TD": td_f2,
+                    "TDeff": acqus.get("TDeff"),
+                    "returned_points": int(data.shape[1]),
+                    "SW_hz": sw_f2,
+                    "dwell_time_s": 1.0 / sw_f2,
+                    "observation_frequency_mhz": obs_f2,
+                    "carrier_hz": car_f2,
+                    "AQ_mod": aq_mod,
+                },
+            ),
+            "RG": acqus.get("RG"),
+            "NS": acqus.get("NS"),
+            "original_shape": storage_shape,
+        }
+        return ReadResult(
+            data=data,
+            axes=axes,
+            metadata=dic,
+            components=components,
+            applied_corrections=corrections,
+            diagnostics=(),
+            format="bruker-ser-states-tppi-2d",
+            source=dir,
+            domains=("time", "time"),
+            encoding=("STATES-TPPI", "DQD"),
+            dimensions=dimensions,
+            acquisition=acquisition,
+        )
+
+    if fnmode != 1:
+        raise ValueError(
+            "raw Bruker 2D profile requires indirect FnMODE=1 or 5, got %r" % (fnmode,)
         )
 
     effective_f1 = td_f1

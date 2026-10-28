@@ -19,6 +19,9 @@ original nmrglue project and are preserved for attribution and continuity.
 - Extend the experimental `ReadResult` to NMRPipe export to the strict raw QF
   2D profile, reusing the existing NMRPipe writer and preserving QF/DQD
   headers and F1/F2 storage order. (#143)
+- Add an additive Bruker raw 2D States-TPPI `ReadResult` profile exposing
+  stored traces and canonical RR/RI/IR/II components without applying TPPI or
+  quaternion processing. (#144)
 
 ### CI
 
