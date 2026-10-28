@@ -18,7 +18,7 @@ original nmrglue project and are preserved for attribution and continuity.
   conventions without constructing hypercomplex components. (#142)
 - Extend the experimental `ReadResult` to NMRPipe export to the strict raw QF
   2D profile, reusing the existing NMRPipe writer and preserving QF/DQD
-  headers and F1/F2 storage order.
+  headers and F1/F2 storage order. (#143)
 
 ### CI
 
