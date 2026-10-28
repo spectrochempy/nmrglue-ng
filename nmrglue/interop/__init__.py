@@ -4,17 +4,20 @@
 readers.  It is additive: the historical ``(dic, data)`` APIs are unchanged,
 and no SpectroChemPy, NDDataset, Pint, or CSDM dependency is imported.
 
-The first supported profile is Bruker/TopSpin processed 1D data::
+The supported profiles include Bruker/TopSpin processed 1D data and raw 1D/2D
+acquisitions::
 
     import nmrglue as ng
 
     result = ng.interop.read_bruker_pdata(".../pdata/1", scale_data=True)
     dic, data = ng.bruker.read_pdata(".../pdata/1", scale_data=True)
+
+    result = ng.interop.read_bruker_ser(".../1/ser")
 """
 
 from __future__ import annotations
 
-from .bruker import read_bruker_fid, read_bruker_pdata
+from .bruker import read_bruker_fid, read_bruker_pdata, read_bruker_ser
 from .nmrpipe import write_readresult_nmrpipe
 from .result import (
     DIAGNOSTIC_CONTEXT_SCHEMA,
@@ -34,5 +37,6 @@ __all__ = [
     "Reference",
     "read_bruker_pdata",
     "read_bruker_fid",
+    "read_bruker_ser",
     "write_readresult_nmrpipe",
 ]

@@ -1,9 +1,9 @@
 """Bruker/TopSpin adapters for the neutral interop layer.
 
-The first supported profile is deliberately narrow: processed 1D data read
-through :func:`nmrglue.fileio.bruker.read_pdata`. An additive raw 1D profile is
-also provided by :func:`read_bruker_fid`; raw 2D and hypercomplex reconstruction
-remain outside this module's contract.
+The supported profiles are deliberately narrow: processed 1D data read
+through :func:`nmrglue.fileio.bruker.read_pdata`, raw 1D FIDs, and raw 2D QF
+SER data. Hypercomplex reconstruction and NMRPipe 2D export remain outside
+this module's contract.
 
 The Hz axis is a *normative* scale, not a guess.  With ``OFFSET`` (ppm),
 ``SF`` (MHz) and ``SW_p`` (Hz) from ``procs``/``procNs`` and ``N`` points
@@ -206,6 +206,197 @@ def read_bruker_fid(
         source=dir,
         domains=("time",),
         encoding=encoding,
+        dimensions=dimensions,
+        acquisition=acquisition,
+    )
+
+
+def read_bruker_ser(
+    dir=".",
+    *,
+    remove_digital_filter=False,
+    shape=None,
+    cplex=None,
+    big=None,
+    isfloat=None,
+    read_pulseprogram=True,
+    read_acqus=True,
+):
+    """Read a raw Bruker 2D QF SER as a neutral :class:`ReadResult`.
+
+    The returned matrix keeps the historical reader's ``(F1, F2)`` storage
+    order: rows are successive F1 traces and the last axis is contiguous F2
+    data. QF indirect data are represented by one complex component because
+    the direct dimension is complex and the indirect dimension is real. No
+    RR/RI/IR/II components are fabricated.
+
+    No RG/NS normalization, FFT, apodization, phasing, or linear prediction is
+    applied. Digital-filter removal is explicit and recorded when requested.
+    """
+    if not os.path.isdir(dir):
+        raise OSError("directory %s does not exist" % (dir,))
+
+    dic, data = bruker.read(
+        dir,
+        bin_file="ser",
+        shape=shape,
+        cplex=cplex,
+        big=big,
+        isfloat=isfloat,
+        read_pulseprogram=read_pulseprogram,
+        read_acqus=read_acqus,
+        read_procs=False,
+    )
+    data = np.asarray(data)
+    if data.ndim != 2 or not np.issubdtype(data.dtype, np.number):
+        raise ValueError("the raw Bruker 2D profile requires a numeric 2D SER")
+    if not np.iscomplexobj(data):
+        raise ValueError("the raw Bruker QF profile requires complex direct traces")
+
+    acqus = dic.get("acqus", {})
+    acqu2s = dic.get("acqu2s", dic.get("acqu2", {}))
+    missing = []
+    for section, names in (
+        ("acqus", ("TD", "AQ_mod", "SW_h", "SFO1", "O1")),
+        ("acqu2s", ("TD", "FnMODE", "SW", "SFO1", "O1")),
+    ):
+        values = acqus if section == "acqus" else acqu2s
+        missing.extend(
+            f"{section}.{name}" for name in names if values.get(name) is None
+        )
+    if missing:
+        raise ValueError(
+            "raw Bruker QF 2D acquisition metadata missing: %s" % ", ".join(missing)
+        )
+
+    aq_mod = acqus["AQ_mod"]
+    fnmode = acqu2s["FnMODE"]
+    if aq_mod != 3:
+        raise ValueError(
+            "raw Bruker 2D QF profile requires direct AQ_mod=3 (DQD), got %r"
+            % (aq_mod,)
+        )
+    if fnmode != 1:
+        raise ValueError(
+            "raw Bruker 2D QF profile requires indirect FnMODE=1, got %r" % (fnmode,)
+        )
+
+    td_f2 = _raw_integer(dic, "acqus", "TD")
+    td_f1 = _raw_integer({"acqus": acqu2s}, "acqus", "TD")
+    sw_f2 = _raw_number(dic, "acqus", "SW_h")
+    obs_f2 = _raw_number(dic, "acqus", "SFO1")
+    car_f2 = _raw_number(dic, "acqus", "O1")
+    sw_f1_ppm = _raw_number({"acqus": acqu2s}, "acqus", "SW")
+    obs_f1 = _raw_number({"acqus": acqu2s}, "acqus", "SFO1")
+    car_f1 = _raw_number({"acqus": acqu2s}, "acqus", "O1")
+    if sw_f2 <= 0 or obs_f2 <= 0 or sw_f1_ppm <= 0 or obs_f1 <= 0:
+        raise ValueError(
+            "raw Bruker QF 2D spectral widths and observations must be positive"
+        )
+
+    effective_f1 = td_f1
+    effective_f2 = td_f2 // 2
+    if td_f2 % 2 or effective_f2 <= 0:
+        raise ValueError("raw Bruker complex direct TD must be positive and even")
+    expected_shape = (effective_f1, effective_f2)
+    if data.shape != expected_shape:
+        raise ValueError(
+            "raw Bruker QF 2D shape %r does not match TD-derived shape %r"
+            % (data.shape, expected_shape)
+        )
+
+    storage_shape = tuple(data.shape)
+    corrections = {
+        "digital_filter": {
+            "applied": bool(remove_digital_filter),
+            "parameters": {
+                key: acqus[key] for key in ("DECIM", "DSPFVS", "GRPDLY") if key in acqus
+            },
+        },
+        "normalization": "none",
+        "processing": "none",
+    }
+    if remove_digital_filter:
+        data = np.asarray(bruker.remove_digital_filter(dic, data, truncate=True))
+
+    sw_f1 = sw_f1_ppm * obs_f1
+    axes = (
+        Axis(
+            values=np.arange(data.shape[0], dtype=float) / sw_f1,
+            unit="s",
+            label=acqu2s.get("NUC1"),
+            domain="time",
+            direction="increasing",
+            reference=Reference(
+                observation_frequency=obs_f1,
+                observation_frequency_unit="MHz",
+                source="acquisition",
+            ),
+        ),
+        Axis(
+            values=np.arange(data.shape[1], dtype=float) / sw_f2,
+            unit="s",
+            label=acqus.get("NUC1"),
+            domain="time",
+            direction="increasing",
+            reference=Reference(
+                observation_frequency=obs_f2,
+                observation_frequency_unit="MHz",
+                source="acquisition",
+            ),
+        ),
+    )
+    dimensions = {
+        "physical_shape": expected_shape,
+        "storage_shape": storage_shape,
+        "axis_order": ("F1", "F2"),
+        "trace_order": "F1-major, F2-contiguous",
+        "TD": (td_f1, td_f2),
+        "TDeff": (acqu2s.get("TDeff"), acqus.get("TDeff")),
+        "returned_shape": tuple(int(size) for size in data.shape),
+        "component_basis": ("complex",),
+    }
+    acquisition = {
+        "axes": (
+            {
+                "name": "F1",
+                "TD": td_f1,
+                "TDeff": acqu2s.get("TDeff"),
+                "returned_points": int(data.shape[0]),
+                "SW_ppm": sw_f1_ppm,
+                "SW_hz": sw_f1,
+                "dwell_time_s": 1.0 / sw_f1,
+                "observation_frequency_mhz": obs_f1,
+                "carrier_hz": car_f1,
+                "FnMODE": fnmode,
+            },
+            {
+                "name": "F2",
+                "TD": td_f2,
+                "TDeff": acqus.get("TDeff"),
+                "returned_points": int(data.shape[1]),
+                "SW_hz": sw_f2,
+                "dwell_time_s": 1.0 / sw_f2,
+                "observation_frequency_mhz": obs_f2,
+                "carrier_hz": car_f2,
+                "AQ_mod": aq_mod,
+            },
+        ),
+        "RG": acqus.get("RG"),
+        "NS": acqus.get("NS"),
+        "original_shape": storage_shape,
+    }
+    return ReadResult(
+        data=data,
+        axes=axes,
+        metadata=dic,
+        components=(Component(name="complex", data=data),),
+        applied_corrections=corrections,
+        diagnostics=(),
+        format="bruker-ser-qf-2d",
+        source=dir,
+        domains=("time", "time"),
+        encoding=("QF", "DQD"),
         dimensions=dimensions,
         acquisition=acquisition,
     )
