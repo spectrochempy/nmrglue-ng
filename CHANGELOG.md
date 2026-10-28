@@ -25,7 +25,7 @@ original nmrglue project and are preserved for attribution and continuity.
 - Extend the experimental `ReadResult` to NMRPipe export to strict raw
   States-TPPI/DQD storage with explicit `FDF1AQSIGN=16` and `FD2DPHASE=2`. (#145)
 - Add an experimental Agilent/Varian raw 1D `ReadResult` profile with explicit
-  carrier/reference handling and no implicit ns/ne normalization.
+  carrier/reference handling and no implicit ns/ne normalization. (#146)
 
 ### CI
 
