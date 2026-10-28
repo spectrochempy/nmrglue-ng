@@ -77,6 +77,8 @@ def _provenance_comment(result: ReadResult, *, compact: bool = False) -> str:
     else:
         comment = f"source={source}; corrections={corrections}; storage=float32"
     if len(comment.encode("utf-8")) > 160:
+        if not compact:
+            return _provenance_comment(result, compact=True)
         raise ValueError("ReadResult provenance does not fit NMRPipe FDCOMMENT")
     return comment
 
