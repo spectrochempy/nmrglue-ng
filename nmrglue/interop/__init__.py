@@ -15,6 +15,7 @@ The first supported profile is Bruker/TopSpin processed 1D data::
 from __future__ import annotations
 
 from .bruker import read_bruker_fid, read_bruker_pdata
+from .nmrpipe import write_readresult_nmrpipe
 from .result import (
     DIAGNOSTIC_CONTEXT_SCHEMA,
     Axis,
@@ -33,4 +34,5 @@ __all__ = [
     "Reference",
     "read_bruker_pdata",
     "read_bruker_fid",
+    "write_readresult_nmrpipe",
 ]

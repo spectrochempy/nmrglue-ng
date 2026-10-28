@@ -10,6 +10,9 @@ original nmrglue project and are preserved for attribution and continuity.
 - Add an additive raw Bruker 1D `ReadResult` interop profile with explicit
   acquisition metadata, digital-filter corrections, and no implicit RG/NS
   normalization.
+- Add an experimental, validated 1D `ReadResult` to NMRPipe export using the
+  existing NMRPipe writer, with explicit float32 storage and raw real/complex
+  quadrature validation.
 
 ### CI
 
