@@ -16,6 +16,9 @@ original nmrglue project and are preserved for attribution and continuity.
 - Add an additive Bruker raw 2D QF `ReadResult` profile preserving physical
   and storage dimensions, per-axis acquisition metadata, and explicit trace
   conventions without constructing hypercomplex components. (#142)
+- Extend the experimental `ReadResult` to NMRPipe export to the strict raw QF
+  2D profile, reusing the existing NMRPipe writer and preserving QF/DQD
+  headers and F1/F2 storage order.
 
 ### CI
 
