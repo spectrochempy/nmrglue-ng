@@ -1,9 +1,9 @@
-"""Experimental export of raw 1D and QF 2D :class:`ReadResult` to NMRPipe.
+"""Experimental export of raw 1D, QF 2D and States-TPPI :class:`ReadResult`.
 
 This module adapts the neutral result contract to the existing NMRPipe writer;
 it does not implement another binary writer or a processing engine.  Supported
-profiles are one time-domain axis or strict raw QF 2D with normalized
-acquisition metadata:
+profiles are one time-domain axis, strict raw QF 2D or strict raw States-TPPI
+2D with normalized acquisition metadata:
 
 ``spectral_width_hz``, ``observation_frequency_mhz`` and ``carrier_hz``.
 
@@ -61,17 +61,19 @@ def _provenance_comment(result: ReadResult, *, compact: bool = False) -> str:
     source = os.fspath(result.source)
     if compact:
         source = os.path.basename(os.path.normpath(source)) or source
-        summary = {}
-        for key, value in result.applied_corrections.items():
-            if isinstance(value, dict) and "applied" in value:
-                summary[key] = value["applied"]
-            else:
-                summary[key] = value
-        corrections = json.dumps(
-            summary, sort_keys=True, separators=(",", ":"), default=str
+        digital_filter = result.applied_corrections.get("digital_filter", {})
+        digital_filter = (
+            digital_filter.get("applied")
+            if isinstance(digital_filter, dict)
+            else digital_filter
         )
+        normalization = result.applied_corrections.get("normalization", "unknown")
+        tppi = result.applied_corrections.get("states_tppi_alternation")
+        correction_text = f"df={digital_filter};norm={normalization}"
+        if tppi is not None:
+            correction_text += f";tppi={tppi}"
         shape = "x".join(str(size) for size in result.data.shape)
-        comment = f"source={source}; corrections={corrections}; shape={shape}; storage=float32"
+        comment = f"source={source}; {correction_text}; shape={shape}; storage=float32"
     else:
         comment = f"source={source}; corrections={corrections}; storage=float32"
     if len(comment.encode("utf-8")) > 160:
@@ -225,13 +227,106 @@ def _validate_qf_2d_result(
     return _as_float32_data(result.data), (normalized[0], normalized[1])
 
 
+def _validate_states_tppi_2d_result(
+    result: ReadResult,
+) -> tuple[np.ndarray, tuple[dict[str, float], dict[str, float]]]:
+    """Validate and normalize the raw States-TPPI storage export contract."""
+    if result.data.ndim != 2 or any(size == 0 for size in result.data.shape):
+        raise ValueError("States-TPPI NMRPipe export requires non-empty 2D data")
+    if len(result.axes) != 2 or result.domains != ("time", "time"):
+        raise ValueError("States-TPPI export requires two time axes")
+    if result.encoding != ("STATES-TPPI", "DQD"):
+        raise ValueError("States-TPPI export requires encoding=('STATES-TPPI', 'DQD')")
+    if not np.iscomplexobj(result.data):
+        raise ValueError("States-TPPI export requires complex stored traces")
+    if result.data.shape[0] % 2:
+        raise ValueError("States-TPPI export requires an even number of stored traces")
+
+    component_names = ("RR", "RI", "IR", "II")
+    if tuple(component.name for component in result.components) != component_names:
+        raise ValueError("States-TPPI export requires RR, RI, IR and II components")
+    canonical_shape = (result.data.shape[0] // 2, result.data.shape[1])
+    for index, component in enumerate(result.components):
+        if component.data.shape != canonical_shape:
+            raise ValueError(
+                "States-TPPI component shape does not match canonical shape"
+            )
+        expected = (
+            result.data[0::2].real,
+            result.data[0::2].imag,
+            result.data[1::2].real,
+            result.data[1::2].imag,
+        )[index]
+        if not np.array_equal(component.data, expected):
+            raise ValueError(
+                "States-TPPI component does not match stored trace pairing"
+            )
+
+    shape = tuple(int(size) for size in result.data.shape)
+    if tuple(result.dimensions.get("storage_shape", ())) != shape:
+        raise ValueError("States-TPPI storage_shape must match stored data")
+    if tuple(result.dimensions.get("returned_shape", ())) != shape:
+        raise ValueError("States-TPPI returned_shape must match stored data")
+    if tuple(result.dimensions.get("physical_shape", ())) != canonical_shape:
+        raise ValueError("States-TPPI physical_shape must match canonical shape")
+    if tuple(result.dimensions.get("canonical_shape", ())) != canonical_shape:
+        raise ValueError("States-TPPI canonical_shape is required")
+    if result.dimensions.get("axis_order") != ("F1", "F2"):
+        raise ValueError("States-TPPI export requires axis_order=('F1', 'F2')")
+    if result.dimensions.get("trace_order") != "F1-major, F2-contiguous":
+        raise ValueError(
+            "States-TPPI export requires the declared F1-major trace order"
+        )
+    if result.dimensions.get("tppi_alternation") != "declared_not_applied":
+        raise ValueError("States-TPPI alternation must be declared but not applied")
+
+    tdeff = tuple(result.dimensions.get("TDeff", ()))
+    if len(tdeff) != 2:
+        raise ValueError("States-TPPI TDeff metadata is required")
+    if any(value is not None for value in tdeff):
+        raise ValueError("States-TPPI TDeff is not representable by this export")
+
+    td = tuple(result.dimensions.get("TD", ()))
+    if len(td) != 2 or any(size <= 0 for size in td) or td[1] % 2:
+        raise ValueError("States-TPPI TD metadata must be positive with even direct TD")
+    if td[0] > shape[0]:
+        raise ValueError("States-TPPI indirect TD exceeds stored trace count")
+    if shape[1] != td[1] // 2:
+        raise ValueError("States-TPPI direct shape does not match TD-derived shape")
+
+    axes_metadata = result.acquisition.get("axes")
+    if not isinstance(axes_metadata, (tuple, list)) or len(axes_metadata) != 2:
+        raise ValueError("States-TPPI acquisition requires axes metadata for F1 and F2")
+    normalized = []
+    for index, (axis, metadata) in enumerate(zip(result.axes, axes_metadata)):
+        if axis.values is None or axis.unit != "s" or axis.domain != "time":
+            raise ValueError("States-TPPI axes must be time coordinates in seconds")
+        expected_size = canonical_shape[index]
+        if axis.values.shape != (expected_size,):
+            raise ValueError("States-TPPI axis shape does not match canonical shape")
+        if not isinstance(metadata, dict):
+            raise ValueError("States-TPPI axis metadata must be mappings")
+        sw = _finite_positive(metadata.get("SW_hz"), f"axes[{index}].SW_hz")
+        obs = _finite_positive(
+            metadata.get("observation_frequency_mhz"),
+            f"axes[{index}].observation_frequency_mhz",
+        )
+        carrier = _finite(metadata.get("carrier_hz"), f"axes[{index}].carrier_hz")
+        expected = np.arange(expected_size, dtype=float) / sw
+        if not np.allclose(axis.values, expected, rtol=1e-12, atol=1e-15):
+            raise ValueError(f"States-TPPI axis {index} is inconsistent with SW_hz")
+        normalized.append({"sw_hz": sw, "obs_mhz": obs, "carrier_hz": carrier})
+
+    return _as_float32_data(result.data), (normalized[0], normalized[1])
+
+
 def write_readresult_nmrpipe(
     result: ReadResult,
     filename: str | os.PathLike[str],
     *,
     overwrite: bool = False,
 ) -> dict[str, Any]:
-    """Write a validated 1D or raw QF 2D ``ReadResult`` as an NMRPipe file.
+    """Write a validated 1D, raw QF 2D or States-TPPI ``ReadResult`` file.
 
     The function returns the generated header dictionary for inspection.  It
     raises ``ValueError`` rather than inventing defaults when the normalized
@@ -240,23 +335,31 @@ def write_readresult_nmrpipe(
     if not isinstance(result, ReadResult):
         raise TypeError("result must be a ReadResult")
     if result.data.ndim == 2:
-        data, axes = _validate_qf_2d_result(result)
+        is_states_tppi = result.encoding == ("STATES-TPPI", "DQD")
+        if is_states_tppi:
+            data, axes = _validate_states_tppi_2d_result(result)
+            f1_encoding = "states-tppi"
+            title = "ReadResult States-TPPI 2D"
+        else:
+            data, axes = _validate_qf_2d_result(result)
+            f1_encoding = "magnitude"
+            title = "ReadResult QF 2D"
         udic = fileiobase.create_blank_udic(2)
         for index, axis_metadata in enumerate(axes):
             udic[index].update(
                 size=data.shape[index],
-                complex=index == 1,
+                complex=True if is_states_tppi else index == 1,
                 sw=axis_metadata["sw_hz"],
                 obs=axis_metadata["obs_mhz"],
                 car=axis_metadata["carrier_hz"],
                 label=result.axes[index].label or ("F1", "F2")[index],
                 time=True,
                 freq=False,
-                encoding="magnitude" if index == 0 else "direct",
+                encoding=f1_encoding if index == 0 else "direct",
             )
         header = pipe.create_dic(udic)
         header["FDSRCNAME"] = "nmrglue-ng"
-        header["FDTITLE"] = "ReadResult QF 2D"
+        header["FDTITLE"] = title
         header["FDCOMMENT"] = _provenance_comment(result, compact=True)
         pipe.write(str(Path(filename)), header, data, overwrite=overwrite)
         return header
