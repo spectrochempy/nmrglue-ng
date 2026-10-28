@@ -23,7 +23,7 @@ original nmrglue project and are preserved for attribution and continuity.
   stored traces and canonical RR/RI/IR/II components without applying TPPI or
   quaternion processing. (#144)
 - Extend the experimental `ReadResult` to NMRPipe export to strict raw
-  States-TPPI/DQD storage with explicit `FDF1AQSIGN=16` and `FD2DPHASE=2`.
+  States-TPPI/DQD storage with explicit `FDF1AQSIGN=16` and `FD2DPHASE=2`. (#145)
 
 ### CI
 
