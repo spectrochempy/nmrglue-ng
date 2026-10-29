@@ -58,7 +58,10 @@ def test_agilent_states_result_preserves_raw_matrix_and_storage_metadata(
     assert result.dimensions["physical_indirect_increments"] == 2
     assert result.acquisition["phase"] == (1, 2)
     assert result.acquisition["normalization"] == "none"
-    assert result.applied_corrections["states_pairing"] == "declared_not_applied"
+    assert "states_pairing" not in result.applied_corrections
+    assert result.dimensions["trace_pairing"] == (
+        "trace[2a]=phase=1; trace[2a+1]=phase=2"
+    )
 
 
 @pytest.mark.parametrize(

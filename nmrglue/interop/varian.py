@@ -395,7 +395,6 @@ def read_agilent_states_2d(
             "normalization": "none",
             "conjugation": "none",
             "trace_reordering": "none",
-            "states_pairing": "declared_not_applied",
         },
         diagnostics=diagnostics,
         format="agilent-states-2d",
