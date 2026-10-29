@@ -146,10 +146,9 @@ maintainer repository under
 `notes/audits/nmrglue-ng/YYYY-MM-<topic>.md` when the result is suitable for
 reviewers. Preserve previous reports; use a distinct suffix for another audit
 of the same topic on the same day. Record the audited commit, evidence,
-validation performed and omitted, conclusions, and next steps. The local
-`maintainer/reports/` copies are historical migration material, not the source
-for new or updated reports. Product PRs must link the canonical report in
-`spectrochempy_maintainer`.
+validation performed and omitted, conclusions, and next steps. Product PRs
+must link the canonical report in `spectrochempy_maintainer`; no local report
+copy is maintained here.
 
 Review `maintainer/roadmap.md` after every audit and update it when findings
 add or change durable knowledge, priorities, or a shared decision. Keep the

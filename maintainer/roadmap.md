@@ -31,7 +31,7 @@ topics below are tracked follow-up work rather than first-release blockers.
   (changes requested: three minor documentation/coverage findings, no
   scientific or gating defect; findings verified addressed the same day — see the
   review note and implementer follow-up in the
-  [corpus report](reports/2026-10-critical-corpus.md#independent-review-of-the-contract-translation-and-integration--2026-10-09)):
+  [corpus report](../notes/audits/nmrglue-ng/2026-10-critical-corpus.md#independent-review-of-the-contract-translation-and-integration--2026-10-09)):
   the manifest contract
   now carries 29 first-release critical tests plus 13 explicitly deferred
   (RNMRTK/Sparky/JEOL historical reference profiles, tests and declarations
@@ -54,7 +54,7 @@ topics below are tracked follow-up work rather than first-release blockers.
   extractor scope stated exactly and pinned, module docstring qualified);
   the maintainer confirmed the reserved scope decisions recorded in the
   corpus report.
-  [Corpus report](reports/2026-10-critical-corpus.md).
+  [Corpus report](../notes/audits/nmrglue-ng/2026-10-critical-corpus.md).
 - [x] Accept the identified historical nmrglue archive for local validation
   (maintainer decision 2026-10-08). Keep use acceptance separate from
   redistribution status; see [test-data policy](testdata-policy.md).
@@ -97,9 +97,9 @@ topics below are tracked follow-up work rather than first-release blockers.
   artifact build, tag and publication all remain explicit maintainer-authorized
   release-preparation steps; see Decisions and near-term work).
 
-The [critical-corpus report](reports/2026-10-critical-corpus.md) records the
+The [critical-corpus report](../notes/audits/nmrglue-ng/2026-10-critical-corpus.md) records the
 42-test breakdown, all 16 groups, reference gaps and rights status. The
-[release report](reports/2026-10-release-validation.md) records the
+[release report](../notes/audits/nmrglue-ng/2026-10-release-validation.md) records the
 NMRPipe differential result: 44/47 on version 13.0 Rev 2026.072.12.03.
 Neither missing data nor classified historical differences are passing tests.
 
@@ -112,13 +112,13 @@ Neither missing data nor classified historical differences are passing tests.
 | Upstream synchronization before `1.0.0rc1` | New release-candidate gate (2026-10-11): before publishing `1.0.0rc1`, audit the then-current `jjhelmus/nmrglue` upstream and ensure `nmrglue-ng` either includes upstream changes that should be carried into the release, or explicitly records a maintainer decision to defer/exclude them with scope and rationale. This does not authorize upstream contribution and does not require adopting upstream changes whose behavior conflicts with documented `nmrglue-ng` decisions. |
 | Documentation and RTD before final `1.0.0` | Maintainer decision 2026-10-11: do not rush the final release before public Read the Docs documentation is substantially useful to new users. Additional release candidates such as `1.0.0rc2` or `rc3` are acceptable if needed for documentation review. Keep a mixed source model: reStructuredText remains appropriate for API/reference and stable inherited pages, while MyST-NB is preferred for modern tutorials and rewritten examples. Before final `1.0.0`, differentiate the documentation from historical upstream `nmrglue`, provide a tutorial-first public path, and progressively migrate selected historical examples into pedagogical notebooks with figures, explicit outputs, downloadable data and provenance. Preserve historical attribution and keep unmigrated examples accessible as legacy material rather than converting them mechanically. |
 | Documentation language | Maintainer decision 2026-10-16: the public documentation is English-only. The bilingual build, the top-bar language selector and the French gettext catalogs were removed (`#115`) to simplify the documentation pipeline; the site is built once, in English, at the version root. |
-| Critical contract | The 2026-10-08 decisions are translated into the generator/manifest at `7a7f935` (2026-10-09, reviewed the same day; minor findings addressed the same day): `CRITICAL_TESTS` holds the 29 first-release ids, `DEFERRED_TESTS` the 13 deferred RNMRTK/Sparky/JEOL ids, component scope is three-valued (`critical`/`deferred`/`extended`), manifest schema v4. Bruker pdata replacement is complete: the two components are explicitly `replaced` against committed CC0 fixtures, with checksummed inventory, fixture-derived read metadata and read/write round trips. Independent follow-up confirms malformed replacement license/provenance declarations fail structurally. JCAMP-DX critical components are now replaced by synthetic CC0 fixtures with checksummed inventory for AFFN/PAC/SQZ/DIF and NTUPLES coverage. SIMPSON requirements remain. [Corpus report](reports/2026-10-critical-corpus.md#bruker-pdata-replacement--2026-10-09). |
+| Critical contract | The 2026-10-08 decisions are translated into the generator/manifest at `7a7f935` (2026-10-09, reviewed the same day; minor findings addressed the same day): `CRITICAL_TESTS` holds the 29 first-release ids, `DEFERRED_TESTS` the 13 deferred RNMRTK/Sparky/JEOL ids, component scope is three-valued (`critical`/`deferred`/`extended`), manifest schema v4. Bruker pdata replacement is complete: the two components are explicitly `replaced` against committed CC0 fixtures, with checksummed inventory, fixture-derived read metadata and read/write round trips. Independent follow-up confirms malformed replacement license/provenance declarations fail structurally. JCAMP-DX critical components are now replaced by synthetic CC0 fixtures with checksummed inventory for AFFN/PAC/SQZ/DIF and NTUPLES coverage. SIMPSON requirements remain. [Corpus report](../notes/audits/nmrglue-ng/2026-10-critical-corpus.md#bruker-pdata-replacement--2026-10-09). |
 | Coverage badge | Maintainer decision 2026-10-14: coverage badge policy is postponed until after stable `1.0.0` (now released) and is not a release blocker. Track as `NMRNG-kb5.22`; any badge must describe autonomous CI coverage only and must not imply external-corpus or NMRPipe differential validation. |
 | Conda packages | Maintainer decision 2026-10-14: Conda publication is postponed until after stable `1.0.0` (now released) and is not a release blocker. Track as `NMRNG-kb5.20`; evaluate conda-forge, spectrocat, or both using the published 1.0.x artifacts. |
 | Google Colab validation | Maintainer decision 2026-10-14: hosted Colab validation is postponed until after stable `1.0.0` (now released) and is not a release blocker. Track as `NMRNG-kb5.21`; public install commands and stable artifacts now exist. |
 | Local corpus use | Historical archive accepted for local testing; `UNRESOLVED` redistribution status alone no longer blocks those tests. Identify missing references and record actual results. |
 | Data redistribution | Distribute only files/groups with recorded public-domain status, an applicable license or permission; keep other accepted inputs local/private. |
-| NMRPipe conversion references | The `FDDMXVAL` correction is integrated in #65 (`7ef9b8f`). Recorded NMRPipe 13.0 validation: all eight Agilent/Bruker full/low-memory cases pass in disposable copies. On 2026-10-09 the five references were regenerated (132 files) and validated with the FDDMXVAL regression (9 passed) then integrated into the local corpus; Bruker outputs are byte-identical to the 2026-10-08 receipts, Agilent outputs differ only in the var2pipe conversion-timestamp header fields. Independently reviewed 2026-10-09 (byte identity and timestamp property reproduced by the reviewer). [Corpus evidence](reports/2026-10-critical-corpus.md#contract-translation-and-local-reference-integration--2026-10-09). |
+| NMRPipe conversion references | The `FDDMXVAL` correction is integrated in #65 (`7ef9b8f`). Recorded NMRPipe 13.0 validation: all eight Agilent/Bruker full/low-memory cases pass in disposable copies. On 2026-10-09 the five references were regenerated (132 files) and validated with the FDDMXVAL regression (9 passed) then integrated into the local corpus; Bruker outputs are byte-identical to the 2026-10-08 receipts, Agilent outputs differ only in the var2pipe conversion-timestamp header fields. Independently reviewed 2026-10-09 (byte identity and timestamp property reproduced by the reviewer). [Corpus evidence](../notes/audits/nmrglue-ng/2026-10-critical-corpus.md#contract-translation-and-local-reference-integration--2026-10-09). |
 | RNMRTK/Sparky references | Deferred from first-release critical scope by maintainer decision; retain tests and format support, document absent real-reference validation, and revisit with contributed data. The deferral is translated into the contract (`DEFERRED_TESTS`, component scope `deferred`); nothing remains to do on the manifest side. |
 | Packaged fixtures | Choose a consistent provenance/checksum verification scheme; the external manifest does not currently cover them. |
 | Bruker `pdata` | Replacement implemented and independently reviewed: fixture metadata and `read -> write -> read` evidence replace the four historical tests; the two components are `replaced` with checksummed CC0 fixtures. Missing, blank and whitespace-only license/provenance declarations fail structurally. Integrated in #69 (`9296e3f`). |
@@ -127,14 +127,14 @@ Neither missing data nor classified historical differences are passing tests.
 | JCAMP-DX tuples | Synthetic CC0 NTUPLES replacement fixtures preserve real/imaginary array shape, metadata, point-count and sampled-value checks for `test_jcampdx1`; `(XYW..XYW)` / `(XYM..XYM)` tuple-size behavior remains a separate P1 validation before adapting upstream #262. |
 | JCAMP-DX FID metadata | Aligned locally with final upstream #231/#291 semantics after #54: FID sweep width uses `(N - 1) / (LAST-FIRST)`, complex arrays use `np.iscomplexobj`, `as_complex=True` leaves incomplete R/I pairs unchanged, and NTUPLES fallback requires exact `NMR FID` when `DATATYPE` is absent. The synthetic FID fixture now uses sampling-consistent LAST coordinates. Targeted validation: `tests/fileio/test_jcampdx_fixtures.py` passed on 2026-10-08. |
 | JCAMP-DX processed endpoint axes | Fix prepared for GitHub issue #86: for descending processed spectra, `guess_udic()` converts `FIRSTX`/`LASTX` endpoint spans to the universal-dictionary spectral-width convention and adjusts `car`, so `uc_from_udic()` reconstructs point 0 and point `N - 1` at the JCAMP endpoints. |
-| Bruker processing-file priority | Investigated 2026-10-14 (`NMRNG-kb5.7.1`): the default status files (`procs`/`procNs`) are the correct source for the axis, shape and scaling parameters `nmrglue` consumes, and the singular `proc`/`procN` files may carry stale `NC_proc`/`XDIM`/`STSI`, so broadening default discovery (upstream #264) is rejected. Maintainer decision 2026-10-14: keep the default, keep explicit `procs_files` selection (#55) for the editor-only parameters such as `ABSF1`/`ABSF2` (unused by axis/shape/scaling), and document the two file families; the docstring clarification and test-only regression are a separate follow-up task. [Evidence](reports/2026-10-bruker-processing-file-selection.md). |
-| SIMPSON | Shape correction integrated in #66 (`d9ba184`): single-element 1D TEXT/BINARY returns `(NP,)`, preserving multi-element/2D behavior and BINARY header checks. Independent review and counter-review approved it. Recorded validation: 441 autonomous passes with CSDM and 4/4 dataset tests on disposable outputs. On 2026-10-09 the 16 encoding outputs were regenerated from `rr.in`/`2d.in` (SIMPSON 4.2.1, system Tcl 8.6.17), validated (4/4 dataset tests, 9/9 autonomous shape regressions) and integrated into the local corpus. Independently reviewed 2026-10-09 (1D outputs reproduced byte-identically by the reviewer). [Resolution evidence](reports/2026-10-critical-corpus.md#shape-contract-resolution--2026-10-08) and [integration evidence](reports/2026-10-critical-corpus.md#contract-translation-and-local-reference-integration--2026-10-09). |
+| Bruker processing-file priority | Investigated 2026-10-14 (`NMRNG-kb5.7.1`): the default status files (`procs`/`procNs`) are the correct source for the axis, shape and scaling parameters `nmrglue` consumes, and the singular `proc`/`procN` files may carry stale `NC_proc`/`XDIM`/`STSI`, so broadening default discovery (upstream #264) is rejected. Maintainer decision 2026-10-14: keep the default, keep explicit `procs_files` selection (#55) for the editor-only parameters such as `ABSF1`/`ABSF2` (unused by axis/shape/scaling), and document the two file families; the docstring clarification and test-only regression are a separate follow-up task. [Evidence](../notes/audits/nmrglue-ng/2026-10-bruker-processing-file-selection.md). |
+| SIMPSON | Shape correction integrated in #66 (`d9ba184`): single-element 1D TEXT/BINARY returns `(NP,)`, preserving multi-element/2D behavior and BINARY header checks. Independent review and counter-review approved it. Recorded validation: 441 autonomous passes with CSDM and 4/4 dataset tests on disposable outputs. On 2026-10-09 the 16 encoding outputs were regenerated from `rr.in`/`2d.in` (SIMPSON 4.2.1, system Tcl 8.6.17), validated (4/4 dataset tests, 9/9 autonomous shape regressions) and integrated into the local corpus. Independently reviewed 2026-10-09 (1D outputs reproduced byte-identically by the reviewer). [Resolution evidence](../notes/audits/nmrglue-ng/2026-10-critical-corpus.md#shape-contract-resolution--2026-10-08) and [integration evidence](../notes/audits/nmrglue-ng/2026-10-critical-corpus.md#contract-translation-and-local-reference-integration--2026-10-09). |
 | JEOL | Historical independent reference pairs are deferred from first-release critical scope; retain the reader and licensed autonomous tests. Revisit with user demand or contributed data/reference results, potentially from the reader author. No contact is authorized by this entry. |
 | `data_nd` | Reviews approved at `23cdba1`; changelog references corrected to #56/#57. The documented Boolean-axis compatibility difference remains outside these fixes. |
 | Optional interop API | Maintainer decision 2026-10-16: provide an *optional, additive* `nmrglue.interop` layer (`ReadResult`, `Axis`, `Reference`, `Component`, `Diagnostic`) built from the existing readers, importing no SpectroChemPy/NDDataset/Pint/CSDM dependency and leaving the historical `(dic, data)` APIs unchanged. The first supported profile is Bruker/TopSpin processed 1D (`interop.read_bruker_pdata`): normative Hz axis `f[i] = OFFSET * SF - i * (SW_p / N)` (first point at `OFFSET * SF`, strictly decreasing), name-to-array components with the singleton return normalized, read-only arrays/mappings, and diagnostics whose codes and context are schema-validated. Independent review of the prototype tightened the contract: `SF` and `SW_p` must be strictly positive, the computed axis must stay finite (both raise `ValueError`), component names must be unique so the name-to-array mapping stays unambiguous, and the diagnostic `context` is validated at the element level (processing-parameter names, component names, sizes, `SI` not a `bool`). Prototype implemented and documented in this change set; broader adoption stays gated on a documented external need or a maintainer commitment to nmrglue-ng before extending to 2D or other formats. Track as `NMRNG-d6h` / [#112](https://github.com/spectrochempy/nmrglue-ng/issues/112). |
 | Test hygiene | Make failed NMRPipe comparisons clean generated artifacts reliably. |
 | NMRPipe demo corpus for 2D processing | Audit on 2026-10-25 at `4c174ff`: official `gb3` is a 2D H/N States-TPPI acquisition (`FnMODE=5`), `hn` is echo-antiecho (`FnMODE=6`), and `magnitude` is QF COSY (`FnMODE=1`). NMRPipe 13.0 Rev 2026.072.12.03 reproduced the gb3/hn conversion and final arrays exactly across two runs. HNCO converted payload agrees exactly with nmrglue after the script's factor 125; the regenerated, transposed HNCO cube agrees with the supplied cube to relative L2 error 8.27e-7. No pure TPPI or pure States acquisition was confirmed in the demo corpus. Keep those coverage gaps open: `data/agilent_2d_tppi` is a separate historical candidate (`phase=3`), whose default NMRPipe script generator produced inconsistent indirect sizes/labels. Separate conversion validation from FFT validation: gb3/hn `-AMX` inputs retain `FDDMXVAL`, so NMRPipe `FT -nodf` is needed for a pure-FFT comparison; generic Bruker echo-antiecho conversion does not reproduce the official recombination/header semantics. Recommended follow-up, not a release-gate change: freeze small Pipe inputs/checkpoints from gb3, hn, magnitude and an HNCO XY plane, establish explicit quadrature/filter contracts, and obtain confirmed pure States/TPPI references. |
-| Single test tree | Integrated in #64 at `805c6f2`, following implementation/review based on `35fd95d`; [evidence](reports/2026-10-test-layout-plan.md) records parity and distribution validation. |
+| Single test tree | Integrated in #64 at `805c6f2`, following implementation/review based on `35fd95d`; [evidence](../notes/audits/nmrglue-ng/2026-10-test-layout-plan.md) records parity and distribution validation. |
 
 Upstream gate audit on 2026-10-11 compared `jjhelmus/nmrglue` master
 `cd0c2c9` with local/origin master `443bbcf`, then #81 (`2c50110`) carried the
@@ -149,7 +149,7 @@ retain the approved non-blocking scope. With #81 merged and these dispositions
 recorded, **NMRNG-kb5.17 is closed**.
 The complete merged-change inventory, open-proposal screening, rationale and
 limits are in the
-[rc1 synchronization assessment](reports/2026-10-upstream-sync.md#release-candidate-reconciliation--2026-10-11).
+[rc1 synchronization assessment](../notes/audits/nmrglue-ng/2026-10-upstream-sync.md#release-candidate-reconciliation--2026-10-11).
 
 Follow-up upstream review on 2026-10-13 found `jjhelmus/nmrglue` master still
 at `cd0c2c9`, with no new upstream commits since the 2026-10-11 gate review.
@@ -173,13 +173,13 @@ self-contained reproduction and real-file scientific evidence before a port.
 ## P1 — Scientific reliability
 
 - [x] `data_nd` copy and negative-axis fixes (#33), 1D transpose (#56), and
-  integer-axis validation (#57). [Scope and evidence](reports/2026-10-data-nd.md).
+  integer-axis validation (#57). [Scope and evidence](../notes/audits/nmrglue-ng/2026-10-data-nd.md).
 - [x] Varian multi-trace reading and low-memory writer headers (#36–#38).
 - [x] ZD width contract (#9), SAVE metadata (#13), QR solver (#14), and
   HT `ps90-180` (#15).
 - [x] Explicit Bruker processing-parameter selection (#55), documentation and
   provenance clarification (#58). This is an option, not evidence of a general
-  defect in the historical default. [Scientific report](reports/2026-10-bruker-axes.md).
+  defect in the historical default. [Scientific report](../notes/audits/nmrglue-ng/2026-10-bruker-axes.md).
 - [ ] Complete Bruker axis coverage with coherent raw/processed references,
   an indirect acquisition header and genuine `STSR`/`STSI` extraction cases.
   Default-path changes require evidence and a separate compatibility decision.
@@ -188,7 +188,7 @@ self-contained reproduction and real-file scientific evidence before a port.
   ([historical contribution #275](https://github.com/jjhelmus/nmrglue/pull/275))
   against current code before deciding on implementation.
 - [ ] Complete JCAMP-DX real-data and encoding-equivalence validation after
-  #46/#47/#49/#52/#54. [Reader decisions](reports/2026-10-maintenance.md).
+  #46/#47/#49/#52/#54. [Reader decisions](../notes/audits/nmrglue-ng/2026-10-maintenance.md).
 - [ ] Investigate NMRPipe/JRES dimensional metadata behavior.
 - [x] `pipe_proc.ext` indirect metadata and upper-bound correction: targeted
   third review on 2026-10-08 approved the reviewed correction; PR #62 was
@@ -196,7 +196,7 @@ self-contained reproduction and real-file scientific evidence before a port.
   regressions pass within the 48-test unit file, and independent NMRPipe comparisons verify
   clipping, rounded-window placement and saturation. Track inherited
   X1/XN/APOD, fractional-CENTER and quadrature limitations separately.
-  [Evidence and scope](reports/2026-10-pipe-proc-ext.md).
+  [Evidence and scope](../notes/audits/nmrglue-ng/2026-10-pipe-proc-ext.md).
 
 ## P2 — Broader maintenance
 
@@ -210,10 +210,10 @@ self-contained reproduction and real-file scientific evidence before a port.
   The integration baseline-noise uncertainty correction from upstream #295/#296
   is tracked as `NMRNG-kb5.13.4`; its propagation rationale and current
   implementer validation are recorded in the
-  [integration-noise report](reports/2026-10-integration-noise.md). Delivery
+  [integration-noise report](../notes/audits/nmrglue-ng/2026-10-integration-noise.md). Delivery
   remains subject to independent review.
 - [x] Prepare the dedicated test-reorganization plan after EXT #62:
-  [inventory, mapping and validation design](reports/2026-10-test-layout-plan.md),
+  [inventory, mapping and validation design](../notes/audits/nmrglue-ng/2026-10-test-layout-plan.md),
   assessed on 2026-10-08 at `a662316`: 269 tracked files, 35 collected modules,
   575 collected items. Collection is not a functional validation result.
 - [x] Test layout A — approved fixture checksum policy, runtime-only wheel,
@@ -248,7 +248,7 @@ self-contained reproduction and real-file scientific evidence before a port.
   sources are intentional. Completed for the current structure by PRs #90–#96;
   future improvements should be opened as focused post-release beads.
 - [ ] Introduce linting, typing and benchmarks only through separately scoped
-  work. The 2026-10-16 [quality-tooling baseline](reports/2026-10-quality-tooling.md)
+  work. The 2026-10-16 [quality-tooling baseline](../notes/audits/nmrglue-ng/2026-10-quality-tooling.md)
   records the active Ruff F401/F821 gate for maintained package code; broader
   linting and formatting remain deferred until their diagnostics are classified.
   The `glue_2d`/`glue_3d` order contract is corrected and `glue.py` is no longer
