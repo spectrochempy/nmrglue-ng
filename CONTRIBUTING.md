@@ -222,11 +222,14 @@ and scientific fixtures protected from rewriting hooks.
 
 ## Maintainer records
 
-Current maintainer priorities and curated validation evidence are indexed in
-[`maintainer/README.md`](maintainer/README.md). Shared technical reports belong
-in `maintainer/reports/`; `maintainer/audits/` remains ignored local working
-material. Reports must distinguish historical checks from new validation and
-must not depend on local-only notes to support shared conclusions.
+Current maintainer priorities are indexed in
+[`maintainer/README.md`](maintainer/README.md). The canonical private audit and
+report repository is
+[`spectrochempy_maintainer/notes/audits/nmrglue-ng/`](https://github.com/spectrochempy/spectrochempy_maintainer/tree/master/notes/audits/nmrglue-ng/).
+`maintainer/reports/` contains historical migration copies only;
+`maintainer/audits/` remains ignored local working material. Reports must
+distinguish historical checks from new validation and must not depend on
+local-only notes to support shared conclusions.
 
 ## Test Data
 
