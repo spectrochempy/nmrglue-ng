@@ -11,24 +11,24 @@ user documentation belongs in `doc/`, contributor instructions in
 | Document | Purpose |
 |---|---|
 | [Roadmap](roadmap.md) | Current actions and decisions; links to evidence instead of repeating session histories. |
-| [Release validation](reports/2026-10-release-validation.md) | Dated validation results, release gates, CI/packaging and documentation limits. |
-| [Critical corpus](reports/2026-10-critical-corpus.md) | Capability/reference coverage, historical 16-group contract and unresolved decisions. |
-| [Bruker processed axes](reports/2026-10-bruker-axes.md) | Scientific conventions, discordant-fixture provenance, review outcome and limits. |
-| [Low-memory array operations](reports/2026-10-data-nd.md) | `data_nd` fixes, behavior contracts and validation/review status. |
-| [Reader and infrastructure maintenance](reports/2026-10-maintenance.md) | Durable reader decisions, corpus safety and CI design rationale. |
-| [Quality tooling](reports/2026-10-quality-tooling.md) | Ruff baseline, scoped Codespell policy and deferred typing/benchmark work. |
-| [Integration-noise uncertainty](reports/2026-10-integration-noise.md) | Baseline-noise uncertainty propagation correction for 1D and n-dimensional integration. |
-| [Upstream synchronization](reports/2026-10-upstream-sync.md) | Upstream merges/PR/issues mapped to roadmap items, shared-scope divergences and pending decisions. |
-| [NMRPipe EXT extraction](reports/2026-10-pipe-proc-ext.md) | Indirect extraction metadata correction, evidence and review status. |
-| [Single test-tree plan](reports/2026-10-test-layout-plan.md) | Complete relocation mapping, collection parity, fixture integrity and functional wheel/sdist validation proposal. |
-| [GitHub Actions storage](reports/2026-10-actions-storage.md) | Actions artifact and cache audit; decision to stop retaining built distributions as workflow artifacts. |
-| [Bruker processing-file selection](reports/2026-10-bruker-processing-file-selection.md) | `proc`/`procNs` versus `procs`/`proc2s` roles, real-file evidence and the decision to keep the status-file default. |
+| [Release validation](../notes/audits/nmrglue-ng/2026-10-release-validation.md) | Dated validation results, release gates, CI/packaging and documentation limits. |
+| [Critical corpus](../notes/audits/nmrglue-ng/2026-10-critical-corpus.md) | Capability/reference coverage, historical 16-group contract and unresolved decisions. |
+| [Bruker processed axes](../notes/audits/nmrglue-ng/2026-10-bruker-axes.md) | Scientific conventions, discordant-fixture provenance, review outcome and limits. |
+| [Low-memory array operations](../notes/audits/nmrglue-ng/2026-10-data-nd.md) | `data_nd` fixes, behavior contracts and validation/review status. |
+| [Reader and infrastructure maintenance](../notes/audits/nmrglue-ng/2026-10-maintenance.md) | Durable reader decisions, corpus safety and CI design rationale. |
+| [Quality tooling](../notes/audits/nmrglue-ng/2026-10-quality-tooling.md) | Ruff baseline, scoped Codespell policy and deferred typing/benchmark work. |
+| [Integration-noise uncertainty](../notes/audits/nmrglue-ng/2026-10-integration-noise.md) | Baseline-noise uncertainty propagation correction for 1D and n-dimensional integration. |
+| [Upstream synchronization](../notes/audits/nmrglue-ng/2026-10-upstream-sync.md) | Upstream merges/PR/issues mapped to roadmap items, shared-scope divergences and pending decisions. |
+| [NMRPipe EXT extraction](../notes/audits/nmrglue-ng/2026-10-pipe-proc-ext.md) | Indirect extraction metadata correction, evidence and review status. |
+| [Single test-tree plan](../notes/audits/nmrglue-ng/2026-10-test-layout-plan.md) | Complete relocation mapping, collection parity, fixture integrity and functional wheel/sdist validation proposal. |
+| [GitHub Actions storage](../notes/audits/nmrglue-ng/2026-10-actions-storage.md) | Actions artifact and cache audit; decision to stop retaining built distributions as workflow artifacts. |
+| [Bruker processing-file selection](../notes/audits/nmrglue-ng/2026-10-bruker-processing-file-selection.md) | `proc`/`procNs` versus `procs`/`proc2s` roles, real-file evidence and the decision to keep the status-file default. |
 | [External-data manifest](testdata-manifest.toml) | Machine-readable inventory, sizes, hashes and rights evidence; managed by the corpus scripts. |
 | [Test-data policy](testdata-policy.md) | Accepted local validation sources, per-group redistribution decisions and release evidence requirements. |
 
 ## Evidence and update rules
 
-- `reports/` contains historical migration copies of reports formerly curated
+- `../notes/audits/nmrglue-ng/` contains historical migration copies of reports formerly curated
   in this repository. The canonical current reports and audits now live in the
   private `spectrochempy_maintainer/notes/audits/nmrglue-ng/` directory; new
   reports must not be created here. Each canonical report names its date, code

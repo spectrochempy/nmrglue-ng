@@ -226,7 +226,6 @@ Current maintainer priorities are indexed in
 [`maintainer/README.md`](maintainer/README.md). The canonical private audit and
 report repository is
 [`spectrochempy_maintainer/notes/audits/nmrglue-ng/`](https://github.com/spectrochempy/spectrochempy_maintainer/tree/master/notes/audits/nmrglue-ng/).
-`maintainer/reports/` contains historical migration copies only;
 `maintainer/audits/` remains ignored local working material. Reports must
 distinguish historical checks from new validation and must not depend on
 local-only notes to support shared conclusions.
@@ -338,7 +337,7 @@ Declaring all contract test ids therefore does not, by itself, prove that every
 file a test consumes is declared. The exact scope of the automated
 controls, and the independent review that confronted the extractor with
 every `DATA_DIR` use of the current modules, are recorded in
-`maintainer/reports/2026-10-critical-corpus.md`.
+the canonical `spectrochempy_maintainer/notes/audits/nmrglue-ng/2026-10-critical-corpus.md` report.
 
 A component is `critical` when at least one consumer belongs to the
 first-release critical contract, `deferred` when it has no critical consumer
