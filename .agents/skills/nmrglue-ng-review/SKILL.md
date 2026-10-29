@@ -153,12 +153,12 @@ Then audit the report against reality:
 * Is a `CHANGELOG.md` entry required? For user- or developer-visible changes:
   yes. If the PR claims `Changelog: not required`, judge whether the reason
   holds.
-* Is any public report in `maintainer/reports/` self-contained, dated and
-  appropriate for public readers?
-* Are shared `maintainer/reports/` documents self-contained, dated and clear
-  about new versus historical validation and reviewer versus implementer
-  evidence? Apply `maintainer/README.md` rather than treating shared reports
-  as ignored working notes.
+* Is the canonical report in
+  `spectrochempy_maintainer/notes/audits/nmrglue-ng/` self-contained, dated and
+  appropriate for reviewers?
+* Does the product PR link to that canonical report rather than introduce a
+  second evolving report copy? Apply the central maintainer repository's
+  publication policy rather than treating reports as ignored working notes.
 * Is the change free of several independent defects in one PR?
 
 ### 7. Search for counter-examples

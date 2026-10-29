@@ -263,17 +263,19 @@ structure: heading levels, table syntax, list indentation, code fences closed.
 Update the relevant maintainer document when the task produces a decision or
 durable knowledge that must outlive it:
 
-* `maintainer/reports/` holds curated, versioned technical evidence, following
-  `maintainer/README.md`. Link to it from the roadmap rather than duplicating
-  long validation records. Preserve the distinction between new execution,
-  historical results and independent review.
+* `spectrochempy_maintainer/notes/audits/nmrglue-ng/` is the canonical private
+  location for curated, versioned technical evidence. Link to it from product
+  PRs and the roadmap rather than creating a second evolving copy here.
+  Preserve the distinction between new execution, historical results and
+  independent review.
 
-After every audit, persist a self-contained public report in
-`maintainer/reports/` when appropriate and review the nmrglue-ng roadmap as
-required by `AGENTS.md`, even when the task ends with a blocked verdict.
-Include the report path and any roadmap update (or why none was needed) in the
-final reply. Maintainer-only cross-project routing is handled by workspace
-skills, not by this public project skill.
+After every audit, persist a self-contained report in the canonical private
+`spectrochempy_maintainer/notes/audits/nmrglue-ng/` directory when appropriate
+and review the nmrglue-ng roadmap as required by `AGENTS.md`, even when the
+task ends with a blocked verdict. Include the canonical report path and any
+roadmap update (or why none was needed) in the final reply. If suitability for
+reviewer publication is uncertain because of local paths, private data,
+corpus rights or correspondence, ask the maintainer before publishing.
 
 `CHANGELOG.md` `Unreleased` must be updated for every user- or
 developer-visible change, referencing the pull request number as `(#NNN)`.

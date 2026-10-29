@@ -197,7 +197,7 @@ Rules:
 ## Step 7 — Report
 
 Save a self-contained release-readiness report under
-`maintainer/reports/YYYY-MM-<topic>.md`, including when the verdict is
+`spectrochempy_maintainer/notes/audits/nmrglue-ng/YYYY-MM-<topic>.md`, including when the verdict is
 **BLOCKED**. Preserve previous reports; add a distinct suffix if the path
 already exists. The report must identify the exact audited commit, date,
 branch and initial working-tree state. Use the structure below:
@@ -231,9 +231,9 @@ Ordered, concrete, and naming who must decide what
 Then review `maintainer/roadmap.md`. Update it if the audit establishes durable
 facts, changes the known status of a gate, or identifies follow-up work that
 must be shared. Keep evidence and conclusions understandable without access
-to the ignored report. Consolidate durable evidence into versioned
-`maintainer/reports/` when warranted, following `maintainer/README.md`, and link
-to that report from the roadmap. This is evidence preservation, not a fresh
+to the ignored report. Consolidate durable evidence into the versioned
+canonical `spectrochempy_maintainer/notes/audits/nmrglue-ng/` directory when
+warranted, and link to that report from the roadmap. This is evidence preservation, not a fresh
 validation. Do not turn a recommendation into an agreed policy or
 change the release-critical contract without a maintainer decision. If no
 roadmap update is warranted, record the reason in the report.

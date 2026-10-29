@@ -141,13 +141,15 @@ scientific correctness. Any incompatible change must be explicitly
 identified, justified, tested, documented, and accompanied by migration
 guidance when needed.
 
-After an audit, write a dated, self-contained public report under
-`maintainer/reports/YYYY-MM-<topic>.md` when the result is suitable for public
-readers. Preserve previous reports; use a distinct suffix for another audit of
-the same topic on the same day. Record the audited commit, evidence,
-validation performed and omitted, conclusions, and next steps. Private
-cross-project audit routing is maintainer-workspace policy and is not part of
-this public repository's contributor instructions.
+After an audit, write a dated, self-contained report in the canonical private
+maintainer repository under
+`notes/audits/nmrglue-ng/YYYY-MM-<topic>.md` when the result is suitable for
+reviewers. Preserve previous reports; use a distinct suffix for another audit
+of the same topic on the same day. Record the audited commit, evidence,
+validation performed and omitted, conclusions, and next steps. The local
+`maintainer/reports/` copies are historical migration material, not the source
+for new or updated reports. Product PRs must link the canonical report in
+`spectrochempy_maintainer`.
 
 Review `maintainer/roadmap.md` after every audit and update it when findings
 add or change durable knowledge, priorities, or a shared decision. Keep the
@@ -269,4 +271,5 @@ Quick reference:
 * `maintainer/README.md` — maintainer material scope
 * `maintainer/roadmap.md` — living roadmap, upstream contribution policy
 * `maintainer/audits/` — ignored local assessment notes
-* `maintainer/reports/` — versioned, curated technical evidence
+* `spectrochempy_maintainer/notes/audits/nmrglue-ng/` — canonical private
+  versioned audit and report evidence

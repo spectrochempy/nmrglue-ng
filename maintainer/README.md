@@ -28,10 +28,12 @@ user documentation belongs in `doc/`, contributor instructions in
 
 ## Evidence and update rules
 
-- `reports/` contains versioned, curated technical reports. Each names its
-  date, code baseline, evidence source, validation performed and omitted,
-  current conclusion, and remaining decisions. A report records what was
-  established at that baseline, not a guarantee about all later commits.
+- `reports/` contains historical migration copies of reports formerly curated
+  in this repository. The canonical current reports and audits now live in the
+  private `spectrochempy_maintainer/notes/audits/nmrglue-ng/` directory; new
+  reports must not be created here. Each canonical report names its date, code
+  baseline, evidence source, validation performed and omitted, current
+  conclusion, and remaining decisions.
 - `audits/` remains ignored local working material: detailed session notes,
   reproducer development and draft correspondence. Preserve those originals;
   do not force-add the directory. Other contributors must not need it to
