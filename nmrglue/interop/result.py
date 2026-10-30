@@ -222,7 +222,11 @@ class ReadResult:
 
 @dataclass(frozen=True)
 class NormalizedAcquisition:
-    """Immutable, dependency-free acquisition contract for consumers."""
+    """Immutable, dependency-free acquisition contract for consumers.
+
+    Mapping views are immutable at the top level; nested descriptive metadata
+    are retained as supplied and are not recursively frozen.
+    """
 
     data: np.ndarray
     axes: tuple[Axis, ...]
@@ -244,7 +248,24 @@ class NormalizedAcquisition:
     def __post_init__(self):
         data = _freeze_owned_array(self.data)
         object.__setattr__(self, "data", data)
-        axes = tuple(self.axes)
+        axes = []
+        for axis in self.axes:
+            values = (
+                None
+                if axis.values is None
+                else _freeze_owned_array(axis.values)
+            )
+            axes.append(
+                Axis(
+                    values=values,
+                    unit=axis.unit,
+                    label=axis.label,
+                    domain=axis.domain,
+                    direction=axis.direction,
+                    reference=axis.reference,
+                )
+            )
+        axes = tuple(axes)
         dimensions = tuple(self.dimensions)
         physical_dimensions = tuple(self.physical_dimensions)
         domains = tuple(self.domains)
@@ -252,6 +273,12 @@ class NormalizedAcquisition:
             raise ValueError("normalized dimensions must match data.ndim")
         if len(axes) != len(physical_dimensions) or len(domains) != len(physical_dimensions):
             raise ValueError("normalized physical axes and domains must agree")
+        physical_shape = tuple(
+            size for index, size in enumerate(data.shape) if index != self.channel_axis
+        )
+        for axis, size in zip(axes, physical_shape, strict=True):
+            if axis.values is not None and axis.values.size != size:
+                raise ValueError("normalized axis length must match its physical dimension")
         if self.channel_axis is not None:
             if not 0 <= self.channel_axis < data.ndim:
                 raise ValueError("normalized channel_axis is outside data.ndim")
