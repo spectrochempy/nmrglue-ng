@@ -57,6 +57,34 @@ def test_agilent_raw_result_preserves_data_and_normalized_metadata(
     assert result.metadata["procpar"] == dic["procpar"]
     assert result.data.flags.writeable is False
 
+    normalized = ng.interop.normalize_agilent_fid(result)
+    assert normalized.normalization_state == "storage-normalized"
+    assert normalized.normalization_profile == "agilent-fid-1d-complex-v1"
+    assert normalized.dimensions == ("F2",)
+    assert normalized.physical_dimensions == ("F2",)
+    assert normalized.quadrature_mode == "complex-1d"
+    assert normalized.branch_order == ("complex",)
+    assert normalized.data.flags.writeable is False
+    np.testing.assert_array_equal(normalized.data, data)
+    assert normalized.applied_operations[0]["conjugation"] == "none"
+    assert normalized.provenance["format"] == "agilent-fid"
+
+
+def test_agilent_normalization_preserves_unknown_axis_calibration(
+    monkeypatch, tmp_path
+):
+    dic, data = _dic_data()
+    del dic["procpar"]["sw"]
+    monkeypatch.setattr(ng.varian, "read", lambda *args, **kwargs: (dic, data.copy()))
+
+    normalized = ng.interop.normalize_agilent_fid(
+        ng.interop.read_agilent_fid(str(tmp_path))
+    )
+
+    assert normalized.axes[0].values is None
+    assert normalized.axes[0].domain == "time"
+    assert normalized.acquisition["spectral_width_hz"] is None
+
 
 def test_agilent_raw_missing_carrier_is_diagnostic_and_export_blocked(
     monkeypatch, tmp_path
