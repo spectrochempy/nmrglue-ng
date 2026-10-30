@@ -119,6 +119,23 @@ def test_agilent_normalized_data_does_not_alias_source_buffer(monkeypatch, tmp_p
         lambda result: dataclasses.replace(
             result, components=(ng.interop.Component("complex", result.data[:-1]),)
         ),
+        lambda result: dataclasses.replace(
+            result, applied_corrections={"normalization": "none", "conjugation": "none", "scale": 2}
+        ),
+        lambda result: dataclasses.replace(
+            result, dimensions={**result.dimensions, "storage_shape": (99,)}
+        ),
+        lambda result: dataclasses.replace(
+            result,
+            axes=(
+                ng.interop.Axis(
+                    values=np.arange(1, 5, dtype=float).reshape(1, 4),
+                    unit="s",
+                    domain="time",
+                    direction="increasing",
+                ),
+            ),
+        ),
     ],
 )
 def test_agilent_normalization_rejects_inconsistent_descriptive_contract(

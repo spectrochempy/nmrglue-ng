@@ -28,6 +28,8 @@ def normalize_agilent_fid(result: ReadResult) -> NormalizedAcquisition:
         raise ValueError("Agilent normalized 1D profile requires encoding=('QSIM',)")
     if result.acquisition.get("normalization") != "none":
         raise ValueError("Agilent result has an unrecognized normalization state")
+    if set(result.applied_corrections) != {"normalization", "conjugation"}:
+        raise ValueError("Agilent result has unsupported corrections")
     if result.applied_corrections.get("normalization") != "none":
         raise ValueError("Agilent result has an unrecognized normalization correction")
     if result.applied_corrections.get("conjugation") != "none":
@@ -37,6 +39,9 @@ def normalize_agilent_fid(result: ReadResult) -> NormalizedAcquisition:
         raise ValueError("Agilent TDeff must match the returned complex point count")
     if dimensions.get("TD") != data.size * 2:
         raise ValueError("Agilent TD must match interleaved complex storage")
+    for key in ("physical_shape", "storage_shape", "returned_shape"):
+        if tuple(dimensions.get(key, ())) != (data.size,):
+            raise ValueError("Agilent dimensions must match the returned 1D data")
     if len(result.components) != 1 or result.components[0].name != "complex":
         raise ValueError("Agilent normalized profile requires one complex component")
     if result.components[0].data.shape != data.shape or not np.array_equal(
@@ -45,7 +50,7 @@ def normalize_agilent_fid(result: ReadResult) -> NormalizedAcquisition:
         raise ValueError("Agilent component metadata does not match returned data")
     axis_values = result.axes[0].values
     if axis_values is not None:
-        if axis_values.size != data.size:
+        if axis_values.ndim != 1 or axis_values.shape != (data.size,):
             raise ValueError("Agilent time-axis length must match returned data")
         dwell = result.acquisition.get("dwell_time_s")
         if dwell is not None and axis_values.size > 1:
