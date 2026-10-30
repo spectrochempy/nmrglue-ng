@@ -57,6 +57,97 @@ def test_agilent_raw_result_preserves_data_and_normalized_metadata(
     assert result.metadata["procpar"] == dic["procpar"]
     assert result.data.flags.writeable is False
 
+    normalized = ng.interop.normalize_agilent_fid(result)
+    assert normalized.normalization_state == "storage-normalized"
+    assert normalized.normalization_profile == "agilent-fid-1d-complex-v1"
+    assert normalized.dimensions == ("F2",)
+    assert normalized.physical_dimensions == ("F2",)
+    assert normalized.quadrature_mode == "complex-1d"
+    assert normalized.branch_order == ("complex",)
+    assert normalized.data.flags.writeable is False
+    np.testing.assert_array_equal(normalized.data, data)
+    assert normalized.applied_operations[0]["conjugation"] == "none"
+    assert normalized.provenance["format"] == "agilent-fid"
+    source_axis = result.axes[0].values
+    source_axis.setflags(write=True)
+    source_axis[0] = 99.0
+    assert normalized.axes[0].values[0] == 0.0
+    with pytest.raises(ValueError):
+        normalized.axes[0].values.setflags(write=True)
+
+
+def test_agilent_normalization_preserves_unknown_axis_calibration(
+    monkeypatch, tmp_path
+):
+    dic, data = _dic_data()
+    del dic["procpar"]["sw"]
+    monkeypatch.setattr(ng.varian, "read", lambda *args, **kwargs: (dic, data.copy()))
+
+    normalized = ng.interop.normalize_agilent_fid(
+        ng.interop.read_agilent_fid(str(tmp_path))
+    )
+
+    assert normalized.axes[0].values is None
+    assert normalized.axes[0].domain == "time"
+    assert normalized.acquisition["spectral_width_hz"] is None
+
+
+def test_agilent_normalized_data_does_not_alias_source_buffer(monkeypatch, tmp_path):
+    dic, data = _dic_data()
+    monkeypatch.setattr(ng.varian, "read", lambda *args, **kwargs: (dic, data))
+
+    normalized = ng.interop.normalize_agilent_fid(
+        ng.interop.read_agilent_fid(str(tmp_path))
+    )
+    base = data.copy()
+    normalized = dataclasses.replace(normalized, data=base)
+    original = normalized.data.copy()
+    base[0] = 99 + 99j
+
+    np.testing.assert_array_equal(normalized.data, original)
+    with pytest.raises(ValueError):
+        normalized.data.setflags(write=True)
+
+
+@pytest.mark.parametrize(
+    "change",
+    [
+        lambda result: dataclasses.replace(result, encoding=("unknown",)),
+        lambda result: dataclasses.replace(
+            result, dimensions={**result.dimensions, "TDeff": 99}
+        ),
+        lambda result: dataclasses.replace(
+            result, components=(ng.interop.Component("complex", result.data[:-1]),)
+        ),
+        lambda result: dataclasses.replace(
+            result, applied_corrections={"normalization": "none", "conjugation": "none", "scale": 2}
+        ),
+        lambda result: dataclasses.replace(
+            result, dimensions={**result.dimensions, "storage_shape": (99,)}
+        ),
+        lambda result: dataclasses.replace(
+            result,
+            axes=(
+                ng.interop.Axis(
+                    values=np.arange(1, 5, dtype=float).reshape(1, 4),
+                    unit="s",
+                    domain="time",
+                    direction="increasing",
+                ),
+            ),
+        ),
+    ],
+)
+def test_agilent_normalization_rejects_inconsistent_descriptive_contract(
+    monkeypatch, tmp_path, change
+):
+    dic, data = _dic_data()
+    monkeypatch.setattr(ng.varian, "read", lambda *args, **kwargs: (dic, data.copy()))
+    descriptive = change(ng.interop.read_agilent_fid(str(tmp_path)))
+
+    with pytest.raises(ValueError):
+        ng.interop.normalize_agilent_fid(descriptive)
+
 
 def test_agilent_raw_missing_carrier_is_diagnostic_and_export_blocked(
     monkeypatch, tmp_path

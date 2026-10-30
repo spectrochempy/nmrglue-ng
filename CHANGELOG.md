@@ -30,6 +30,8 @@ original nmrglue project and are preserved for attribution and continuity.
   raw storage traces, phase-branch order and physical/storage dimensions
   without quaternion reconstruction or canonical RR/RI/IR/II components.
   (#151)
+- Add a dependency-free, immutable normalized acquisition contract and a
+  validated storage-normalized Agilent complex 1D FID profile. (#152)
 
 ### CI
 

@@ -32,6 +32,7 @@ Domain = Literal["frequency", "time", "index", "unknown"]
 Direction = Literal["increasing", "decreasing", "constant", "unknown"]
 Severity = Literal["info", "warning"]
 ReferenceSource = Literal["processing", "acquisition", "unknown"]
+NormalizationState = Literal["storage-normalized", "quadrature-normalized"]
 
 DIAGNOSTIC_CONTEXT_SCHEMA: Mapping[str, Mapping[str, Any]] = {
     "axis.missing-parameter": {"missing": tuple},
@@ -103,6 +104,16 @@ def _freeze_array(values: Any) -> np.ndarray:
     array = np.asarray(values)
     array.setflags(write=False)
     return array
+
+
+def _freeze_owned_array(values: Any) -> np.ndarray:
+    """Copy numeric data onto an immutable bytes buffer."""
+    array = np.array(values, copy=True, order="C")
+    frozen = np.frombuffer(array.tobytes(order="C"), dtype=array.dtype).reshape(
+        array.shape
+    )
+    frozen.setflags(write=False)
+    return frozen
 
 
 def _readonly(mapping: Mapping[str, Any]) -> Mapping[str, Any]:
@@ -207,3 +218,98 @@ class ReadResult:
         object.__setattr__(self, "encoding", tuple(self.encoding))
         object.__setattr__(self, "dimensions", _readonly(self.dimensions))
         object.__setattr__(self, "acquisition", _readonly(self.acquisition))
+
+
+@dataclass(frozen=True)
+class NormalizedAcquisition:
+    """Immutable, dependency-free acquisition contract for consumers.
+
+    Mapping views are immutable at the top level; nested descriptive metadata
+    are retained as supplied and are not recursively frozen.
+    """
+
+    data: np.ndarray
+    axes: tuple[Axis, ...]
+    dimensions: tuple[str, ...]
+    physical_dimensions: tuple[str, ...]
+    domains: tuple[Domain, ...]
+    quadrature_mode: str
+    branch_order: tuple[str, ...]
+    normalization_state: NormalizationState
+    normalization_profile: str
+    applied_operations: tuple[Mapping[str, Any], ...]
+    provenance: Mapping[str, Any]
+    acquisition: Mapping[str, Any]
+    metadata: Mapping[str, Any] = field(default_factory=dict)
+    encoding: tuple[str, ...] = ()
+    diagnostics: tuple[Diagnostic, ...] = ()
+    channel_axis: int | None = None
+
+    def __post_init__(self):
+        data = _freeze_owned_array(self.data)
+        object.__setattr__(self, "data", data)
+        axes = []
+        for axis in self.axes:
+            values = (
+                None
+                if axis.values is None
+                else _freeze_owned_array(axis.values)
+            )
+            axes.append(
+                Axis(
+                    values=values,
+                    unit=axis.unit,
+                    label=axis.label,
+                    domain=axis.domain,
+                    direction=axis.direction,
+                    reference=axis.reference,
+                )
+            )
+        axes = tuple(axes)
+        dimensions = tuple(self.dimensions)
+        physical_dimensions = tuple(self.physical_dimensions)
+        domains = tuple(self.domains)
+        if len(dimensions) != data.ndim:
+            raise ValueError("normalized dimensions must match data.ndim")
+        if len(axes) != len(physical_dimensions) or len(domains) != len(physical_dimensions):
+            raise ValueError("normalized physical axes and domains must agree")
+        physical_shape = tuple(
+            size for index, size in enumerate(data.shape) if index != self.channel_axis
+        )
+        for axis, size in zip(axes, physical_shape, strict=True):
+            if axis.values is not None and axis.values.size != size:
+                raise ValueError("normalized axis length must match its physical dimension")
+        if self.channel_axis is not None:
+            if not 0 <= self.channel_axis < data.ndim:
+                raise ValueError("normalized channel_axis is outside data.ndim")
+            if dimensions[self.channel_axis] != "channels":
+                raise ValueError("normalized channel_axis must identify 'channels'")
+            if len(self.branch_order) != data.shape[self.channel_axis]:
+                raise ValueError("normalized branch_order must match channel axis")
+        if self.normalization_state not in ("storage-normalized", "quadrature-normalized"):
+            raise ValueError("unknown normalized acquisition state")
+        if self.quadrature_mode == "complex-1d":
+            if data.ndim != 1 or not np.iscomplexobj(data):
+                raise ValueError("complex-1d normalization requires one complex array")
+            if self.branch_order != ("complex",) or self.channel_axis is not None:
+                raise ValueError("complex-1d normalization requires one complex branch")
+        required_operation_keys = {
+            "name", "stage", "input_dimensions", "output_dimensions", "axis",
+            "scale", "conjugation", "sign", "permutation", "evidence",
+        }
+        operations = []
+        for operation in self.applied_operations:
+            if not isinstance(operation, Mapping) or not required_operation_keys <= set(operation):
+                raise ValueError("normalized operations do not satisfy their schema")
+            operations.append(_readonly(operation))
+        object.__setattr__(self, "axes", axes)
+        object.__setattr__(self, "dimensions", dimensions)
+        object.__setattr__(self, "physical_dimensions", physical_dimensions)
+        object.__setattr__(self, "domains", domains)
+        object.__setattr__(self, "branch_order", tuple(self.branch_order))
+        object.__setattr__(self, "applied_operations", tuple(operations))
+        object.__setattr__(self, "provenance", _readonly(self.provenance))
+        object.__setattr__(self, "acquisition", _readonly(self.acquisition))
+        object.__setattr__(self, "metadata", _readonly(self.metadata))
+        object.__setattr__(self, "encoding", tuple(self.encoding))
+        object.__setattr__(self, "diagnostics", tuple(self.diagnostics))
