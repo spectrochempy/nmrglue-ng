@@ -106,6 +106,16 @@ def _freeze_array(values: Any) -> np.ndarray:
     return array
 
 
+def _freeze_owned_array(values: Any) -> np.ndarray:
+    """Copy numeric data onto an immutable bytes buffer."""
+    array = np.array(values, copy=True, order="C")
+    frozen = np.frombuffer(array.tobytes(order="C"), dtype=array.dtype).reshape(
+        array.shape
+    )
+    frozen.setflags(write=False)
+    return frozen
+
+
 def _readonly(mapping: Mapping[str, Any]) -> Mapping[str, Any]:
     """Return a read-only top-level view of ``mapping``."""
     return MappingProxyType(dict(mapping))
@@ -232,7 +242,7 @@ class NormalizedAcquisition:
     channel_axis: int | None = None
 
     def __post_init__(self):
-        data = _freeze_array(self.data)
+        data = _freeze_owned_array(self.data)
         object.__setattr__(self, "data", data)
         axes = tuple(self.axes)
         dimensions = tuple(self.dimensions)

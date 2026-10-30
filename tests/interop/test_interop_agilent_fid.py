@@ -86,6 +86,23 @@ def test_agilent_normalization_preserves_unknown_axis_calibration(
     assert normalized.acquisition["spectral_width_hz"] is None
 
 
+def test_agilent_normalized_data_does_not_alias_source_buffer(monkeypatch, tmp_path):
+    dic, data = _dic_data()
+    monkeypatch.setattr(ng.varian, "read", lambda *args, **kwargs: (dic, data))
+
+    normalized = ng.interop.normalize_agilent_fid(
+        ng.interop.read_agilent_fid(str(tmp_path))
+    )
+    base = data.copy()
+    normalized = dataclasses.replace(normalized, data=base)
+    original = normalized.data.copy()
+    base[0] = 99 + 99j
+
+    np.testing.assert_array_equal(normalized.data, original)
+    with pytest.raises(ValueError):
+        normalized.data.setflags(write=True)
+
+
 def test_agilent_raw_missing_carrier_is_diagnostic_and_export_blocked(
     monkeypatch, tmp_path
 ):
