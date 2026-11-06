@@ -7,6 +7,11 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Add an optional numeric frequency-axis descriptor to the normalized Agilent
+  complex 1D profile, allowing consumers to reference without inspecting origin
+  or raw vendor metadata. Keep candidate references explicit and samples unchanged.
+
+
 - Expose sourced scan-count evidence in Agilent raw 1D interop: requested
   `nt`, completed procpar `ct`, binary block `ctcount` and scale values. Report
   conflicting, invalid or ambiguous evidence without inventing a completed

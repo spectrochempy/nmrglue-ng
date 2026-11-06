@@ -76,3 +76,44 @@ Two hash-verified original 1D acquisitions have matching ``nt``, ``ct`` and
 conflicting counts and nonzero scale cases are synthetic regressions, not
 additional real-acquisition validation. Receiver-gain correction, nonzero
 binary scale restoration and physical amplitude normalization remain unqualified.
+
+Normalized frequency-axis descriptor (experimental)
+--------------------------------------------------
+
+The optional ``NormalizedAcquisition.acquisition['frequency_axis']`` mapping
+separates format interpretation from consumer processing. Schema
+``normalized-frequency-axis-v1`` declares:
+
+* ``bin_sign``: either -1 or +1, relative to the negative-exponent centered DFT;
+* ``reference_frequency_mhz``: positive chemical-zero frequency, or ``None``;
+* ``reference_enabled``: ``False`` disables reference application, ``True``
+  permits it, and ``None`` means the source has no explicit enable flag;
+* ``offsets_hz``: a mapping of opaque candidate labels to finite offsets.
+
+For a selected offset ``c`` and width ``SW``, the physical frequency at bin
+``i`` of a complete N-point DFT is
+``c + bin_sign * (i - N//2) * SW/N``. Divide by the chemical-zero frequency in
+MHz to obtain ppm. Consumers must select a candidate explicitly and must not
+infer a convention from origin, profile name or raw vendor metadata.
+
+The Agilent normalization profile declares sign -1. It exposes ``rfl-rfp`` as
+``SW/2-rfl+rfp`` and ``sfrq-reffrq`` as ``(sfrq-reffrq)*1e6`` when evidence is
+available. It uses ``reffrq`` for the chemical-zero frequency and permits the
+explicit ``refpos=0`` flag; disabled or ambiguous flags disable referencing.
+Missing flags remain unknown. This describes candidate evidence, not a choice
+of experimentally correct chemical standard. The historical carbon acquisition
+has conflicting candidates (0 versus 281.6 Hz), which remain separate.
+The convention follows the VnmrJ reference equations and NMRPipe var2pipe sign
+behavior qualified in the consumer's two-file numerical comparison. No FFT,
+conjugation, scaling or reference is applied by normalization; the raw
+``ReadResult`` remains unchanged. Existing normalized fields remain compatible.
+
+The reference formulas are documented in the `VNMR Getting Started manual
+<https://www2.chem.wisc.edu/~cic/nmr/Guides/Varian_VNMR_manuals/VNMR_Getting_Started--VNMR_6_1C_01-999160-00_rev_A0800--0199916000a.pdf>`_
+and the `VnmrJ parameter reference
+<https://imserc.northwestern.edu/downloads/nmr-vj_cpr.pdf>`_ (reffrq, rfl, rfp).
+
+Arrayed ``rfl``, ``rfp``, ``reffrq`` or ``sfrq`` cannot establish a scalar
+reference candidate. Multiple ``sw`` values are rejected by the normalized 1D
+profile because they cannot establish one calibrated time grid. The raw reader
+API remains unchanged.

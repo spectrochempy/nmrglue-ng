@@ -491,3 +491,54 @@ def test_agilent_raw_rejects_invalid_or_inconsistent_carrier(
 
     with pytest.raises(ValueError, match="carrier"):
         ng.interop.read_agilent_fid(str(tmp_path), **kwargs)
+
+
+@pytest.mark.parametrize("refpos, enabled", [(None, None), (["0"], True), (["n"], False), (["0", "n"], False)])
+def test_normalized_frequency_axis_is_numeric_and_does_not_mutate_raw(monkeypatch, tmp_path, refpos, enabled):
+    dic, data = _dic_data()
+    if refpos is not None:
+        dic["procpar"]["refpos"] = {"values": refpos}
+    monkeypatch.setattr(ng.varian, "read", lambda *a, **k: (dic, data))
+    raw = ng.interop.read_agilent_fid(tmp_path)
+    result = ng.interop.normalize_agilent_fid(raw)
+    assert "frequency_axis" not in raw.acquisition
+    assert result.acquisition["frequency_axis"] == {
+        "schema": "normalized-frequency-axis-v1", "bin_sign": -1,
+        "reference_frequency_mhz": 125.0, "reference_enabled": enabled,
+        "offsets_hz": {"rfl-rfp": -24000.0, "sfrq-reffrq": 0.0},
+    }
+    np.testing.assert_array_equal(result.data, data)
+
+
+@pytest.mark.parametrize("key", ["reffrq", "rfl", "rfp"])
+def test_arrayed_reference_is_not_scalarized_by_normalization(monkeypatch, tmp_path, key):
+    dic, data = _dic_data()
+    dic["procpar"][key]["values"].append("1")
+    monkeypatch.setattr(ng.varian, "read", lambda *a, **k: (dic, data))
+    result = ng.interop.normalize_agilent_fid(ng.interop.read_agilent_fid(tmp_path))
+    descriptor = result.acquisition["frequency_axis"]
+    if key == "reffrq":
+        assert descriptor["reference_frequency_mhz"] is None
+        assert "sfrq-reffrq" not in descriptor["offsets_hz"]
+    else:
+        assert "rfl-rfp" not in descriptor["offsets_hz"]
+
+
+def test_arrayed_observation_does_not_invent_absolute_reference(monkeypatch, tmp_path):
+    dic, data = _dic_data()
+    dic["procpar"]["sfrq"]["values"] = ["125", "126"]
+    monkeypatch.setattr(ng.varian, "read", lambda *a, **k: (dic, data))
+    raw = ng.interop.read_agilent_fid(tmp_path)
+    result = ng.interop.normalize_agilent_fid(raw)
+    assert result.acquisition["frequency_axis"]["offsets_hz"] == {"rfl-rfp": -24000.0}
+    assert raw.metadata["procpar"]["sfrq"]["values"] == ["125", "126"]
+
+
+def test_arrayed_spectral_width_cannot_define_one_normalized_time_axis(monkeypatch, tmp_path):
+    dic, data = _dic_data()
+    dic["procpar"]["sw"]["values"] = ["2000", "4000"]
+    monkeypatch.setattr(ng.varian, "read", lambda *a, **k: (dic, data))
+    raw = ng.interop.read_agilent_fid(tmp_path)
+    with pytest.raises(ValueError, match="one spectral width"):
+        ng.interop.normalize_agilent_fid(raw)
+    np.testing.assert_array_equal(raw.data, data)
