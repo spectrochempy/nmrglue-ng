@@ -293,6 +293,11 @@ class NormalizedAcquisition:
                 raise ValueError("complex-1d normalization requires one complex array")
             if self.branch_order != ("complex",) or self.channel_axis is not None:
                 raise ValueError("complex-1d normalization requires one complex branch")
+        if self.quadrature_mode == "real-1d":
+            if data.ndim != 1 or data.dtype.kind not in "iuf":
+                raise ValueError("real-1d normalization requires one real numeric array")
+            if self.branch_order != ("real",) or self.channel_axis is not None:
+                raise ValueError("real-1d normalization requires one real branch")
         required_operation_keys = {
             "name", "stage", "input_dimensions", "output_dimensions", "axis",
             "scale", "conjugation", "sign", "permutation", "evidence",

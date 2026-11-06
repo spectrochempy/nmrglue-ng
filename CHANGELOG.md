@@ -7,6 +7,11 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Normalize complete Bruker processed 1D spectra into real or complex branches,
+  preserving reader storage scaling and the supplied processing-reference axis.
+  Add the neutral real-1d branch contract without changing historical readers. (#158)
+
+
 - Align commit-subject and pull-request-title prefixes with SpectroChemPy and
   add CI validation for pull-request titles. (#157)
 
