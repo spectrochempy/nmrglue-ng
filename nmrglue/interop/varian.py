@@ -90,6 +90,9 @@ def read_agilent_fid(
     This adapter applies no scan normalization or conjugation. A carrier must
     be supplied explicitly in Hz or ppm for NMRPipe export; ``rfl`` and other
     procpar reference candidates are preserved but never interpreted silently.
+    The direct-axis nucleus and label use the observed transmitter nucleus
+    ``tn`` only; absent or empty ``tn`` leaves them unknown, never inferred
+    from the decoupler nucleus ``dn``.
     """
     if not os.path.isdir(dir):
         raise OSError("directory %s does not exist" % (dir,))
@@ -110,6 +113,7 @@ def read_agilent_fid(
     np_raw = _procpar_number(procpar, "np")
     ns = _procpar_number(procpar, "ns")
     ne = _procpar_number(procpar, "ne")
+    nucleus = _procpar_string(procpar, "tn") or None
     if sw is not None and sw <= 0:
         raise ValueError("Agilent spectral width must be positive")
     if obs is not None and obs <= 0:
@@ -154,7 +158,7 @@ def read_agilent_fid(
     axis = Axis(
         values=axis_values,
         unit="s" if axis_values is not None else None,
-        label=_procpar_string(procpar, "dn") or _procpar_string(procpar, "tn"),
+        label=nucleus,
         domain="time",
         direction="increasing" if axis_values is not None else "unknown",
         reference=(
@@ -180,7 +184,7 @@ def read_agilent_fid(
             if carrier_ppm is not None
             else None
         ),
-        "nucleus": _procpar_string(procpar, "dn") or _procpar_string(procpar, "tn"),
+        "nucleus": nucleus,
         "np_raw": np_raw,
         "NS": ns,
         "NE": ne,

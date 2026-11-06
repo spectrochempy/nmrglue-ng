@@ -1,6 +1,9 @@
 """Self-contained tests for the additive Agilent raw 1D profile."""
 
 import dataclasses
+import hashlib
+import os
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -31,6 +34,64 @@ def _procpar():
 def _dic_data():
     data = np.asarray([1 + 2j, 3 + 4j, 5 + 6j, 7 + 8j], dtype=np.complex64)
     return {"procpar": _procpar(), "nblocks": 1, "ntraces": 1, "np": 8}, data
+
+
+@pytest.mark.parametrize(
+    "observed, decoupled, expected",
+    [
+        (["H1"], ["C13"], "H1"),
+        (["C13"], ["H1"], "C13"),
+        (["F19"], None, "F19"),
+        (None, ["C13"], None),
+        ([], ["C13"], None),
+        ([""], ["C13"], None),
+        (None, None, None),
+    ],
+)
+def test_agilent_direct_nucleus_uses_observed_tn_only(
+    monkeypatch, tmp_path, observed, decoupled, expected
+):
+    dic, data = _dic_data()
+    for key, values in (("tn", observed), ("dn", decoupled)):
+        if values is None:
+            dic["procpar"].pop(key)
+        else:
+            dic["procpar"][key] = {"values": values}
+    monkeypatch.setattr(ng.varian, "read", lambda *args, **kwargs: (dic, data.copy()))
+
+    raw = ng.interop.read_agilent_fid(str(tmp_path))
+    normalized = ng.interop.normalize_agilent_fid(raw)
+
+    for result in (raw, normalized):
+        assert result.acquisition["nucleus"] == expected
+        assert result.axes[0].label == expected
+        assert result.acquisition["observation_frequency_mhz"] == 125.0
+        assert result.metadata["procpar"] == dic["procpar"]
+        np.testing.assert_array_equal(result.data, data)
+
+
+@pytest.mark.dataset
+def test_agilent_real_hop_observed_nucleus():
+    location = os.environ.get("NMRGLUE_AGILENT_HOP_DATA")
+    if not location:
+        pytest.skip("set NMRGLUE_AGILENT_HOP_DATA to the external nmrML hop FID")
+    source = Path(location)
+    expected_hashes = {
+        "fid": "ffdb15ed7ec30d3e01d86a8a743958ea6e165c618f791a728956bee43a06ce81",
+        "procpar": "458e0230178a7642effa116ff32f005edda092f698899998300a4620096ca370",
+    }
+    for name, expected in expected_hashes.items():
+        assert hashlib.sha256((source / name).read_bytes()).hexdigest() == expected
+    raw = ng.interop.read_agilent_fid(source)
+    normalized = ng.interop.normalize_agilent_fid(raw)
+    for result in (raw, normalized):
+        assert result.metadata["procpar"]["tn"]["values"] == ["H1"]
+        assert result.metadata["procpar"]["dn"]["values"] == ["C13"]
+        assert result.acquisition["nucleus"] == "H1"
+        assert result.axes[0].label == "H1"
+    np.testing.assert_array_equal(normalized.data, raw.data)
+    for name, expected in expected_hashes.items():
+        assert hashlib.sha256((source / name).read_bytes()).hexdigest() == expected
 
 
 def test_agilent_raw_result_preserves_data_and_normalized_metadata(
