@@ -7,7 +7,8 @@ from collections.abc import Mapping
 
 import numpy as np
 
-from .result import NormalizedAcquisition, ReadResult
+from .result import Axis, NormalizedAcquisition, ReadResult
+from ..fileio import bruker
 
 
 def _agilent_frequency_axis(result):
@@ -145,4 +146,138 @@ def normalize_agilent_fid(result: ReadResult) -> NormalizedAcquisition:
         metadata=result.metadata,
         encoding=result.encoding,
         diagnostics=result.diagnostics,
+    )
+
+
+def normalize_bruker_fid(result: ReadResult, *, remove_digital_filter=False) -> NormalizedAcquisition:
+    """Normalize an uncorrected complex QSIM/DQD FID for a negative-sign DFT.
+
+    Trim storage padding to TD/2 before any optional digital-filter correction,
+    then conjugate the samples into the canonical frequency orientation.
+    No RG/NS scaling, FFT, phase correction or referencing is applied.
+    Prefiltered results are rejected because padding may already have entered
+    the filter correction. Historical raw reader behavior is unchanged.
+    """
+    if not isinstance(result, ReadResult):
+        raise TypeError("normalize_bruker_fid requires an interop ReadResult")
+    if result.format != "bruker-fid":
+        raise ValueError("normalize_bruker_fid requires format='bruker-fid'")
+    if not isinstance(remove_digital_filter, bool):
+        raise ValueError("remove_digital_filter must be an explicit boolean")
+    data = np.asarray(result.data)
+    if data.ndim != 1 or not np.iscomplexobj(data) or not np.isfinite(data).all():
+        raise ValueError("Bruker normalized profile requires one finite complex FID")
+    if result.domains != ("time",) or len(result.axes) != 1 or result.axes[0].domain != "time":
+        raise ValueError("Bruker normalized profile requires one time axis")
+    if result.encoding not in (("QSIM",), ("DQD",)):
+        raise ValueError("Bruker normalized profile supports only QSIM/DQD")
+    corrections = result.applied_corrections
+    if set(corrections) != {"normalization", "digital_filter"} or corrections.get("normalization") != "none":
+        raise ValueError("unsupported Bruker acquisition corrections")
+    filtering = corrections.get("digital_filter", {})
+    if not isinstance(filtering, Mapping) or filtering.get("applied") is not False:
+        raise ValueError("Bruker normalization requires an unfiltered input")
+    td = result.dimensions.get("TD")
+    if isinstance(td, (bool, np.bool_)) or not isinstance(td, (int, np.integer)) or td < 4 or td % 2:
+        raise ValueError("Bruker TD must be a positive even interleaved point count")
+    points = int(td) // 2
+    for key, expected in (("returned_points", data.size), ("returned_raw_points", 2 * data.size), ("complex_points", data.size)):
+        if result.dimensions.get(key) != expected:
+            raise ValueError("Bruker descriptive dimensions do not match returned data")
+    if points > data.size:
+        raise ValueError("Bruker TD exceeds the returned storage")
+    if len(result.components) != 1 or result.components[0].name != "complex" or not np.array_equal(result.components[0].data, data):
+        raise ValueError("Bruker complex component does not match returned data")
+    if np.any(data[points:] != 0):
+        raise ValueError("nonzero samples beyond Bruker TD are not storage padding")
+    acquisition = result.acquisition
+
+    def number(mapping, key, positive=False, optional=False):
+        value = mapping.get(key)
+        if value is None and optional:
+            return None
+        if isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, float, np.integer, np.floating)):
+            raise ValueError("Bruker %s must be a finite scalar" % key)
+        try:
+            value = float(value)
+        except (ValueError, OverflowError) as exc:
+            raise ValueError("invalid Bruker %s" % key) from exc
+        if not np.isfinite(value) or (positive and value <= 0):
+            raise ValueError("invalid Bruker %s" % key)
+        return value
+
+    sw = number(acquisition, "spectral_width_hz", positive=True)
+    dwell = number(acquisition, "dwell_time_s", positive=True)
+    if not np.isclose(dwell, 1 / sw, rtol=1e-12, atol=0):
+        raise ValueError("Bruker spectral width and dwell time disagree")
+    axis = result.axes[0]
+    if axis.unit != "s" or axis.values is None or np.asarray(axis.values).shape != data.shape or not np.allclose(axis.values, np.arange(data.size) / sw, rtol=1e-12, atol=1e-15):
+        raise ValueError("Bruker time axis does not match the acquisition grid")
+    operation: dict[str, object] = {
+        "name": "normalize-bruker-complex-fid", "stage": "acquisition",
+        "input_dimensions": ("storage",), "output_dimensions": ("F2",),
+        "axis": "F2", "scale": None, "conjugation": "applied",
+        "sign": "none", "permutation": None,
+        "evidence": "nmrglue.interop.normalize_bruker_fid",
+        "storage_points": int(data.size), "acquired_points": points,
+        "trimmed_padding_points": int(data.size) - points,
+    }
+    work = np.array(data[:points], copy=True)
+    filter_trace: dict[str, object] = {"requested": remove_digital_filter, "applied": False}
+    if remove_digital_filter:
+        parameters = filtering.get("parameters", {})
+        decim = number(parameters, "DECIM", positive=True)
+        firmware = number(parameters, "DSPFVS")
+        if not decim.is_integer() or not firmware.is_integer():
+            raise ValueError("Bruker digital-filter parameters must be integers")
+        delay = number(parameters, "GRPDLY", optional=True)
+        if delay is None or delay <= 0:
+            if int(firmware) not in bruker.bruker_dsp_table or int(decim) not in bruker.bruker_dsp_table[int(firmware)]:
+                raise ValueError("unknown Bruker digital-filter group delay")
+            delay = float(bruker.bruker_dsp_table[int(firmware)][int(decim)])
+            source = "DSPFVS/DECIM"
+        else:
+            source = "GRPDLY"
+        if not np.isfinite(delay) or delay <= 0:
+            raise ValueError("invalid Bruker digital-filter group delay")
+        skip = int(np.floor(delay)) + 2
+        if skip >= points - 1:
+            raise ValueError("Bruker group delay leaves fewer than two points")
+        work = bruker.rm_dig_filter(work, int(decim), int(firmware), delay, truncate_grpdly=True)
+        filter_trace = {
+            "requested": True, "applied": True, "group_delay_points": delay,
+            "delay_source": source, "truncate_group_delay": True,
+            "removed_points": skip, "parameters": dict(parameters),
+        }
+    operation["digital_filter"] = filter_trace
+    operation["returned_points"] = int(work.size)
+    acqus = result.metadata.get("acqus", {})
+    frequency = number(acqus, "BF1", positive=True, optional=True)
+    carrier = number(acquisition, "carrier_hz", optional=True)
+    normalized_acquisition = {
+        "spectral_width_hz": sw, "dwell_time_s": 1 / sw,
+        "observation_frequency_mhz": acquisition.get("observation_frequency_mhz"),
+        "nucleus": acquisition.get("nucleus"),
+        "frequency_axis": {
+            "schema": "normalized-frequency-axis-v1", "bin_sign": -1,
+            "reference_frequency_mhz": frequency, "reference_enabled": None,
+            "offsets_hz": {} if carrier is None else {"acquisition": carrier},
+        },
+        "normalization": "none", "digital_filter": filter_trace,
+        "storage_points": int(data.size), "acquired_points": points,
+        "returned_points": int(work.size), "trimmed_padding_points": int(data.size) - points,
+    }
+    return NormalizedAcquisition(
+        data=np.conj(work),
+        axes=(Axis(values=np.arange(work.size) / sw, unit="s", label=axis.label,
+                   domain="time", direction="increasing", reference=axis.reference),),
+        dimensions=("F2",), physical_dimensions=("F2",), domains=("time",),
+        quadrature_mode="complex-1d", branch_order=("complex",),
+        normalization_state="quadrature-normalized",
+        normalization_profile="bruker-fid-1d-complex-v1",
+        applied_operations=(operation,),
+        provenance={"source": os.fspath(result.source), "format": result.format,
+                    "reader_encoding": result.encoding},
+        acquisition=normalized_acquisition, metadata=result.metadata,
+        encoding=result.encoding, diagnostics=result.diagnostics,
     )

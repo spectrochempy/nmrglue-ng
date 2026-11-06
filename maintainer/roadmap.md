@@ -305,3 +305,16 @@ Raw readers and sample values remain unchanged. Conflicting carbon reference
 candidates remain unresolved experimental evidence.
 
 [Coordinated integration audit](https://github.com/spectrochempy/spectrochempy_maintainer/blob/master/notes/audits/nmrglue-ng/2026-11-neutral-frequency-axis.md).
+
+### Bruker normalized complex 1D qualification
+
+The normalized frequency descriptor now has a second producer: complex Bruker
+QSIM/DQD. It trims storage padding before any explicitly requested truncated
+group-delay correction and records canonical conjugation; the consumer uses the
+same normalized Experiment path as Agilent. Unknown delays, prefiltered inputs,
+nonzero padding and unsupported encodings fail closed. The raw reader and
+legacy APIs remain unchanged. Independent unfiltered NMRPipe FFT/axis comparison
+and separate time-domain filter oracles are distinct evidence; vendor recipe or
+physical amplitude calibration is not inferred.
+
+[Canonical qualification audit](https://github.com/spectrochempy/spectrochempy_maintainer/blob/master/notes/audits/nmrglue-ng/2026-11-bruker-normalized-1d.md).

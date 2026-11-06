@@ -7,6 +7,12 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Add an experimental normalized Bruker complex QSIM/DQD 1D profile: trim
+  storage padding before explicit digital-filter correction, record conjugation
+  and expose a numeric frequency descriptor for vendor-neutral consumers.
+  Existing reader APIs and RG/NS scaling behavior remain unchanged.
+
+
 - Add an optional numeric frequency-axis descriptor to the normalized Agilent
   complex 1D profile, allowing consumers to reference without inspecting origin
   or raw vendor metadata. Keep candidate references explicit and samples unchanged. (#155)
