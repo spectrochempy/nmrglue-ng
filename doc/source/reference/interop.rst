@@ -205,3 +205,43 @@ qualify real/complex and scaled/unscaled variants, source preservation and
 SCP persistence, with separately configured NMRPipe component/grid comparisons.
 
 .. autofunction:: nmrglue.interop.normalize_bruker_pdata
+
+Normalized NMRPipe spectra (experimental)
+-----------------------------------------
+
+Read a single complete, already transformed 1D spectrum through the historical
+NMRPipe reader and the neutral contract::
+
+   raw = ng.interop.read_nmrpipe_1d("spectrum.ft1")
+   spectrum = ng.interop.normalize_nmrpipe_1d(raw)
+
+Real data remain real; complex data retain both components without conjugation.
+No FFT, phase, scan/gain normalization or chemical recalibration is performed.
+The frequency grid is in Hz, with ``f[i] = ORIG + (N - 1 - i) * SW / N``:
+NMRPipe ORIG is the **last** point, not the first. OBS supplies the MHz reference
+for ppm conversion. CAR is preserved as metadata, not used instead of ORIG.
+
+The current profile requires FDDIMCOUNT=1, direct dimension F2, no transposition,
+FTFLAG=1, consistent quadrature flags, positive SW/OBS, finite samples and an
+exact payload matching FDSIZE. Extracted grids (nonzero FDF2X1/FDF2XN), FIDs,
+multidimensional files, streams supplied in memory, and missing or ambiguous
+calibration are rejected. Historical ``ng.pipe.read`` remains available for
+broader low-level reading; that availability is not normalized qualification.
+
+NMRPipe stores float32 components. Existing rounding cannot be recovered, and
+header frequencies are float32 too. Stored scaling, phase and reference choices
+are preserved rather than independently validated as chemically correct.
+The normalized producer does not recover original vendor parameters or digital
+filter history. It is not a universal converter of native processed formats.
+
+Validation covers synthetic little/big-endian real/complex payloads and local
+real Agilent/Bruker NMRPipe reference FIDs transformed by external NMRPipe 13.0,
+including real spectra obtained by its zero-phase PS/DI operation. Historical
+reference provenance and the current external transformation are distinct;
+no fresh native vendor-to-NMRPipe conversion is claimed. Numerical tests compare
+raw output words and the documented header formula; their shared format
+assumptions are not an independent proof of chemical referencing.
+
+.. autofunction:: nmrglue.interop.read_nmrpipe_1d
+
+.. autofunction:: nmrglue.interop.normalize_nmrpipe_1d
