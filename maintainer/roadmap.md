@@ -346,7 +346,7 @@ precision, real/complex storage and invalid-header rejection are explicit.
 FIDs, extracted grids and multidimensional profiles are not qualified here.
 Local real references transformed with NMRPipe complement synthetic tests;
 this does not establish universal native processed-format conversion.
-The next planned format is nmrML (complete the existing reader and add a writer).
+The nmrML 1D candidate below extends its existing reader and adds a writer.
 
 
 ### nmrML 1D round trips and normalized profiles
@@ -361,5 +361,6 @@ have incorrect binary declarations or schema-incompatible legacy metadata;
 qualified use must expose corrections/conventions rather than guessing.
 A generic reader/writer is a possible upstream candidate, while normalization
 depends on nmrglue-ng interop. No upstream publication or release is authorized.
-The canonical evidence will be recorded in the maintainer nmrML qualification
-audit before PR delivery.
+Independent corrected review preceded provider PR #160. Canonical evidence:
+https://github.com/spectrochempy/spectrochempy_maintainer/pull/167 .
+PR/CI delivery remains separate from merge or release authorization.
