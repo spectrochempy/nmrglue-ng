@@ -44,6 +44,37 @@ Avoid adding a mandatory dependency unless it is necessary and justified.
 Features based on optional libraries should remain optional when reasonably
 possible.
 
+## Commit and pull-request prefixes
+
+Use the SpectroChemPy prefix vocabulary for commit subjects and pull-request
+titles:
+
+| Prefix   | Usage                              |
+| -------- | ---------------------------------- |
+| `ENH:`   | User-facing enhancement or feature |
+| `FIX:`   | Bug fix                            |
+| `DOC:`   | Documentation changes              |
+| `TEST:`  | Test addition or modification      |
+| `CI:`    | CI/CD and workflow changes         |
+| `DEV:`   | Developer tooling                  |
+| `PERF:`  | Performance improvement            |
+| `MAINT:` | Refactoring, cleanup, maintenance  |
+| `REL:`   | Release-related work               |
+
+Use the uppercase prefix followed by a colon, for example:
+
+```text
+ENH: add a validated reader profile
+FIX: preserve the source axis order
+```
+
+`feat:` and other Conventional Commit prefixes are not part of this vocabulary.
+Branch names are separate; names such as `feat/reader-profile` remain valid.
+
+The `check-prefix` workflow validates pull-request titles. As in SpectroChemPy,
+Dependabot pull requests are exempt, and the `non-standard-prefix` label
+explicitly bypasses title validation for an intentional exception.
+
 ## Running Tests
 
 The test suite distinguishes external requirements with three pytest markers:
@@ -203,6 +234,7 @@ same command locally before opening a pull request:
 
 ```bash
 python -m pip install pre-commit
+pre-commit install
 pre-commit run --all-files
 ```
 
