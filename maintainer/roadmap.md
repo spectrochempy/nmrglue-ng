@@ -335,3 +335,15 @@ frequency-axis mapping are still needed; this is not native processed Varian
 support.
 
 [Canonical audit](https://github.com/spectrochempy/spectrochempy_maintainer/blob/master/notes/audits/nmrglue-ng/2026-11-normalized-pdata-1d.md).
+
+
+### NMRPipe normalized processed 1D
+
+The next bridge reads complete transformed NMRPipe 1D spectra into the same
+neutral consumer used for Bruker pdata. The source format does not choose
+processing in SpectroChemPy NMR. ORIG is the last-point reference; float32
+precision, real/complex storage and invalid-header rejection are explicit.
+FIDs, extracted grids and multidimensional profiles are not qualified here.
+Local real references transformed with NMRPipe complement synthetic tests;
+this does not establish universal native processed-format conversion.
+The next planned format is nmrML (complete the existing reader and add a writer).

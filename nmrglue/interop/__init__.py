@@ -19,6 +19,7 @@ from __future__ import annotations
 
 from .bruker import read_bruker_fid, read_bruker_pdata, read_bruker_ser
 from .nmrpipe import write_readresult_nmrpipe
+from .nmrpipe_read import read_nmrpipe_1d, normalize_nmrpipe_1d
 from .normalize import normalize_agilent_fid, normalize_bruker_fid, normalize_bruker_pdata
 from .varian import read_agilent_fid, read_agilent_states_2d
 from .result import (
@@ -48,4 +49,6 @@ __all__ = [
     "normalize_bruker_fid",
     "normalize_bruker_pdata",
     "write_readresult_nmrpipe",
+    "read_nmrpipe_1d",
+    "normalize_nmrpipe_1d",
 ]

@@ -7,6 +7,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Add strict experimental NMRPipe processed 1D reading and normalization for
+  complete real/complex spectra, preserving last-point ORIG calibration.
+
 - Normalize complete Bruker processed 1D spectra into real or complex branches,
   preserving reader storage scaling and the supplied processing-reference axis.
   Add the neutral real-1d branch contract without changing historical readers. (#158)
