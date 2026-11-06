@@ -7,6 +7,10 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Extend nmrML 1D reading, add a precision-preserving metadata-based writer
+  with optional XSD validation, and expose explicit neutral raw/processed
+  profiles with documented count, sign, endpoint and reference conventions.
+
 - Add strict experimental NMRPipe processed 1D reading and normalization for
   complete real/complex spectra, preserving last-point ORIG calibration. (#159)
 

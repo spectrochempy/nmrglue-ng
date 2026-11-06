@@ -17,6 +17,7 @@ User Functions
     :toctree: generated/
 
     read
+    write
 
 Developer Information
 ---------------------
