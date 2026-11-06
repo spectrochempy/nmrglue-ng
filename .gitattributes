@@ -1,2 +1,5 @@
 tests/fixtures/fileio/data/jcampdx_encoding_set/* text eol=lf
 tests/fixtures/fileio/data/jcampdx_ntuples/* text eol=lf
+
+# Preserve the checksum-pinned upstream schema verbatim.
+tests/fixtures/nmrml/nmrML.xsd whitespace=-blank-at-eol

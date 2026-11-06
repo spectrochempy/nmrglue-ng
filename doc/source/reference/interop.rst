@@ -245,3 +245,10 @@ assumptions are not an independent proof of chemical referencing.
 .. autofunction:: nmrglue.interop.read_nmrpipe_1d
 
 .. autofunction:: nmrglue.interop.normalize_nmrpipe_1d
+
+Explicit nmrML 1D bridge
+------------------------
+
+.. autofunction:: nmrglue.interop.read_nmrml_1d
+
+.. autofunction:: nmrglue.interop.normalize_nmrml_1d
