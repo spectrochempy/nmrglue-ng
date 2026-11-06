@@ -8,7 +8,7 @@ original nmrglue project and are preserved for attribution and continuity.
 ## Unreleased
 
 - Align commit-subject and pull-request-title prefixes with SpectroChemPy and
-  add CI validation for pull-request titles.
+  add CI validation for pull-request titles. (#157)
 
 - Add an optional numeric frequency-axis descriptor to the normalized Agilent
   complex 1D profile, allowing consumers to reference without inspecting origin
