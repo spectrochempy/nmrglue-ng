@@ -101,6 +101,11 @@ as schema-valid conversions.
 No multidimensional data, nonuniform sampling, XY-pair layouts, universal native
 processed conversion, implicit reference or correction is qualified. Missing,
 non-finite, inconsistent or ambiguous metadata fail closed in the bridge.
+Element names are resolved by namespace URI, so aliases are accepted without
+interpreting foreign elements as nmrML. Supplied unit accessions must match
+Hz/ppm names, and referenced CVs must identify the supported vocabularies.
+Uniform sampling requires the complete NMR term and a consistent label.
+These checks cover metadata used by the profile, not the entire document CV.
 Native processed Varian support and chemical reference qualification remain
 separate tasks. A portable upstream candidate is the low-level reader/writer;
 the normalized bridge depends on nmrglue-ng's additive interop contract.

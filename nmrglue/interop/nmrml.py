@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from numbers import Real
 import os
+from urllib.parse import urlsplit
 
 import numpy as np
 
@@ -28,6 +29,57 @@ def _number(value, name):
     if not np.isfinite(result):
         raise ValueError('nmrML requires finite ' + name)
     return result
+
+
+def _vocabulary(document, reference, family, description):
+    entries = (document.get('cvList') or {}).get('cv') or []
+    entries = entries if isinstance(entries, list) else [entries]
+    matches = [entry for entry in entries if entry.get('@id') == reference]
+    if len(matches) != 1:
+        raise ValueError('nmrML ' + description + ' requires one declared CV reference')
+    uri = urlsplit(matches[0].get('@URI', ''))
+    path = uri.path.rstrip('/')
+    if family == 'NMR':
+        valid = uri.netloc.lower() == 'nmrml.org' and (path == '/cv' or path.startswith('/cv/'))
+    else:
+        generic_obo = path == '/obo' and matches[0].get('@fullName', '').strip().lower() == 'unit ontology'
+        valid = (uri.netloc.lower() == 'purl.obolibrary.org' and (generic_obo or path == '/obo/uo.owl')) or (
+            uri.netloc.lower() == 'unit-ontology.googlecode.com' and path == '/svn/trunk/uo.owl'
+        )
+    if uri.scheme not in ('http', 'https') or uri.query or uri.fragment or not valid:
+        raise ValueError('nmrML ' + description + ' has an unknown CV vocabulary')
+
+
+def _unit(document, value, allowed):
+    aliases = {'hz': 'Hz', 'hertz': 'Hz', 'ppm': 'ppm', 'parts per million': 'ppm'}
+    name = value.get('@unitName', '').strip().lower()
+    unit = aliases.get(name)
+    if unit not in allowed:
+        raise ValueError('nmrML requires explicit compatible unit names')
+    accession = value.get('@unitAccession')
+    expected = {'Hz': 'UO:0000106', 'ppm': 'UO:0000169'}[unit]
+    if accession is not None:
+        for uri in ('http://purl.obolibrary.org/obo/', 'https://purl.obolibrary.org/obo/'):
+            if accession.startswith(uri):
+                accession = accession[len(uri):]
+                break
+        accession = accession.replace('UO_', 'UO:', 1)
+        if accession != expected:
+            raise ValueError('nmrML unit name and unit accession contradict each other')
+    reference = value.get('@unitCvRef')
+    if reference is not None:
+        _vocabulary(document, reference, 'UO', 'unit')
+    return unit
+
+
+def _uniform_sampling(document, sampling):
+    accession = sampling.get('@accession')
+    if accession not in ('NMR:1000349', 'NMR_1000349', '1000349'):
+        raise ValueError('nmrML time profile requires declared uniform sampling')
+    name = sampling.get('@name', '').strip().lower()
+    if name != 'uniform sampling':
+        raise ValueError('nmrML sampling label contradicts its uniform accession')
+    _vocabulary(document, sampling.get('@cvRef'), 'NMR', 'sampling')
 
 
 def _describe(document, values, options, source):
@@ -58,13 +110,7 @@ def _describe(document, values, options, source):
         if endpoint not in ('last-point', 'outer-edge'):
             raise ValueError('nmrML requires explicit axis_endpoint: last-point or outer-edge')
         xaxis = selected.get('xAxis') or {}
-        unit_name = xaxis.get('@unitName', '').strip().lower()
-        if unit_name in ('ppm', 'parts per million'):
-            unit = 'ppm'
-        elif unit_name in ('hz', 'hertz'):
-            unit = 'Hz'
-        else:
-            raise ValueError('nmrML xAxis must explicitly declare Hz or ppm units')
+        unit = _unit(document, xaxis, ('Hz', 'ppm'))
         start = _number(xaxis.get('@startValue'), 'xAxis startValue')
         end = _number(xaxis.get('@endValue'), 'xAxis endValue')
         axis_values = np.linspace(start, end, data.size, endpoint=endpoint == 'last-point')
@@ -84,13 +130,11 @@ def _describe(document, values, options, source):
         if int(params['@numberOfDataPoints']) != expected:
             raise ValueError('nmrML raw point count disagrees with selected count convention')
         sampling = params.get('samplingStrategy') or {}
-        if sampling.get('@accession', '').split(':')[-1] != '1000349':
-            raise ValueError('nmrML time profile requires declared uniform sampling')
+        _uniform_sampling(document, sampling)
         if params.get('samplingTimePoints') is not None:
             raise ValueError('nmrML explicit/nonuniform time grids are not qualified')
         sw = params.get('sweepWidth') or {}
-        if sw.get('@unitName', '').lower() not in ('hz', 'hertz'):
-            raise ValueError('nmrML time profile requires spectral width in Hz')
+        _unit(document, sw, ('Hz',))
         width = _positive(_number(sw.get('@value'), 'sweepWidth'), 'sweepWidth')
         axis_values = np.arange(data.size, dtype=float) / width
         unit, domain = 's', 'time'
@@ -129,7 +173,8 @@ def read_nmrml_1d(filename, *, read_processed=False, spectrum_index=None,
     Complex FIDs require ``raw_point_count='scalar'`` or ``'complex'``, declared
     uniform sampling and a positive Hz sweepWidth. Times are i/SW seconds.
     Sign, phase, gain, digital filtering and quadrature correction are not
-    implicit. Unsupported/ambiguous metadata fail closed. No vendor inference,
+    implicit. Supplied unit accessions/CV references and the complete uniform
+    sampling term must be consistent; this is not whole-document CV validation. Unsupported/ambiguous metadata fail closed. No vendor inference,
     multidimensional data, nonuniform sampling or XY-pair layouts are qualified.
     """
     document, data = nmrml.read(filename, data_dtype=data_dtype, read_processed=read_processed,

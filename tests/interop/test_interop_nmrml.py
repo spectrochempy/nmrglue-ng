@@ -189,3 +189,52 @@ def test_real_public_nmrml_inputs(tmp_path, kind):
     ng.nmrml.write(out, raw.metadata['document'], raw.data, write_processed=kind == 'bayesil')
     np.testing.assert_array_equal(ng.nmrml.read(out, read_processed=kind == 'bayesil', strict=True)[1], expected)
     assert hashlib.sha256(path.read_bytes()).hexdigest() == before
+
+
+@pytest.mark.parametrize('location', ['axis', 'width'])
+def test_reject_contradictory_unit_accessions(tmp_path, location):
+    metadata, data = ng.nmrml.read(FIXTURE, read_processed=True, strict=True)
+    if location == 'axis':
+        metadata['spectrumList']['spectrum1D']['xAxis']['@unitAccession'] = 'UO:0000010'
+    else:
+        metadata['acquisition']['acquisition1D']['acquisitionParameterSet']['DirectDimensionParameterSet']['sweepWidth']['@unitAccession'] = 'UO:0000169'
+    path = tmp_path / 'units.nmrML'
+    ng.nmrml.write(path, metadata, data, write_processed=True)
+    options = {'read_processed': True, 'axis_endpoint': 'last-point'} if location == 'axis' else {'raw_point_count': 'scalar'}
+    with pytest.raises(ValueError, match='unit'):
+        ng.interop.read_nmrml_1d(path, **options)
+
+
+@pytest.mark.parametrize('change', ['foreign-code', 'contradictory-name', 'foreign-vocabulary'])
+def test_reject_unknown_or_contradictory_sampling_terms(tmp_path, change):
+    metadata, data = ng.nmrml.read(FIXTURE, strict=True)
+    sampling = metadata['acquisition']['acquisition1D']['acquisitionParameterSet']['DirectDimensionParameterSet']['samplingStrategy']
+    if change == 'foreign-code':
+        sampling['@accession'] = 'OTHER:1000349'
+    elif change == 'contradictory-name':
+        sampling['@name'] = 'nonuniform sampling'
+    else:
+        metadata['cvList']['cv'][0]['@URI'] = 'https://example.org/foreign'
+    path = tmp_path / 'sampling.nmrML'
+    ng.nmrml.write(path, metadata, data)
+    with pytest.raises(ValueError, match='sampling'):
+        ng.interop.read_nmrml_1d(path, raw_point_count='scalar')
+
+
+@pytest.mark.parametrize('namespace', ['urn:foreign', ''])
+def test_foreign_acquisition_namespace_is_not_interpreted_as_nmrml(tmp_path, namespace):
+    path = tmp_path / 'foreign.nmrML'
+    path.write_text(FIXTURE.read_text().replace('<acquisition>', '<acquisition xmlns="' + namespace + '">'))
+    with pytest.raises(ValueError):
+        ng.interop.read_nmrml_1d(path, raw_point_count='scalar')
+
+
+def test_unit_cv_reference_cannot_select_another_obo_vocabulary(tmp_path):
+    metadata, data = ng.nmrml.read(FIXTURE, read_processed=True, strict=True)
+    metadata['cvList']['cv'][1]['@URI'] = 'http://purl.obolibrary.org/obo/'
+    axis = metadata['spectrumList']['spectrum1D']['xAxis']
+    axis['@unitAccession'], axis['@unitCvRef'] = 'UO:0000169', 'CHEBI'
+    path = tmp_path / 'foreign-unit-vocabulary.nmrML'
+    ng.nmrml.write(path, metadata, data, write_processed=True)
+    with pytest.raises(ValueError, match='unit'):
+        ng.interop.read_nmrml_1d(path, read_processed=True, axis_endpoint='last-point')

@@ -185,3 +185,22 @@ def test_decoder_rejects_trailing_zlib_streams(suffix):
                 '@encodedLength': str(len(encoded)), '#text': encoded}
     with pytest.raises(ValueError, match='complete zlib'):
         nmrml._get_nmrml_data(metadata, strict=True)
+
+
+@pytest.mark.parametrize('variant', ['duplicate-root-alias', 'mixed-acquisition-prefix'])
+def test_schema_valid_namespace_aliases_are_resolved_by_uri(tmp_path, variant):
+    etree = pytest.importorskip('lxml.etree')
+    fixture = SCHEMA.parent / 'synthetic.nmrML'
+    text = fixture.read_text()
+    if variant == 'duplicate-root-alias':
+        text = text.replace('<nmrML ', '<n:nmrML xmlns:n="' + nmrml.NAMESPACE + '" ', 1).replace('</nmrML>', '</n:nmrML>')
+    else:
+        text = text.replace('<acquisition>', '<m:acquisition xmlns:m="' + nmrml.NAMESPACE + '">').replace('</acquisition>', '</m:acquisition>')
+    etree.XMLSchema(etree.parse(str(SCHEMA))).assertValid(etree.fromstring(text.encode()))
+    path = tmp_path / 'namespaces.nmrML'
+    path.write_text(text)
+    metadata, data = nmrml.read(path, strict=True)
+    np.testing.assert_array_equal(data, np.arange(8))
+    output = tmp_path / 'copy.nmrML'
+    nmrml.write(output, metadata, data, schema=SCHEMA)
+    np.testing.assert_array_equal(nmrml.read(output, strict=True)[1], data)

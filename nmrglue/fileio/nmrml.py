@@ -28,34 +28,76 @@ def _read_document(filename):
     import xmltodict
 
     with open(filename, 'rb') as stream:
-        document = xmltodict.parse(stream.read(), disable_entities=True)
+        document = xmltodict.parse(stream.read(), disable_entities=True,
+                                  process_namespaces=True, namespace_separator='}')
     if len(document) != 1:
         raise ValueError('nmrML requires one document root')
     root, metadata = next(iter(document.items()))
-    if root == 'nmrML':
-        if metadata.get('@xmlns', NAMESPACE) != NAMESPACE:
-            raise ValueError('nmrML requires its schema namespace')
-        return metadata
-    prefix, separator, name = root.partition(':')
-    if not separator or name != 'nmrML' or metadata.get('@xmlns:' + prefix) != NAMESPACE:
+    qualified = root == NAMESPACE + '}nmrML'
+    if not qualified and root != 'nmrML':
         raise ValueError('nmrML requires its schema namespace')
+    if not isinstance(metadata, dict):
+        raise ValueError('nmrML requires document metadata')
+    prefixes = {}
+    used = {'xml'}
 
-    def unprefix(value):
+    def prefix(uri, hint=''):
+        if uri == 'http://www.w3.org/XML/1998/namespace':
+            return 'xml'
+        if uri in prefixes:
+            return prefixes[uri]
+        base = hint or 'ns'
+        candidate, index = base, 1
+        while candidate in used:
+            candidate = base + str(index)
+            index += 1
+        used.add(candidate)
+        prefixes[uri] = candidate
+        return candidate
+
+    def declarations(value):
         if isinstance(value, list):
-            return [unprefix(item) for item in value]
+            for item in value:
+                declarations(item)
+        elif isinstance(value, dict):
+            for name, uri in (value.get('@xmlns') or {}).items():
+                if uri and uri != NAMESPACE:
+                    prefix(uri, name)
+            for key, item in value.items():
+                if key != '@xmlns':
+                    declarations(item)
+
+    declarations(metadata)
+
+    def convert(value):
+        if isinstance(value, list):
+            return [convert(item) for item in value]
         if not isinstance(value, dict):
             return value
         result = {}
         for key, item in value.items():
-            key = key[len(prefix) + 1:] if key.startswith(prefix + ':') else key
-            if key == '@xmlns:' + prefix:
-                key = '@xmlns'
+            if key == '@xmlns':
+                continue
+            attribute = key.startswith('@')
+            expanded = key[1:] if attribute else key
+            if '}' in expanded:
+                uri, local = expanded.rsplit('}', 1)
+                key = local if uri == NAMESPACE and not attribute else (
+                    ('@' if attribute else '') + prefix(uri) + ':' + local
+                )
+            elif qualified and not attribute and key != '#text':
+                raise ValueError('nmrML elements require the schema namespace')
             if key in result:
                 raise ValueError('nmrML has ambiguous namespace keys')
-            result[key] = unprefix(item)
+            result[key] = convert(item)
         return result
 
-    return unprefix(metadata)
+    result = convert(metadata)
+    if qualified:
+        result['@xmlns'] = NAMESPACE
+    for uri, name in prefixes.items():
+        result['@xmlns:' + name] = uri
+    return result
 
 
 def _select_array(metadata, read_processed, spectrum_index=None):
