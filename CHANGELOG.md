@@ -7,11 +7,13 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Align commit-subject and pull-request-title prefixes with SpectroChemPy and
+  add CI validation for pull-request titles. (#157)
+
 - Add an experimental normalized Bruker complex QSIM/DQD 1D profile: trim
   storage padding before explicit digital-filter correction, record conjugation
   and expose a numeric frequency descriptor for vendor-neutral consumers.
   Existing reader APIs and RG/NS scaling behavior remain unchanged. (#156)
-
 
 - Add an optional numeric frequency-axis descriptor to the normalized Agilent
   complex 1D profile, allowing consumers to reference without inspecting origin
