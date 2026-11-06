@@ -318,3 +318,20 @@ and separate time-domain filter oracles are distinct evidence; vendor recipe or
 physical amplitude calibration is not inferred.
 
 [Canonical qualification audit](https://github.com/spectrochempy/spectrochempy_maintainer/blob/master/notes/audits/nmrglue-ng/2026-11-bruker-normalized-1d.md).
+
+### Normalized processed 1D spectra
+
+The next qualified profile covers complete SI-matched Bruker pdata spectra,
+including real-only data without a fabricated imaginary part. Existing NC_proc
+reader scaling and the SF/OFFSET/SW_p processing reference remain explicit;
+consumers preserve the supplied grid and do not re-FFT or use acquisition BF1
+as a substitute. Extracted grids remain outside this strict profile.
+Two original acquisitions qualify both component/scaling variants. Native
+Varian processed phasefile/datdir inputs remain absent from the local corpus;
+public nmrML example4 contains an actual processed Varian-origin spectrum.
+The existing low-level nmrML reader reads it with read_processed=True and the
+optional xmltodict dependency. A separately qualified normalized producer and
+frequency-axis mapping are still needed; this is not native processed Varian
+support.
+
+[Canonical audit](https://github.com/spectrochempy/spectrochempy_maintainer/blob/master/notes/audits/nmrglue-ng/2026-11-normalized-pdata-1d.md).

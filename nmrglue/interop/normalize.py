@@ -281,3 +281,94 @@ def normalize_bruker_fid(result: ReadResult, *, remove_digital_filter=False) -> 
         acquisition=normalized_acquisition, metadata=result.metadata,
         encoding=result.encoding, diagnostics=result.diagnostics,
     )
+
+
+def normalize_bruker_pdata(result: ReadResult) -> NormalizedAcquisition:
+    """Preserve a calibrated 1D processed spectrum and its available components.
+
+    The raw reader owns NC_proc storage scaling. This normalization combines
+    1r+i*1i when both are supplied, otherwise keeps real-only data real. It
+    never reapplies scaling, acquisition gain, scan-count normalization, FFT,
+    phasing or chemical referencing. SF/OFFSET/SW_p describe the supplied grid.
+    """
+    from .bruker import _build_axis
+
+    if not isinstance(result, ReadResult):
+        raise TypeError("normalize_bruker_pdata requires an interop ReadResult")
+    if result.format != "bruker-pdata":
+        raise ValueError("normalize_bruker_pdata requires format='bruker-pdata'")
+    data = np.asarray(result.data)
+    if data.ndim != 1 or data.size < 2 or data.dtype.kind not in "iuf" or not np.isfinite(data).all():
+        raise ValueError("processed normalization requires one finite real primary spectrum")
+    components = {}
+    for component in result.components:
+        if component.name not in ("1r", "1i") or component.name in components:
+            raise ValueError("processed normalization requires unique 1r/1i components")
+        values = np.asarray(component.data)
+        if values.shape != data.shape or values.dtype.kind not in "iuf" or not np.isfinite(values).all():
+            raise ValueError("processed components must be finite real arrays matching the primary spectrum")
+        components[component.name] = values
+    if "1r" not in components or not np.array_equal(components["1r"], data):
+        raise ValueError("processed primary 1r component does not match returned data")
+    if len(result.axes) != 1:
+        raise ValueError("processed normalization requires one calibrated frequency axis")
+    procs = result.metadata.get("procs", {})
+    for key, required in (("SI", data.size), ("STSI", data.size), ("STSR", 0)):
+        value = procs.get(key)
+        if key != "SI" and value is None:
+            continue
+        if isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, float, np.integer, np.floating)) or value != required:
+            raise ValueError("normalized pdata requires a complete SI-matched spectrum without extraction")
+    axis = result.axes[0]
+    expected, _ = _build_axis(result.metadata, data)
+    if expected.domain != "frequency" or expected.values is None:
+        raise ValueError("processed normalization requires known SF/OFFSET/SW_p calibration")
+    if (axis.domain != "frequency" or axis.unit != "Hz" or axis.values is None
+        or np.asarray(axis.values).shape != data.shape
+        or not np.isfinite(axis.values).all()
+        or not np.allclose(axis.values, expected.values, rtol=1e-12, atol=1e-9)
+        or axis.reference != expected.reference or axis.direction != expected.direction):
+        raise ValueError("processed frequency axis disagrees with its calibration")
+    corrections = dict(result.applied_corrections)
+    if set(corrections) - {"scale_data", "NC_proc"} or type(corrections.get("scale_data")) is not bool:
+        raise ValueError("unknown processed storage-scaling corrections")
+    if corrections["scale_data"]:
+        exponent = corrections.get("NC_proc")
+        if isinstance(exponent, (bool, np.bool_)) or not isinstance(exponent, (int, float, np.integer, np.floating)):
+            raise ValueError("scaled processed data requires a known scalar NC_proc")
+        try:
+            exponent = float(exponent)
+        except (ValueError, OverflowError) as exc:
+            raise ValueError("invalid processed NC_proc") from exc
+        if not np.isfinite(exponent) or not exponent.is_integer() or exponent != result.metadata.get("procs", {}).get("NC_proc"):
+            raise ValueError("processed storage scaling disagrees with NC_proc")
+    elif "NC_proc" in corrections:
+        raise ValueError("unscaled processed data cannot claim an applied NC_proc")
+    complex_data = "1i" in components
+    output = components["1r"] + 1j * components["1i"] if complex_data else data
+    mode = "complex" if complex_data else "real"
+    operation = {
+        "name": "normalize-bruker-processed-components", "stage": "processing",
+        "input_dimensions": ("storage",), "output_dimensions": ("F2",),
+        "axis": "F2", "scale": None, "conjugation": "none", "sign": "none",
+        "permutation": None, "evidence": "nmrglue.interop.read_bruker_pdata",
+        "source_components": tuple(component.name for component in result.components),
+        "reader_corrections": corrections,
+    }
+    reference = axis.reference
+    if reference is None:
+        raise ValueError("processed normalization requires a processing reference")
+    return NormalizedAcquisition(
+        data=output, axes=(axis,), dimensions=("F2",), physical_dimensions=("F2",),
+        domains=("frequency",), quadrature_mode=mode + "-1d", branch_order=(mode,),
+        normalization_state="storage-normalized", normalization_profile="bruker-pdata-1d-v1",
+        applied_operations=(operation,),
+        provenance={"source": os.fspath(result.source), "format": result.format},
+        acquisition={
+            "spectral_width_hz": float(result.metadata["procs"]["SW_p"]),
+            "observation_frequency_mhz": reference.observation_frequency,
+            "reference_source": reference.source, "nucleus": axis.label,
+            "storage_scaling": corrections, "normalization": "none",
+        },
+        metadata=result.metadata, encoding=result.encoding, diagnostics=result.diagnostics,
+    )

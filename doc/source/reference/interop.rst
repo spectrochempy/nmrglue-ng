@@ -165,3 +165,43 @@ bitwise agreement with NMRPipe's own digital-filter recipe is not claimed.
 No SpectroChemPy dependency is added to this producer.
 
 .. autofunction:: nmrglue.interop.normalize_bruker_fid
+
+Normalized Bruker processed 1D spectra (experimental)
+-----------------------------------------------------
+
+The processed normalizer consumes the existing descriptive reader::
+
+   raw = ng.interop.read_bruker_pdata("/path/to/pdata/1", all_components=True)
+   spectrum = ng.interop.normalize_bruker_pdata(raw)
+
+The primary ``1r`` component remains real when it is the only component
+supplied. If ``1i`` is supplied as well, the result is ``1r + 1j*1i`` with one
+complex branch. Component association uses names, not tuple order. Missing
+imaginary data are not fabricated; existing missing-component diagnostics are
+retained. The normalized ``real-1d`` mode validates one real numeric branch.
+
+The reader owns ``NC_proc`` storage decoding. Normalization preserves its
+``scale_data`` state and exponent in the operation trace and never reapplies
+scaling, RG/NS normalization, FFT, phasing or chemical referencing. Missing or
+contradictory scaling evidence is rejected. ``scale_data=False`` retains the
+unscaled storage values explicitly; it is not a physical amplitude calibration.
+
+The normative supplied axis remains
+``frequency_hz[i] = OFFSET*SF - i*SW_p/N``. Its processing reference is SF (MHz),
+not acquisition BF1/SFO1. No new frequency sign or acquisition-reference recipe
+is guessed for a processed spectrum. Calibration, primary/component shapes,
+unique names and finite data are checked before normalization.
+
+This first strict profile requires the complete SI-matched spectrum. SI must
+equal N, supplied STSI must equal N, and supplied STSR must be zero. Extracted,
+truncated and unknown-calibration processed grids are not qualified. These
+restrictions apply to the new normalizer only; descriptive readers are unchanged.
+
+The consumer can preserve the already-frequency-domain spectrum, convert its
+coordinate between Hz and ppm through the supplied reference, and record
+explicit additional processing. It must not repeat acquisition transforms.
+Two real original datasets (SCP TopSpin and the public nmrML tomato example)
+qualify real/complex and scaled/unscaled variants, source preservation and
+SCP persistence, with separately configured NMRPipe component/grid comparisons.
+
+.. autofunction:: nmrglue.interop.normalize_bruker_pdata
