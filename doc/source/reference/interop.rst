@@ -78,7 +78,7 @@ additional real-acquisition validation. Receiver-gain correction, nonzero
 binary scale restoration and physical amplitude normalization remain unqualified.
 
 Normalized frequency-axis descriptor (experimental)
---------------------------------------------------
+---------------------------------------------------
 
 The optional ``NormalizedAcquisition.acquisition['frequency_axis']`` mapping
 separates format interpretation from consumer processing. Schema
