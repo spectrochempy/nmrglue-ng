@@ -20,6 +20,8 @@ def _geometry(header, max_points):
             raise ValueError("NMRPipe requires finite numeric " + key)
         return float(value)
 
+    if number("FDMAGIC") != 0 or number("FDFLTORDER") not in (0, float(np.float32(2.345))):
+        raise ValueError("NMRPipe requires a valid magic and byte-order marker")
     for key, expected in (("FDDIMCOUNT", 1), ("FDDIMORDER1", 2),
                           ("FDTRANSPOSED", 0), ("FDF2FTFLAG", 1)):
         if number(key) != expected:

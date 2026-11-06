@@ -42,6 +42,7 @@ def test_read_normalize_preserves_payload_axis_and_reference(tmp_path, complex_d
 
 
 @pytest.mark.parametrize("changes", [
+    {"FDMAGIC": 1}, {"FDFLTORDER": np.nan}, {"FDFLTORDER": 1},
     {"FDDIMCOUNT": 2}, {"FDF2FTFLAG": 0}, {"FDTRANSPOSED": 1},
     {"FDDIMORDER1": 1}, {"FDF2SW": 0}, {"FDF2OBS": -1},
     {"FDF2ORIG": np.nan}, {"FDSIZE": 8.5}, {"FDSIZE": 1e30}, {"FDSIZE": 1},
@@ -92,3 +93,10 @@ def test_normalizer_rejects_mutated_description(tmp_path, mutation):
     }[mutation]
     with pytest.raises(ValueError):
         ng.interop.normalize_nmrpipe_1d(replace(raw, **kwargs))
+
+
+def test_legacy_zero_byte_order_marker_is_accepted(tmp_path):
+    path = tmp_path / "legacy.ft1"
+    expected = write_spectrum(path, FDFLTORDER=0)
+    result = ng.interop.normalize_nmrpipe_1d(ng.interop.read_nmrpipe_1d(path))
+    np.testing.assert_array_equal(result.data, expected)
