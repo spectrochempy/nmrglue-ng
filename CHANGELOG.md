@@ -7,6 +7,11 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Expose sourced scan-count evidence in Agilent raw 1D interop: requested
+  `nt`, completed procpar `ct`, binary block `ctcount` and scale values. Report
+  conflicting, invalid or ambiguous evidence without inventing a completed
+  count. Keep samples unscaled and preserve the historical `NS`/`NE` fields. (#154)
+
 - Correct the Agilent raw 1D interop acquisition nucleus and time-axis label
   to use the observed transmitter nucleus `tn`, never the decoupler `dn`.
   Missing or empty `tn` now leaves the nucleus unknown. Raw procpar metadata,
