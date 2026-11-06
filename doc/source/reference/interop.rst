@@ -207,7 +207,7 @@ SCP persistence, with separately configured NMRPipe component/grid comparisons.
 .. autofunction:: nmrglue.interop.normalize_bruker_pdata
 
 Normalized NMRPipe spectra (experimental)
-----------------------------------------
+-----------------------------------------
 
 Read a single complete, already transformed 1D spectrum through the historical
 NMRPipe reader and the neutral contract::
