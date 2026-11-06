@@ -117,3 +117,51 @@ Arrayed ``rfl``, ``rfp``, ``reffrq`` or ``sfrq`` cannot establish a scalar
 reference candidate. Multiple ``sw`` values are rejected by the normalized 1D
 profile because they cannot establish one calibrated time grid. The raw reader
 API remains unchanged.
+
+Normalized Bruker complex 1D FIDs (experimental)
+------------------------------------------------
+
+``normalize_bruker_fid`` accepts an uncorrected ``read_bruker_fid`` result
+with complex QSIM or DQD encoding::
+
+   raw = ng.interop.read_bruker_fid("/path/to/acquisition")
+   normalized = ng.interop.normalize_bruker_fid(raw, remove_digital_filter=True)
+
+The reader is kept unchanged. Normalization trims zero storage padding to the
+complex acquisition size ``TD/2`` before optional filter removal. It rejects
+nonzero samples beyond TD, missing or inconsistent time calibration, real/QSEQ
+input and prefiltered input. Prefiltered input may already contain padding in
+its correction; read it again with the default uncorrected reader instead.
+
+Digital-filter removal is opt-in and uses the existing time-domain correction
+with a truncated integer group delay. A positive scalar GRPDLY takes priority;
+otherwise DSPFVS/DECIM must identify a known table entry. Unknown delays and
+corrections leaving fewer than two points are rejected. No firmware clamping is
+introduced by this profile. The trace records the original delay, its source,
+parameters, truncation and number of removed points. The existing head/tail
+folding behavior of the correction remains part of this explicitly chosen
+recipe; this is not a claim of equivalence to an arbitrary vendor recipe.
+
+The output conjugates the corrected or uncorrected acquired samples. This
+explicit quadrature normalization aligns the centered negative-exponent DFT
+with the standard NMR frequency orientation; samples are not RG/NS scaled.
+The operation record preserves storage/acquired/output sizes, trimmed padding,
+conjugation and filter state. Raw metadata remains available unchanged.
+
+The numeric frequency-axis descriptor uses sign -1, BF1 (MHz) as the
+acquisition chemical-zero frequency and O1 (Hz) as the explicitly selected
+``acquisition`` candidate offset. Missing BF1/O1 does not invent a reference.
+This is an acquisition reference, not a replay of processed-data SF/OFFSET or
+proof of a calibrated chemical standard. The relation
+``SFO1 [MHz] = BF1 [MHz] + O1 [Hz] / 10^6`` follows the
+`Bruker Avance frequency guide
+<https://2210pc.chem.uic.edu/nmr/downloads/bruker/en-US/html/Avance%20Beginners%20Guide/en-US/371498891.html>`_.
+
+Two local real acquisitions qualify QSIM/DQD, opposite int32 byte orders,
+zero storage padding and both explicit/table group-delay paths. The consumer
+compares unfiltered conversion, FFT and ppm axes with NMRPipe13. Filter removal
+is separately tested against integer time-domain shift and head/tail folding;
+bitwise agreement with NMRPipe's own digital-filter recipe is not claimed.
+No SpectroChemPy dependency is added to this producer.
+
+.. autofunction:: nmrglue.interop.normalize_bruker_fid

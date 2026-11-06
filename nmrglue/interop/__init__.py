@@ -19,7 +19,7 @@ from __future__ import annotations
 
 from .bruker import read_bruker_fid, read_bruker_pdata, read_bruker_ser
 from .nmrpipe import write_readresult_nmrpipe
-from .normalize import normalize_agilent_fid
+from .normalize import normalize_agilent_fid, normalize_bruker_fid
 from .varian import read_agilent_fid, read_agilent_states_2d
 from .result import (
     DIAGNOSTIC_CONTEXT_SCHEMA,
@@ -45,5 +45,6 @@ __all__ = [
     "read_agilent_fid",
     "read_agilent_states_2d",
     "normalize_agilent_fid",
+    "normalize_bruker_fid",
     "write_readresult_nmrpipe",
 ]
