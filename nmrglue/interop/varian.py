@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import math
 import os
+from collections.abc import Mapping
+from decimal import Decimal, InvalidOperation
 
 import numpy as np
 
@@ -75,6 +77,73 @@ def _procpar_phase(procpar):
     return tuple(phases)
 
 
+def _scan_count(value, minimum=0, maximum=2147483647):
+    if isinstance(value, (bool, np.bool_)) or not isinstance(
+        value, (str, int, float, np.integer, np.floating)
+    ):
+        return None
+    try:
+        number = Decimal(str(value))
+    except (InvalidOperation, ValueError):
+        return None
+    if not number.is_finite() or number < minimum or number > maximum:
+        return None
+    if number != number.to_integral_value():
+        return None
+    return int(number)
+
+
+def _agilent_scan_counts(dic, procpar):
+    invalid = []
+    parameters = {}
+    for key, minimum, maximum in (("nt", 1, 1000000000), ("ct", 0, 2147483647)):
+        values = procpar.get(key, {}).get("values", ())
+        value = (
+            _scan_count(values[0], minimum, maximum)
+            if isinstance(values, (list, tuple)) and len(values) == 1
+            else None
+        )
+        parameters[key] = value
+        if key in procpar and value is None:
+            invalid.append("procpar." + key)
+    headers = dic.get("blockheader", ())
+    if not isinstance(headers, (list, tuple)):
+        headers = ()
+        invalid.append("fid.blockheader")
+    block_counts = []
+    block_scales = []
+    for header in headers:
+        value = (
+            _scan_count(header.get("ctcount")) if isinstance(header, Mapping) else None
+        )
+        block_counts.append(value)
+        block_scales.append(header.get("scale") if isinstance(header, Mapping) else None)
+        if value is None:
+            invalid.append("fid.blockheader.ctcount")
+    completed = None
+    if invalid:
+        status = "invalid"
+    elif len(block_counts) > 1:
+        status = "ambiguous"
+    elif not block_counts:
+        status = "unavailable"
+    elif parameters["ct"] is not None and parameters["ct"] != block_counts[0]:
+        status = "conflicting"
+    else:
+        completed = block_counts[0]
+        status = "consistent" if parameters["ct"] is not None else "block-only"
+    return {
+        "requested": parameters["nt"],
+        "procpar_completed": parameters["ct"],
+        "block_completed": tuple(block_counts),
+        "block_scales": tuple(block_scales),
+        "completed": completed,
+        "source": "fid.blockheader.ctcount" if completed is not None else None,
+        "status": status,
+        "invalid": tuple(invalid),
+    }
+
+
 def read_agilent_fid(
     dir=".",
     *,
@@ -93,6 +162,12 @@ def read_agilent_fid(
     The direct-axis nucleus and label use the observed transmitter nucleus
     ``tn`` only; absent or empty ``tn`` leaves them unknown, never inferred
     from the decoupler nucleus ``dn``.
+    ``acquisition['scan_counts']`` distinguishes requested ``nt``, procpar
+    ``ct`` and block-header ``ctcount``. A completed count is reported only
+    for one valid, unambiguous block without contradictory procpar evidence.
+    Counts and binary scale values are descriptive: no scaling is applied.
+    Block headers are always parsed for this evidence; ``read_blockhead``
+    controls whether the full headers are retained in ``metadata``.
     """
     if not os.path.isdir(dir):
         raise OSError("directory %s does not exist" % (dir,))
@@ -101,7 +176,7 @@ def read_agilent_fid(
         dir,
         shape=shape,
         torder=torder,
-        read_blockhead=read_blockhead,
+        read_blockhead=True,
     )
     data = np.asarray(data)
     if data.ndim != 1 or not np.iscomplexobj(data):
@@ -114,6 +189,9 @@ def read_agilent_fid(
     ns = _procpar_number(procpar, "ns")
     ne = _procpar_number(procpar, "ne")
     nucleus = _procpar_string(procpar, "tn") or None
+    scan_counts = _agilent_scan_counts(dic, procpar)
+    if not read_blockhead:
+        dic = {key: value for key, value in dic.items() if key != "blockheader"}
     if sw is not None and sw <= 0:
         raise ValueError("Agilent spectral width must be positive")
     if obs is not None and obs <= 0:
@@ -188,6 +266,7 @@ def read_agilent_fid(
         "np_raw": np_raw,
         "NS": ns,
         "NE": ne,
+        "scan_counts": scan_counts,
         "normalization": "none",
         "storage_convention": "interleaved real/imaginary decoded to complex",
         "conjugation": "none",
