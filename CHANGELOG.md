@@ -10,7 +10,7 @@ original nmrglue project and are preserved for attribution and continuity.
 - Correct the Agilent raw 1D interop acquisition nucleus and time-axis label
   to use the observed transmitter nucleus `tn`, never the decoupler `dn`.
   Missing or empty `tn` now leaves the nucleus unknown. Raw procpar metadata,
-  sample values and historical Varian reader APIs are unchanged.
+  sample values and historical Varian reader APIs are unchanged. (#153)
 
 - Add an additive raw Bruker 1D `ReadResult` interop profile with explicit
   acquisition metadata, digital-filter corrections, and no implicit RG/NS
