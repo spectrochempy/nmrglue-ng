@@ -3,10 +3,61 @@
 from __future__ import annotations
 
 import os
+from collections.abc import Mapping
 
 import numpy as np
 
 from .result import NormalizedAcquisition, ReadResult
+
+
+def _agilent_frequency_axis(result):
+    """Describe physical frequency relative to a negative-exponent centered DFT."""
+    acquisition = result.acquisition
+    original = dict(acquisition.get("original_reference", {}))
+    procpar = result.metadata.get("procpar", {})
+    if isinstance(procpar, Mapping):
+        for key in tuple(original):
+            entry = procpar.get(key)
+            if entry is not None and len(entry.get("values", ())) != 1:
+                original.pop(key)
+
+    def number(mapping, key, positive=False):
+        value = mapping.get(key)
+        if isinstance(value, (bool, np.bool_)):
+            return None
+        try:
+            value = float(value)
+        except (TypeError, ValueError, OverflowError):
+            return None
+        return value if np.isfinite(value) and (not positive or value > 0) else None
+
+    sw = number(acquisition, "spectral_width_hz", True)
+    obs = number(acquisition, "observation_frequency_mhz", True)
+    if isinstance(procpar, Mapping) and "sfrq" in procpar:
+        if len(procpar["sfrq"].get("values", ())) != 1:
+            obs = None
+    frequency = number(original, "reffrq", True)
+    rfl = number(original, "rfl")
+    rfp = number(original, "rfp")
+    offsets = {}
+    if sw is not None and rfl is not None and rfp is not None:
+        offsets["rfl-rfp"] = sw / 2 - rfl + rfp
+    if obs is not None and frequency is not None:
+        offsets["sfrq-reffrq"] = (obs - frequency) * 1e6
+    offsets = {key: value for key, value in offsets.items() if np.isfinite(value)}
+    procpar = result.metadata.get("procpar", {})
+    refpos = procpar.get("refpos") if isinstance(procpar, Mapping) else None
+    enabled = None
+    if refpos is not None:
+        values = refpos.get("values", ()) if isinstance(refpos, Mapping) else ()
+        enabled = len(values) == 1 and str(values[0]).strip() == "0"
+    return {
+        "schema": "normalized-frequency-axis-v1",
+        "bin_sign": -1,
+        "reference_frequency_mhz": frequency,
+        "reference_enabled": enabled,
+        "offsets_hz": offsets,
+    }
 
 
 def normalize_agilent_fid(result: ReadResult) -> NormalizedAcquisition:
@@ -34,6 +85,10 @@ def normalize_agilent_fid(result: ReadResult) -> NormalizedAcquisition:
         raise ValueError("Agilent result has an unrecognized normalization correction")
     if result.applied_corrections.get("conjugation") != "none":
         raise ValueError("Agilent result has an unrecognized conjugation correction")
+    procpar = result.metadata.get("procpar", {})
+    if isinstance(procpar, Mapping) and "sw" in procpar:
+        if len(procpar["sw"].get("values", ())) > 1:
+            raise ValueError("Agilent normalized 1D requires one spectral width")
     dimensions = result.dimensions
     if dimensions.get("TDeff") != data.size:
         raise ValueError("Agilent TDeff must match the returned complex point count")
@@ -86,7 +141,7 @@ def normalize_agilent_fid(result: ReadResult) -> NormalizedAcquisition:
         normalization_profile="agilent-fid-1d-complex-v1",
         applied_operations=(operation,),
         provenance=provenance,
-        acquisition=result.acquisition,
+        acquisition={**result.acquisition, "frequency_axis": _agilent_frequency_axis(result)},
         metadata=result.metadata,
         encoding=result.encoding,
         diagnostics=result.diagnostics,

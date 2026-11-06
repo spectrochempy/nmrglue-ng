@@ -293,3 +293,15 @@ separate, individually authorized contribution decisions.
 Show the exact text of every proposed upstream issue, PR or
 comment and obtain explicit approval before publishing it. Outbound drafts
 and correspondence tracking belong in local notes, not this roadmap.
+
+### Neutral normalized frequency-axis contract
+
+The normalized complex 1D producer now describes candidate offsets, chemical-zero
+frequency and sign relative to a negative-exponent centered DFT in the optional
+`acquisition.frequency_axis` mapping. Consumers select a candidate explicitly;
+origin and profile labels are provenance rather than processing instructions.
+Agilent is the first qualified producer, not a claim of arbitrary vendor support.
+Raw readers and sample values remain unchanged. Conflicting carbon reference
+candidates remain unresolved experimental evidence.
+
+[Coordinated integration audit](https://github.com/spectrochempy/spectrochempy_maintainer/blob/master/notes/audits/nmrglue-ng/2026-11-neutral-frequency-axis.md).
