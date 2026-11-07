@@ -49,6 +49,7 @@ Read raw acquisitions
     read_bruker_fid
     read_bruker_ser
     read_jeol_fid
+    read_jeol_2d_storage
 
 Read processed spectra and exchange files
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -412,6 +413,43 @@ stored quadrature when
 ``conjugation="none"``. Select ``"conjugate"`` to match the sign convention
 of the historical ``ng.jeol.read()`` reader. Digital filter parameters
 remain available in the metadata for later processing.
+
+.. _interop-jeol-2d-storage:
+
+JEOL 2D storage
+---------------
+
+:func:`~nmrglue.interop.read_jeol_2d_storage` reads standard tiled ``two_d``
+float64 JDF files with X and Y axes. The supported header axis-type pairs,
+in (X, Y) order, are ``(real, real)``, ``(complex, real)``,
+``(real_complex, real_complex)`` and ``(complex, complex)``.
+The array has shape
+``(number_of_sections, words_per_section)``. Each row retains the file's
+tile and word order, including any padding. Each component, named
+``section-0``, ``section-1`` and so on, exposes the corresponding row.
+
+.. code-block:: python
+
+    import nmrglue as ng
+
+    stored = ng.interop.read_jeol_2d_storage("sample_hsqc.jdf")
+    print(stored.dimensions["grid_shape"])  # stored grid in (Y, X) order
+    print(stored.dimensions["tile_shape"])
+    print(stored.metadata["header"]["data_axis_type"][:2])
+
+The grid and tile sizes describe each section. Tiles and the words within
+each tile run with X varying fastest. ``valid_index_ranges`` records the
+inclusive header offsets in X and Y. The decoded header and acquisition
+parameters are available in ``metadata``. If an axis has a stored list,
+``metadata["axis_lists_raw"]`` provides its original bytes by axis name.
+In the reference HSQC and HMBC JDFs these bytes encode the sampled Y
+times as big-endian float64 values in milliseconds, even though the
+signal words are little-endian.
+
+The storage axes index sections and words. Reconstructing physical axes,
+untile operations, combining quadrature branches and interpreting a
+non-uniform sampling schedule belong to a subsequent stage. The
+``small_two_d`` format requires a separate storage profile.
 
 .. _interop-nmrpipe-2d-storage:
 

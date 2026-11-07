@@ -1,4 +1,4 @@
-"""Explicit storage and normalization profile for JEOL 1D complex FIDs."""
+"""JEOL storage readers and explicit normalization for complex 1D FIDs."""
 
 import os
 from pathlib import Path
@@ -38,8 +38,12 @@ def _fid_geometry(header):
     return points, stop + 1
 
 
-def read_jeol_fid(filename):
-    """Read the full stored complex FID, including padding, as R + iI."""
+def _fid_storage_geometry(header):
+    points, acquired = _fid_geometry(header)
+    return (2, points), acquired
+
+
+def _read_jdf(filename, geometry):
     buffer = Path(filename).read_bytes()
     if len(buffer) < _JDF_HEADER_BYTES or not buffer.startswith(b"JEOL.NMR"):
         raise ValueError("JEOL interop requires a complete JDF header")
@@ -49,14 +53,14 @@ def read_jeol_fid(filename):
     except (struct.error, KeyError, IndexError, UnicodeError) as exc:
         raise ValueError("JEOL JDF header could not be decoded") from exc
 
-    points, acquired = _fid_geometry(header)
+    shape, layout = geometry(header)
     start = header["data_start"]
     parameter_start = header["param_start"]
     parameter_end = parameter_start + header["param_length"]
     if not _JDF_HEADER_BYTES <= parameter_start < parameter_end <= start:
         raise ValueError("JEOL JDF parameter section overlaps header or data")
     if start + header["data_length"] > len(buffer):
-        raise ValueError("JEOL FID data section is truncated")
+        raise ValueError("JEOL JDF data section is truncated")
 
     try:
         # Bound the legacy parser to the declared end of the parameter section.
@@ -69,8 +73,17 @@ def read_jeol_fid(filename):
 
     metadata = {"header": header, "parameters": parameters}
     endian = {"little_endian": "<", "big_endian": ">"}[header["endian"]]
-    real, imag = np.frombuffer(buffer, dtype=endian + "f8", count=2 * points,
-                              offset=start).reshape(2, points)
+    sections = np.frombuffer(
+        buffer, dtype=endian + "f8", count=header["data_length"] // 8, offset=start,
+    ).reshape(shape)
+    return sections, metadata, layout, buffer
+
+
+def read_jeol_fid(filename):
+    """Read the full stored complex FID, including padding, as R + iI."""
+    sections, metadata, acquired, _ = _read_jdf(filename, _fid_storage_geometry)
+    real, imag = sections
+    points = real.size
     data = np.empty(points, dtype=np.complex128)
     data.real = real
     data.imag = imag
@@ -80,6 +93,77 @@ def read_jeol_fid(filename):
         applied_corrections={}, diagnostics=(), format="jeol-fid-1d",
         source=os.fspath(filename), domains=("time",), encoding=("complex",),
         dimensions={"storage_points": points, "acquired_points": acquired},
+    )
+
+
+def _2d_storage_geometry(header):
+    metadata = {"header": header}
+    axis_types = header["data_axis_type"]
+    if (
+        header["data_dimension_number"] != 2
+        or jeol.dimension_names(metadata) != ["x", "y"]
+        or header["data_format"] != "two_d"
+        or header["data_type"] != "float64"
+        or None in axis_types[:2]
+        or any(axis_types[2:])
+        or any(size != 1 for size in header["data_points"][2:])
+    ):
+        raise ValueError("JEOL storage requires a two_d float64 JDF with X and Y axes")
+
+    # Restrict section counting to encodings with an established JDF layout.
+    if tuple(axis_types[:2]) not in (
+        ("real", "real"),
+        ("complex", "real"),
+        ("real_complex", "real_complex"),
+        ("complex", "complex"),
+    ):
+        raise ValueError("JEOL 2D storage has unsupported axis types")
+
+    nx, ny = header["data_points"][:2]
+    edge = header["submatrix_edge"]
+    if min(nx, ny) < edge or nx % edge or ny % edge:
+        raise ValueError("JEOL 2D dimensions do not contain complete storage tiles")
+    windows = tuple(zip(header["data_offset_start"][:2], header["data_offset_stop"][:2]))
+    if any(not 0 <= first <= last < size for (first, last), size in zip(windows, (nx, ny))):
+        raise ValueError("JEOL 2D data offsets are outside the stored grid")
+
+    count = jeol.nsections(metadata)
+    if header["data_length"] != 8 * count * nx * ny:
+        raise ValueError("JEOL 2D data length disagrees with the stored sections")
+    return (count, nx * ny), {
+        "axis_order": ("section", "word"),
+        "grid_axis_order": ("y", "x"),
+        "grid_shape": (ny, nx),
+        "tile_shape": (edge, edge),
+        "valid_index_ranges": {"x": windows[0], "y": windows[1]},
+    }
+
+
+def read_jeol_2d_storage(filename):
+    """Read float64 JDF sections as scalar words in on-disk tile order."""
+    sections, metadata, dimensions, buffer = _read_jdf(filename, _2d_storage_geometry)
+    header = metadata["header"]
+    parameter_end = header["param_start"] + header["param_length"]
+    axis_lists = {}
+    for index, axis in enumerate(("x", "y")):
+        start = header["list_start"][index]
+        length = header["list_length"][index]
+        if length:
+            if not parameter_end <= start < start + length <= header["data_start"]:
+                raise ValueError(f"JEOL 2D {axis} axis list overlaps metadata or data")
+            axis_lists[axis] = buffer[start:start + length]
+        elif header["data_axis_ranged"][index] == "listed":
+            raise ValueError(f"JEOL 2D {axis} listed axis has no stored list")
+
+    metadata["axis_lists_raw"] = axis_lists
+    return ReadResult(
+        data=sections,
+        axes=(Axis(label="stored section"), Axis(label="stored word")),
+        metadata=metadata,
+        components=tuple(Component(f"section-{i}", row) for i, row in enumerate(sections)),
+        applied_corrections={}, diagnostics=(), format="jeol-2d-storage",
+        source=os.fspath(filename), domains=("unknown", "unknown"),
+        dimensions=dimensions,
     )
 
 
