@@ -248,3 +248,129 @@ def normalize_jeol_fid(result, *, conjugation):
                      "observation_frequency_mhz": obs, "storage_points": points,
                      "acquired_points": acquired, "trimmed_padding_points": points - acquired},
     )
+
+
+def _jeol_2d_time_axis(result, index, size, axis_name):
+    header = result.metadata["header"]
+    parameters = result.metadata["parameters"]
+    width = _positive_parameter(parameters, f"{axis_name}_sweep", unit="hertz")
+    obs = _positive_parameter(parameters, f"{axis_name}_freq", unit="hertz") / 1e6
+    if _positive_parameter(parameters, f"{axis_name}_points") != size:
+        raise ValueError(f"JEOL 2D {axis_name} point count disagrees with its window")
+    if obs <= 0 or not np.isclose(header["base_freq"][index], obs, rtol=1e-7, atol=0):
+        raise ValueError(f"JEOL 2D {axis_name} base frequency disagrees with its parameters")
+
+    units = header["units"][index]
+    mode = header["data_axis_ranged"][index]
+    axis_lists = result.metadata["axis_lists_raw"]
+    if mode == "ranged" and units == ("none", 1, "second") and axis_name not in axis_lists:
+        times = np.arange(size, dtype=float) / width
+        if (header["data_axis_start"][index] != 0
+                or not np.isfinite(times[-1])
+                or not np.isclose(header["data_axis_stop"][index], times[-1], rtol=1e-7, atol=0)):
+            raise ValueError(f"JEOL 2D {axis_name} time endpoints disagree with its sweep")
+        nominal_size = size
+    elif axis_name == "y" and mode == "listed" and units == ("milli", 1, "second"):
+        raw = axis_lists.get(axis_name)
+        if not isinstance(raw, bytes) or len(raw) != 8 * header["data_points"][index]:
+            raise ValueError("JEOL 2D Y axis requires its complete stored list")
+        times = np.frombuffer(raw, dtype=">f8")[:size] * 1e-3
+        nominal_size = _positive_parameter(parameters, "y_orig_points")
+        increments = times * width
+        indices = np.rint(increments)
+        if (nominal_size <= size or not nominal_size.is_integer()
+                or np.any(increments < 0) or np.any(indices >= nominal_size)
+                or not np.allclose(increments, indices, rtol=0, atol=1e-7)
+                or np.any(np.diff(indices) <= 0)):
+            raise ValueError("JEOL 2D Y times disagree with the nominal NUS grid")
+        nominal_size = int(nominal_size)
+    else:
+        raise ValueError(f"JEOL 2D {axis_name} has an unsupported time axis")
+
+    axis = Axis(
+        values=times, unit="s", domain="time", direction="increasing",
+        label=parameters.get(f"{axis_name}_domain") or header["data_axis_titles"][index],
+        reference=Reference(observation_frequency=obs, observation_frequency_unit="MHz",
+                            source="acquisition"),
+    )
+    return axis, width, nominal_size
+
+
+def normalize_jeol_2d(result, *, conjugation):
+    """Untile a qualified raw JEOL 2D acquisition and calibrate sampled times."""
+    if not isinstance(result, ReadResult) or result.format != "jeol-2d-storage":
+        raise ValueError("normalize_jeol_2d requires a jeol-2d-storage ReadResult")
+    if conjugation not in ("none", "conjugate"):
+        raise ValueError("JEOL requires explicit conjugation: none or conjugate")
+    header = result.metadata["header"]
+    shape, layout = _2d_storage_geometry(header)
+    types = tuple(header["data_axis_type"][:2])
+    axis_modes = tuple(header["data_axis_ranged"][:2])
+    if (types, axis_modes) not in (
+        (("real_complex", "real_complex"), ("ranged", "ranged")),
+        (("complex", "complex"), ("ranged", "listed")),
+    ):
+        raise ValueError("JEOL 2D requires a qualified regular or listed raw layout")
+    if (
+        result.data.shape != shape or result.data.dtype.kind != "f"
+        or result.data.dtype.itemsize != 8 or result.dimensions != layout
+        or result.applied_corrections or len(result.components) != shape[0]
+        or any(
+            component.name != f"section-{index}"
+            or not np.array_equal(component.data, row, equal_nan=True)
+            for index, (component, row) in enumerate(zip(result.components, result.data))
+        )
+    ):
+        raise ValueError("JEOL 2D samples disagree with their storage description")
+
+    (x_start, x_stop), (y_start, y_stop) = (
+        layout["valid_index_ranges"][axis] for axis in ("x", "y")
+    )
+    if x_start or y_start or min(x_stop, y_stop) < 1:
+        raise ValueError("JEOL 2D requires uncropped axes with at least two valid points")
+    nx, ny = x_stop + 1, y_stop + 1
+    x_axis, x_width, _ = _jeol_2d_time_axis(result, 0, nx, "x")
+    y_axis, y_width, nominal_y = _jeol_2d_time_axis(result, 1, ny, "y")
+    planes = [
+        jeol.reorder_submatrix(row, layout["grid_shape"], layout["tile_shape"])[:ny, :nx]
+        for row in result.data
+    ]
+    if not all(np.isfinite(plane).all() for plane in planes):
+        raise ValueError("JEOL 2D valid samples must be finite")
+
+    branches = np.empty((len(planes) // 2, ny, nx), dtype=np.complex128)
+    for branch, real, imag in zip(branches, planes[::2], planes[1::2]):
+        branch.real = real
+        branch.imag = -imag if conjugation == "conjugate" else imag
+    dimensions = ("F1", "F2")
+    if len(branches) == 1:
+        data = branches[0]
+        channel_axis = None
+        branch_order = ("section-0/1",)
+    else:
+        data = branches
+        channel_axis = 0
+        branch_order = ("section-0/1", "section-2/3")
+    output_dimensions = dimensions if channel_axis is None else ("channels", *dimensions)
+    operation = {
+        "name": "normalize-jeol-2d", "stage": "acquisition",
+        "input_dimensions": ("section", "word"), "output_dimensions": output_dimensions,
+        "axis": "F2", "scale": None, "conjugation": conjugation, "sign": "none",
+        "permutation": None, "evidence": "JDF tile order and section pairs; caller-selected conjugation",
+    }
+    return NormalizedAcquisition(
+        data=data, axes=(y_axis, x_axis), dimensions=output_dimensions,
+        physical_dimensions=dimensions, domains=("time", "time"),
+        quadrature_mode="jeol-stored-section-pairs", branch_order=branch_order,
+        channel_axis=channel_axis, normalization_state="storage-normalized",
+        normalization_profile="jeol-2d-time-v1", applied_operations=(operation,),
+        provenance={"source": result.source, "format": result.format},
+        acquisition={
+            "dwell_time_s": (1 / y_width, 1 / x_width),
+            "spectral_width_hz": (y_width, x_width),
+            "sampling": ("listed" if channel_axis is not None else "regular", "regular"),
+            "nominal_shape": (nominal_y, nx),
+        },
+        metadata=result.metadata, diagnostics=result.diagnostics,
+        encoding=(types[1], types[0]),
+    )

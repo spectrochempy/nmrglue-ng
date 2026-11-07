@@ -177,7 +177,9 @@ A normalizer accepts the result of its corresponding qualified reader and
 validates a layout or calibration for a consumer.
 
 * Agilent/Varian and Bruker raw: qualified 1D FIDs.
-* JEOL: complex 1D FIDs with explicit conjugation and padding removal.
+* JEOL: complex 1D FIDs and qualified 2D raw time-domain acquisitions.
+  The 2D normalizer preserves the sampled indirect times and keeps
+  the stored quadrature branches separate for listed-axis NUS data.
 * Bruker processed: complete calibrated 1D spectra and qualified four-plane
   2D spectra.
 * NMRPipe: complete real or complex 1D spectra and complete 2D frequency
