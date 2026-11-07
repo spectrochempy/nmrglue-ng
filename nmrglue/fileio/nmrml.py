@@ -100,26 +100,30 @@ def _read_document(filename):
     return result
 
 
+def _select_spectrum(selected, spectrum_index):
+    choices = selected if isinstance(selected, list) else [selected]
+    if spectrum_index is None:
+        if len(choices) != 1:
+            raise ValueError('select spectrum_index for multiple nmrML spectra')
+        index = 0
+    else:
+        if isinstance(spectrum_index, (bool, np.bool_)):
+            raise ValueError('spectrum_index must be a nonnegative integer')
+        index = operator.index(spectrum_index)
+        if index < 0 or index >= len(choices):
+            raise ValueError('spectrum_index is outside the nmrML spectrum list')
+    return choices[index]
+
+
 def _select_array(metadata, read_processed, spectrum_index=None):
     if read_processed:
         spectra = metadata.get('spectrumList') or {}
         if 'spectrumMultiD' in spectra:
             raise ValueError('nmrML profile supports only 1D spectra')
         selected = spectra.get('spectrum1D')
-        choices = selected if isinstance(selected, list) else [selected]
         if not selected:
             raise ValueError('nmrML has no processed 1D spectrum')
-        if spectrum_index is None:
-            if len(choices) != 1:
-                raise ValueError('select spectrum_index for multiple nmrML spectra')
-            index = 0
-        else:
-            if isinstance(spectrum_index, (bool, np.bool_)):
-                raise ValueError('spectrum_index must be a nonnegative integer')
-            index = operator.index(spectrum_index)
-            if index < 0 or index >= len(choices):
-                raise ValueError('spectrum_index is outside the nmrML spectrum list')
-        return choices[index], 'spectrumDataArray'
+        return _select_spectrum(selected, spectrum_index), 'spectrumDataArray'
     if spectrum_index is not None:
         raise ValueError('spectrum_index applies only to processed spectra')
     acquisition = metadata.get('acquisition') or {}

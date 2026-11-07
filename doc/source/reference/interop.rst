@@ -60,6 +60,7 @@ Read processed spectra and exchange files
     read_nmrpipe_1d
     read_nmrpipe_2d
     read_nmrml_1d
+    read_nmrml_2d
 
 Normalize a supported result
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -74,6 +75,7 @@ Normalize a supported result
     normalize_nmrpipe_1d
     normalize_nmrpipe_2d
     normalize_nmrml_1d
+    normalize_nmrml_2d
 
 Export an acquisition
 ^^^^^^^^^^^^^^^^^^^^^
@@ -309,6 +311,41 @@ See :doc:`../nmrml_1d` for examples and grid conventions.
 :func:`~nmrglue.interop.read_nmrml_1d`
 
 :func:`~nmrglue.interop.normalize_nmrml_1d`
+
+Real nmrML 2D spectra
+---------------------
+
+Use :func:`~nmrglue.interop.read_nmrml_2d` for a real, densely sampled
+processed ``spectrumMultiD`` plane with exactly two dimensions.
+The nmrML 1.0.rc1 schema stores the direct ``xAxis``. Supply the
+processed shape, indirect axis and binary order from the exporter or
+an independent reference. The processed shape can differ from the
+acquisition dimensions after zero filling or extraction.
+
+.. code-block:: python
+
+    import nmrglue as ng
+
+    plane = ng.interop.read_nmrml_2d(
+        "synthetic-2d-real.nmrML",
+        shape=(3, 4),
+        indirect_axis=(-100, 100, "Hz"),
+        storage_order="x-fastest",
+        axis_endpoint="last-point",
+    )
+    spectrum = ng.interop.normalize_nmrml_2d(plane)
+
+The result has dimensions ``(F1, F2)`` and retains the stored intensities
+as float32 or float64. With ``x-fastest``, adjacent values belong to
+successive F2 positions. With ``y-fastest``, they belong to successive
+F1 positions. Both axes retain their original direction and Hz or ppm
+units. ``last-point`` includes the stated end coordinate on each axis.
+``outer-edge`` excludes it. A document with several multidimensional
+spectra requires a zero-based ``spectrum_index``.
+
+The example uses the synthetic reference in ``tests/fixtures/nmrml/``.
+The official HSQC example contains an acquisition, but its processed
+array is empty.
 
 .. _interop-nmrpipe-2d-storage:
 

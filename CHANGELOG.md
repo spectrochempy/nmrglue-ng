@@ -7,6 +7,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Read and normalize real processed nmrML 2D planes with explicit shape,
+  storage order and indirect calibration.
+
 - Normalize complete pure TPPI NMRPipe 2D grids in time and mixed domains,
   with real indirect samples and the corresponding time calibration. (#167)
 

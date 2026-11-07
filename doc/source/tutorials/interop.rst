@@ -154,7 +154,8 @@ They are still available even when no interop normalizer is provided for that
        Qualified: complete real or complex 1D spectrum or complete real 2D
        frequency plane.
    * - nmrML
-     - Explicit 1D raw or processed profile.
+     - Explicit 1D raw or processed profile. Real processed 2D planes with
+       documented shape, storage order and indirect calibration.
 
 The storage readers require the binary layouts described above.
 
@@ -171,7 +172,8 @@ validates a layout or calibration for a consumer.
   grids. Complete grids in NMRPipe States or pure TPPI layout require
   confirmation of the original time grid for time or mixed domains. See
   :func:`~nmrglue.interop.normalize_nmrpipe_2d`.
-* nmrML: the explicit 1D raw and processed profiles.
+* nmrML: explicit 1D raw and processed profiles and real processed 2D planes
+  described by :func:`~nmrglue.interop.read_nmrml_2d`.
 
 See the :doc:`API reference <../reference/interop>` for function names, detailed
 limits and the separate raw NMRPipe export.
