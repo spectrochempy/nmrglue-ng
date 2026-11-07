@@ -22,7 +22,7 @@ def _synthetic_jdf(endian):
     struct.pack_into(">d", header, 336, 0.001)
     struct.pack_into(">d", header, 1064, 400.0)
     params = bytearray(struct.pack(endian + "4I", 64, 0, 3, 256))
-    for name, value in ((b"x_points", 5.0), (b"x_sweep", 4000.0), (b"x_freq", 400e6), (b"x_scale", 1.0)):
+    for name, value in ((b"x_points", 5.0), (b"x_sweep", 4000.0), (b"x_scale", 1.0), (b"x_freq", 400e6)):
         record = bytearray(64)
         if name in (b"x_sweep", b"x_freq"):
             record[6:8] = bytes((1, 13))
@@ -81,7 +81,9 @@ def test_jeol_rejects_unsupported_storage(tmp_path, offset, replacement, message
     "offset, replacement, message",
     [
         (1451, bytes((28,)), "x_sweep in hertz"),
-        (1515, bytes((28,)), "x_freq in hertz"),
+        (1579, bytes((28,)), "x_freq in hertz"),
+        (1456, struct.pack(">i12xi", 4000, 4), "positive numeric x_sweep"),
+        (1392, struct.pack(">i12xi", 5, 4), "positive numeric x_points"),
         (1064, struct.pack(">d", 300.0), "base frequency disagrees"),
     ],
 )
@@ -92,6 +94,17 @@ def test_jeol_rejects_inconsistent_calibration(tmp_path, offset, replacement, me
     path.write_bytes(payload)
     stored = interop.read_jeol_fid(path)
     with pytest.raises(ValueError, match=message):
+        interop.normalize_jeol_fid(stored, conjugation="none")
+
+
+def test_jeol_rejects_overflowing_scaled_integer(tmp_path):
+    path = tmp_path / "fid.jdf"
+    payload = _synthetic_jdf(">")
+    struct.pack_into(">h", payload, 1380, 1000)
+    struct.pack_into(">i12xi", payload, 1392, 5, 1)
+    path.write_bytes(payload)
+    stored = interop.read_jeol_fid(path)
+    with pytest.raises(ValueError, match="positive numeric x_points"):
         interop.normalize_jeol_fid(stored, conjugation="none")
 
 

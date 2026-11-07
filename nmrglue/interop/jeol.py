@@ -61,8 +61,10 @@ def read_jeol_fid(filename):
     try:
         # Bound the legacy parser to the declared end of the parameter section.
         reader.buffer = memoryview(buffer)[:parameter_end]
-        _, parameters = jeol.read_parameters(reader, parameter_start, header["endian"])
-    except (struct.error, KeyError, IndexError, UnicodeError, OverflowError, TypeError) as exc:
+        _, parameters = jeol.read_parameters(
+            reader, parameter_start, header["endian"], inclusive=True,
+        )
+    except (struct.error, KeyError, IndexError, ValueError, OverflowError, TypeError) as exc:
         raise ValueError("JEOL JDF parameter section could not be decoded") from exc
 
     metadata = {"header": header, "parameters": parameters}
@@ -82,15 +84,19 @@ def read_jeol_fid(filename):
 
 
 def _positive_parameter(parameters, key, *, hertz=False):
-    value = parameters.get(key)
-    if (isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, float))
-            or not np.isfinite(value) or value <= 0):
-        raise ValueError(f"JEOL FID requires a positive {key}")
+    record = parameters.get("info", {}).get(key, {})
+    if record.get("value_type") not in ("integer", "float"):
+        raise ValueError(f"JEOL FID requires a positive numeric {key}")
+    try:
+        value = float(parameters[key])
+    except (KeyError, ValueError, TypeError, OverflowError) as exc:
+        raise ValueError(f"JEOL FID requires a positive numeric {key}") from exc
+    if not np.isfinite(value) or value <= 0:
+        raise ValueError(f"JEOL FID requires a positive numeric {key}")
     if hertz:
-        units = parameters.get("info", {}).get(key, {}).get("units")
-        if units != [("none", 1, "hertz")] + [("none", 0, None)] * 4:
+        if record.get("units") != [("none", 1, "hertz")] + [("none", 0, None)] * 4:
             raise ValueError(f"JEOL FID requires {key} in hertz")
-    return float(value)
+    return value
 
 
 def normalize_jeol_fid(result, *, conjugation):
