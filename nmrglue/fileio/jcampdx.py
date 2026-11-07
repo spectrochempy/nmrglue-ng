@@ -40,7 +40,7 @@ def _getkey(keystr):
             .replace("-", "").replace("_", "").replace("/", ""))
 
 
-def _parsejcampdx(filename, read_err=None, _opened=None):
+def _parsejcampdx(filename, read_err=None, _opened=None, *, _record_order=False):
     '''
     Actual JCAMP-DX reading. Returns a list of data sections i.e. "blocks",
     each of them being a dictionary of JCAMP-DX tags, in the order the blocks
@@ -48,6 +48,7 @@ def _parsejcampdx(filename, read_err=None, _opened=None):
 
     If _opened is a list, a (block, enclosing block or None) tuple is appended
     to it for every block, in the order the blocks begin in the file.
+    _record_order retains record names in source order for strict profiles.
     '''
 
     # "blocks" in JCAMP-DX may be nested, and they begin with ##TITLE and
@@ -105,6 +106,8 @@ def _parsejcampdx(filename, read_err=None, _opened=None):
             if actual[:7] == "##TITLE":
                 # begin new block dictionary
                 activeblock = {"_comments": []}
+                if _record_order:
+                    activeblock["_records"] = []
                 if _opened is not None:
                     parent = blockstack[-1] if blockstack else None
                     _opened.append((activeblock, parent))
@@ -114,6 +117,8 @@ def _parsejcampdx(filename, read_err=None, _opened=None):
             # table inside it and, as before, is not kept
             endkey = _getkey(actual[2:].split("=", 1)[0])
             if endkey == "ENDNTUPLES":
+                if _record_order and activeblock is not None:
+                    activeblock["_records"].append(endkey)
                 continue
             if endkey == "END":
                 # finalize current block
@@ -144,6 +149,8 @@ def _parsejcampdx(filename, read_err=None, _opened=None):
 
                 # split ok, init new key
                 currentkey = keystr
+                if _record_order:
+                    activeblock["_records"].append(endkey)
                 currentvaluestrings.append(valuestr)
 
         # line continues data of previous key, append to currentvaluestrings:
@@ -219,7 +226,7 @@ def _readrawdic(filename, read_err=None):
     return returndic
 
 
-def read_blocks(filename, read_err=None):
+def read_blocks(filename, read_err=None, *, _record_order=False):
     """
     Read every data block of a JCAMP-DX file, in file order.
 
@@ -250,7 +257,7 @@ def read_blocks(filename, read_err=None):
         raise OSError("file %s does not exist" % (filename))
 
     opened = []
-    _parsejcampdx(filename, read_err, _opened=opened)
+    _parsejcampdx(filename, read_err, _opened=opened, _record_order=_record_order)
 
     # same cleaning as _readrawdic, but empty blocks are kept so that
     # the _parent indices stay valid
@@ -734,7 +741,7 @@ def getdataarray(dic, show_all_data=False, *, _check_xydata_x=None, _xydata_max_
             rdatalist = []
             idatalist = []
             for value in valuelist:
-                parseret = _parse_data(value)
+                parseret = _parse_data(value, _check_xydata_x, _xydata_max_points)
                 if parseret is None:
                     return None
                 data, datatype = parseret
