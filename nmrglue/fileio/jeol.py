@@ -334,7 +334,7 @@ def read_header(buffer):
     return buffer, header
 
 
-def read_parameters(buffer, param_start, endianness):
+def read_parameters(buffer, param_start, endianness, *, inclusive=False):
     t = buffer.conversion_table
 
     if endianness == "little_endian":
@@ -349,8 +349,19 @@ def read_parameters(buffer, param_start, endianness):
         "total_size": buffer.read_uint32(),
     }
 
+    count = params["high_index"]
+    if inclusive:
+        count += 1
+        if (
+            params["parameter_size"] != 64
+            or params["low_index"] != 0
+            or params["total_size"] != 64 * count
+            or buffer.position + 64 * count > len(buffer.buffer)
+        ):
+            raise ValueError("Invalid JDF parameter section dimensions")
+
     param_array = {}
-    for p in range(params["high_index"]):
+    for p in range(count):
         _class = buffer.get_array("read_byte", 4)
         unit_scaler = buffer.read_int16()
         unit = buffer.get_unit(5)
@@ -394,6 +405,12 @@ def read_parameters(buffer, param_start, endianness):
                 "value_type": value_type,
             }
 
+        if inclusive:
+            # Keep powers of ten within the float64 range used by JDF quantities.
+            if not -308 <= unit_scaler <= 308:
+                raise ValueError("JDF parameter unit scaler is out of range")
+            if value_type == "string" and unit_scaler != 0:
+                raise ValueError("JDF text parameter has a nonzero unit scaler")
         params[bname] = value * (10 ** unit_scaler)
 
     params["info"] = param_array

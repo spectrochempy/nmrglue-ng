@@ -7,6 +7,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Read JEOL 1D complex JDF FIDs and normalize their time axes with explicit
+  conjugation and padding removal. (#170)
+
 - Read raw nmrML 2D complex traces and normalize confirmed adjacent
   echo/anti-echo pairs with explicit indirect dwell time. (#169)
 
