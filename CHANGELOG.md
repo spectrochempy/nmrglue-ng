@@ -7,6 +7,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Add experimental NMRPipe real 2D spectrum reading and normalization with
+  calibrated axes in file order.
+
 - Extend nmrML 1D reading, add a precision-preserving metadata-based writer
   with optional XSD validation, and expose explicit neutral raw/processed
   profiles with documented count, sign, endpoint and reference conventions. (#160)

@@ -1,4 +1,4 @@
-"""Strict processed NMRPipe 1D input for the neutral interoperability layer."""
+"""Strict processed NMRPipe input for the neutral interoperability layer."""
 
 from __future__ import annotations
 
@@ -11,14 +11,18 @@ from ..fileio import pipe
 from .result import Axis, Component, NormalizedAcquisition, ReadResult, Reference
 
 
+def _number(header, key):
+    value = header.get(key)
+    if isinstance(value, (bool, np.bool_)) or not isinstance(
+        value, (int, float, np.integer, np.floating)
+    ) or not np.isfinite(value):
+        raise ValueError("NMRPipe requires finite numeric " + key)
+    return float(value)
+
+
 def _geometry(header, max_points):
     def number(key):
-        value = header.get(key)
-        if isinstance(value, (bool, np.bool_)) or not isinstance(
-            value, (int, float, np.integer, np.floating)
-        ) or not np.isfinite(value):
-            raise ValueError("NMRPipe requires finite numeric " + key)
-        return float(value)
+        return _number(header, key)
 
     if number("FDMAGIC") != 0 or number("FDFLTORDER") not in (0, float(np.float32(2.345))):
         raise ValueError("NMRPipe requires a valid magic and byte-order marker")
@@ -38,19 +42,24 @@ def _geometry(header, max_points):
     size = int(size)
     if size > max_points:
         raise ValueError("NMRPipe FDSIZE exceeds available samples")
-    sw, obs, orig = (number(key) for key in ("FDF2SW", "FDF2OBS", "FDF2ORIG"))
+    axis, sw = _frequency_axis(header, "FDF2", size)
+    return size, quad == 0, axis, sw
+
+
+def _frequency_axis(header, prefix, size):
+    sw, obs, orig = (_number(header, prefix + key) for key in ("SW", "OBS", "ORIG"))
     if sw <= 0 or obs <= 0:
         raise ValueError("NMRPipe SW and OBS must be positive")
     values = orig + (size - 1 - np.arange(size, dtype=float)) * (sw / size)
     if not np.isfinite(values).all() or not np.all(np.diff(values) < 0):
         raise ValueError("NMRPipe frequency grid must be finite and strictly decreasing")
     axis = Axis(
-        values=values, unit="Hz", label=header.get("FDF2LABEL"),
+        values=values, unit="Hz", label=header.get(prefix + "LABEL"),
         domain="frequency", direction="decreasing",
         reference=Reference(observation_frequency=obs,
                             observation_frequency_unit="MHz", source="processing"),
     )
-    return size, quad == 0, axis, sw
+    return axis, sw
 
 
 def read_nmrpipe_1d(filename):
@@ -126,4 +135,180 @@ def normalize_nmrpipe_1d(result):
                      "observation_frequency_mhz": axis.reference.observation_frequency,
                      "reference_source": "processing", "normalization": "none"},
         metadata=result.metadata, encoding=result.encoding, diagnostics=result.diagnostics,
+    )
+
+_REAL_2D_DOMAINS = ("frequency", "frequency")
+_REAL_2D_ENCODING = ("real", "real")
+_REAL_2D_CORRECTIONS = {"normalization": "none", "conjugation": "none"}
+
+
+def _real_2d_geometry(header, points):
+    required = {
+        "FDMAGIC": 0,
+        "FDFLTORDER": float(np.float32(2.345)),
+        "FDDIMCOUNT": 2,
+        "FDQUADFLAG": 1,
+        "FDF1QUADFLAG": 1,
+        "FDF2QUADFLAG": 1,
+        "FDF1FTFLAG": 1,
+        "FDF2FTFLAG": 1,
+    }
+    for key, expected in required.items():
+        if _number(header, key) != expected:
+            raise ValueError(
+                f"NMRPipe real frequency 2D profile requires {key}={expected}"
+            )
+    if _number(header, "FDPIPEFLAG") not in (0, 1):
+        raise ValueError("NMRPipe requires FDPIPEFLAG=0 or 1")
+    transposed = _number(header, "FDTRANSPOSED")
+    if transposed not in (0, 1):
+        raise ValueError("NMRPipe requires FDTRANSPOSED=0 or 1")
+    order = ("F2", "F1") if transposed else ("F1", "F2")
+    if tuple(_number(header, key) for key in ("FDDIMORDER2", "FDDIMORDER1")) != tuple(
+        int(dim[-1]) for dim in order
+    ):
+        raise ValueError("NMRPipe dimension order disagrees with FDTRANSPOSED")
+    sizes = tuple(_number(header, key) for key in ("FDSPECNUM", "FDSIZE"))
+    if any(size < 2 or not size.is_integer() for size in sizes):
+        raise ValueError("NMRPipe requires integer FDSPECNUM and FDSIZE >= 2")
+    rows, cols = shape = tuple(int(size) for size in sizes)
+    if rows * cols != points:
+        raise ValueError("NMRPipe payload size disagrees with FDSPECNUM/FDSIZE")
+    axes = []
+    widths = []
+    for dim, size in zip(order, shape, strict=True):
+        prefix = "FD" + dim
+        if (
+            _number(header, prefix + "X1") != 0
+            or _number(header, prefix + "XN") != 0
+            or _number(header, prefix + "FTSIZE") != size
+        ):
+            raise ValueError("NMRPipe requires a complete unextracted frequency grid")
+        axis, width = _frequency_axis(header, prefix, size)
+        axes.append(axis)
+        widths.append(width)
+    return shape, order, tuple(axes), tuple(widths)
+
+
+def _real_2d_acquisition(axes, widths):
+    return {
+        "spectral_width_hz": widths,
+        "observation_frequency_mhz": tuple(
+            axis.reference.observation_frequency for axis in axes
+        ),
+        "reference_source": "processing",
+        "normalization": "none",
+    }
+
+
+def read_nmrpipe_2d(filename):
+    """Read one complete real NMRPipe frequency/frequency plane.
+
+    Samples and axes are in file order. Both orientations are supported.
+    Each axis uses its own SW, OBS and last-point ORIG. Only a single
+    unextracted two-dimensional file is accepted.
+    """
+    with Path(filename).open("rb", buffering=0) as stream:
+        raw_header = stream.read(2048)
+        if len(raw_header) != 2048:
+            raise ValueError("NMRPipe requires a complete 2048-byte header")
+        marker = np.float32(2.345)
+        for dtype in ("<f4", ">f4"):
+            fdata = np.frombuffer(raw_header, dtype=dtype)
+            if fdata[2] == marker:
+                break
+        else:
+            raise ValueError("NMRPipe requires a valid byte-order marker")
+        header = pipe.fdata2dic(fdata.astype(np.float32, copy=False))
+        points, remainder = divmod(os.fstat(stream.fileno()).st_size - 2048, 4)
+        if remainder:
+            raise ValueError("NMRPipe payload size must be a multiple of four bytes")
+        shape, order, axes, widths = _real_2d_geometry(header, points)
+        samples = np.fromfile(stream, dtype=dtype, count=points)
+        if samples.size != points or stream.read(1) or not np.isfinite(samples).all():
+            raise ValueError("NMRPipe requires an exact, finite real payload")
+    data = samples.astype(np.float32, copy=False).reshape(shape)
+    return ReadResult(
+        data=data,
+        axes=axes,
+        metadata=header,
+        components=(Component(name="real", data=data),),
+        applied_corrections=_REAL_2D_CORRECTIONS,
+        diagnostics=(),
+        format="nmrpipe-2d",
+        source=os.fspath(filename),
+        domains=_REAL_2D_DOMAINS,
+        encoding=_REAL_2D_ENCODING,
+        dimensions={"axis_order": order, "storage_shape": shape},
+        acquisition=_real_2d_acquisition(axes, widths),
+    )
+
+
+def normalize_nmrpipe_2d(result):
+    """Validate the neutral real plane and preserve its storage order."""
+    if not isinstance(result, ReadResult) or result.format != "nmrpipe-2d":
+        raise ValueError("normalize_nmrpipe_2d requires a nmrpipe-2d ReadResult")
+    data = np.asarray(result.data)
+    shape, order, axes, widths = _real_2d_geometry(result.metadata, data.size)
+    acquisition = _real_2d_acquisition(axes, widths)
+    if (
+        data.shape != shape
+        or data.dtype != np.dtype(np.float32)
+        or not np.isfinite(data).all()
+        or result.domains != _REAL_2D_DOMAINS
+        or result.encoding != _REAL_2D_ENCODING
+        or dict(result.dimensions) != {"axis_order": order, "storage_shape": shape}
+        or dict(result.acquisition) != acquisition
+    ):
+        raise ValueError("NMRPipe normalized plane disagrees with its header")
+    if len(result.axes) != 2 or any(
+        (
+            supplied.domain,
+            supplied.unit,
+            supplied.direction,
+            supplied.label,
+            supplied.reference,
+        )
+        != (axis.domain, axis.unit, axis.direction, axis.label, axis.reference)
+        or not np.array_equal(supplied.values, axis.values)
+        for supplied, axis in zip(result.axes, axes, strict=True)
+    ):
+        raise ValueError("NMRPipe axes disagree with the header")
+    if (
+        len(result.components) != 1
+        or result.components[0].name != "real"
+        or result.components[0].data.dtype != data.dtype
+        or not np.array_equal(result.components[0].data, data)
+    ):
+        raise ValueError("NMRPipe component disagrees with its samples")
+    if dict(result.applied_corrections) != _REAL_2D_CORRECTIONS:
+        raise ValueError("NMRPipe has unrecognized corrections")
+    operation = {
+        "name": "normalize-nmrpipe-plane",
+        "stage": "processing",
+        "input_dimensions": order,
+        "output_dimensions": order,
+        "axis": None,
+        "scale": None,
+        "conjugation": "none",
+        "sign": "none",
+        "permutation": None,
+        "evidence": "nmrglue.interop.read_nmrpipe_2d",
+    }
+    return NormalizedAcquisition(
+        data=data,
+        axes=axes,
+        dimensions=order,
+        physical_dimensions=order,
+        domains=_REAL_2D_DOMAINS,
+        quadrature_mode="real-2d",
+        branch_order=("real",),
+        normalization_state="storage-normalized",
+        normalization_profile="nmrpipe-spectrum-2d-real-v1",
+        applied_operations=(operation,),
+        provenance={"source": result.source, "format": result.format},
+        acquisition=acquisition,
+        metadata=result.metadata,
+        encoding=result.encoding,
+        diagnostics=result.diagnostics,
     )

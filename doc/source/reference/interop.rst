@@ -252,3 +252,20 @@ Explicit nmrML 1D bridge
 .. autofunction:: nmrglue.interop.read_nmrml_1d
 
 .. autofunction:: nmrglue.interop.normalize_nmrml_1d
+
+Real NMRPipe 2D spectra (experimental)
+--------------------------------------
+
+Use the explicit reader and normalizer for a complete real frequency/frequency
+plane stored as one NMRPipe file::
+
+    plane = ng.interop.read_nmrpipe_2d("spectrum.ft2")
+    spectrum = ng.interop.normalize_nmrpipe_2d(plane)
+
+The data, axes and dimension names follow file order (F1, F2 or F2, F1).
+Each decreasing frequency axis uses its own SW and last-point ORIG in Hz.
+OBS provides its observation frequency in MHz. Samples retain their float32
+values. The real 2D profile accepts both byte orders and both orientations.
+Extracted grids, mixed domains, complex planes and higher-dimensional slices
+require separate profiles. This interface describes the stored spectrum and
+leaves interpretation and processing to the caller.
