@@ -1497,8 +1497,11 @@ def unappend_data(data):
     Data should have imaginary data vector appended to real data vector
 
     """
-    h = int(data.shape[-1] / 2)
-    return np.array(data[..., :h] + data[..., h:] * 1.j, dtype="complex64")
+    h = data.shape[-1] // 2
+    result = np.empty(data.shape[:-1] + (h,), dtype=np.complex64)
+    result.real = data[..., :h]
+    result.imag = data[..., h:]
+    return result
 
 
 def append_data(data):

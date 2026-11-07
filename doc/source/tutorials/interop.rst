@@ -110,6 +110,17 @@ Apply the recorded conventions when constructing physical dimensions and
 pairing branches. The storage result labels its axes by array position and
 leaves their physical domains unknown.
 
+Use ``read_nmrpipe_2d_storage`` for a single NMRPipe 2D file, including a
+converted FID before Fourier transformation, an intermediate with one
+transformed axis or a spectrum with complex data. The result reports the
+domains and quadrature in file order. A complex trace is returned as complex
+samples. If the row axis is also complex, the two branches remain in
+successive rows. An extraction can begin on either branch or contain an
+incomplete pair. Use the layout, header and any known extraction details
+to reconstruct physical dimensions separately. The
+:ref:`NMRPipe storage reference <interop-nmrpipe-2d-storage>` shows how to
+inspect that layout.
+
 The existing readers for qualified profiles provide stronger guarantees,
 such as calibrated axes or a particular trace organization. Choose those
 entry points when the input satisfies the corresponding profile.
@@ -138,8 +149,10 @@ They are still available even when no interop normalizer is provided for that
    * - Bruker processed
      - Storage: available 2D planes at their stored scale.
        Qualified: 1D components or complete int32 2D with four planes.
-   * - NMRPipe processed
-     - Complete real or complex 1D spectrum or complete real 2D plane.
+   * - NMRPipe
+     - Storage: real or complex 2D traces in time, frequency or mixed domains.
+       Qualified: complete real or complex 1D spectrum or complete real 2D
+       frequency plane.
    * - nmrML
      - Explicit 1D raw or processed profile.
 
