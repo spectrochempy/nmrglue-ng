@@ -7,6 +7,8 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Read and normalize regular real 1D JCAMP-DX NMR spectra in interop.
+
 - Normalize regular and listed-axis JEOL 2D acquisitions to sampled time
   axes, preserving the stored indirect branches for NUS data. (#172)
 
