@@ -254,7 +254,7 @@ Explicit nmrML 1D bridge
 .. autofunction:: nmrglue.interop.normalize_nmrml_1d
 
 Real NMRPipe 2D spectra (experimental)
-------------------------------------
+--------------------------------------
 
 Use the explicit reader and normalizer for a complete real frequency/frequency
 plane stored as one NMRPipe file::
