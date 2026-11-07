@@ -6,8 +6,12 @@ import struct
 
 import numpy as np
 
+
 from ..fileio import jeol
 from .result import Axis, Component, NormalizedAcquisition, ReadResult, Reference
+
+
+_JDF_HEADER_BYTES = 1360
 
 
 def _fid_geometry(header):
@@ -22,6 +26,8 @@ def _fid_geometry(header):
         or header["reversed"][0]
     ):
         raise ValueError("JEOL interop requires a 1D complex float64 FID in seconds")
+    if header["data_axis_ranged"][0] != "ranged" or header["list_length"][0]:
+        raise ValueError("JEOL interop requires a ranged time axis")
     points, *unused = header["data_points"]
     start = header["data_offset_start"][0]
     stop = header["data_offset_stop"][0]
@@ -35,18 +41,31 @@ def _fid_geometry(header):
 def read_jeol_fid(filename):
     """Read the full stored complex FID, including padding, as R + iI."""
     buffer = Path(filename).read_bytes()
-    if len(buffer) < 1360 or not buffer.startswith(b"JEOL.NMR"):
+    if len(buffer) < _JDF_HEADER_BYTES or not buffer.startswith(b"JEOL.NMR"):
         raise ValueError("JEOL interop requires a complete JDF header")
     try:
-        metadata = jeol.parse_jeol(buffer)
+        reader = jeol.IOBuffer(buffer, conversion_table=jeol.ConversionTable)
+        reader, header = jeol.read_header(reader)
     except (struct.error, KeyError, IndexError, UnicodeError) as exc:
-        raise ValueError("JEOL JDF header or parameters could not be decoded") from exc
-    header = metadata["header"]
+        raise ValueError("JEOL JDF header could not be decoded") from exc
+
     points, acquired = _fid_geometry(header)
     start = header["data_start"]
-    parameter_end = header["param_start"] + header["param_length"]
-    if start < max(1360, parameter_end) or start + header["data_length"] > len(buffer):
-        raise ValueError("JEOL FID data section is truncated or overlaps metadata")
+    parameter_start = header["param_start"]
+    parameter_end = parameter_start + header["param_length"]
+    if not _JDF_HEADER_BYTES <= parameter_start < parameter_end <= start:
+        raise ValueError("JEOL JDF parameter section overlaps header or data")
+    if start + header["data_length"] > len(buffer):
+        raise ValueError("JEOL FID data section is truncated")
+
+    try:
+        # Bound the legacy parser to the declared end of the parameter section.
+        reader.buffer = memoryview(buffer)[:parameter_end]
+        _, parameters = jeol.read_parameters(reader, parameter_start, header["endian"])
+    except (struct.error, KeyError, IndexError, UnicodeError, OverflowError, TypeError) as exc:
+        raise ValueError("JEOL JDF parameter section could not be decoded") from exc
+
+    metadata = {"header": header, "parameters": parameters}
     endian = {"little_endian": "<", "big_endian": ">"}[header["endian"]]
     real, imag = np.frombuffer(buffer, dtype=endian + "f8", count=2 * points,
                               offset=start).reshape(2, points)
@@ -62,11 +81,15 @@ def read_jeol_fid(filename):
     )
 
 
-def _positive_parameter(parameters, key):
+def _positive_parameter(parameters, key, *, hertz=False):
     value = parameters.get(key)
     if (isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, float))
             or not np.isfinite(value) or value <= 0):
         raise ValueError(f"JEOL FID requires a positive {key}")
+    if hertz:
+        units = parameters.get("info", {}).get(key, {}).get("units")
+        if units != [("none", 1, "hertz")] + [("none", 0, None)] * 4:
+            raise ValueError(f"JEOL FID requires {key} in hertz")
     return float(value)
 
 
@@ -90,8 +113,10 @@ def normalize_jeol_fid(result, *, conjugation):
         or not np.array_equal(result.components[0].data, data, equal_nan=True)
     ):
         raise ValueError("JEOL FID samples disagree with their storage description")
-    width = _positive_parameter(params, "x_sweep")
-    obs = _positive_parameter(params, "x_freq") / 1e6
+    width = _positive_parameter(params, "x_sweep", hertz=True)
+    obs = _positive_parameter(params, "x_freq", hertz=True) / 1e6
+    if not np.isclose(header["base_freq"][0], obs, rtol=1e-7, atol=0):
+        raise ValueError("JEOL FID base frequency disagrees with x_freq")
     if _positive_parameter(params, "x_points") != acquired:
         raise ValueError("JEOL FID point count disagrees with x_points")
     last_time = (acquired - 1) / width

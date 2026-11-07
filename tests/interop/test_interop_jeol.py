@@ -20,9 +20,12 @@ def _synthetic_jdf(endian):
     struct.pack_into(">8I", header, 176, 8, *([1] * 7))
     struct.pack_into(">I", header, 240, 4)
     struct.pack_into(">d", header, 336, 0.001)
-    params = bytearray(struct.pack(endian + "4I", 64, 0, 3, 192))
-    for name, value in ((b"x_points", 5.0), (b"x_sweep", 4000.0), (b"x_freq", 400e6)):
+    struct.pack_into(">d", header, 1064, 400.0)
+    params = bytearray(struct.pack(endian + "4I", 64, 0, 3, 256))
+    for name, value in ((b"x_points", 5.0), (b"x_sweep", 4000.0), (b"x_freq", 400e6), (b"x_scale", 1.0)):
         record = bytearray(64)
+        if name in (b"x_sweep", b"x_freq"):
+            record[6:8] = bytes((1, 13))
         struct.pack_into(endian + "d", record, 16, value)
         struct.pack_into(endian + "i", record, 32, 2)
         record[36:36 + len(name)] = name
@@ -54,6 +57,42 @@ def test_jeol_fid_storage_and_normalization(tmp_path, endian):
     path.write_bytes(payload[:-1])
     with pytest.raises(ValueError, match="truncated"):
         interop.read_jeol_fid(path)
+
+
+@pytest.mark.parametrize(
+    "offset, replacement, message",
+    [
+        (172, b"\x10", "ranged time axis"),
+        (1252, struct.pack(">I", 8), "ranged time axis"),
+        (1216, struct.pack(">I", 16), "parameter section could not be decoded"),
+        (1380, struct.pack(">h", 32767), "parameter section could not be decoded"),
+    ],
+)
+def test_jeol_rejects_unsupported_storage(tmp_path, offset, replacement, message):
+    path = tmp_path / "fid.jdf"
+    payload = _synthetic_jdf(">")
+    payload[offset:offset + len(replacement)] = replacement
+    path.write_bytes(payload)
+    with pytest.raises(ValueError, match=message):
+        interop.read_jeol_fid(path)
+
+
+@pytest.mark.parametrize(
+    "offset, replacement, message",
+    [
+        (1451, bytes((28,)), "x_sweep in hertz"),
+        (1515, bytes((28,)), "x_freq in hertz"),
+        (1064, struct.pack(">d", 300.0), "base frequency disagrees"),
+    ],
+)
+def test_jeol_rejects_inconsistent_calibration(tmp_path, offset, replacement, message):
+    path = tmp_path / "fid.jdf"
+    payload = _synthetic_jdf(">")
+    payload[offset:offset + len(replacement)] = replacement
+    path.write_bytes(payload)
+    stored = interop.read_jeol_fid(path)
+    with pytest.raises(ValueError, match=message):
+        interop.normalize_jeol_fid(stored, conjugation="none")
 
 
 @pytest.mark.dataset

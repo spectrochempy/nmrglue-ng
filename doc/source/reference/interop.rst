@@ -395,7 +395,7 @@ JEOL 1D complex FIDs
 
 :func:`~nmrglue.interop.read_jeol_fid` reads the two float64 storage
 sections as R + iI, including padding. The qualified profile requires
-a one-dimensional complex JDF with a time axis in seconds and an
+a one-dimensional complex JDF with a ranged time axis in seconds and an
 uncropped start.
 
 .. code-block:: python
@@ -406,7 +406,9 @@ uncropped start.
     fid = ng.interop.normalize_jeol_fid(stored, conjugation="none")
 
 Normalization trims padding using the valid point count and checks the
-time endpoints against ``x_sweep``. It preserves stored quadrature when
+time endpoints against ``x_sweep``. It requires ``x_sweep`` and ``x_freq`` in
+hertz and checks ``x_freq`` against the header base frequency. It preserves
+stored quadrature when
 ``conjugation="none"``. Select ``"conjugate"`` to match the sign convention
 of the historical ``ng.jeol.read()`` reader. Digital filter parameters
 remain available in the metadata for later processing.
