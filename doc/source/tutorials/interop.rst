@@ -167,8 +167,10 @@ validates a layout or calibration for a consumer.
 * Agilent/Varian and Bruker raw: qualified 1D FIDs.
 * Bruker processed: complete calibrated 1D spectra and qualified four-plane
   2D spectra.
-* NMRPipe processed: complete real or complex 1D spectra and complete real
-  2D planes.
+* NMRPipe: complete real or complex 1D spectra and complete 2D frequency
+  grids. Complete complex grids in NMRPipe States layout require confirmation
+  of the original time grid for time or mixed domains. See
+  :func:`~nmrglue.interop.normalize_nmrpipe_2d`.
 * nmrML: the explicit 1D raw and processed profiles.
 
 See the :doc:`API reference <../reference/interop>` for function names, detailed
