@@ -159,7 +159,8 @@ def test_unappend_data_preserves_components_independently():
         ({"FDF1TDSIZE": 3}, "complete grid matching TDSIZE"),
         ({"FDF1X1": 1}, "unextracted grid"),
         ({"FDNUSDIM": 1}, "uniformly sampled grid"),
-        ({"FD2DPHASE": 1}, "requires NMRPipe States layout"),
+        ({"FD2DPHASE": 1}, "F1 requires real samples"),
+        ({"FD2DPHASE": 0}, "requires States or TPPI layout"),
         ({"FD2DPHASE": 3}, "requires a spectral plane"),
     ],
 )
@@ -169,3 +170,70 @@ def test_storage_normalizer_rejects_ambiguous_grid(fields, message):
     result = replace(result, metadata={**result.metadata, **fields})
     with pytest.raises(ValueError, match=message):
         interop.normalize_nmrpipe_2d(result, confirm_time_grid=True)
+
+
+@pytest.mark.parametrize("transposed", [False, True])
+@pytest.mark.parametrize("direct_transformed", [False, True])
+def test_pure_tppi_time_and_mixed(tmp_path, transposed, direct_transformed):
+    header = pipe.create_empty_dic()
+    header.update(
+        FDDIMCOUNT=2, FD2DPHASE=1, FDQUADFLAG=0,
+        FDF1QUADFLAG=1, FDF2QUADFLAG=0,
+        FDF1FTFLAG=0, FDF2FTFLAG=int(direct_transformed),
+        FDF1TDSIZE=6, FDF2TDSIZE=4, FDF2FTSIZE=4,
+        FDF1SW=1000, FDF2SW=4000, FDF1OBS=100, FDF2OBS=400,
+        FDF2ORIG=-2000,
+        FDTRANSPOSED=int(transposed),
+        FDDIMORDER1=1 if transposed else 2,
+        FDDIMORDER2=2 if transposed else 1,
+        FDSIZE=6 if transposed else 4,
+        FDSPECNUM=4 if transposed else 6,
+    )
+    real = np.arange(24, dtype=np.float32).reshape(6, 4)
+    imag = -real - 1
+    if transposed:
+        packed = np.stack((real.T, imag.T), axis=1).reshape(8, 6)
+    else:
+        packed = np.concatenate((real, imag), axis=1)
+    path = tmp_path / "tppi.fid"
+    path.write_bytes(pipe.dic2fdata(header).tobytes() + packed.tobytes())
+    stored = interop.read_nmrpipe_2d_storage(path)
+    with pytest.raises(ValueError, match="requires confirm_time_grid=True"):
+        interop.normalize_nmrpipe_2d(stored)
+
+    result = interop.normalize_nmrpipe_2d(stored, confirm_time_grid=True)
+    assert result.channel_axis == 0
+    assert result.branch_order == (("rr", "ir") if transposed else ("rr", "ri"))
+    expected = (real.T, imag.T) if transposed else (real, imag)
+    np.testing.assert_array_equal(result.data, expected)
+    axes = dict(zip(result.physical_dimensions, result.axes, strict=True))
+    np.testing.assert_allclose(axes["F1"].values, np.arange(6) * 0.0005)
+    assert axes["F1"].unit == "s"
+    if direct_transformed:
+        np.testing.assert_allclose(axes["F2"].values, [1000, 0, -1000, -2000])
+        assert axes["F2"].unit == "Hz"
+    else:
+        np.testing.assert_allclose(axes["F2"].values, np.arange(4) * 0.00025)
+        assert axes["F2"].unit == "s"
+
+
+def test_tppi_rejects_ambiguous_frequency_half_grid(tmp_path):
+    header = pipe.create_empty_dic()
+    header.update(
+        FDDIMCOUNT=2, FD2DPHASE=1, FDQUADFLAG=0, FDTRANSPOSED=1,
+        FDDIMORDER1=1, FDDIMORDER2=2,
+        FDF1QUADFLAG=0, FDF2QUADFLAG=1, FDF1FTFLAG=1, FDF2FTFLAG=1,
+        FDSIZE=3, FDSPECNUM=4, FDF1FTSIZE=6, FDF2FTSIZE=4,
+        FDF1SW=1200, FDF2SW=4000, FDF1OBS=100, FDF2OBS=400,
+        FDF1ORIG=-600, FDF2ORIG=-2000,
+    )
+    real = np.arange(12, dtype=np.float32).reshape(4, 3)
+    imag = -real - 1
+    packed = np.concatenate((real, imag), axis=1)
+    path = tmp_path / "tppi.ft2"
+    path.write_bytes(pipe.dic2fdata(header).tobytes() + packed.tobytes())
+
+    stored = interop.read_nmrpipe_2d_storage(path)
+    assert stored.data.shape == (4, 3)
+    with pytest.raises(ValueError, match="complete grid matching FTSIZE"):
+        interop.normalize_nmrpipe_2d(stored)
