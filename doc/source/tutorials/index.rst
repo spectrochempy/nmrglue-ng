@@ -23,6 +23,7 @@ Guide
 
     reading
     universal-dictionaries
+    interop
     plotting
     manipulating-data
     writing-data

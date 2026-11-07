@@ -1,9 +1,9 @@
-nmrML 1D: binary round trips and explicit interop
-=================================================
+Reading and writing nmrML 1D
+============================
 
-nmrML is an exchange format, not the native Varian/Agilent processed format.
-The reader and writer preserve stored samples and metadata; they do not
-reprocess, phase, rescale or chemically recalibrate spectra.
+nmrML is an exchange format for NMR data and metadata. This guide shows
+how to read and write 1D acquisitions and spectra while preserving the
+stored samples and metadata.
 
 Low-level read and write
 ------------------------
@@ -55,8 +55,7 @@ The neutral bridge is explicit; there is no automatic reader-dispatch switch::
 Processed axes must declare Hz or ppm. The schema does not distinguish whether
 endValue is the last sample or the outer edge of a half-open grid. Choose
 ``axis_endpoint="last-point"`` (N-1 intervals) or ``"outer-edge"`` (N intervals)
-from independent knowledge of the producer. No choice is inferred from vendor
-origin or a discrepancy with the acquisition sweep width.
+using documentation or other evidence about the file’s grid convention.
 
 Without an explicitly supplied ``observation_frequency_mhz``, a ppm axis stays
 ppm. Acquisition excitation frequency is never substituted for the processing
@@ -86,26 +85,18 @@ Synthetic tests cover real/complex precision, byte order, compression,
 namespace prefixes, multi-spectrum selection, malformed input, XSD validation,
 explicit grid conventions, normalized immutability and caller ownership.
 
-Two public official examples are external local qualification inputs, not
-redistributed fixtures. The hop FID is mislabelled Complex128: an explicit
-``<c8`` override yields 32768 complex samples exactly equal to the native
-Varian FID. Its excitation metadata also disagree with the native procpar;
-the bridge does not use them as an observation reference. The Bayesil example
-stores 32768 complex spectral samples; its unrelated FID encodedLength is
-incorrect. Selected spectral decoding is independently checked using XML,
-base64 and binary words. Endpoint interpretation is conditional on the explicit
-caller convention, not independently certified by that file alone. Both public
-legacy XML documents fail the pinned XSD; their round trips are not presented
-as schema-valid conversions.
+Two public legacy examples illustrate why explicit decoding matters. The hop
+FID declares Complex128, but its payload contains 32768 complex64 samples.
+The Bayesil spectrum contains 32768 complex samples, verified by independent
+binary decoding. Both documents fail validation against the pinned XSD.
+For the Bayesil spectrum, the axis still requires an explicit endpoint
+convention.
 
-No multidimensional data, nonuniform sampling, XY-pair layouts, universal native
-processed conversion, implicit reference or correction is qualified. Missing,
-non-finite, inconsistent or ambiguous metadata fail closed in the bridge.
+The 1D bridge supports uniformly sampled FIDs and regularly spaced spectra
+stored as sample arrays. It rejects missing, non-finite, inconsistent or
+ambiguous metadata required by the selected profile.
 Element names are resolved by namespace URI, so aliases are accepted without
 interpreting foreign elements as nmrML. Supplied unit accessions must match
 Hz/ppm names, and referenced CVs must identify the supported vocabularies.
 Uniform sampling requires the complete NMR term and a consistent label.
 These checks cover metadata used by the profile, not the entire document CV.
-Native processed Varian support and chemical reference qualification remain
-separate tasks. A portable upstream candidate is the low-level reader/writer;
-the normalized bridge depends on nmrglue-ng's additive interop contract.

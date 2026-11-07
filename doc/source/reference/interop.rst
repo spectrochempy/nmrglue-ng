@@ -3,30 +3,70 @@ nmrglue.interop
 
 .. automodule:: nmrglue.interop
 
-This module is imported as ``nmrglue.interop``.  It is an optional, additive
-layer: the historical ``format.read() -> (dic, data)`` reader APIs are
-unchanged, and no SpectroChemPy, NDDataset, Pint or CSDM dependency is
-imported.  The first supported profile is Bruker/TopSpin processed 1D data.
+See :doc:`../tutorials/interop` for the relationship between readers, the
+universal dictionary and interop, and for a worked example.
 
-User Classes
-^^^^^^^^^^^^
+Import these entry points from ``nmrglue.interop``. The groups below organize
+the reference by task. Existing import paths and signatures are retained.
+
+Result types and diagnostics
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. autosummary::
     :toctree: generated/
 
     ReadResult
+    NormalizedAcquisition
     Axis
     Reference
     Component
     Diagnostic
+    DIAGNOSTIC_CONTEXT_SCHEMA
 
-User Functions
-^^^^^^^^^^^^^^
+Read raw acquisitions
+^^^^^^^^^^^^^^^^^^^^^
+
+.. autosummary::
+    :toctree: generated/
+
+    read_agilent_fid
+    read_agilent_states_2d
+    read_bruker_fid
+    read_bruker_ser
+
+Read processed spectra and exchange files
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. autosummary::
     :toctree: generated/
 
     read_bruker_pdata
+    read_bruker_pdata_2d
+    read_nmrpipe_1d
+    read_nmrpipe_2d
+    read_nmrml_1d
+
+Normalize a supported result
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. autosummary::
+    :toctree: generated/
+
+    normalize_agilent_fid
+    normalize_bruker_fid
+    normalize_bruker_pdata
+    normalize_bruker_pdata_2d
+    normalize_nmrpipe_1d
+    normalize_nmrpipe_2d
+    normalize_nmrml_1d
+
+Export an acquisition
+^^^^^^^^^^^^^^^^^^^^^
+
+.. autosummary::
+    :toctree: generated/
+
+    write_readresult_nmrpipe
 
 Agilent 1D scan-count evidence
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -164,7 +204,7 @@ is separately tested against integer time-domain shift and head/tail folding;
 bitwise agreement with NMRPipe's own digital-filter recipe is not claimed.
 No SpectroChemPy dependency is added to this producer.
 
-.. autofunction:: nmrglue.interop.normalize_bruker_fid
+:func:`~nmrglue.interop.normalize_bruker_fid`
 
 Normalized Bruker processed 1D spectra (experimental)
 -----------------------------------------------------
@@ -204,7 +244,7 @@ Two real original datasets (SCP TopSpin and the public nmrML tomato example)
 qualify real/complex and scaled/unscaled variants, source preservation and
 SCP persistence, with separately configured NMRPipe component/grid comparisons.
 
-.. autofunction:: nmrglue.interop.normalize_bruker_pdata
+:func:`~nmrglue.interop.normalize_bruker_pdata`
 
 Normalized NMRPipe spectra (experimental)
 -----------------------------------------
@@ -242,16 +282,18 @@ no fresh native vendor-to-NMRPipe conversion is claimed. Numerical tests compare
 raw output words and the documented header formula; their shared format
 assumptions are not an independent proof of chemical referencing.
 
-.. autofunction:: nmrglue.interop.read_nmrpipe_1d
+:func:`~nmrglue.interop.read_nmrpipe_1d`
 
-.. autofunction:: nmrglue.interop.normalize_nmrpipe_1d
+:func:`~nmrglue.interop.normalize_nmrpipe_1d`
 
 Explicit nmrML 1D bridge
 ------------------------
 
-.. autofunction:: nmrglue.interop.read_nmrml_1d
+See :doc:`../nmrml_1d` for examples and grid conventions.
 
-.. autofunction:: nmrglue.interop.normalize_nmrml_1d
+:func:`~nmrglue.interop.read_nmrml_1d`
+
+:func:`~nmrglue.interop.normalize_nmrml_1d`
 
 Real NMRPipe 2D spectra (experimental)
 --------------------------------------

@@ -186,6 +186,7 @@ html_short_title = 'nmrglue-ng'
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 html_css_files = ['nmrglue-ng.css']
+html_js_files = ['mobile-sidebar.js']
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.

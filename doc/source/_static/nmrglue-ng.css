@@ -640,3 +640,30 @@ html[data-theme="dark"] .ng-project .ng-eyebrow { color: #d3f7f2; }
 #pst-header .navbar-nav a.nav-link[href*="glossary"] {
   display: none;
 }
+
+/* The book theme hides navbar toggles. PyData uses a drawer below 960px. */
+@media (max-width: 959.98px) {
+  #pst-header button.primary-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+    margin-right: 0.5rem;
+    color: var(--pst-color-text-base);
+  }
+
+  .bd-header-article button.primary-toggle { display: none; }
+
+  #pst-primary-sidebar-modal .ng-sidebar-close {
+    min-height: 44px;
+    margin-bottom: 0.5rem;
+    border: 1px solid var(--pst-color-link);
+    color: var(--pst-color-text-base);
+  }
+
+  #pst-header button.primary-toggle:focus-visible {
+    outline: 2px solid var(--pst-color-link);
+    outline-offset: 2px;
+  }
+}

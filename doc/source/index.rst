@@ -95,7 +95,6 @@
     how-to/index
     jbnmr_examples/index
     reference/index
-    nmrml_1d
     glossary/index
     contribute/index
     about/index
