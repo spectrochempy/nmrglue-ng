@@ -104,7 +104,7 @@ def read_jcampdx_1d(filename):
         if not np.isclose(observed, expected, rtol=1e-12, atol=tolerance):
             raise ValueError("JCAMP-DX XYDATA line abscissa disagrees with its grid")
 
-    data = jcampdx.getdataarray(block, _check_xydata_x=check_x)
+    data = jcampdx.getdataarray(block, _check_xydata_x=check_x, _xydata_max_points=int(points))
     axis = _spectrum_axis(block, data)
     metadata = {key: value for key, value in block.items() if key != "XYDATA"}
     return ReadResult(

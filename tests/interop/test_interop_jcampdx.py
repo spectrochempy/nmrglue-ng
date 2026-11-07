@@ -65,8 +65,8 @@ def test_jcampdx_endpoint_units_and_scaling(tmp_path):
         interop.normalize_jcampdx_1d(replace(read, applied_corrections={"yfactor": 1.0}))
 
 
-@pytest.mark.parametrize("rows", ["2CJ\n3DJ\n4E", "2CJT\n4E"])
-def test_jcampdx_valid_dif_checkpoints(tmp_path, rows):
+@pytest.mark.parametrize("rows", ["2CJ\n3DJ\n4E", "2CJT\n4E", "2E+0 CDE"])
+def test_jcampdx_valid_compressed_rows(tmp_path, rows):
     path = tmp_path / "spectrum.jdx"
     path.write_text(SPECTRUM.replace("2 3 4 5", rows))
     result = interop.read_jcampdx_1d(path)
@@ -90,6 +90,9 @@ def test_jcampdx_valid_dif_checkpoints(tmp_path, rows):
         ("2 3 4 5", "? 3 4 5", "XYDATA abscissa"),
         ("2 3 4 5", "2JAJ", "initial absolute ordinate"),
         ("2 3 4 5", "2ABC\n5 6", "initial absolute ordinate"),
+        ("2 3 4 5", "2CJJ", "terminal DIF checkpoint"),
+        ("2 3 4 5", "2CJT000000000\n4E", "DUP count exceeds NPOINTS"),
+        ("2 3 4 5", "2A000000000000J\n3A000000000002J\n4A000000000002", "DIF checkpoint"),
         ("(X++(Y..Y))", "(XY..XY)", "regular X"),
     ],
 )
@@ -97,4 +100,14 @@ def test_jcampdx_rejects_outside_profile(tmp_path, original, replacement, messag
     path = tmp_path / "spectrum.jdx"
     path.write_text(SPECTRUM.replace(original, replacement))
     with pytest.raises(ValueError, match=message):
+        interop.read_jcampdx_1d(path)
+
+
+def test_jcampdx_spaced_header_still_checks_rows(tmp_path):
+    path = tmp_path / "spectrum.jdx"
+    path.write_text(
+        SPECTRUM.replace("(X++(Y..Y))", "(X+ +(Y..Y))")
+        .replace("2 3 4 5", "2 3\n100 4 5")
+    )
+    with pytest.raises(ValueError, match="line abscissa"):
         interop.read_jcampdx_1d(path)
