@@ -10,6 +10,7 @@ For a progressive introduction to the modern notebook workflow, follow the
 :maxdepth: 2
 
 conversion
+Reading and writing nmrML 1D </nmrml_1d>
 processing
 plotting
 quantification

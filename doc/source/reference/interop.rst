@@ -289,6 +289,8 @@ assumptions are not an independent proof of chemical referencing.
 Explicit nmrML 1D bridge
 ------------------------
 
+See :doc:`../nmrml_1d` for examples and grid conventions.
+
 :func:`~nmrglue.interop.read_nmrml_1d`
 
 :func:`~nmrglue.interop.normalize_nmrml_1d`
