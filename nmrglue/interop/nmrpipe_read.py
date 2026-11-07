@@ -137,6 +137,43 @@ def normalize_nmrpipe_1d(result):
         metadata=result.metadata, encoding=result.encoding, diagnostics=result.diagnostics,
     )
 
+def _storage_2d_layout(header):
+    if _number(header, "FDMAGIC") != 0 or _number(header, "FDDIMCOUNT") != 2:
+        raise ValueError("NMRPipe storage reader requires a 2D file")
+    transposed = _number(header, "FDTRANSPOSED")
+    if transposed not in (0, 1):
+        raise ValueError("NMRPipe requires FDTRANSPOSED=0 or 1")
+    order = ("F2", "F1") if transposed else ("F1", "F2")
+    if tuple(header[key] for key in ("FDDIMORDER2", "FDDIMORDER1")) != tuple(
+        int(dim[-1]) for dim in order
+    ):
+        raise ValueError("NMRPipe dimension order disagrees with FDTRANSPOSED")
+
+    prefixes = tuple("FD" + dim for dim in order)
+    quadrature = tuple(_number(header, prefix + "QUADFLAG") for prefix in prefixes)
+    if any(flag not in (0, 1) for flag in quadrature):
+        raise ValueError("NMRPipe storage reader requires real or complex quadrature flags")
+    if _number(header, "FDQUADFLAG") != min(quadrature):
+        raise ValueError("NMRPipe requires consistent real/complex quadrature flags")
+    transformed = tuple(_number(header, prefix + "FTFLAG") for prefix in prefixes)
+    if any(flag not in (0, 1) for flag in transformed):
+        raise ValueError("NMRPipe requires FTFLAG=0 or 1 on each axis")
+    sizes = tuple(_number(header, key) for key in ("FDSPECNUM", "FDSIZE"))
+    if any(size < 1 or not size.is_integer() for size in sizes):
+        raise ValueError("NMRPipe requires positive integer FDSPECNUM and FDSIZE")
+    rows, words = pipe.find_shape(header)
+    domains = tuple("frequency" if flag else "time" for flag in transformed)
+    encoding = tuple("real" if flag else "complex" for flag in quadrature)
+    dimensions = {
+        "axis_order": order,
+        "shape": (rows, int(sizes[1])),
+        "stored_shape": (rows, words),
+        "row_layout": "interleaved-real-imaginary" if quadrature[0] == 0 else "real",
+        "trace_layout": "appended-real-imaginary" if quadrature[1] == 0 else "real",
+    }
+    return order, domains, encoding, dimensions
+
+
 def read_nmrpipe_2d_storage(filename):
     """Read one NMRPipe 2D file in stored trace order.
 
@@ -159,45 +196,21 @@ def read_nmrpipe_2d_storage(filename):
         else:
             raise ValueError("NMRPipe requires a valid byte-order marker")
         header = pipe.fdata2dic(fdata.astype(np.float32, copy=False))
-        if _number(header, "FDMAGIC") != 0 or _number(header, "FDDIMCOUNT") != 2:
-            raise ValueError("NMRPipe storage reader requires a 2D file")
-        transposed = _number(header, "FDTRANSPOSED")
-        if transposed not in (0, 1):
-            raise ValueError("NMRPipe requires FDTRANSPOSED=0 or 1")
-        order = ("F2", "F1") if transposed else ("F1", "F2")
-        if tuple(header[key] for key in ("FDDIMORDER2", "FDDIMORDER1")) != tuple(
-            int(dim[-1]) for dim in order
-        ):
-            raise ValueError("NMRPipe dimension order disagrees with FDTRANSPOSED")
-
-        prefixes = tuple("FD" + dim for dim in order)
-        quadrature = tuple(_number(header, prefix + "QUADFLAG") for prefix in prefixes)
-        if any(flag not in (0, 1) for flag in quadrature):
-            raise ValueError("NMRPipe storage reader requires real or complex quadrature flags")
-        if _number(header, "FDQUADFLAG") != min(quadrature):
-            raise ValueError("NMRPipe requires consistent real/complex quadrature flags")
-        transformed = tuple(_number(header, prefix + "FTFLAG") for prefix in prefixes)
-        if any(flag not in (0, 1) for flag in transformed):
-            raise ValueError("NMRPipe requires FTFLAG=0 or 1 on each axis")
-        sizes = tuple(_number(header, key) for key in ("FDSPECNUM", "FDSIZE"))
-        if any(size < 1 or not size.is_integer() for size in sizes):
-            raise ValueError("NMRPipe requires positive integer FDSPECNUM and FDSIZE")
-        rows, words = pipe.find_shape(header)
+        order, domains, encoding, dimensions = _storage_2d_layout(header)
+        rows, words = dimensions["stored_shape"]
         if os.fstat(stream.fileno()).st_size != 2048 + 4 * rows * words:
             raise ValueError("NMRPipe payload size disagrees with the trace layout")
 
         stream.seek(0)
         _, data = pipe.read_2D(stream)
-        if data.shape != (rows, int(sizes[1])):
+        if data.shape != dimensions["shape"]:
             raise ValueError("NMRPipe payload does not decode to the declared trace layout")
 
-    domains = tuple("frequency" if flag else "time" for flag in transformed)
-    encoding = tuple("real" if flag else "complex" for flag in quadrature)
     return ReadResult(
         data=data,
         axes=tuple(
-            Axis(label=header[prefix + "LABEL"] or dim, domain=domain)
-            for dim, prefix, domain in zip(order, prefixes, domains, strict=True)
+            Axis(label=header["FD" + dim + "LABEL"] or dim, domain=domain)
+            for dim, domain in zip(order, domains, strict=True)
         ),
         metadata=header,
         components=(Component("stored-traces", data),),
@@ -207,13 +220,7 @@ def read_nmrpipe_2d_storage(filename):
         source=filename,
         domains=domains,
         encoding=encoding,
-        dimensions={
-            "axis_order": order,
-            "shape": data.shape,
-            "stored_shape": (rows, words),
-            "row_layout": "interleaved-real-imaginary" if quadrature[0] == 0 else "real",
-            "trace_layout": "appended-real-imaginary" if quadrature[1] == 0 else "real",
-        },
+        dimensions=dimensions,
     )
 
 
@@ -324,8 +331,122 @@ def read_nmrpipe_2d(filename):
     )
 
 
-def normalize_nmrpipe_2d(result):
-    """Validate the neutral real plane and preserve its storage order."""
+def _normalize_nmrpipe_2d_storage(result, confirm_time_grid):
+    header = result.metadata
+    order, domains, encoding, layout = _storage_2d_layout(header)
+    data = result.data
+    row_complex, trace_complex = (kind == "complex" for kind in encoding)
+    expected_dtype = np.dtype(np.complex64 if trace_complex else np.float32)
+    if (
+        data.shape != layout["shape"]
+        or data.dtype != expected_dtype
+        or not np.isfinite(data).all()
+        or result.domains != domains
+        or result.encoding != encoding
+        or dict(result.dimensions) != layout
+        or result.applied_corrections
+        or len(result.components) != 1
+        or result.components[0].name != "stored-traces"
+        or result.components[0].data.dtype != expected_dtype
+        or not np.array_equal(result.components[0].data, data)
+    ):
+        raise ValueError("NMRPipe storage result disagrees with its header or samples")
+    if row_complex and data.shape[0] % 2:
+        raise ValueError("NMRPipe normalization requires complete row pairs")
+    if _number(header, "FDNUSDIM") != 0:
+        raise ValueError("NMRPipe normalization requires a uniformly sampled grid")
+    plane_type = _number(header, "FD2DPHASE")
+    if plane_type not in (0, 1, 2):
+        raise ValueError("NMRPipe normalization requires a spectral plane")
+    if "time" in domains:
+        if confirm_time_grid is not True:
+            raise ValueError("NMRPipe time-domain normalization requires confirm_time_grid=True")
+        if plane_type != 2:
+            raise ValueError("NMRPipe time-domain normalization requires NMRPipe States layout (FD2DPHASE=2)")
+
+    axes = []
+    widths = []
+    sizes = (data.shape[0] // 2 if row_complex else data.shape[0], data.shape[1])
+    for dim, domain, kind, size in zip(order, domains, encoding, sizes, strict=True):
+        prefix = "FD" + dim
+        if _number(header, prefix + "X1") or _number(header, prefix + "XN"):
+            raise ValueError("NMRPipe normalization requires an unextracted grid")
+        size_field = "FTSIZE" if domain == "frequency" else "TDSIZE"
+        if _number(header, prefix + size_field) != size:
+            raise ValueError("NMRPipe normalization requires a complete grid matching " + size_field)
+        if domain == "frequency":
+            axis, width = _frequency_axis(header, prefix, size)
+        else:
+            if kind != "complex":
+                raise ValueError("NMRPipe time-domain normalization requires complex samples")
+            width = _number(header, prefix + "SW")
+            obs = _number(header, prefix + "OBS")
+            if width <= 0 or obs <= 0:
+                raise ValueError("NMRPipe SW and OBS must be positive")
+            axis = Axis(
+                values=np.arange(size, dtype=float) / width, unit="s",
+                label=header[prefix + "LABEL"], domain="time", direction="increasing",
+                reference=Reference(observation_frequency=obs,
+                                    observation_frequency_unit="MHz", source="acquisition"),
+            )
+        axes.append(axis)
+        widths.append(width)
+
+    dimensions = order
+    branch_order = ("real",)
+    channel_axis = None
+    if row_complex or trace_complex:
+        rows = (("r", data[::2]), ("i", data[1::2])) if row_complex else (("r", data),)
+        names = []
+        planes = []
+        for branch, traces in rows:
+            names.append(branch + "r")
+            planes.append(traces.real)
+            if trace_complex:
+                names.append(branch + "i")
+                planes.append(traces.imag)
+        data = np.stack(planes)
+        dimensions = ("channels", *order)
+        branch_order = tuple(names)
+        channel_axis = 0
+
+    operation = {
+        "name": "normalize-nmrpipe-stored-components",
+        "stage": "processing" if domains == _REAL_2D_DOMAINS else "acquisition",
+        "input_dimensions": order,
+        "output_dimensions": dimensions,
+        "axis": None,
+        "scale": None,
+        "conjugation": "none",
+        "sign": "none",
+        "permutation": None,
+        "evidence": "nmrglue.interop.read_nmrpipe_2d_storage",
+    }
+    return NormalizedAcquisition(
+        data=data, axes=tuple(axes), dimensions=dimensions, physical_dimensions=order,
+        domains=domains, quadrature_mode="stored-components-2d" if channel_axis == 0 else "real-2d",
+        branch_order=branch_order, channel_axis=channel_axis,
+        normalization_state="storage-normalized",
+        normalization_profile="nmrpipe-stored-components-2d-v1",
+        applied_operations=(operation,),
+        provenance={"source": result.source, "format": result.format},
+        acquisition={"spectral_width_hz": tuple(widths)},
+        metadata=header, encoding=encoding, diagnostics=result.diagnostics,
+    )
+
+
+def normalize_nmrpipe_2d(result, *, confirm_time_grid=False):
+    """Normalize a qualified real plane or complete NMRPipe 2D storage grid.
+
+    Preserve file axis order and split stored quadrature into real channels.
+    Time axes require complex samples and the NMRPipe States storage flag.
+    Set ``confirm_time_grid=True`` only for a known complete, uniformly
+    sampled acquisition grid starting at the original time and branch.
+    NMRPipe time-domain extraction can leave the relevant header fields
+    unchanged.
+    """
+    if isinstance(result, ReadResult) and result.format == "nmrpipe-2d-storage":
+        return _normalize_nmrpipe_2d_storage(result, confirm_time_grid)
     if not isinstance(result, ReadResult) or result.format != "nmrpipe-2d":
         raise ValueError("normalize_nmrpipe_2d requires a nmrpipe-2d ReadResult")
     data = np.asarray(result.data)

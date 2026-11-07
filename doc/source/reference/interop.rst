@@ -349,6 +349,44 @@ See the `NMRPipe format reference
 <https://spin.niddk.nih.gov/bax/software/NMRPipe/NMRPipe.html>`_ and the
 format notes in NMRPipe's ``fdatap.h``.
 
+Normalize complete NMRPipe 2D grids
+-----------------------------------
+
+Use the same normalizer with a storage result to build calibrated axes
+and split the stored components. For a complete frequency-domain file::
+
+    stored = ng.interop.read_nmrpipe_2d_storage("complex.ft2")
+    spectrum = ng.interop.normalize_nmrpipe_2d(stored)
+
+For a known complete, uniformly sampled time grid stored in NMRPipe
+States layout, including a partially transformed file, confirm its provenance::
+
+    stored = ng.interop.read_nmrpipe_2d_storage("test.fid")
+    acquisition = ng.interop.normalize_nmrpipe_2d(stored, confirm_time_grid=True)
+
+Use that confirmation only when the time grid begins at the original
+increment and the rows begin on the original real branch. A time-domain
+extraction can retain the same size and relevant header fields while
+shifting the start. Normalization checks for complete pairs, an unextracted
+grid and a matching ``TDSIZE`` or ``FTSIZE`` on each axis. Each time axis
+must be complex, and the header must declare the NMRPipe States layout
+(``FD2DPHASE=2``). This flag describes the layout after conversion. Files
+from States-TPPI or echo/antiecho acquisitions can use this layout when
+the converter has arranged their samples into complex pairs. The
+normalizer preserves those pairs and leaves sign alternation and
+recombination to processing. Nonuniform sampling requires a separate
+profile.
+
+Axes follow file order in both orientations. Time coordinates are
+``i / SW`` in seconds and frequency coordinates decrease in steps of
+``SW / N`` in Hz to the last-point ``ORIG``. Complex input produces a
+leading channel axis. Channel names give the row branch followed by the
+trace branch, in the order ``rr``, ``ri``, ``ir``, ``ii`` when both axes
+are complex. With one complex axis only the corresponding two channels
+are present. A real plane has no channel axis. These are stored components.
+Acquisition sign and phase conventions remain in the header for later
+processing.
+
 Real NMRPipe 2D spectra (experimental)
 --------------------------------------
 
