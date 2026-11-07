@@ -7,6 +7,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Add interop readers for stored Bruker 2D pdata planes and scalar Bruker and
+  Agilent/Varian acquisition traces, with metadata for later reconstruction.
+
 - Add experimental interop reading and normalization for complete Bruker
   processed 2D int32 spectra with four named components and calibrated axes.
 

@@ -23,6 +23,20 @@ Result types and diagnostics
     Diagnostic
     DIAGNOSTIC_CONTEXT_SCHEMA
 
+Read stored planes and traces
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+These readers expose decoded storage and source metadata. See
+:doc:`../tutorials/interop` for the distinction between storage and physical
+axes.
+
+.. autosummary::
+    :toctree: generated/
+
+    read_bruker_pdata_2d_storage
+    read_bruker_ser_storage
+    read_agilent_fid_storage
+
 Read raw acquisitions
 ^^^^^^^^^^^^^^^^^^^^^
 

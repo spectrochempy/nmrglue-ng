@@ -10,7 +10,7 @@ import numpy as np
 
 from ..fileio import bruker
 from .bruker import _build_processed_axis, _raw_number
-from .result import Component, NormalizedAcquisition, ReadResult
+from .result import Axis, Component, NormalizedAcquisition, ReadResult
 
 _FORMAT = "bruker-pdata-2d"
 _COMPONENTS = ("2rr", "2ri", "2ir", "2ii")
@@ -26,7 +26,7 @@ def _integer(metadata, section, key):
     return int(value)
 
 
-def _geometry(metadata):
+def _geometry(metadata, *, stored=False):
     if "proc3s" in metadata or "proc4s" in metadata:
         raise ValueError("Bruker 2D profile requires exactly two processing dimensions")
     shape = []
@@ -38,27 +38,42 @@ def _geometry(metadata):
         ):
             raise ValueError(f"Bruker {section} PPARMOD must describe a 2D dataset")
         size = _integer(metadata, section, "SI")
+        if stored and "STSI" in metadata[section]:
+            size = _integer(metadata, section, "STSI") or size
         tile = _integer(metadata, section, "XDIM")
-        if size < 2 or tile < 1 or size % tile:
-            raise ValueError(f"Bruker {section} requires complete SI/XDIM tiles")
-        if (
-            _integer(metadata, section, "STSI") != size
-            or _integer(metadata, section, "STSR") != 0
-            or _integer(metadata, section, "FTSIZE") != size
-            or _integer(metadata, section, "FT_mod") not in (4, 6)
-        ):
-            raise ValueError(f"Bruker {section} requires a complete Fourier grid")
+        if size < (1 if stored else 2) or tile < 1 or size % tile:
+            raise ValueError(
+                f"Bruker {section} requires the plane size to be divisible by XDIM"
+            )
         shape.append(size)
         tiles.append(tile)
     byte_order = _integer(metadata, "procs", "BYTORDP")
     if byte_order not in (0, 1):
         raise ValueError("Bruker BYTORDP must be 0 or 1")
-    for section in ("proc2s", "procs"):
+    data_type = _integer(metadata, "procs", "DTYPP")
+    if data_type not in (0, 2):
+        raise ValueError("Bruker DTYPP must be 0 (int32) or 2 (float64)")
+    for key, expected in (("BYTORDP", byte_order), ("DTYPP", data_type)):
+        if key in metadata["proc2s"] and _integer(metadata, "proc2s", key) != expected:
+            raise ValueError(f"Bruker {key} disagrees across dimensions")
+    return tuple(shape), tuple(tiles), bool(byte_order), data_type == 2
+
+
+def _profile_geometry(metadata):
+    shape, tiles, big, isfloat = _geometry(metadata)
+    for index, section in enumerate(("proc2s", "procs")):
+        if (
+            _integer(metadata, section, "STSI") != shape[index]
+            or _integer(metadata, section, "STSR") != 0
+            or _integer(metadata, section, "FTSIZE") != shape[index]
+            or _integer(metadata, section, "FT_mod") not in (4, 6)
+        ):
+            raise ValueError(f"Bruker {section} requires a complete Fourier grid")
         if _integer(metadata, section, "DTYPP") != 0:
             raise ValueError("Bruker 2D profile requires int32 DTYPP=0")
-        if _integer(metadata, section, "BYTORDP") != byte_order:
+        if _integer(metadata, section, "BYTORDP") != big:
             raise ValueError("Bruker BYTORDP disagrees across dimensions")
-    return tuple(shape), tuple(tiles), bool(byte_order)
+    return shape, tiles, big, isfloat
 
 
 def _axes(metadata, shape):
@@ -85,6 +100,64 @@ def _corrections(metadata, scale_data):
     return corrections
 
 
+def _read_components(path, names, shape, tiles, big, isfloat, *, scale_metadata=None):
+    expected_size = math.prod(shape) * (8 if isfloat else 4)
+    components = []
+    for name in names:
+        file = path / name
+        if not file.is_file() or file.stat().st_size != expected_size:
+            raise ValueError(
+                f"Bruker {name} is missing or disagrees with the declared payload size"
+            )
+        _, data = bruker.read_pdata_binary(file, shape, tiles, big=big, isfloat=isfloat)
+        if data.shape != shape:
+            raise ValueError(f"Bruker {name} disagrees with the declared plane shape")
+        if scale_metadata is not None:
+            with np.errstate(over="ignore"):
+                data = bruker.scale_pdata(scale_metadata, data)
+            if not np.isfinite(data).all():
+                raise ValueError(
+                    f"Bruker {name} storage scaling produced non-finite values"
+                )
+        components.append(Component(name=name, data=data))
+    return tuple(components)
+
+
+def read_bruker_pdata_2d_storage(directory):
+    """Read available Bruker pdata planes at their stored scale.
+
+    Return named int32 or float64 matrices in row/column order after undoing
+    disk tiling, using STSI for stored strip sizes when present. The first
+    available plane in 2rr, 2ri, 2ir, 2ii order is also exposed as data.
+    Processing parameters are retained in metadata.
+    """
+    path = Path(directory)
+    if not path.is_dir():
+        raise OSError(f"directory {path} does not exist")
+    metadata = bruker.read_procs_file(path)
+    shape, tiles, big, isfloat = _geometry(metadata, stored=True)
+    names = tuple(name for name in _COMPONENTS if (path / name).exists())
+    if not names:
+        raise ValueError("Bruker pdata contains no recognized 2D component")
+    components = _read_components(path, names, shape, tiles, big, isfloat)
+    return ReadResult(
+        data=components[0].data,
+        axes=(Axis(label="row"), Axis(label="column")),
+        metadata=metadata,
+        components=components,
+        applied_corrections={},
+        diagnostics=(),
+        format="bruker-pdata-2d-storage",
+        source=os.fspath(directory),
+        domains=("unknown", "unknown"),
+        dimensions={
+            "axis_order": ("row", "column"),
+            "shape": shape,
+            "submatrix_shape": tiles,
+        },
+    )
+
+
 def read_bruker_pdata_2d(directory, *, scale_data=True):
     """Read four complete Bruker processed int32 planes in F1, F2 order.
 
@@ -95,29 +168,18 @@ def read_bruker_pdata_2d(directory, *, scale_data=True):
     if not path.is_dir():
         raise OSError(f"directory {path} does not exist")
     metadata = bruker.read_procs_file(path)
-    shape, tiles, big = _geometry(metadata)
+    shape, tiles, big, isfloat = _profile_geometry(metadata)
     corrections = _corrections(metadata, scale_data)
-    expected_size = math.prod(shape) * 4
-    for name in _COMPONENTS:
-        file = path / name
-        if not file.is_file() or file.stat().st_size != expected_size:
-            raise ValueError(
-                f"Bruker {name} is missing or disagrees with the declared payload size"
-            )
     axes = _axes(metadata, shape)
-    components = []
-    for name in _COMPONENTS:
-        _, data = bruker.read_pdata_binary(path / name, shape, tiles, big=big)
-        if data.shape != shape:
-            raise ValueError(f"Bruker {name} disagrees with the declared plane shape")
-        if scale_data:
-            with np.errstate(over="ignore"):
-                data = bruker.scale_pdata(metadata, data)
-            if not np.isfinite(data).all():
-                raise ValueError(
-                    f"Bruker {name} storage scaling produced non-finite values"
-                )
-        components.append(Component(name=name, data=data))
+    components = _read_components(
+        path,
+        _COMPONENTS,
+        shape,
+        tiles,
+        big,
+        isfloat,
+        scale_metadata=metadata if scale_data else None,
+    )
     return ReadResult(
         data=components[0].data,
         axes=axes,
@@ -139,7 +201,7 @@ def normalize_bruker_pdata_2d(result):
         raise ValueError(
             "normalize_bruker_pdata_2d requires a bruker-pdata-2d ReadResult"
         )
-    shape, tiles, _ = _geometry(result.metadata)
+    shape, tiles, _, _ = _profile_geometry(result.metadata)
     expected_dimensions = {
         "axis_order": _AXES,
         "shape": shape,
