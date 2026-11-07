@@ -197,6 +197,9 @@ def test_epicatechin_2d_storage(experiment, grid, count, data_offset, list_offse
         (176, 1023, "complete storage tiles"),
         (240, 1024, "offsets are outside"),
         (1224, 20480, "axis list overlaps"),
+        (1256, 0, "axis list length disagrees"),
+        (1256, 1, "axis list length disagrees"),
+        (1252, 8, "axis lists overlap"),
     ],
 )
 def test_jeol_rejects_invalid_2d_geometry(tmp_path, offset, value, message):

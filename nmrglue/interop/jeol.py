@@ -145,15 +145,22 @@ def read_jeol_2d_storage(filename):
     header = metadata["header"]
     parameter_end = header["param_start"] + header["param_length"]
     axis_lists = {}
+    list_spans = []
     for index, axis in enumerate(("x", "y")):
         start = header["list_start"][index]
         length = header["list_length"][index]
-        if length:
-            if not parameter_end <= start < start + length <= header["data_start"]:
-                raise ValueError(f"JEOL 2D {axis} axis list overlaps metadata or data")
-            axis_lists[axis] = buffer[start:start + length]
-        elif header["data_axis_ranged"][index] == "listed":
-            raise ValueError(f"JEOL 2D {axis} listed axis has no stored list")
+        if header["data_axis_ranged"][index] == "listed":
+            if length != 8 * header["data_points"][index]:
+                raise ValueError(f"JEOL 2D {axis} axis list length disagrees with its grid")
+        if not length:
+            continue
+        end = start + length
+        if not parameter_end <= start < end <= header["data_start"]:
+            raise ValueError(f"JEOL 2D {axis} axis list overlaps metadata or data")
+        if any(start < stop and first < end for first, stop in list_spans):
+            raise ValueError("JEOL 2D axis lists overlap")
+        list_spans.append((start, end))
+        axis_lists[axis] = buffer[start:end]
 
     metadata["axis_lists_raw"] = axis_lists
     return ReadResult(

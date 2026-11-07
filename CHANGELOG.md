@@ -8,7 +8,7 @@ original nmrglue project and are preserved for attribution and continuity.
 ## Unreleased
 
 - Read tiled JEOL 2D JDF storage sections with geometry, metadata and original
-  axis lists for subsequent reconstruction.
+  axis lists for subsequent reconstruction. (#171)
 
 - Read JEOL 1D complex JDF FIDs and normalize their time axes with explicit
   conjugation and padding removal. (#170)
