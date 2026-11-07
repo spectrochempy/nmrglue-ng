@@ -74,6 +74,7 @@ Normalize a supported result
     normalize_agilent_fid
     normalize_bruker_fid
     normalize_jeol_fid
+    normalize_jeol_2d
     normalize_bruker_pdata
     normalize_bruker_pdata_2d
     normalize_nmrpipe_1d
@@ -450,6 +451,38 @@ The storage axes index sections and words. Reconstructing physical axes,
 untile operations, combining quadrature branches and interpreting a
 non-uniform sampling schedule belong to a subsequent stage. The
 ``small_two_d`` format requires a separate storage profile.
+
+JEOL 2D sampled-time normalization
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:func:`~nmrglue.interop.normalize_jeol_2d` accepts two raw time-domain
+layouts. The regular ``real_complex/real_complex`` layout, as found in the
+reference COSY, yields one complex array in (F1, F2) order. The
+``complex/complex`` layout with a listed Y axis, as found in the
+reference HSQC and HMBC, yields an array in (channels, F1, F2) order.
+The channels hold section pairs (0, 1) and (2, 3) in that order.
+
+.. code-block:: python
+
+    stored = ng.interop.read_jeol_2d_storage("sample_hsqc.jdf")
+    fid = ng.interop.normalize_jeol_2d(stored, conjugation="none")
+    print(fid.axes[0].values)  # acquired indirect times, in seconds
+    print(fid.acquisition["nominal_shape"])  # full sampling grid
+
+Both time axes follow the order of the stored points. The header's reversal flags
+remain available in the metadata. A regular axis is calibrated with
+its sweep width and checked against the header endpoints. A listed Y
+axis is decoded from big-endian float64 milliseconds and checked
+against the nominal grid given by ``y_sweep`` and ``y_orig_points``.
+The supported listed schedules have strictly increasing grid indices.
+For NUS acquisitions, the output contains only the sampled times.
+Missing increments are left to a separate reconstruction step.
+
+Choose ``conjugation="none"`` for R + iI or ``"conjugate"`` for R − iI
+within each section pair. This is a direct-axis sign choice. The result
+keeps the indirect channels separate and leaves their quadrature
+interpretation to the consumer. The historical reader interleaves
+the two channels and negates the second one for four-section files.
 
 .. _interop-nmrpipe-2d-storage:
 

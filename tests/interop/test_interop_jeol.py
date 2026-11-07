@@ -1,5 +1,6 @@
 """JEOL 1D storage and explicit quadrature normalization."""
 
+from dataclasses import replace
 import hashlib
 import os
 from pathlib import Path
@@ -210,3 +211,53 @@ def test_jeol_rejects_invalid_2d_geometry(tmp_path, offset, value, message):
     path.write_bytes(payload)
     with pytest.raises(ValueError, match=message):
         interop.read_jeol_2d_storage(path)
+
+
+@pytest.mark.parametrize(
+    "experiment, nominal_y, y_count, y_dwell, y_increments, x_dwell, y_end",
+    [
+        ("cosy", 256, 256, 166.74e-6, (0, 1, 2, 3), 133.12e-6, 0.0425187),
+        ("hsqc", 128, 32, 58.48e-6, (0, 2, 4, 7), 133.44e-6, 0.00707608),
+        ("hmbc", 256, 64, 39.76e-6, (0, 1, 2, 4), 133.44e-6, 0.00982072),
+    ],
+)
+def test_normalize_jeol_2d_reference(
+    experiment, nominal_y, y_count, y_dwell, y_increments, x_dwell, y_end,
+):
+    path = _JDF_FIXTURES / f"epicatechin_{experiment}.jdf"
+    stored = interop.read_jeol_2d_storage(path)
+    normalized = interop.normalize_jeol_2d(stored, conjugation="conjugate")
+    original_sign = interop.normalize_jeol_2d(stored, conjugation="none")
+    _, legacy = jeol.read(path)
+
+    assert normalized.normalization_state == "storage-normalized"
+    assert normalized.physical_dimensions == ("F1", "F2")
+    assert normalized.domains == ("time", "time")
+    assert normalized.acquisition["nominal_shape"] == (nominal_y, legacy.shape[1])
+    assert normalized.acquisition["dwell_time_s"] == pytest.approx((y_dwell, x_dwell))
+    assert normalized.axes[0].values.size == y_count
+    np.testing.assert_allclose(normalized.axes[0].values[:4], np.array(y_increments) * y_dwell)
+    assert normalized.axes[0].values[-1] == pytest.approx(y_end)
+    np.testing.assert_allclose(normalized.axes[1].values, np.arange(legacy.shape[1]) * x_dwell)
+    assert normalized.axes[0].unit == normalized.axes[1].unit == "s"
+    np.testing.assert_array_equal(original_sign.data, normalized.data.conj())
+    if experiment == "cosy":
+        assert normalized.channel_axis is None
+        assert normalized.acquisition["sampling"] == ("regular", "regular")
+        np.testing.assert_array_equal(normalized.data, legacy)
+    else:
+        assert normalized.channel_axis == 0
+        assert normalized.branch_order == ("section-0/1", "section-2/3")
+        assert normalized.acquisition["sampling"] == ("listed", "regular")
+        np.testing.assert_array_equal(normalized.data[0], legacy[::2])
+        np.testing.assert_array_equal(normalized.data[1], -legacy[1::2])
+
+
+@pytest.mark.parametrize("second_time_ms", [float("nan"), 0.0, 0.1, 20.0])
+def test_normalize_jeol_rejects_invalid_nus_schedule(second_time_ms):
+    stored = interop.read_jeol_2d_storage(_JDF_FIXTURES / "epicatechin_hsqc.jdf")
+    raw = bytearray(stored.metadata["axis_lists_raw"]["y"])
+    struct.pack_into(">d", raw, 8, second_time_ms)
+    metadata = {**stored.metadata, "axis_lists_raw": {"y": bytes(raw)}}
+    with pytest.raises(ValueError, match="nominal NUS grid"):
+        interop.normalize_jeol_2d(replace(stored, metadata=metadata), conjugation="none")
