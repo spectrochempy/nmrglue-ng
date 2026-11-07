@@ -153,6 +153,8 @@ They are still available even when no interop normalizer is provided for that
      - Storage: real or complex 2D traces in time, frequency or mixed domains.
        Qualified: complete real or complex 1D spectrum or complete real 2D
        frequency plane.
+   * - JEOL JDF
+     - Complex float64 1D FIDs with a time axis in seconds.
    * - nmrML
      - Explicit 1D raw or processed profile. Real processed 2D planes with
        documented shape, storage order and indirect calibration. Raw 2D
@@ -167,6 +169,7 @@ A normalizer accepts the result of its corresponding qualified reader and
 validates a layout or calibration for a consumer.
 
 * Agilent/Varian and Bruker raw: qualified 1D FIDs.
+* JEOL: complex 1D FIDs with explicit conjugation and padding removal.
 * Bruker processed: complete calibrated 1D spectra and qualified four-plane
   2D spectra.
 * NMRPipe: complete real or complex 1D spectra and complete 2D frequency

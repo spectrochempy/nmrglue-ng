@@ -48,6 +48,7 @@ Read raw acquisitions
     read_agilent_states_2d
     read_bruker_fid
     read_bruker_ser
+    read_jeol_fid
 
 Read processed spectra and exchange files
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -71,6 +72,7 @@ Normalize a supported result
 
     normalize_agilent_fid
     normalize_bruker_fid
+    normalize_jeol_fid
     normalize_bruker_pdata
     normalize_bruker_pdata_2d
     normalize_nmrpipe_1d
@@ -387,6 +389,27 @@ channels in ``(channels, F1, F2)`` order. The channel labels ``first`` and
 ``second`` describe stored pair order. Time coordinates are relative to
 the first sample. F2 uses the declared direct sweep width. Recombination,
 phase and digital filter correction belong to subsequent processing.
+
+JEOL 1D complex FIDs
+--------------------
+
+:func:`~nmrglue.interop.read_jeol_fid` reads the two float64 storage
+sections as R + iI, including padding. The qualified profile requires
+a one-dimensional complex JDF with a time axis in seconds and an
+uncropped start.
+
+.. code-block:: python
+
+    import nmrglue as ng
+
+    stored = ng.interop.read_jeol_fid("sample.jdf")
+    fid = ng.interop.normalize_jeol_fid(stored, conjugation="none")
+
+Normalization trims padding using the valid point count and checks the
+time endpoints against ``x_sweep``. It preserves stored quadrature when
+``conjugation="none"``. Select ``"conjugate"`` to match the sign convention
+of the historical ``ng.jeol.read()`` reader. Digital filter parameters
+remain available in the metadata for later processing.
 
 .. _interop-nmrpipe-2d-storage:
 
