@@ -444,6 +444,8 @@ def _parse_pseudo(datalines, check_x=None, max_points=None):
     value_to_append = None
 
     for dataline in datalines:
+        if check_x is not None:
+            dataline = dataline.strip()
         if not dataline:
             continue
 
@@ -608,8 +610,13 @@ def _parse_data(datastring, check_x=None, max_points=None):
     if is_affn_header or check_x is not None:
         # AFFN declared: commas are value delimiters, parse directly
         mode = _detect_format(datalines[0])
-        if check_x is not None and mode == -1:
-            raise ValueError('Invalid JCAMP-DX XYDATA abscissa')
+        if check_x is not None:
+            if mode == -1:
+                raise ValueError("Invalid JCAMP-DX XYDATA abscissa")
+            # A complete unsigned exponent token would leave no AFFN ordinate.
+            # Interpret E/e as a SQZ prefix in this otherwise ambiguous row.
+            if mode == 0 and re.fullmatch(r"\s*[+-]?(?:\d+\.?\d*|\.\d+)[Ee]\d+\s*", datalines[0]):
+                mode = 1
         if mode == 1:
             data = _parse_pseudo(datalines, check_x, max_points)
         else:

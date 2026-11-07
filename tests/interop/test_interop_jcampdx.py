@@ -111,3 +111,10 @@ def test_jcampdx_spaced_header_still_checks_rows(tmp_path):
     )
     with pytest.raises(ValueError, match="line abscissa"):
         interop.read_jcampdx_1d(path)
+
+
+def test_jcampdx_squeezed_e_prefix_without_delimiter(tmp_path):
+    path = tmp_path / "spectrum.jdx"
+    path.write_text(SPECTRUM.replace("2 3 4 5", "2E4\n3DE"))
+    result = interop.read_jcampdx_1d(path)
+    np.testing.assert_array_equal(result.data, [108, 8, 10])
