@@ -49,6 +49,7 @@ Read raw acquisitions
     read_bruker_fid
     read_bruker_ser
     read_jeol_fid
+    read_jcampdx_fid
     read_jeol_2d_storage
 
 Read processed spectra and exchange files
@@ -82,6 +83,7 @@ Normalize a supported result
     normalize_nmrpipe_2d
     normalize_nmrml_1d
     normalize_jcampdx_1d
+    normalize_jcampdx_fid
     normalize_nmrml_2d
     normalize_nmrml_raw_2d
 
@@ -120,13 +122,47 @@ FREQUENCY`` is recorded in MHz as metadata. The axis retains the
 file's unit and direction. Normalization validates the description and
 preserves the decoded intensities on the F2 axis.
 
-This profile covers regular real 1D spectra. FIDs, NTUPLES and explicit
-XY pairs use the historical reader.
+This profile covers regular real 1D spectra. For a complex 1D FID in
+NTUPLES form, see the profile below.
 
 .. seealso::
 
    `JCAMP-DX for NMR <https://iupac.org/wp-content/uploads/2021/08/JCAMP-DX_NMR_1993.pdf>`_
    and the `epicatechin reference dataset <https://doi.org/10.57992/nmrxiv.p33>`_.
+
+JCAMP-DX complex 1D FIDs
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+:func:`~nmrglue.interop.read_jcampdx_fid` reads one ``NMR FID`` block
+with regular NTUPLES tables for R and I. The decoder applies each
+component's own ``FACTOR`` and the result preserves R + iI. When
+provided, page labels identify the two component pages as N=1 and N=2. The X
+column is in seconds. The first and last sample times come from
+``FIRST`` and ``LAST``, and the sample count comes from ``VAR_DIM``.
+The reader uses the X factor to check the line anchors in both tables.
+The normalized dwell time is the endpoint span divided by the number
+of intervals.
+
+.. code-block:: python
+
+    import nmrglue as ng
+
+    read = ng.interop.read_jcampdx_fid("TESTFID.DX")
+    fid = ng.interop.normalize_jcampdx_fid(read, conjugation="none")
+    print(fid.axes[0].values)
+    print(fid.acquisition["dwell_time_s"])
+
+Select ``conjugation="conjugate"`` when the downstream convention
+requires the opposite imaginary sign. The caller's choice is
+recorded in the normalization operations.
+
+The external qualification tests use ``JCAMP_TESTFID_DX`` for the
+ethylbenzene FID in the `IUPAC archive <https://github.com/IUPAC/JCAMP-DX>`_
+and ``JCAMP_ASPIRIN_FID_DX`` for the
+`aspirin FID <https://unpkg.com/jcamp-data-test@0.4.0/data/aspirin-1h.fid.dx>`_.
+Set each variable to the path of the corresponding downloaded file.
+The tests check the archive file hashes and compare the full complex
+arrays with the historical reader.
 
 Agilent 1D scan-count evidence
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

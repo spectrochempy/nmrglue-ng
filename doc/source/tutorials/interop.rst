@@ -164,7 +164,8 @@ They are still available even when no interop normalizer is provided for that
      - Storage: scalar sections of standard tiled float64 2D JDF files.
        Qualified: complex float64 1D FIDs with a time axis in seconds.
    * - JCAMP-DX
-     - Qualified: real 1D NMR spectra with regular XYDATA in Hz or ppm.
+     - Qualified: real 1D NMR spectra with regular XYDATA in Hz or ppm
+       and complex 1D FIDs in regular NTUPLES form.
    * - nmrML
      - Explicit 1D raw or processed profile. Real processed 2D planes with
        documented shape, storage order and indirect calibration. Raw 2D
@@ -188,7 +189,8 @@ validates a layout or calibration for a consumer.
   grids. Complete grids in NMRPipe States or pure TPPI layout require
   confirmation of the original time grid for time or mixed domains. See
   :func:`~nmrglue.interop.normalize_nmrpipe_2d`.
-* JCAMP-DX: real 1D XYDATA spectra, preserving the file’s axis and intensities.
+* JCAMP-DX: real 1D XYDATA spectra and complex 1D NTUPLES FIDs.
+  FID normalization preserves the time grid and records the requested conjugation.
 * nmrML: explicit 1D raw and processed profiles and real processed 2D planes
   described by :func:`~nmrglue.interop.read_nmrml_2d`. Uniform raw 2D
   echo/anti-echo with confirmed adjacent pairs and an explicit indirect dwell

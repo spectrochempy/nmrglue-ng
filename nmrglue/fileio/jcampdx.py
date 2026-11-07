@@ -734,7 +734,7 @@ def getdataarray(dic, show_all_data=False, *, _check_xydata_x=None, _xydata_max_
             rdatalist = []
             idatalist = []
             for value in valuelist:
-                parseret = _parse_data(value)
+                parseret = _parse_data(value, _check_xydata_x, _xydata_max_points)
                 if parseret is None:
                     return None
                 data, datatype = parseret
