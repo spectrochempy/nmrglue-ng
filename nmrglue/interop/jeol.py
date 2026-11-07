@@ -277,10 +277,11 @@ def _jeol_2d_time_axis(result, index, size, axis_name):
         times = np.frombuffer(raw, dtype=">f8")[:size] * 1e-3
         nominal_size = _positive_parameter(parameters, "y_orig_points")
         increments = times * width
+        indices = np.rint(increments)
         if (nominal_size <= size or not nominal_size.is_integer()
-                or np.any(increments < 0) or np.any(increments >= nominal_size)
-                or not np.allclose(increments, np.rint(increments), rtol=0, atol=1e-7)
-                or np.any(np.diff(np.rint(increments)) <= 0)):
+                or np.any(increments < 0) or np.any(indices >= nominal_size)
+                or not np.allclose(increments, indices, rtol=0, atol=1e-7)
+                or np.any(np.diff(indices) <= 0)):
             raise ValueError("JEOL 2D Y times disagree with the nominal NUS grid")
         nominal_size = int(nominal_size)
     else:

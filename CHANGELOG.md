@@ -8,7 +8,7 @@ original nmrglue project and are preserved for attribution and continuity.
 ## Unreleased
 
 - Normalize regular and listed-axis JEOL 2D acquisitions to sampled time
-  axes, preserving the stored indirect branches for NUS data.
+  axes, preserving the stored indirect branches for NUS data. (#172)
 
 - Read tiled JEOL 2D JDF storage sections with geometry, metadata and original
   axis lists for subsequent reconstruction. (#171)

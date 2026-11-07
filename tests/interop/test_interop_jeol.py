@@ -253,11 +253,15 @@ def test_normalize_jeol_2d_reference(
         np.testing.assert_array_equal(normalized.data[1], -legacy[1::2])
 
 
-@pytest.mark.parametrize("second_time_ms", [float("nan"), 0.0, 0.1, 20.0])
-def test_normalize_jeol_rejects_invalid_nus_schedule(second_time_ms):
+@pytest.mark.parametrize(
+    "index, time_ms",
+    [(1, float("nan")), (1, 0.0), (1, 0.1), (1, 20.0),
+     (31, (128 - 5e-8) * 0.05848)],
+)
+def test_normalize_jeol_rejects_invalid_nus_schedule(index, time_ms):
     stored = interop.read_jeol_2d_storage(_JDF_FIXTURES / "epicatechin_hsqc.jdf")
     raw = bytearray(stored.metadata["axis_lists_raw"]["y"])
-    struct.pack_into(">d", raw, 8, second_time_ms)
+    struct.pack_into(">d", raw, 8 * index, time_ms)
     metadata = {**stored.metadata, "axis_lists_raw": {"y": bytes(raw)}}
     with pytest.raises(ValueError, match="nominal NUS grid"):
         interop.normalize_jeol_2d(replace(stored, metadata=metadata), conjugation="none")
