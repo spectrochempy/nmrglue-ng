@@ -184,6 +184,22 @@ def test_jcampdx_fid_rejects_inconsistent_metadata_and_tables(tmp_path, old, new
         interop.read_jcampdx_fid(path)
 
 
+@pytest.mark.parametrize("end_before_second_page", [False, True])
+def test_jcampdx_fid_rejects_detached_tables(tmp_path, end_before_second_page):
+    path = tmp_path / "fid.dx"
+    if end_before_second_page:
+        contents = FID.replace("##END NTUPLES=NMR FID\n", "").replace(
+            "##PAGE=N=2\n", "##END NTUPLES=NMR FID\n##PAGE=N=2\n",
+        )
+    else:
+        contents = FID.replace("##PAGE=N=2\n", "").replace(
+            "##PAGE=N=1\n", "##PAGE=N=1\n##PAGE=N=2\n",
+        )
+    path.write_text(contents)
+    with pytest.raises(ValueError, match="one table per PAGE"):
+        interop.read_jcampdx_fid(path)
+
+
 @pytest.mark.dataset
 @pytest.mark.parametrize(
     "variable, digest, points, last, first",

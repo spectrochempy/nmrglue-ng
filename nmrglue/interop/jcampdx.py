@@ -241,7 +241,7 @@ def _fid_axis(block, data, geometry):
 
 def read_jcampdx_fid(filename):
     """Read a regular complex 1D NTUPLES FID in its stored sign convention."""
-    blocks = jcampdx.read_blocks(filename)
+    blocks = jcampdx.read_blocks(filename, _record_order=True)
     fids = [
         block for block in blocks
         if any(value.strip().upper() == "NMR FID" for value in block.get("DATATYPE", ()))
@@ -251,6 +251,11 @@ def read_jcampdx_fid(filename):
     block = fids[0]
     geometry = _fid_geometry(block)
     points, first, last, (xfactor, rfactor, ifactor) = geometry
+    records = [key for key in block["_records"]
+               if key in ("NTUPLES", "PAGE", "DATATABLE", "ENDNTUPLES")]
+    table_records = ["PAGE", "DATATABLE"] if "PAGE" in block else ["DATATABLE"]
+    if records != ["NTUPLES", *table_records, *table_records, "ENDNTUPLES"]:
+        raise ValueError("JCAMP-DX FID requires one table per PAGE within the NTUPLES block")
     tables = block.get("DATATABLE", ())
     symbols = []
     for table in tables:
@@ -269,7 +274,7 @@ def read_jcampdx_fid(filename):
     )
     data = jcampdx.get_complex_array(parts) if isinstance(parts, list) else None
     axis = _fid_axis(block, data, geometry)
-    metadata = {key: value for key, value in block.items() if key != "DATATABLE"}
+    metadata = {key: value for key, value in block.items() if key not in ("DATATABLE", "_records")}
     return ReadResult(
         data=data, axes=(axis,), metadata=metadata,
         components=(Component("real", data.real), Component("imaginary", data.imag)),

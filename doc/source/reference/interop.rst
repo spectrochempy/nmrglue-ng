@@ -136,8 +136,8 @@ JCAMP-DX complex 1D FIDs
 :func:`~nmrglue.interop.read_jcampdx_fid` reads one ``NMR FID`` block
 with regular NTUPLES tables for R and I. The decoder applies each
 component's own ``FACTOR`` and the result preserves R + iI. When
-provided, page labels identify the two component pages as N=1 and N=2. The X
-column is in seconds. The first and last sample times come from
+provided, page labels identify the two component pages as N=1 and N=2.
+Each page has one table within the NTUPLES block. The X column is in seconds. The first and last sample times come from
 ``FIRST`` and ``LAST``, and the sample count comes from ``VAR_DIM``.
 The reader uses the X factor to check the line anchors in both tables.
 The normalized dwell time is the endpoint span divided by the number
