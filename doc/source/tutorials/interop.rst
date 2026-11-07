@@ -121,16 +121,25 @@ Supported entry points
    :header-rows: 1
    :widths: 22 43 35
 
-   * - Input
-     - Reader profile
+   * - Input and reader type
+     - What the reader returns
      - Normalizer
-   * - Agilent / Varian raw
+   * - Agilent / Varian raw (storage)
+     - Scalar FID traces in file order, independent of the acquisition mode
+     - —
+   * - Agilent / Varian raw (qualified)
      - Complex 1D FID or descriptive 2D States traces
      - 1D FID
-   * - Bruker raw
+   * - Bruker raw (storage)
+     - Scalar SER traces in file order, independent of ``FnMODE``
+     - —
+   * - Bruker raw (qualified)
      - 1D FID or descriptive 2D QF and States-TPPI SER
      - Qualified complex 1D FID
-   * - Bruker processed
+   * - Bruker processed (storage)
+     - Available 2D planes at their stored scale
+     - —
+   * - Bruker processed (qualified)
      - 1D components or complete int32 2D with four stored planes
      - Complete calibrated 1D or qualified four-plane 2D
    * - NMRPipe processed
@@ -139,6 +148,10 @@ Supported entry points
    * - nmrML
      - Explicit 1D raw or processed profile
      - Corresponding explicit 1D profile
+
+The storage rows use the three entry points described above and require
+the supported binary layouts. The QF and States-TPPI restrictions apply to
+the qualified Bruker SER reader, which interprets the trace organization.
 
 See the :doc:`API reference <../reference/interop>` for function names, detailed
 limits and the separate raw NMRPipe export. Each normalizer accepts the result
