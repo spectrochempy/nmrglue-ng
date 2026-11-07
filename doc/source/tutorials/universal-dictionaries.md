@@ -16,6 +16,9 @@ File readers return format-specific metadata in `dic`. The
 **universal dictionary**. Compare a 1D JCAMP-DX spectrum with a 2D NMRPipe
 spectrum to see how the dictionary represents one versus two dimensions.
 
+For applications that also need named components, processing provenance or a
+validated array layout, see {doc}`interop`.
+
 **{nb-download}`Download notebook (.ipynb) <universal-dictionaries.ipynb>`** ·
 {download}`Download 1D JCAMP-DX spectrum <../../../tests/fixtures/fileio/data/jcampdx/epicatechin_1h.jdx>` ·
 {download}`Download 2D NMRPipe COSY spectrum <../../../tests/fixtures/fileio/data/nmrpipe_2d_cosy_example.ft2>`
