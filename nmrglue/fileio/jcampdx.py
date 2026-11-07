@@ -306,9 +306,10 @@ def _detect_format(dataline):
     firstvalue_re = re.compile(
         r"(\s)*([+-]?\d+\.?\d*|[+-]?\.\d+)([eE][+-]?\d+)?(\s)*")
 
-    index = firstvalue_re.match(dataline).end()
-    if index is None:
+    first = firstvalue_re.match(dataline)
+    if first is None:
         return -1
+    index = first.end()
     try:
         firstchar = dataline[index:index+1]
     except IndexError:
@@ -323,7 +324,7 @@ def _detect_format(dataline):
     return 0
 
 
-def _parse_affn_pac(datalines):
+def _parse_affn_pac(datalines, check_x=None):
     ''' Parses datalines that do NOT contain any pseudodigits  '''
 
     # regexp explained:
@@ -338,7 +339,14 @@ def _parse_affn_pac(datalines):
     data = []
     for dataline in datalines:
         linedata = []
+        end = 0
         for match in value_re.finditer(dataline):
+            if check_x is not None and (
+                match.start() != end
+                or (linedata and match.start(2) == end and not match.group(2).startswith(("+", "-")))
+            ):
+                raise ValueError("Invalid JCAMP-DX XYDATA token")
+            end = match.end()
             base = match.group(2)
             exp = match.group(3)
             try:
@@ -347,6 +355,10 @@ def _parse_affn_pac(datalines):
                 warn(f"Data parsing failed at line: {dataline}")
                 return None
             linedata.append(value)
+        if check_x is not None and dataline.strip():
+            if dataline[end:].strip() or len(linedata) < 2:
+                raise ValueError("Invalid JCAMP-DX XYDATA token or empty row")
+            check_x(linedata[0], len(data))
         if len(linedata) > 1:
             data.extend(linedata[1:])  # ignore first column (X value)
     return data
@@ -363,12 +375,16 @@ def _append_value(data, value_to_append, isdif):
         data.append(value_to_append)
 
 
-def _finish_value(valuestr, currentmode, prev_value_to_append, data):
+def _finish_value(valuestr, currentmode, prev_value_to_append, data, max_points=None):
     '''
     Helper for _parse_pseudo:
     -Processes value in prev_value_to_append based on currentmode
     -Parses and returns next value_to_append for next round
     '''
+
+    if max_points is not None and currentmode == 3:
+        if int(valuestr) > max_points - len(data):
+            raise ValueError("JCAMP-DX DUP count exceeds NPOINTS")
 
     try:
         # squeeze format: number is added to data array as such
@@ -399,12 +415,23 @@ def _finish_value(valuestr, currentmode, prev_value_to_append, data):
         return None, False
 
 
-def _parse_pseudo(datalines):
+def _check_dif_checkpoint(token, mode, pending, data):
+    if pending is None:
+        expected = data[-1]
+    else:
+        value, is_difference = pending
+        expected = data[-1] + value if is_difference else value
+    if mode != 1 or float(token) != expected:
+        raise ValueError("JCAMP-DX XYDATA DIF checkpoint disagrees with its preceding ordinate")
+
+
+def _parse_pseudo(datalines, check_x=None, max_points=None):
     ''' Parses datalines packed with pseudodigits  '''
 
-    # regexp to find the first value of line, that never begins
-    # with a pseudodigit (exponents are not allowed here)
-    firstvalue_re = re.compile(r"(\s)*([+-]?\d+\.?\d*|[+-]?\.\d+)")
+    # A signed exponent or a whitespace-delimited exponent is unambiguous
+    # before the compressed ordinate. E/e can also be a SQZ prefix.
+    exponent = r"(?:[Ee][+-]\d+|[Ee]\d+(?=\s))?" if check_x is not None else ""
+    firstvalue_re = re.compile(r"\s*([+-]?(?:\d+\.?\d*|\.\d+)" + exponent + r")")
 
     data = []
     currentmode = 0
@@ -417,12 +444,18 @@ def _parse_pseudo(datalines):
     value_to_append = None
 
     for dataline in datalines:
+        if check_x is not None:
+            dataline = dataline.strip()
         if not dataline:
             continue
 
         # ignore first value of line (X value)
         firstmatch = firstvalue_re.match(dataline)
+        if check_x is not None and firstmatch is None:
+            raise ValueError("Invalid JCAMP-DX XYDATA abscissa")
         y_valuestring = dataline[firstmatch.end():]
+        if check_x is not None and y_valuestring.strip()[:1] not in _SQZ_DIGITS:
+            raise ValueError("JCAMP-DX XYDATA requires an initial absolute ordinate on each compressed row")
 
         first_of_line = True
 
@@ -459,16 +492,18 @@ def _parse_pseudo(datalines):
             previous_is_dif = False
             if currentmode == 2:
                 previous_is_dif = True
-            elif currentmode == 3 and value_to_append[1]:
+            elif currentmode == 3 and value_to_append is not None and value_to_append[1]:
                 previous_is_dif = True
 
+            if check_x is not None and skip_checkpoint:
+                _check_dif_checkpoint(valuestr, currentmode, value_to_append, data)
             if not skip_checkpoint:
                 # append number in value_to_append to data array if exists,
                 # and update value_to_append
                 value_to_append, success = _finish_value(valuestr,
                                                          currentmode,
                                                          value_to_append,
-                                                         data)
+                                                         data, max_points)
                 if not success:
                     warn(f"Data parsing failed at line: {dataline}")
                     return None
@@ -477,6 +512,9 @@ def _parse_pseudo(datalines):
             # (= checkpoint). In such case raise a flag that this number
             # is to be skipped in _finish_value
             skip_checkpoint = first_of_line and previous_is_dif
+            if check_x is not None and first_of_line:
+                index = len(data) + int(value_to_append is not None) - int(skip_checkpoint)
+                check_x(float(firstmatch.group(1)), index)
 
             # init new number
             currentmode = newmode
@@ -484,12 +522,19 @@ def _parse_pseudo(datalines):
             first_of_line = False
 
     # read ended. finish last number:
+    if check_x is not None and skip_checkpoint:
+        _check_dif_checkpoint("".join(valuestr), currentmode, value_to_append, data)
     if not skip_checkpoint:
+        if check_x is not None and (
+            currentmode == 2
+            or (currentmode == 3 and value_to_append is not None and value_to_append[1])
+        ):
+            raise ValueError("JCAMP-DX XYDATA requires a terminal DIF checkpoint")
         valuestr = "".join(valuestr)
         value_to_append, success = _finish_value(valuestr,
                                                  currentmode,
                                                  value_to_append,
-                                                 data)
+                                                 data, max_points)
         if not success:
             warn("Data parsing failed at last dataline")
             return None
@@ -537,7 +582,7 @@ def _parse_xy_xy(datalines):
     return [pts]
 
 
-def _parse_data(datastring):
+def _parse_data(datastring, check_x=None, max_points=None):
     '''
     Creates numpy array from datalines
     '''
@@ -562,13 +607,20 @@ def _parse_data(datastring):
     is_affn_header = '++' in headerline
     is_xy_pair_header = headerline in ('(XY..XY)', '(X..XY)')
 
-    if is_affn_header:
+    if is_affn_header or check_x is not None:
         # AFFN declared: commas are value delimiters, parse directly
         mode = _detect_format(datalines[0])
+        if check_x is not None:
+            if mode == -1:
+                raise ValueError("Invalid JCAMP-DX XYDATA abscissa")
+            # A complete unsigned exponent token would leave no AFFN ordinate.
+            # Interpret E/e as a SQZ prefix in this otherwise ambiguous row.
+            if mode == 0 and re.fullmatch(r"\s*[+-]?(?:\d+\.?\d*|\.\d+)[Ee]\d+\s*", datalines[0]):
+                mode = 1
         if mode == 1:
-            data = _parse_pseudo(datalines)
+            data = _parse_pseudo(datalines, check_x, max_points)
         else:
-            data = _parse_affn_pac(datalines)
+            data = _parse_affn_pac(datalines, check_x)
     elif is_xy_pair_header and headerline == '(XY..XY)':
         # Coordinate list: commas separate X and Y. Never apply comma-to-dot
         # normalization here — the format is intrinsically ambiguous with
@@ -652,7 +704,7 @@ def find_yfactors(dic):
     return (find_factor(dic, "R"), find_factor(dic, "I"))
 
 
-def getdataarray(dic, show_all_data=False):
+def getdataarray(dic, show_all_data=False, *, _check_xydata_x=None, _xydata_max_points=None):
     '''
     Main function for data array parsing, input is the
     raw dictionary from _readrawdic
@@ -723,7 +775,7 @@ def getdataarray(dic, show_all_data=False):
             if len(valuelist) > 1:
                 warn("Multiple XYDATA arrays in JCAMP-DX file, \
                      returning first one only")
-            parseret = _parse_data(valuelist[0])
+            parseret = _parse_data(valuelist[0], _check_xydata_x, _xydata_max_points)
             if parseret is None:
                 return None
             data, datatype = parseret

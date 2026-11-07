@@ -62,6 +62,7 @@ Read processed spectra and exchange files
     read_nmrpipe_1d
     read_nmrpipe_2d
     read_nmrml_1d
+    read_jcampdx_1d
     read_nmrml_2d
     read_nmrml_raw_2d
 
@@ -80,6 +81,7 @@ Normalize a supported result
     normalize_nmrpipe_1d
     normalize_nmrpipe_2d
     normalize_nmrml_1d
+    normalize_jcampdx_1d
     normalize_nmrml_2d
     normalize_nmrml_raw_2d
 
@@ -90,6 +92,41 @@ Export an acquisition
     :toctree: generated/
 
     write_readresult_nmrpipe
+
+JCAMP-DX real 1D spectra
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+:func:`~nmrglue.interop.read_jcampdx_1d` reads a single real
+``NMR SPECTRUM`` block in regular ``XYDATA`` form, including a spectrum
+nested in a ``LINK`` block. The existing JCAMP-DX decoder applies
+``YFACTOR`` to the intensities. The result records that factor and
+retains the spectrum metadata.
+
+.. code-block:: python
+
+    import nmrglue as ng
+
+    read = ng.interop.read_jcampdx_1d("epicatechin_1h.jdx")
+    spectrum = ng.interop.normalize_jcampdx_1d(read)
+    print(spectrum.axes[0].values[[0, -1]])  # approximately 4996.51, -998.69 Hz
+
+The frequency axis runs from ``FIRSTX`` through ``LASTX`` over
+``NPOINTS`` samples, in the declared Hz or ppm unit. Both endpoints are
+sample coordinates. ``XFACTOR`` applies to abscissae encoded in the
+table, and ``DELTAX`` records nominal spacing. The profile derives its
+regular grid from the declared endpoints and checks the table’s line
+anchors and DIF checkpoints. When present, ``.OBSERVE
+FREQUENCY`` is recorded in MHz as metadata. The axis retains the
+file's unit and direction. Normalization validates the description and
+preserves the decoded intensities on the F2 axis.
+
+This profile covers regular real 1D spectra. FIDs, NTUPLES and explicit
+XY pairs use the historical reader.
+
+.. seealso::
+
+   `JCAMP-DX for NMR <https://iupac.org/wp-content/uploads/2021/08/JCAMP-DX_NMR_1993.pdf>`_
+   and the `epicatechin reference dataset <https://doi.org/10.57992/nmrxiv.p33>`_.
 
 Agilent 1D scan-count evidence
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

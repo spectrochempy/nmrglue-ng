@@ -23,6 +23,7 @@ from .bruker_pdata_2d import (
     read_bruker_pdata_2d,
     read_bruker_pdata_2d_storage,
 )
+from .jcampdx import normalize_jcampdx_1d, read_jcampdx_1d
 from .jeol import normalize_jeol_2d, normalize_jeol_fid, read_jeol_2d_storage, read_jeol_fid
 from .storage import read_agilent_fid_storage, read_bruker_ser_storage
 from .nmrpipe import write_readresult_nmrpipe
@@ -62,6 +63,8 @@ __all__ = [
     "normalize_bruker_pdata_2d",
     "read_bruker_fid",
     "read_jeol_fid",
+    "read_jcampdx_1d",
+    "normalize_jcampdx_1d",
     "read_jeol_2d_storage",
     "normalize_jeol_fid",
     "normalize_jeol_2d",
