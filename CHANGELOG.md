@@ -8,9 +8,9 @@ original nmrglue project and are preserved for attribution and continuity.
 ## Unreleased
 
 - Read NMRPipe 2D traces through interop in time, frequency and mixed domains,
-  preserving file order and describing real and complex storage layouts.
+  preserving file order and describing real and complex storage layouts. (#165)
 - Preserve real and imaginary samples independently when decoding NMRPipe
-  complex traces containing infinities or NaNs.
+  complex traces containing infinities or NaNs. (#165)
 
 - Add interop readers for stored Bruker 2D pdata planes and scalar Bruker and
   Agilent/Varian acquisition traces, with metadata for later reconstruction.
