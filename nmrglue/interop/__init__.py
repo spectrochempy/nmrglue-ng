@@ -18,7 +18,12 @@ acquisitions::
 from __future__ import annotations
 
 from .bruker import read_bruker_fid, read_bruker_pdata, read_bruker_ser
-from .bruker_pdata_2d import normalize_bruker_pdata_2d, read_bruker_pdata_2d
+from .bruker_pdata_2d import (
+    normalize_bruker_pdata_2d,
+    read_bruker_pdata_2d,
+    read_bruker_pdata_2d_storage,
+)
+from .storage import read_agilent_fid_storage, read_bruker_ser_storage
 from .nmrpipe import write_readresult_nmrpipe
 from .nmrml import read_nmrml_1d, normalize_nmrml_1d
 from .nmrpipe_read import (
@@ -46,6 +51,9 @@ __all__ = [
     "Reference",
     "read_bruker_pdata",
     "read_bruker_pdata_2d",
+    "read_bruker_pdata_2d_storage",
+    "read_bruker_ser_storage",
+    "read_agilent_fid_storage",
     "normalize_bruker_pdata_2d",
     "read_bruker_fid",
     "read_bruker_ser",

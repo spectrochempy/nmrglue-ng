@@ -111,3 +111,44 @@ def test_normalizer_rejects_wrong_component_order(tmp_path):
         interop.normalize_bruker_pdata_2d(
             replace(result, components=result.components[::-1])
         )
+
+
+def test_storage_reads_present_planes_without_requiring_a_fourier_profile(tmp_path):
+    planes = write_planes(tmp_path, endian=">", indirect={"FT_mod": 99, "SF": 0})
+    (tmp_path / "2rr").unlink()
+    (tmp_path / "2ir").unlink()
+    stored = interop.read_bruker_pdata_2d_storage(tmp_path)
+    assert stored.domains == ("unknown", "unknown")
+    assert stored.metadata["proc2s"]["FT_mod"] == 99
+    assert tuple(component.name for component in stored.components) == ("2ri", "2ii")
+    np.testing.assert_array_equal(stored.data, planes[1])
+    np.testing.assert_array_equal(stored.components[1].data, planes[3])
+    with pytest.raises(ValueError):
+        interop.normalize_bruker_pdata_2d(stored)
+
+
+def test_storage_uses_strip_dimensions(tmp_path):
+    planes = write_planes(
+        tmp_path,
+        indirect={"SI": 8, "STSI": 4, "STSR": 2, "FTSIZE": 8},
+        direct={"SI": 12, "STSI": 6, "STSR": 3, "FTSIZE": 12},
+    )
+    stored = interop.read_bruker_pdata_2d_storage(tmp_path)
+    assert stored.dimensions["shape"] == (4, 6)
+    assert stored.metadata["proc2s"]["STSR"] == 2
+    np.testing.assert_array_equal(stored.data, planes[0])
+    with pytest.raises(ValueError, match="complete Fourier grid"):
+        interop.read_bruker_pdata_2d(tmp_path)
+
+
+def test_storage_preserves_float64_and_does_not_scale(tmp_path):
+    planes = write_planes(tmp_path, indirect={"DTYPP": 2}, direct={"DTYPP": 2})
+    plane = planes[0].astype(np.float64) + 0.25
+    tiles = [plane[y : y + 2, x : x + 3] for y in (0, 2) for x in (0, 3)]
+    (tmp_path / "2rr").write_bytes(np.stack(tiles).astype("<f8").tobytes())
+    for name in NAMES[1:]:
+        (tmp_path / name).unlink()
+    stored = interop.read_bruker_pdata_2d_storage(tmp_path)
+    assert stored.data.dtype == np.dtype("<f8")
+    assert stored.applied_corrections == {}
+    np.testing.assert_array_equal(stored.data, plane)

@@ -79,6 +79,41 @@ Use the format-specific ``guess_udic`` with the metadata and array it expects.
 For example, a normalized array with a leading component axis is no longer
 the same representation as the array returned by the format reader.
 
+Keep the original storage layout
+--------------------------------
+
+Use ``read_bruker_pdata_2d_storage`` to read the named planes that are present.
+It restores the rows and columns from the disk tiles at their stored scale.
+For an extracted strip, it uses the stored size (``STSI``) without assigning
+a physical grid. For example, a directory containing only ``2rr`` yields one
+component.
+
+.. code-block:: python
+
+    import nmrglue as ng
+
+    stored = ng.interop.read_bruker_pdata_2d_storage("experiment/pdata/1")
+    for plane in stored.components:
+        print(plane.name, plane.data.shape)
+
+The processing parameters remain available for a later calibration step.
+
+Use ``read_bruker_ser_storage`` or ``read_agilent_fid_storage`` for acquisition
+traces in file order. Each row contains scalar words, including Bruker trace
+padding when present. Read the Bruker acquisition status or the Agilent
+``procpar`` and binary headers from ``result.metadata``. These can describe the
+complex packing and the relationship between successive traces. When present,
+the Bruker schedule and pulse program are retained as ``nuslist_raw`` and
+``pulseprogram_raw``. The Bruker entry point supports 1024-byte-aligned traces.
+The Agilent entry point supports one or two headers per binary block.
+Apply the recorded conventions when constructing physical dimensions and
+pairing branches. The storage result labels its axes by array position and
+leaves their physical domains unknown.
+
+The existing readers for qualified profiles provide stronger guarantees,
+such as calibrated axes or a particular trace organization. Choose those
+entry points when the input satisfies the corresponding profile.
+
 Supported entry points
 ----------------------
 
