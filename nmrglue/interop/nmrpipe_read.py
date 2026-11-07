@@ -1,4 +1,4 @@
-"""Strict processed NMRPipe input for the neutral interoperability layer."""
+"""Stored traces and qualified spectra for the interoperability layer."""
 
 from __future__ import annotations
 
@@ -136,6 +136,86 @@ def normalize_nmrpipe_1d(result):
                      "reference_source": "processing", "normalization": "none"},
         metadata=result.metadata, encoding=result.encoding, diagnostics=result.diagnostics,
     )
+
+def read_nmrpipe_2d_storage(filename):
+    """Read one NMRPipe 2D file in stored trace order.
+
+    Accept standard real and complex quadrature in time, frequency or mixed
+    domains. The historical reader combines the real and imaginary halves
+    of each complex trace. If the row axis is complex, its branches remain
+    interleaved in file order. An extraction can start on either branch
+    and contain an incomplete pair. The result carries the header and file
+    layout without physical coordinate values or quadrature reconstruction.
+    """
+    with Path(filename).open("rb", buffering=0) as stream:
+        raw_header = stream.read(2048)
+        if len(raw_header) != 2048:
+            raise ValueError("NMRPipe requires a complete 2048-byte header")
+        marker = np.float32(2.345)
+        for dtype in ("<f4", ">f4"):
+            fdata = np.frombuffer(raw_header, dtype=dtype)
+            if fdata[2] == marker:
+                break
+        else:
+            raise ValueError("NMRPipe requires a valid byte-order marker")
+        header = pipe.fdata2dic(fdata.astype(np.float32, copy=False))
+        if _number(header, "FDMAGIC") != 0 or _number(header, "FDDIMCOUNT") != 2:
+            raise ValueError("NMRPipe storage reader requires a 2D file")
+        transposed = _number(header, "FDTRANSPOSED")
+        if transposed not in (0, 1):
+            raise ValueError("NMRPipe requires FDTRANSPOSED=0 or 1")
+        order = ("F2", "F1") if transposed else ("F1", "F2")
+        if tuple(header[key] for key in ("FDDIMORDER2", "FDDIMORDER1")) != tuple(
+            int(dim[-1]) for dim in order
+        ):
+            raise ValueError("NMRPipe dimension order disagrees with FDTRANSPOSED")
+
+        prefixes = tuple("FD" + dim for dim in order)
+        quadrature = tuple(_number(header, prefix + "QUADFLAG") for prefix in prefixes)
+        if any(flag not in (0, 1) for flag in quadrature):
+            raise ValueError("NMRPipe storage reader requires real or complex quadrature flags")
+        if _number(header, "FDQUADFLAG") != min(quadrature):
+            raise ValueError("NMRPipe requires consistent real/complex quadrature flags")
+        transformed = tuple(_number(header, prefix + "FTFLAG") for prefix in prefixes)
+        if any(flag not in (0, 1) for flag in transformed):
+            raise ValueError("NMRPipe requires FTFLAG=0 or 1 on each axis")
+        sizes = tuple(_number(header, key) for key in ("FDSPECNUM", "FDSIZE"))
+        if any(size < 1 or not size.is_integer() for size in sizes):
+            raise ValueError("NMRPipe requires positive integer FDSPECNUM and FDSIZE")
+        rows, words = pipe.find_shape(header)
+        if os.fstat(stream.fileno()).st_size != 2048 + 4 * rows * words:
+            raise ValueError("NMRPipe payload size disagrees with the trace layout")
+
+        stream.seek(0)
+        _, data = pipe.read_2D(stream)
+        if data.shape != (rows, int(sizes[1])):
+            raise ValueError("NMRPipe payload does not decode to the declared trace layout")
+
+    domains = tuple("frequency" if flag else "time" for flag in transformed)
+    encoding = tuple("real" if flag else "complex" for flag in quadrature)
+    return ReadResult(
+        data=data,
+        axes=tuple(
+            Axis(label=header[prefix + "LABEL"] or dim, domain=domain)
+            for dim, prefix, domain in zip(order, prefixes, domains, strict=True)
+        ),
+        metadata=header,
+        components=(Component("stored-traces", data),),
+        applied_corrections={},
+        diagnostics=(),
+        format="nmrpipe-2d-storage",
+        source=filename,
+        domains=domains,
+        encoding=encoding,
+        dimensions={
+            "axis_order": order,
+            "shape": data.shape,
+            "stored_shape": (rows, words),
+            "row_layout": "interleaved-real-imaginary" if quadrature[0] == 0 else "real",
+            "trace_layout": "appended-real-imaginary" if quadrature[1] == 0 else "real",
+        },
+    )
+
 
 _REAL_2D_DOMAINS = ("frequency", "frequency")
 _REAL_2D_ENCODING = ("real", "real")

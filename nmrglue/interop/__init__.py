@@ -28,6 +28,7 @@ from .nmrpipe import write_readresult_nmrpipe
 from .nmrml import read_nmrml_1d, normalize_nmrml_1d
 from .nmrpipe_read import (
     normalize_nmrpipe_1d, normalize_nmrpipe_2d, read_nmrpipe_1d, read_nmrpipe_2d,
+    read_nmrpipe_2d_storage,
 )
 from .normalize import normalize_agilent_fid, normalize_bruker_fid, normalize_bruker_pdata
 from .varian import read_agilent_fid, read_agilent_states_2d
@@ -68,5 +69,6 @@ __all__ = [
     "read_nmrpipe_1d",
     "normalize_nmrpipe_1d",
     "read_nmrpipe_2d",
+    "read_nmrpipe_2d_storage",
     "normalize_nmrpipe_2d",
 ]

@@ -36,6 +36,7 @@ axes.
     read_bruker_pdata_2d_storage
     read_bruker_ser_storage
     read_agilent_fid_storage
+    read_nmrpipe_2d_storage
 
 Read raw acquisitions
 ^^^^^^^^^^^^^^^^^^^^^
@@ -309,6 +310,45 @@ See :doc:`../nmrml_1d` for examples and grid conventions.
 
 :func:`~nmrglue.interop.normalize_nmrml_1d`
 
+.. _interop-nmrpipe-2d-storage:
+
+NMRPipe 2D storage
+------------------
+
+Read stored traces from a single two-dimensional NMRPipe file::
+
+    stored = ng.interop.read_nmrpipe_2d_storage("test.fid")
+    print(stored.dimensions["axis_order"], stored.domains, stored.encoding)
+    print(stored.dimensions["row_layout"], stored.data.shape)
+
+The filename extension is immaterial. The header identifies the file order
+(F1, F2 or F2, F1), whether each axis is transformed and whether it stores
+real or complex points. The reader accepts either byte order and checks the
+exact payload size against the header. It supports the standard real and
+complex quadrature flags (1 and 0).
+
+``dimensions["stored_shape"]`` counts the scalar float32 words on disk.
+``dimensions["shape"]`` describes the decoded array. For complex traces,
+NMRPipe stores the real vector followed by the imaginary vector in each
+row, and the historical reader combines them into a complex64 array.
+When the row axis is complex, ``dimensions["row_layout"]`` reports
+``interleaved-real-imaginary``. This describes the storage convention.
+An extraction can begin on either branch or contain an incomplete pair,
+and the header may give no indication of the starting branch. The reader
+returns the rows in file order. When only the row axis is complex,
+NMRPipe records the row count as complex points, so the file contains
+twice as many rows as ``FDSPECNUM``.
+
+The result has a single ``stored-traces`` component. Its axes describe
+the file labels and domains without a calibrated coordinate grid.
+``metadata`` retains the header, including ``FD2DPHASE`` and per-axis
+acquisition sign fields, for later interpretation. The reader applies
+no sign corrections, branch recombination or Fourier transformation.
+
+See the `NMRPipe format reference
+<https://spin.niddk.nih.gov/bax/software/NMRPipe/NMRPipe.html>`_ and the
+format notes in NMRPipe's ``fdatap.h``.
+
 Real NMRPipe 2D spectra (experimental)
 --------------------------------------
 
@@ -322,8 +362,8 @@ The data, axes and dimension names follow file order (F1, F2 or F2, F1).
 Each decreasing frequency axis uses its own SW and last-point ORIG in Hz.
 OBS provides its observation frequency in MHz. Samples retain their float32
 values. The real 2D profile accepts both byte orders and both orientations.
-Extracted grids, mixed domains, complex planes and higher-dimensional slices
-require separate profiles. This interface describes the stored spectrum and
+For stored traces from mixed domains or complex planes, see
+:ref:`interop-nmrpipe-2d-storage`. This interface describes the stored spectrum and
 leaves interpretation and processing to the caller.
 
 Complete Bruker processed 2D planes (experimental)
