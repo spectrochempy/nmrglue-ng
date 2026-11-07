@@ -155,7 +155,8 @@ They are still available even when no interop normalizer is provided for that
        frequency plane.
    * - nmrML
      - Explicit 1D raw or processed profile. Real processed 2D planes with
-       documented shape, storage order and indirect calibration.
+       documented shape, storage order and indirect calibration. Raw 2D
+       contiguous complex traces with explicit direct count convention.
 
 The storage readers require the binary layouts described above.
 
@@ -173,7 +174,9 @@ validates a layout or calibration for a consumer.
   confirmation of the original time grid for time or mixed domains. See
   :func:`~nmrglue.interop.normalize_nmrpipe_2d`.
 * nmrML: explicit 1D raw and processed profiles and real processed 2D planes
-  described by :func:`~nmrglue.interop.read_nmrml_2d`.
+  described by :func:`~nmrglue.interop.read_nmrml_2d`. Uniform raw 2D
+  echo/anti-echo with confirmed adjacent pairs and an explicit indirect dwell
+  time is covered by :func:`~nmrglue.interop.normalize_nmrml_raw_2d`.
 
 See the :doc:`API reference <../reference/interop>` for function names, detailed
 limits and the separate raw NMRPipe export.

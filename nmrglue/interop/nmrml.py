@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import base64
+import hashlib
 from numbers import Real
 import os
 import operator
 from urllib.parse import urlsplit
+import zlib
 
 import numpy as np
 
@@ -372,4 +375,166 @@ def normalize_nmrml_2d(result):
         applied_operations=(operation,), acquisition=checked.acquisition,
         provenance={'source': result.source, 'format': result.format},
         metadata=checked.metadata, encoding=checked.encoding, diagnostics=checked.diagnostics,
+    )
+
+
+_HSQC_FID_SHA256 = '5e5672166dcdcb110d4838375b47b8660c18fba89d55f857a5949b13ce3e45af'
+_RAW_2D_DOMAINS = ('time', 'time')
+
+
+def _read_hsqc_legacy_payload(binary, shape):
+    """Decode the checksum-pinned payload from the official HSQC example."""
+    encoded = ''.join(binary.get('#text', '').split()).encode('ascii')
+    if (
+        shape != (256, 2048)
+        or binary.get('@byteFormat') != 'complex128'
+        or binary.get('@compressed') != 'true'
+        or binary.get('@encodedLength') != '11184816'
+        or hashlib.sha256(encoded).hexdigest() != _HSQC_FID_SHA256
+    ):
+        raise ValueError('nmrML official HSQC compatibility requires the original payload and geometry')
+    decoder = zlib.decompressobj()
+    payload = decoder.decompress(base64.b64decode(encoded, validate=True))
+    if not decoder.eof or len(payload) != 8388608 or any(decoder.unused_data):
+        raise ValueError('nmrML official HSQC payload has invalid padding or size')
+    return np.frombuffer(payload, dtype='<c16')
+
+
+def _raw_2d_count(params):
+    try:
+        count = int(params['@numberOfDataPoints'])
+    except (KeyError, TypeError, ValueError) as exc:
+        raise ValueError('nmrML requires integer numberOfDataPoints') from exc
+    if count < 1:
+        raise ValueError('nmrML raw counts must be positive')
+    return count
+
+
+def _describe_raw_2d(document, options, source):
+    if document.get('@xmlns') != nmrml.NAMESPACE:
+        raise ValueError('nmrML interop requires the schema namespace')
+    acquisition = document.get('acquisition') or {}
+    selected = acquisition.get('acquisitionMultiD') if isinstance(acquisition, dict) else None
+    if not isinstance(selected, dict) or 'acquisition1D' in acquisition:
+        raise ValueError('nmrML requires one acquisitionMultiD')
+    params = selected.get('acquisitionParameterSet')
+    if not isinstance(params, dict):
+        raise ValueError('nmrML requires acquisitionParameterSet')
+    direct = params.get('directDimensionParameterSet')
+    indirect = params.get('indirectDimensionParameterSet')
+    encoding = params.get('encodingScheme')
+    if not all(isinstance(value, dict) for value in (direct, indirect, encoding)):
+        raise ValueError('nmrML requires one direct and one indirect dimension and an encoding scheme')
+
+    cols = _raw_2d_count(direct)
+    count_unit = options['direct_point_count']
+    if count_unit not in ('scalar', 'complex'):
+        raise ValueError('nmrML requires direct_point_count: scalar or complex')
+    if count_unit == 'scalar':
+        if cols % 2:
+            raise ValueError('nmrML scalar direct point count must be even')
+        cols //= 2
+    shape = (_raw_2d_count(indirect), cols)
+    binary = selected.get('fidData')
+    if (not isinstance(binary, dict) or not {'@compressed', '@encodedLength'} <= binary.keys()
+        or binary.get('@byteFormat', '').lower() not in ('complex64', 'complex128')):
+        raise ValueError('nmrML raw 2D requires complex64 or complex128 fidData')
+    if options['official_hsqc_compatibility']:
+        flat = _read_hsqc_legacy_payload(binary, shape)
+    else:
+        flat = nmrml._get_nmrml_data(binary, strict=True)
+    if flat.size != shape[0] * shape[1] or not np.isfinite(flat).all():
+        raise ValueError('nmrML raw 2D samples must be finite and match the declared counts')
+    data = flat.reshape(shape)
+    return ReadResult(
+        data=data, axes=(Axis(label='trace'), Axis(label='sample')),
+        components=(Component('stored-traces', data),),
+        metadata={'document': document, 'profile_options': options},
+        applied_corrections={}, diagnostics=(), format='nmrml-raw-2d',
+        source=source, domains=_RAW_2D_DOMAINS, encoding=('unknown', 'complex'),
+        dimensions={'axis_order': ('trace', 'sample'), 'shape': shape},
+        acquisition={'direct_point_count': count_unit},
+    )
+
+
+def read_nmrml_raw_2d(filename, *, direct_point_count, official_hsqc_compatibility=False):
+    """Decode a 2D nmrML FID stored as contiguous complex traces.
+
+    Supply the direct count convention, scalar words or complex samples.
+    The indirect count must be the number of stored traces, including
+    both branches of any pair. The HSQC compatibility option accepts
+    only the checksum-pinned payload of the official HSQC example.
+    """
+    options = {'direct_point_count': direct_point_count,
+               'official_hsqc_compatibility': official_hsqc_compatibility}
+    return _describe_raw_2d(nmrml._read_document(filename), options, os.fspath(filename))
+
+
+def normalize_nmrml_raw_2d(result, *, indirect_dwell_s, confirm_adjacent_pairs=False):
+    """Normalize uniform echo/anti-echo storage into two complex channels.
+
+    Confirm that adjacent traces belong to the same indirect increment
+    and supply the time between pairs from the acquisition provenance.
+    Channels preserve the first and second stored traces of each pair.
+    Coordinates describe elapsed time relative to the first sample.
+    """
+    if not isinstance(result, ReadResult) or result.format != 'nmrml-raw-2d':
+        raise ValueError('normalize_nmrml_raw_2d requires a nmrml-raw-2d ReadResult')
+    if confirm_adjacent_pairs is not True:
+        raise ValueError('nmrML echo/anti-echo normalization requires confirm_adjacent_pairs=True')
+    dwell = _positive(indirect_dwell_s, 'indirect_dwell_s')
+    document = result.metadata['document']
+    checked = _describe_raw_2d(document, result.metadata['profile_options'], result.source)
+    if (
+        result.data.dtype != checked.data.dtype or not np.array_equal(result.data, checked.data)
+        or result.domains != checked.domains or result.encoding != checked.encoding
+        or result.dimensions != checked.dimensions or result.acquisition != checked.acquisition
+        or result.applied_corrections or len(result.components) != 1
+        or result.components[0].name != 'stored-traces'
+        or result.components[0].data.dtype != checked.data.dtype
+        or not np.array_equal(result.components[0].data, checked.data)
+    ):
+        raise ValueError('nmrML raw 2D description disagrees with its source')
+    params = document['acquisition']['acquisitionMultiD']['acquisitionParameterSet']
+    encoding = params['encodingScheme']
+    if (encoding.get('@accession', '').replace('NMR_', 'NMR:', 1) != 'NMR:1400057'
+        or ' '.join(encoding.get('@name', '').lower().split()) != 'echo anti-echo coherence selection'):
+        raise ValueError('nmrML raw 2D normalization requires declared echo/anti-echo encoding')
+    _vocabulary(document, encoding.get('@cvRef'), 'NMR', 'encoding')
+    rows, cols = checked.data.shape
+    if rows < 2 or rows % 2 or cols < 2:
+        raise ValueError('nmrML echo/anti-echo requires complete trace pairs')
+    widths = []
+    for key in ('indirectDimensionParameterSet', 'directDimensionParameterSet'):
+        dimension = params[key]
+        sampling = dimension.get('samplingStrategy')
+        sw = dimension.get('sweepWidth')
+        if (not isinstance(sampling, dict) or not isinstance(sw, dict)
+            or 'samplingTimePoints' in dimension):
+            raise ValueError('nmrML raw 2D requires uniform sampling and explicit sweep widths')
+        _uniform_sampling(document, sampling)
+        _unit(document, sw, ('Hz',))
+        widths.append(_positive(_number(sw.get('@value'), 'sweepWidth'), 'sweepWidth'))
+    grids = (np.arange(rows // 2, dtype=float) * dwell, np.arange(cols, dtype=float) / widths[1])
+    if any(not np.isfinite(grid).all() for grid in grids):
+        raise ValueError('nmrML raw 2D requires finite time coordinates')
+    axes = tuple(Axis(values=grid, unit='s', label=label, domain='time', direction='increasing')
+                 for label, grid in zip(_2D_DIMS, grids, strict=True))
+    dimensions = ('channels', *_2D_DIMS)
+    operation = {'name': 'group-nmrml-adjacent-traces', 'stage': 'acquisition',
+                 'input_dimensions': ('trace', 'sample'), 'output_dimensions': dimensions,
+                 'axis': 'F1', 'scale': None, 'conjugation': 'none', 'sign': 'none',
+                 'permutation': None, 'evidence': 'caller-confirmed adjacent trace pairs'}
+    return NormalizedAcquisition(
+        data=np.stack((checked.data[::2], checked.data[1::2])),
+        axes=axes, dimensions=dimensions, physical_dimensions=_2D_DIMS, domains=_RAW_2D_DOMAINS,
+        quadrature_mode='echo-antiecho-stored-2d', branch_order=('first', 'second'),
+        channel_axis=0, normalization_state='storage-normalized',
+        normalization_profile='nmrml-echo-antiecho-storage-2d-v1',
+        applied_operations=(operation,),
+        acquisition={**checked.acquisition, 'spectral_width_hz': tuple(widths),
+                     'indirect_dwell_s': dwell, 'indirect_dwell_source': 'caller'},
+        provenance={'source': result.source, 'format': result.format},
+        metadata=checked.metadata, encoding=('echo-antiecho', 'complex'),
+        diagnostics=checked.diagnostics,
     )
