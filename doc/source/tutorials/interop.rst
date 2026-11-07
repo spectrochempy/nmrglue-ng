@@ -114,46 +114,49 @@ The existing readers for qualified profiles provide stronger guarantees,
 such as calibrated axes or a particular trace organization. Choose those
 entry points when the input satisfies the corresponding profile.
 
-Supported entry points
-----------------------
+What interop can read
+---------------------
+
+**Agilent/Varian and Bruker 2D acquisitions can be read.** The storage readers
+return the decoded traces and metadata needed to reconstruct the acquisition.
+For example, the rows of an Agilent 2D storage result are traces in file order.
+They are still available even when no interop normalizer is provided for that
+2D acquisition.
 
 .. list-table::
    :header-rows: 1
-   :widths: 22 43 35
+   :widths: 26 74
 
-   * - Input and reader type
-     - What the reader returns
-     - Normalizer
-   * - Agilent / Varian raw (storage)
-     - Scalar FID traces in file order, independent of the acquisition mode
-     - —
-   * - Agilent / Varian raw (qualified)
-     - Complex 1D FID or descriptive 2D States traces
-     - 1D FID
-   * - Bruker raw (storage)
-     - Scalar SER traces in file order, independent of ``FnMODE``
-     - —
-   * - Bruker raw (qualified)
-     - 1D FID or descriptive 2D QF and States-TPPI SER
-     - Qualified complex 1D FID
-   * - Bruker processed (storage)
-     - Available 2D planes at their stored scale
-     - —
-   * - Bruker processed (qualified)
-     - 1D components or complete int32 2D with four stored planes
-     - Complete calibrated 1D or qualified four-plane 2D
+   * - Input
+     - Available readers
+   * - Agilent / Varian raw
+     - Storage: FID traces from 1D and 2D acquisitions.
+       Qualified: complex 1D FID and descriptive 2D States traces.
+   * - Bruker raw
+     - Storage: scalar SER traces in file order, regardless of ``FnMODE``.
+       Qualified: 1D FID and descriptive 2D QF or States-TPPI SER.
+   * - Bruker processed
+     - Storage: available 2D planes at their stored scale.
+       Qualified: 1D components or complete int32 2D with four planes.
    * - NMRPipe processed
-     - Complete real or complex 1D spectrum or complete real 2D plane
-     - Corresponding 1D or real 2D profile
+     - Complete real or complex 1D spectrum or complete real 2D plane.
    * - nmrML
-     - Explicit 1D raw or processed profile
-     - Corresponding explicit 1D profile
+     - Explicit 1D raw or processed profile.
 
-The storage rows use the three entry points described above and require
-the supported binary layouts. The QF and States-TPPI restrictions apply to
-the qualified Bruker SER reader, which interprets the trace organization.
+The storage readers require the binary layouts described above.
+
+When a normalizer is available
+------------------------------
+
+A normalizer accepts the result of its corresponding qualified reader and
+validates a layout or calibration for a consumer.
+
+* Agilent/Varian and Bruker raw: qualified 1D FIDs.
+* Bruker processed: complete calibrated 1D spectra and qualified four-plane
+  2D spectra.
+* NMRPipe processed: complete real or complex 1D spectra and complete real
+  2D planes.
+* nmrML: the explicit 1D raw and processed profiles.
 
 See the :doc:`API reference <../reference/interop>` for function names, detailed
-limits and the separate raw NMRPipe export. Each normalizer accepts the result
-of its corresponding profile. The presence of a reader does not imply a
-normalizer or an export for that profile.
+limits and the separate raw NMRPipe export.
