@@ -34,3 +34,28 @@ The official external HSQC example
 <https://nmrml.org/examples/6/bmse000400-exp06.nmrML> was inspected locally
 (SHA-256 `3231a4769029f362863fb57c7adaaaf6aae304a65c503839b57e5ec02b320f82`).
 Its processed array declares zero data points and contains no binary samples.
+
+For raw 2D qualification, download the nmrML example above and extract
+`ser`, `acqus`, `acqu2s` and `pulseprogram` from the [BMRB experiment 6 archive](https://bmrb.io/metabolomics/mol_summary/zip_entry_directory.php?experiment=6&id=bmse000400).
+The nmrML project publishes the example for format illustration. BMRB
+provides the matching archive through entry DOI 10.13018/BMSE000400
+(Bruker DMX 500 MHz, XWIN-NMR). Local qualification uses these public
+downloads. Redistribution rights for these files have not been assessed.
+The files are kept outside the repository. Set `NMRML_HSQC_XML`
+and `NMRML_HSQC_SER` to the local paths and run
+`python -m pytest tests/interop/test_interop_nmrml_2d.py -k official_hsqc`.
+
+The test compares the complete nmrML FID with the big-endian int32
+quadrature words from `ser`. Its SHA-1 is
+`a979ed42e5a28066a476557d713c76ce081541da`, matching the nmrML reference.
+The source `acqu2s` (SHA-256
+`a5f7dde9f300ceda791dc39061d2cca5c341d5206cee2b317828514108a6d50f`)
+records `IN[0] = 6.6297935484259e-05` s. The pulse program (SHA-256
+`ba9d0d0667cffac7c2db6f7a06135fdda1e168c1e12a1643c277f9dce29a6e14`)
+advances the indirect delay after each two-trace cycle. Carbon evolution
+contains two d0 delays, so its increment is twice IN[0]. The direct
+acquisition status `acqus` (SHA-256
+`69fe04b277990aa0076042a012a7549473a5547c12c52c53c0ea30fb22210e1a`)
+records `IN[0] = 6.63e-05` s. Twice this value agrees with `1 / SW` from
+the nmrML document. The reference uses 132.6 µs per pair. The more precise
+value in `acqu2s` differs by about 31 ppm.

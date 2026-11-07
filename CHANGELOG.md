@@ -7,6 +7,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Read raw nmrML 2D complex traces and normalize confirmed adjacent
+  echo/anti-echo pairs with explicit indirect dwell time. (#169)
+
 - Read and normalize real processed nmrML 2D planes with explicit shape,
   storage order and indirect calibration. (#168)
 

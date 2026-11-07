@@ -61,6 +61,7 @@ Read processed spectra and exchange files
     read_nmrpipe_2d
     read_nmrml_1d
     read_nmrml_2d
+    read_nmrml_raw_2d
 
 Normalize a supported result
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -76,6 +77,7 @@ Normalize a supported result
     normalize_nmrpipe_2d
     normalize_nmrml_1d
     normalize_nmrml_2d
+    normalize_nmrml_raw_2d
 
 Export an acquisition
 ^^^^^^^^^^^^^^^^^^^^^
@@ -346,6 +348,45 @@ spectra requires a zero-based ``spectrum_index``.
 The example uses the synthetic reference in ``tests/fixtures/nmrml/``.
 The official HSQC example contains an acquisition, but its processed
 array is empty.
+
+Raw nmrML 2D acquisitions
+-------------------------
+
+:func:`~nmrglue.interop.read_nmrml_raw_2d` reads contiguous complex
+traces from ``acquisitionMultiD``. The indirect count is the number of
+stored traces. Supply ``direct_point_count="scalar"`` if the direct count
+includes both real and imaginary words, or ``"complex"`` if it counts
+complex samples.
+
+The `official HSQC example <https://nmrml.org/examples/6/>`_ has a legacy
+length field and zero padding after the zlib stream. Its compatibility
+option verifies the original payload by checksum. The stored 256 × 2048
+array matches the corresponding BMRB ``ser`` exactly. The BMRB acquisition
+parameters and pulse program give an indirect evolution increment of
+132.6 µs per pair. The sequence uses two d0 delays. The indirect sweep
+width in nmrML and the increment recorded in the direct acquisition
+status agree at this precision.
+
+.. code-block:: python
+
+    import nmrglue as ng
+
+    stored = ng.interop.read_nmrml_raw_2d(
+        "bmse000400-exp06.nmrML",
+        direct_point_count="scalar",
+        official_hsqc_compatibility=True,
+    )
+    acquisition = ng.interop.normalize_nmrml_raw_2d(
+        stored, indirect_dwell_s=132.6e-6,
+        confirm_adjacent_pairs=True,
+    )
+
+The normalizer accepts uniform echo/anti-echo acquisitions with confirmed
+adjacent pairs and an explicit indirect dwell time. It returns complex
+channels in ``(channels, F1, F2)`` order. The channel labels ``first`` and
+``second`` describe stored pair order. Time coordinates are relative to
+the first sample. F2 uses the declared direct sweep width. Recombination,
+phase and digital filter correction belong to subsequent processing.
 
 .. _interop-nmrpipe-2d-storage:
 
