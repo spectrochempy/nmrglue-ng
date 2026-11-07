@@ -1,9 +1,10 @@
-"""Explicit, bounded 1D nmrML normalization without vendor dispatch."""
+"""Explicit nmrML profiles without vendor dispatch."""
 
 from __future__ import annotations
 
 from numbers import Real
 import os
+import operator
 from urllib.parse import urlsplit
 
 import numpy as np
@@ -226,6 +227,148 @@ def normalize_nmrml_1d(result, *, conjugation=None):
         domains=checked.domains, quadrature_mode=mode + '-1d', branch_order=(mode,),
         normalization_state='storage-normalized',
         normalization_profile='nmrml-' + ('time' if time_domain else 'spectrum') + '-1d-v1',
+        applied_operations=(operation,), acquisition=checked.acquisition,
+        provenance={'source': result.source, 'format': result.format},
+        metadata=checked.metadata, encoding=checked.encoding, diagnostics=checked.diagnostics,
+    )
+
+
+_2D_DIMS = ('F1', 'F2')
+_2D_DOMAINS = ('frequency', 'frequency')
+_2D_ENCODING = ('real', 'real')
+
+
+def _spectrum_2d_axis(document, grid, size, endpoint, label):
+    unit = _unit(document, grid, ('Hz', 'ppm'))
+    start = _number(grid.get('@startValue'), label + ' startValue')
+    end = _number(grid.get('@endValue'), label + ' endValue')
+    values = np.linspace(start, end, size, endpoint=endpoint == 'last-point')
+    differences = np.diff(values)
+    if not np.isfinite(values).all() or not (
+        np.all(differences > 0) or np.all(differences < 0)
+    ):
+        raise ValueError('nmrML axis must be finite and strictly monotonic')
+    return Axis(values=values, unit=unit, label=label, domain='frequency',
+                direction='increasing' if start < end else 'decreasing')
+
+
+def _describe_2d(document, options, source):
+    if document.get('@xmlns') != nmrml.NAMESPACE:
+        raise ValueError('nmrML interop requires the schema namespace')
+    spectra = document.get('spectrumList') or {}
+    if not isinstance(spectra, dict) or not spectra.get('spectrumMultiD') or 'spectrum1D' in spectra:
+        raise ValueError('nmrML requires a multidimensional spectrum list')
+    spectrum = nmrml._select_spectrum(spectra['spectrumMultiD'], options['spectrum_index'])
+    if not isinstance(spectrum, dict) or not (
+        isinstance(spectrum.get('firstDimensionProcessingParameterSet'), (dict, type(None)))
+        and 'firstDimensionProcessingParameterSet' in spectrum
+        and 'higherDimensionProcessingParameterSet' in spectrum
+        and isinstance(spectrum['higherDimensionProcessingParameterSet'], (dict, type(None)))
+        and 'projected3DProcessingParamaterSet' not in spectrum
+    ):
+        raise ValueError('nmrML requires a non-projected spectrum with two dimensions')
+    try:
+        sizes = tuple(options['shape'])
+        if len(sizes) != 2 or any(isinstance(size, (bool, np.bool_)) for size in sizes):
+            raise ValueError
+        rows, cols = map(operator.index, sizes)
+        if min(rows, cols) < 2:
+            raise ValueError
+    except (TypeError, ValueError) as exc:
+        raise ValueError('nmrML requires a two-dimensional shape with sizes >= 2') from exc
+
+    order = options['storage_order']
+    endpoint = options['axis_endpoint']
+    if order not in ('x-fastest', 'y-fastest'):
+        raise ValueError('nmrML requires storage_order: x-fastest or y-fastest')
+    if endpoint not in ('last-point', 'outer-edge'):
+        raise ValueError('nmrML requires axis_endpoint: last-point or outer-edge')
+    binary = spectrum.get('spectrumDataArray')
+    if not isinstance(binary, dict) or binary.get('@byteFormat', '').lower() not in ('float32', 'float64'):
+        raise ValueError('nmrML 2D requires a real float32 or float64 spectrum array')
+    if not {'@compressed', '@encodedLength'} <= binary.keys():
+        raise ValueError('nmrML spectrum array requires compressed and encodedLength')
+    flat = nmrml._get_nmrml_data(binary, strict=True)
+    nmrml._check_count(spectrum, flat, True)
+    if flat.size != rows * cols or not np.isfinite(flat).all():
+        raise ValueError('nmrML samples must be finite and match the supplied 2D shape')
+    xaxis = spectrum.get('xAxis')
+    if not isinstance(xaxis, dict):
+        raise ValueError('nmrML 2D requires the stored xAxis')
+    y_start, y_end, y_unit = options['indirect_axis']
+    if not isinstance(y_unit, str):
+        raise ValueError('nmrML requires an explicit indirect axis unit')
+    yaxis = {'@startValue': y_start, '@endValue': y_end, '@unitName': y_unit}
+    axes = (_spectrum_2d_axis(document, yaxis, rows, endpoint, 'F1'),
+            _spectrum_2d_axis(document, xaxis, cols, endpoint, 'F2'))
+    data = flat.reshape((rows, cols), order='C' if order == 'x-fastest' else 'F')
+    return ReadResult(
+        data=data, axes=axes, components=(Component('real', data),),
+        metadata={'document': document, 'profile_options': options},
+        applied_corrections={}, diagnostics=(), format='nmrml-2d-spectrum',
+        source=source, domains=_2D_DOMAINS, encoding=_2D_ENCODING,
+        dimensions={'axis_order': _2D_DIMS, 'shape': data.shape},
+        acquisition={'axis_endpoint': endpoint, 'storage_order': order,
+                     'indirect_axis_source': 'caller'},
+    )
+
+
+def read_nmrml_2d(filename, *, shape, indirect_axis, storage_order,
+                  axis_endpoint, spectrum_index=None):
+    """Read a real 2D processed nmrML spectrum as a matrix in (F1, F2) order.
+
+    The schema provides the F2 xAxis. Supply the matrix shape (F1, F2),
+    the F1 grid as (start, end, unit), and the binary order as
+    ``x-fastest`` or ``y-fastest``. Both axes use the explicitly supplied
+    ``last-point`` or ``outer-edge`` endpoint convention. Axis units are Hz
+    or ppm. Geometry supplied by the caller should come from a trusted
+    reference for the processed spectrum.
+    """
+    try:
+        shape = tuple(shape)
+        indirect_axis = tuple(indirect_axis)
+    except TypeError as exc:
+        raise ValueError('nmrML requires shape and indirect_axis sequences') from exc
+    if len(indirect_axis) != 3:
+        raise ValueError('nmrML indirect_axis requires (start, end, unit)')
+    options = {'shape': shape, 'indirect_axis': indirect_axis, 'storage_order': storage_order,
+               'axis_endpoint': axis_endpoint, 'spectrum_index': spectrum_index}
+    return _describe_2d(nmrml._read_document(filename), options, os.fspath(filename))
+
+
+def normalize_nmrml_2d(result):
+    """Validate the real 2D profile and preserve its calibrated plane."""
+    if not isinstance(result, ReadResult) or result.format != 'nmrml-2d-spectrum':
+        raise ValueError('normalize_nmrml_2d requires a nmrml-2d-spectrum ReadResult')
+    checked = _describe_2d(result.metadata['document'], result.metadata['profile_options'],
+                           result.source)
+    if (
+        result.data.dtype != checked.data.dtype or not np.array_equal(result.data, checked.data)
+        or result.domains != checked.domains or result.encoding != checked.encoding
+        or result.dimensions != checked.dimensions or result.acquisition != checked.acquisition
+        or result.applied_corrections or len(result.components) != 1
+        or result.components[0].name != 'real'
+        or result.components[0].data.dtype != checked.data.dtype
+        or not np.array_equal(result.components[0].data, checked.data)
+        or len(result.axes) != 2
+    ):
+        raise ValueError('nmrML 2D description disagrees with its source')
+    for axis, expected in zip(result.axes, checked.axes, strict=True):
+        if ((axis.unit, axis.domain, axis.direction, axis.reference, axis.label)
+                != (expected.unit, expected.domain, expected.direction, expected.reference,
+                    expected.label)
+                or not np.array_equal(axis.values, expected.values)):
+            raise ValueError('nmrML 2D axis disagrees with its source and explicit conventions')
+    operation = {'name': 'normalize-nmrml-spectrum-2d', 'stage': 'processing',
+                 'input_dimensions': _2D_DIMS, 'output_dimensions': _2D_DIMS,
+                 'axis': None, 'scale': None, 'conjugation': 'none', 'sign': 'none',
+                 'permutation': None, 'evidence': 'explicit nmrML 2D profile options'}
+    return NormalizedAcquisition(
+        data=checked.data, axes=checked.axes, dimensions=_2D_DIMS,
+        physical_dimensions=_2D_DIMS, domains=checked.domains,
+        quadrature_mode='real-2d', branch_order=('real',),
+        normalization_state='storage-normalized',
+        normalization_profile='nmrml-spectrum-2d-real-v1',
         applied_operations=(operation,), acquisition=checked.acquisition,
         provenance={'source': result.source, 'format': result.format},
         metadata=checked.metadata, encoding=checked.encoding, diagnostics=checked.diagnostics,

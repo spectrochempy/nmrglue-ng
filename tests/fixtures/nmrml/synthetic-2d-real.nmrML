@@ -1,0 +1,54 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<nmrML xmlns="http://nmrml.org/schema" version="1.0.rc1">
+  <cvList>
+    <cv id="NMR" fullName="NMR CV" URI="https://nmrml.org/cv" version="1"/>
+    <cv id="CHEBI" fullName="Chemical Entities of Biological Interest" URI="http://purl.obolibrary.org/obo/chebi.owl" version="1"/>
+  </cvList>
+  <fileDescription>
+    <fileContent>
+      <cvParam cvRef="NMR" accession="NMR:1400160" name="2D FID"/>
+    </fileContent>
+  </fileDescription>
+  <instrumentConfigurationList>
+    <instrumentConfiguration id="instrument"/>
+  </instrumentConfigurationList>
+  <acquisition>
+    <acquisitionMultiD>
+      <acquisitionParameterSet numberOfSteadyStateScans="0" numberOfScans="1">
+        <sampleContainer cvRef="NMR" accession="NMR:1400132" name="NMR Sample tube"/>
+        <sampleAcquisitionTemperature value="298" unitName="kelvin"/>
+        <spinningRate value="0" unitName="hertz"/>
+        <relaxationDelay value="1" unitName="second"/>
+        <pulseSequence/>
+        <directDimensionParameterSet decoupled="false" numberOfDataPoints="4">
+          <acquisitionNucleus cvRef="CHEBI" accession="CHEBI_49637" name="hydrogen atom"/>
+          <effectiveExcitationField value="400" unitName="megaHertz"/>
+          <sweepWidth value="2000" unitName="hertz"/>
+          <pulseWidth value="10" unitName="microsecond"/>
+          <irradiationFrequency value="400" unitName="megaHertz"/>
+          <irradiationFrequencyOffset value="0" unitName="hertz"/>
+          <samplingStrategy cvRef="NMR" accession="NMR:1000349" name="uniform sampling"/>
+        </directDimensionParameterSet>
+        <encodingScheme cvRef="NMR" accession="NMR:1000008" name="quadrature detection"/>
+        <indirectDimensionParameterSet decoupled="false" numberOfDataPoints="3">
+          <acquisitionNucleus cvRef="CHEBI" accession="CHEBI_49637" name="hydrogen atom"/>
+          <effectiveExcitationField value="400" unitName="megaHertz"/>
+          <sweepWidth value="2000" unitName="hertz"/>
+          <pulseWidth value="10" unitName="microsecond"/>
+          <irradiationFrequency value="400" unitName="megaHertz"/>
+          <irradiationFrequencyOffset value="0" unitName="hertz"/>
+          <samplingStrategy cvRef="NMR" accession="NMR:1000349" name="uniform sampling"/>
+        </indirectDimensionParameterSet>
+      </acquisitionParameterSet>
+      <fidData compressed="false" byteFormat="complex128" encodedLength="256">AAAAAAAAAAAAAAAAAADwPwAAAAAAAABAAAAAAAAACEAAAAAAAAAQQAAAAAAAABRAAAAAAAAAGEAAAAAAAAAcQAAAAAAAACBAAAAAAAAAIkAAAAAAAAAkQAAAAAAAACZAAAAAAAAAKEAAAAAAAAAqQAAAAAAAACxAAAAAAAAALkAAAAAAAAAwQAAAAAAAADFAAAAAAAAAMkAAAAAAAAAzQAAAAAAAADRAAAAAAAAANUAAAAAAAAA2QAAAAAAAADdA</fidData>
+    </acquisitionMultiD>
+  </acquisition>
+  <spectrumList>
+    <spectrumMultiD id="spectrum2d" numberOfDataPoints="12">
+      <spectrumDataArray byteFormat="float32" compressed="false" encodedLength="64">AACAPwAAAMAAAIBAAAAAQQAAgEEAAADCAACAQgAAAEMAAEBAAACgQAAA4MAAADBB</spectrumDataArray>
+      <xAxis unitName="parts per million" startValue="9" endValue="3"/>
+      <firstDimensionProcessingParameterSet/>
+      <higherDimensionProcessingParameterSet/>
+    </spectrumMultiD>
+  </spectrumList>
+</nmrML>

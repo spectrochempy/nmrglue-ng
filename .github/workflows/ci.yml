@@ -87,6 +87,7 @@ jobs:
     - name: Test nmrML binary roundtrip and normalized profiles
       run: >-
         python -m pytest tests/fileio/test_nmrml.py tests/interop/test_interop_nmrml.py
+        tests/interop/test_interop_nmrml_2d.py
         -m "not dataset" --strict-markers --strict-config -ra
         --junitxml="${{ runner.temp }}/nmrml.xml"
     - name: Require executed nmrML tests
