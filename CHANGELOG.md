@@ -9,7 +9,7 @@ original nmrglue project and are preserved for attribution and continuity.
 
 - Normalize complete NMRPipe 2D storage grids to calibrated axes and real
   quadrature channels. Time and mixed domains support confirmed grids in NMRPipe
-  States layout.
+  States layout. (#166)
 
 - Read NMRPipe 2D traces through interop in time, frequency and mixed domains,
   preserving file order and describing real and complex storage layouts. (#165)
