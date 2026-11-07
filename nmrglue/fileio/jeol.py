@@ -405,6 +405,8 @@ def read_parameters(buffer, param_start, endianness, *, inclusive=False):
                 "value_type": value_type,
             }
 
+        if inclusive and value_type == "string" and unit_scaler != 0:
+            raise ValueError("JDF text parameter has a nonzero unit scaler")
         params[bname] = value * (10 ** unit_scaler)
 
     params["info"] = param_array

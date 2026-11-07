@@ -84,6 +84,7 @@ def test_jeol_rejects_unsupported_storage(tmp_path, offset, replacement, message
         (1579, bytes((28,)), "x_freq in hertz"),
         (1456, struct.pack(">i12xi", 4000, 4), "positive numeric x_sweep"),
         (1392, struct.pack(">i12xi", 5, 4), "positive numeric x_points"),
+        (1382, bytes((1, 28)), "dimensionless x_points"),
         (1064, struct.pack(">d", 300.0), "base frequency disagrees"),
     ],
 )
@@ -95,6 +96,16 @@ def test_jeol_rejects_inconsistent_calibration(tmp_path, offset, replacement, me
     stored = interop.read_jeol_fid(path)
     with pytest.raises(ValueError, match=message):
         interop.normalize_jeol_fid(stored, conjugation="none")
+
+
+def test_jeol_rejects_scaled_text(tmp_path):
+    path = tmp_path / "fid.jdf"
+    payload = _synthetic_jdf(">")
+    struct.pack_into(">h", payload, 1508, 1)
+    struct.pack_into(">16si", payload, 1520, b"0123456789abcdef", 0)
+    path.write_bytes(payload)
+    with pytest.raises(ValueError, match="parameter section could not be decoded"):
+        interop.read_jeol_fid(path)
 
 
 def test_jeol_rejects_overflowing_scaled_integer(tmp_path):

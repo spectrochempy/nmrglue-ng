@@ -83,7 +83,7 @@ def read_jeol_fid(filename):
     )
 
 
-def _positive_parameter(parameters, key, *, hertz=False):
+def _positive_parameter(parameters, key, *, unit=None):
     record = parameters.get("info", {}).get(key, {})
     if record.get("value_type") not in ("integer", "float"):
         raise ValueError(f"JEOL FID requires a positive numeric {key}")
@@ -93,9 +93,13 @@ def _positive_parameter(parameters, key, *, hertz=False):
         raise ValueError(f"JEOL FID requires a positive numeric {key}") from exc
     if not np.isfinite(value) or value <= 0:
         raise ValueError(f"JEOL FID requires a positive numeric {key}")
-    if hertz:
-        if record.get("units") != [("none", 1, "hertz")] + [("none", 0, None)] * 4:
-            raise ValueError(f"JEOL FID requires {key} in hertz")
+    expected_units = [("none", 0, None)] * 5
+    if unit is not None:
+        expected_units[0] = ("none", 1, unit)
+    if record.get("units") != expected_units:
+        if unit is not None:
+            raise ValueError(f"JEOL FID requires {key} in {unit}")
+        raise ValueError(f"JEOL FID requires dimensionless {key}")
     return value
 
 
@@ -119,8 +123,8 @@ def normalize_jeol_fid(result, *, conjugation):
         or not np.array_equal(result.components[0].data, data, equal_nan=True)
     ):
         raise ValueError("JEOL FID samples disagree with their storage description")
-    width = _positive_parameter(params, "x_sweep", hertz=True)
-    obs = _positive_parameter(params, "x_freq", hertz=True) / 1e6
+    width = _positive_parameter(params, "x_sweep", unit="hertz")
+    obs = _positive_parameter(params, "x_freq", unit="hertz") / 1e6
     if not np.isclose(header["base_freq"][0], obs, rtol=1e-7, atol=0):
         raise ValueError("JEOL FID base frequency disagrees with x_freq")
     if _positive_parameter(params, "x_points") != acquired:
