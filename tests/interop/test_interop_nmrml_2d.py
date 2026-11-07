@@ -130,14 +130,14 @@ def test_official_hsqc_matches_bmrb_ser():
         xml, direct_point_count='scalar', official_hsqc_compatibility=True,
     )
     np.testing.assert_array_equal(stored.data, expected)
+    # The pulse program has two d0 delays and increments d0 once per pair.
+    carbon_dwell = 2 * 6.63e-05
     result = interop.normalize_nmrml_raw_2d(
-        stored, indirect_dwell_s=6.6297935484259e-05, confirm_adjacent_pairs=True,
+        stored, indirect_dwell_s=carbon_dwell, confirm_adjacent_pairs=True,
     )
     assert result.data.shape == (2, 128, 2048)
     np.testing.assert_array_equal(result.data[0], expected[::2])
     np.testing.assert_array_equal(result.data[1], expected[1::2])
-    # The recorded IN[0] differs from the nominal 1/(2*SW) by 31.14 ppm.
-    np.testing.assert_allclose(result.axes[0].values, np.arange(128) * 6.6297935484259e-05)
-    np.testing.assert_allclose(result.axes[0].values, np.arange(128) / (2 * 7541.47812971342),
-                               rtol=4e-5)
+    np.testing.assert_allclose(result.axes[0].values, np.arange(128) * carbon_dwell)
+    np.testing.assert_allclose(result.axes[0].values, np.arange(128) / 7541.47812971342)
     np.testing.assert_allclose(result.axes[1].values, np.arange(2048) / 7002.80112044818)

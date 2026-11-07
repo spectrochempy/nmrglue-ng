@@ -362,8 +362,10 @@ The `official HSQC example <https://nmrml.org/examples/6/>`_ has a legacy
 length field and zero padding after the zlib stream. Its compatibility
 option verifies the original payload by checksum. The stored 256 × 2048
 array matches the corresponding BMRB ``ser`` exactly. The BMRB acquisition
-parameters and pulse program give an indirect increment of approximately
-66.3 µs per pair for this example.
+parameters and pulse program give an indirect evolution increment of
+132.6 µs per pair. The sequence uses two d0 delays. The indirect sweep
+width in nmrML and the increment recorded in the direct acquisition
+status agree at this precision.
 
 .. code-block:: python
 
@@ -375,7 +377,7 @@ parameters and pulse program give an indirect increment of approximately
         official_hsqc_compatibility=True,
     )
     acquisition = ng.interop.normalize_nmrml_raw_2d(
-        stored, indirect_dwell_s=6.6297935484259e-05,
+        stored, indirect_dwell_s=132.6e-6,
         confirm_adjacent_pairs=True,
     )
 
