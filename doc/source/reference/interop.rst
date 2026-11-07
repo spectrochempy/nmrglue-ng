@@ -269,3 +269,24 @@ values. The real 2D profile accepts both byte orders and both orientations.
 Extracted grids, mixed domains, complex planes and higher-dimensional slices
 require separate profiles. This interface describes the stored spectrum and
 leaves interpretation and processing to the caller.
+
+Complete Bruker processed 2D planes (experimental)
+--------------------------------------------------
+
+Read a complete int32 Bruker processed frequency/frequency dataset::
+
+    raw = ng.interop.read_bruker_pdata_2d("experiment/pdata/1")
+    spectrum = ng.interop.normalize_bruker_pdata_2d(raw)
+
+The reader preserves the four stored planes named ``2rr``, ``2ri``,
+``2ir`` and ``2ii``. The primary array is ``2rr``. The normalizer
+stacks the four real planes in that order along a leading channel axis.
+Each plane is indexed in F1, F2 order. Frequency grids in Hz use the
+processing parameters in ``proc2s`` and ``procs``, respectively.
+
+The default applies the storage factor ``2**NC_proc`` from ``procs``
+once. Use ``scale_data=False`` to preserve stored int32 values. The
+profile requires complete, unextracted grids, forward processing status
+(``FT_mod=4`` or ``6``) and exact file sizes.
+The file names identify storage components and leave processing choices
+to the consumer.

@@ -7,6 +7,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Add experimental interop reading and normalization for complete Bruker
+  processed 2D int32 spectra with four named components and calibrated axes.
+
 - Add experimental NMRPipe real 2D spectrum reading and normalization with
   calibrated axes in file order.
 

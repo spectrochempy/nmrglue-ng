@@ -18,6 +18,7 @@ acquisitions::
 from __future__ import annotations
 
 from .bruker import read_bruker_fid, read_bruker_pdata, read_bruker_ser
+from .bruker_pdata_2d import normalize_bruker_pdata_2d, read_bruker_pdata_2d
 from .nmrpipe import write_readresult_nmrpipe
 from .nmrml import read_nmrml_1d, normalize_nmrml_1d
 from .nmrpipe_read import (
@@ -44,6 +45,8 @@ __all__ = [
     "ReadResult",
     "Reference",
     "read_bruker_pdata",
+    "read_bruker_pdata_2d",
+    "normalize_bruker_pdata_2d",
     "read_bruker_fid",
     "read_bruker_ser",
     "read_agilent_fid",
