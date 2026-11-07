@@ -114,9 +114,8 @@ def test_jeol_rejects_overflowing_scaled_integer(tmp_path):
     struct.pack_into(">h", payload, 1380, 1000)
     struct.pack_into(">i12xi", payload, 1392, 5, 1)
     path.write_bytes(payload)
-    stored = interop.read_jeol_fid(path)
-    with pytest.raises(ValueError, match="positive numeric x_points"):
-        interop.normalize_jeol_fid(stored, conjugation="none")
+    with pytest.raises(ValueError, match="parameter section could not be decoded"):
+        interop.read_jeol_fid(path)
 
 
 @pytest.mark.dataset
