@@ -138,3 +138,75 @@ def test_zenodo_jeol_fid_reference():
     assert normalized.axes[0].label == "Fluorine19"
     assert normalized.axes[0].values[-1] == pytest.approx(2.98768284)
     assert normalized.axes[0].values[1] == pytest.approx(8.46e-6)
+
+
+_JDF_FIXTURES = Path(__file__).parents[1] / "fixtures" / "fileio" / "data" / "jeol"
+
+
+@pytest.mark.parametrize(
+    "experiment, grid, count, data_offset, list_offset, second_time",
+    [
+        ("hsqc", (32, 1024), 4, 20480, 19488, 0.11696),
+        ("cosy", (256, 1280), 2, 16384, None, None),
+        ("hmbc", (64, 2048), 4, 20480, 19808, 0.03976),
+    ],
+)
+def test_epicatechin_2d_storage(experiment, grid, count, data_offset, list_offset, second_time):
+    path = _JDF_FIXTURES / f"epicatechin_{experiment}.jdf"
+    original = path.read_bytes()
+    ny, nx = grid
+    words = np.frombuffer(original, "<f8", count=count * ny * nx, offset=data_offset)
+    stored = interop.read_jeol_2d_storage(path)
+
+    assert stored.format == "jeol-2d-storage"
+    assert stored.domains == ("unknown", "unknown")
+    assert not stored.applied_corrections
+    assert stored.dimensions["grid_axis_order"] == ("y", "x")
+    assert stored.dimensions["grid_shape"] == grid
+    assert stored.dimensions["tile_shape"] == (32, 32)
+    assert stored.dimensions["valid_index_ranges"] == {"x": (0, nx - 1), "y": (0, ny - 1)}
+    np.testing.assert_array_equal(stored.data, words.reshape(count, ny * nx))
+    assert not stored.data.flags.writeable
+    for index, section in enumerate(stored.components):
+        assert section.name == f"section-{index}"
+        np.testing.assert_array_equal(section.data, stored.data[index])
+
+    if list_offset is None:
+        assert not stored.metadata["axis_lists_raw"]
+    else:
+        axis_list = stored.metadata["axis_lists_raw"]["y"]
+        assert axis_list == original[list_offset:list_offset + ny * 8]
+        assert struct.unpack_from(">d", axis_list)[0] == 0.0
+        assert struct.unpack_from(">d", axis_list, 8)[0] == pytest.approx(second_time)
+
+    # Independently undo the tile layout and reproduce the historical reader's signs.
+    planes = words.reshape(count, ny // 32, nx // 32, 32, 32)
+    planes = planes.transpose(0, 1, 3, 2, 4).reshape(count, ny, nx)
+    expected = planes[0] - 1j * planes[1]
+    if count == 4:
+        expected = np.empty((ny * 2, nx), dtype=complex)
+        expected[0::2] = planes[0] - 1j * planes[1]
+        expected[1::2] = -planes[2] + 1j * planes[3]
+    np.testing.assert_array_equal(jeol.read(path)[1], expected)
+    assert path.read_bytes() == original
+
+
+@pytest.mark.parametrize(
+    "offset, value, message",
+    [
+        (176, 1023, "complete storage tiles"),
+        (240, 1024, "offsets are outside"),
+        (1224, 20480, "axis list overlaps"),
+        (1256, 0, "axis list length disagrees"),
+        (1256, 1, "axis list length disagrees"),
+        (1252, 8, "axis lists overlap"),
+    ],
+)
+def test_jeol_rejects_invalid_2d_geometry(tmp_path, offset, value, message):
+    original = (_JDF_FIXTURES / "epicatechin_hsqc.jdf").read_bytes()
+    path = tmp_path / "bad.jdf"
+    payload = bytearray(original)
+    struct.pack_into(">I", payload, offset, value)
+    path.write_bytes(payload)
+    with pytest.raises(ValueError, match=message):
+        interop.read_jeol_2d_storage(path)

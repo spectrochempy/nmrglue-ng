@@ -121,6 +121,13 @@ to reconstruct physical dimensions separately. The
 :ref:`NMRPipe storage reference <interop-nmrpipe-2d-storage>` shows how to
 inspect that layout.
 
+Use ``read_jeol_2d_storage`` for supported tiled float64 JDF layouts.
+The result retains each section in file order, along with the tile sizes,
+header, parameters and original bytes of any explicit axis lists. In the
+reference HSQC and HMBC files these lists record the non-uniform indirect
+sampling times. See the :ref:`JEOL storage reference <interop-jeol-2d-storage>`
+for the result layout.
+
 The existing readers for qualified profiles provide stronger guarantees,
 such as calibrated axes or a particular trace organization. Choose those
 entry points when the input satisfies the corresponding profile.
@@ -128,7 +135,7 @@ entry points when the input satisfies the corresponding profile.
 What interop can read
 ---------------------
 
-**Agilent/Varian and Bruker 2D acquisitions can be read.** The storage readers
+**Agilent/Varian, Bruker and JEOL 2D acquisitions can be read.** The storage readers
 return the decoded traces and metadata needed to reconstruct the acquisition.
 For example, the rows of an Agilent 2D storage result are traces in file order.
 They are still available even when no interop normalizer is provided for that
@@ -154,7 +161,8 @@ They are still available even when no interop normalizer is provided for that
        Qualified: complete real or complex 1D spectrum or complete real 2D
        frequency plane.
    * - JEOL JDF
-     - Complex float64 1D FIDs with a time axis in seconds.
+     - Storage: scalar sections of standard tiled float64 2D JDF files.
+       Qualified: complex float64 1D FIDs with a time axis in seconds.
    * - nmrML
      - Explicit 1D raw or processed profile. Real processed 2D planes with
        documented shape, storage order and indirect calibration. Raw 2D
