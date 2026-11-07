@@ -704,9 +704,12 @@ def _normalize_components(returned, count):
 
 def _build_axis(dic, data):
     """Build the single 1D frequency axis and its diagnostics."""
+    return _build_processed_axis(dic, int(data.shape[0]))
+
+
+def _build_processed_axis(dic, n):
     diagnostics = []
     procs = dic.get("procs", {})
-    n = int(data.shape[0])
 
     if n == 0:
         raise ValueError("cannot build a 1D axis for zero-length data")
