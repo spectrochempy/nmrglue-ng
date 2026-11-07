@@ -168,8 +168,8 @@ validates a layout or calibration for a consumer.
 * Bruker processed: complete calibrated 1D spectra and qualified four-plane
   2D spectra.
 * NMRPipe: complete real or complex 1D spectra and complete 2D frequency
-  grids. Complete complex grids in NMRPipe States layout require confirmation
-  of the original time grid for time or mixed domains. See
+  grids. Complete grids in NMRPipe States or pure TPPI layout require
+  confirmation of the original time grid for time or mixed domains. See
   :func:`~nmrglue.interop.normalize_nmrpipe_2d`.
 * nmrML: the explicit 1D raw and processed profiles.
 

@@ -361,8 +361,8 @@ def _normalize_nmrpipe_2d_storage(result, confirm_time_grid):
     if "time" in domains:
         if confirm_time_grid is not True:
             raise ValueError("NMRPipe time-domain normalization requires confirm_time_grid=True")
-        if plane_type != 2:
-            raise ValueError("NMRPipe time-domain normalization requires NMRPipe States layout (FD2DPHASE=2)")
+        if plane_type not in (1, 2):
+            raise ValueError("NMRPipe time-domain normalization requires States or TPPI layout")
 
     axes = []
     widths = []
@@ -371,20 +371,25 @@ def _normalize_nmrpipe_2d_storage(result, confirm_time_grid):
         prefix = "FD" + dim
         if _number(header, prefix + "X1") or _number(header, prefix + "XN"):
             raise ValueError("NMRPipe normalization requires an unextracted grid")
+        tppi_indirect = plane_type == 1 and dim == "F1"
         size_field = "FTSIZE" if domain == "frequency" else "TDSIZE"
         if _number(header, prefix + size_field) != size:
             raise ValueError("NMRPipe normalization requires a complete grid matching " + size_field)
         if domain == "frequency":
             axis, width = _frequency_axis(header, prefix, size)
         else:
-            if kind != "complex":
-                raise ValueError("NMRPipe time-domain normalization requires complex samples")
+            expected_kind = "real" if tppi_indirect else "complex"
+            if kind != expected_kind:
+                raise ValueError(
+                    f"NMRPipe time-domain {dim} requires {expected_kind} samples for this layout"
+                )
             width = _number(header, prefix + "SW")
             obs = _number(header, prefix + "OBS")
             if width <= 0 or obs <= 0:
                 raise ValueError("NMRPipe SW and OBS must be positive")
             axis = Axis(
-                values=np.arange(size, dtype=float) / width, unit="s",
+                values=np.arange(size, dtype=float) / (2 * width if tppi_indirect else width),
+                unit="s",
                 label=header[prefix + "LABEL"], domain="time", direction="increasing",
                 reference=Reference(observation_frequency=obs,
                                     observation_frequency_unit="MHz", source="acquisition"),
@@ -439,7 +444,8 @@ def normalize_nmrpipe_2d(result, *, confirm_time_grid=False):
     """Normalize a qualified real plane or complete NMRPipe 2D storage grid.
 
     Preserve file axis order and split stored quadrature into real channels.
-    Time axes require complex samples and the NMRPipe States storage flag.
+    Time axes support complex States storage and pure TPPI with a real
+    indirect time axis sampled at twice its spectral width.
     Set ``confirm_time_grid=True`` only for a known complete, uniformly
     sampled acquisition grid starting at the original time and branch.
     NMRPipe time-domain extraction can leave the relevant header fields

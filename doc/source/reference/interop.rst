@@ -359,26 +359,36 @@ and split the stored components. For a complete frequency-domain file::
     spectrum = ng.interop.normalize_nmrpipe_2d(stored)
 
 For a known complete, uniformly sampled time grid stored in NMRPipe
-States layout, including a partially transformed file, confirm its provenance::
+States or pure TPPI layout, including a partially transformed file,
+confirm its provenance::
 
     stored = ng.interop.read_nmrpipe_2d_storage("test.fid")
     acquisition = ng.interop.normalize_nmrpipe_2d(stored, confirm_time_grid=True)
 
 Use that confirmation only when the time grid begins at the original
-increment and the rows begin on the original real branch. A time-domain
+increment and any interleaved rows begin on the original real branch. A time-domain
 extraction can retain the same size and relevant header fields while
 shifting the start. Normalization checks for complete pairs, an unextracted
-grid and a matching ``TDSIZE`` or ``FTSIZE`` on each axis. Each time axis
-must be complex, and the header must declare the NMRPipe States layout
-(``FD2DPHASE=2``). This flag describes the layout after conversion. Files
+grid and checks each axis against ``TDSIZE`` or ``FTSIZE``. In the NMRPipe
+States layout (``FD2DPHASE=2``), each time axis must be complex. This
+flag describes the layout after conversion. Files
 from States-TPPI or echo/antiecho acquisitions can use this layout when
 the converter has arranged their samples into complex pairs. The
 normalizer preserves those pairs and leaves sign alternation and
 recombination to processing. Nonuniform sampling requires a separate
 profile.
 
-Axes follow file order in both orientations. Time coordinates are
-``i / SW`` in seconds and frequency coordinates decrease in steps of
+Pure TPPI (``FD2DPHASE=1``) stores one real sample per F1 time increment.
+F1 uses ``i / (2 * SW)`` in seconds. The F2 time axis uses complex
+samples at ``i / SW``. When NMRPipe transforms F1 with
+`FT -real <https://spin.niddk.nih.gov/bax-apps/NMRPipe/ref/nmrpipe/ft.html>`_,
+it can record the full transform size in ``FTSIZE`` while storing only
+half that number of frequency points. An extraction can produce the same
+header and shape. Use the storage reader for these files. The normalizer
+requires the stored frequency point count to match ``FTSIZE``.
+
+Axes follow file order in both orientations. Complex time coordinates
+are ``i / SW`` in seconds and frequency coordinates decrease in steps of
 ``SW / N`` in Hz to the last-point ``ORIG``. Complex input produces a
 leading channel axis. Channel names give the row branch followed by the
 trace branch, in the order ``rr``, ``ri``, ``ir``, ``ii`` when both axes

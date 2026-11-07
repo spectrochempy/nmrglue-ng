@@ -7,6 +7,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Normalize complete pure TPPI NMRPipe 2D grids in time and mixed domains,
+  with real indirect samples and the corresponding time calibration. (#167)
+
 - Normalize complete NMRPipe 2D storage grids to calibrated axes and real
   quadrature channels. Time and mixed domains support confirmed grids in NMRPipe
   States layout. (#166)
