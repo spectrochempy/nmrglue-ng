@@ -112,3 +112,61 @@ def test_incomplete_or_extracted_grids_are_not_promoted(tmp_path, key, value):
     raw = replace(raw, metadata=metadata)
     with pytest.raises(ValueError, match="complete SI-matched"):
         ng.interop.normalize_bruker_pdata(raw)
+
+
+@pytest.mark.parametrize("axis_reference", ["processing", "acquisition"])
+def test_pdata_receiver_gain_and_axis_selection(tmp_path, axis_reference):
+    raw = _result(tmp_path)
+    raw = replace(raw, metadata={
+        **raw.metadata, "acqus": {"SFO1": 400.001, "SW": 15, "RG": 5, "NS": 17},
+    })
+    result = ng.interop.normalize(
+        raw, axis_reference=axis_reference, normalize_receiver_gain=True,
+    )
+    np.testing.assert_array_equal(
+        result.data, (np.array([100, 200, 300, 400]) + 1j * np.array([40, 30, 20, 10])) / 20,
+    )
+    if axis_reference == "processing":
+        np.testing.assert_array_equal(result.axes[0].values, [4000, 3000, 2000, 1000])
+    else:
+        expected = 1000 + np.linspace(3000.0075, -3000.0075, 4)
+        np.testing.assert_allclose(result.axes[0].values, expected, rtol=0, atol=1e-7)
+    assert result.axes[0].reference.source == axis_reference
+    assert result.acquisition["acquisition_frequency_mhz"] == 400.001
+    assert result.axes[0].reference.observation_frequency == (
+        400 if axis_reference == "processing" else 400.001
+    )
+    assert result.acquisition["storage_scaling"]["NC_proc"] == -2
+    assert result.applied_operations[0]["receiver_gain"] == 5
+    assert result.applied_operations[0]["scale"] == 0.2
+
+
+def test_pdata_refuses_to_guess_requested_metadata(tmp_path):
+    raw = _result(tmp_path)
+    with pytest.raises(ValueError, match="positive Bruker RG"):
+        ng.interop.normalize(raw, normalize_receiver_gain=True)
+    with pytest.raises(ValueError, match="positive acquisition SFO1"):
+        ng.interop.normalize(raw, axis_reference="acquisition")
+
+
+def test_zero_spectrum_rejects_nonfinite_receiver_gain_factor(tmp_path):
+    source = _write_pdata(tmp_path, component_values={"1r": [0, 0, 0, 0]})
+    raw = ng.interop.read_bruker_pdata(source)
+    raw = replace(raw, metadata={**raw.metadata, "acqus": {"RG": 5e-324}})
+    with pytest.raises(ValueError, match="correction factor must be finite"):
+        ng.interop.normalize(raw, normalize_receiver_gain=True)
+
+
+def test_pdata_rejects_flat_supplied_axis_within_calibration_tolerance(tmp_path):
+    raw = ng.interop.read_bruker_pdata(_write_pdata(tmp_path, sw_p=1e-9))
+    assert np.all(np.diff(raw.axes[0].values) < 0)
+    flat = replace(raw.axes[0], values=np.full(4, raw.axes[0].values[0]))
+    with pytest.raises(ValueError, match="processing axis must be strictly decreasing"):
+        ng.interop.normalize(replace(raw, axes=(flat,)))
+
+
+def test_pdata_accepts_decreasing_unsigned_coordinates(tmp_path):
+    raw = _result(tmp_path)
+    axis = replace(raw.axes[0], values=np.array([4000, 3000, 2000, 1000], dtype=np.uint64))
+    result = ng.interop.normalize(replace(raw, axes=(axis,)))
+    np.testing.assert_array_equal(result.axes[0].values, axis.values)

@@ -7,7 +7,7 @@ from collections.abc import Mapping
 
 import numpy as np
 
-from .result import Axis, NormalizedAcquisition, ReadResult
+from .result import Axis, NormalizedAcquisition, ReadResult, Reference
 from ..fileio import bruker
 
 
@@ -283,15 +283,28 @@ def normalize_bruker_fid(result: ReadResult, *, remove_digital_filter=False) -> 
     )
 
 
-def normalize_bruker_pdata(result: ReadResult) -> NormalizedAcquisition:
+def normalize_bruker_pdata(
+    result: ReadResult, *, axis_reference="processing", normalize_receiver_gain=False,
+) -> NormalizedAcquisition:
     """Preserve a calibrated 1D processed spectrum and its available components.
 
     The raw reader owns NC_proc storage scaling. This normalization combines
     1r+i*1i when both are supplied, otherwise keeps real-only data real. It
-    never reapplies scaling, acquisition gain, scan-count normalization, FFT,
-    phasing or chemical referencing. SF/OFFSET/SW_p describe the supplied grid.
+    does not reapply storage scaling. By default, SF/OFFSET/SW_p describe the
+    processing grid and receiver gain is unchanged. Select
+    axis_reference="acquisition" for the acquisition-centered endpoint grid,
+    and normalize_receiver_gain=True to divide by the recorded positive RG.
+    The processing reference remains SF. When available for these options,
+    the acquisition frequency SFO1 is recorded separately in
+    acquisition["acquisition_frequency_mhz"]. Scan-count scaling, FFT and
+    phasing are outside this profile.
     """
-    from .bruker import _build_axis
+    from .bruker import _build_axis, _raw_number
+
+    if axis_reference not in ("processing", "acquisition"):
+        raise ValueError("Bruker pdata axis_reference must be processing or acquisition")
+    if type(normalize_receiver_gain) is not bool:
+        raise ValueError("normalize_receiver_gain must be a bool")
 
     if not isinstance(result, ReadResult):
         raise TypeError("normalize_bruker_pdata requires an interop ReadResult")
@@ -329,6 +342,11 @@ def normalize_bruker_pdata(result: ReadResult) -> NormalizedAcquisition:
         or not np.allclose(axis.values, expected.values, rtol=1e-12, atol=1e-9)
         or axis.reference != expected.reference or axis.direction != expected.direction):
         raise ValueError("processed frequency axis disagrees with its calibration")
+    if not (
+        np.all(expected.values[1:] < expected.values[:-1])
+        and np.all(axis.values[1:] < axis.values[:-1])
+    ):
+        raise ValueError("Bruker processing axis must be strictly decreasing")
     corrections = dict(result.applied_corrections)
     if set(corrections) - {"scale_data", "NC_proc"} or type(corrections.get("scale_data")) is not bool:
         raise ValueError("unknown processed storage-scaling corrections")
@@ -346,15 +364,56 @@ def normalize_bruker_pdata(result: ReadResult) -> NormalizedAcquisition:
         raise ValueError("unscaled processed data cannot claim an applied NC_proc")
     complex_data = "1i" in components
     output = components["1r"] + 1j * components["1i"] if complex_data else data
+    gain = None
+    gain_scale = None
+    if normalize_receiver_gain:
+        gain = _raw_number(result.metadata, "acqus", "RG")
+        if gain is None or gain <= 0:
+            raise ValueError("receiver-gain normalization requires a positive Bruker RG")
+        gain_scale = 1 / gain
+        if not np.isfinite(gain_scale):
+            raise ValueError("Bruker receiver-gain correction factor must be finite")
+        with np.errstate(over="ignore"):
+            output = output / gain
+        if not np.isfinite(output).all():
+            raise ValueError("Bruker receiver-gain normalization produced non-finite values")
+    width = float(procs["SW_p"])
+    sfo = None
+    if axis_reference == "acquisition" or normalize_receiver_gain:
+        sfo = _raw_number(result.metadata, "acqus", "SFO1")
+        if sfo is not None and sfo <= 0:
+            raise ValueError("Bruker acquisition SFO1 must be positive")
+    if axis_reference == "acquisition":
+        if sfo is None:
+            raise ValueError("acquisition axis requires positive acquisition SFO1")
+        sweep_ppm = _raw_number(result.metadata, "acqus", "SW")
+        sf = _raw_number(result.metadata, "procs", "SF")
+        if sweep_ppm is None or sweep_ppm <= 0:
+            raise ValueError("acquisition axis requires positive Bruker SW")
+        width = sweep_ppm * sfo
+        center = (sfo - sf) * 1e6
+        values = (center + width / 2) - np.arange(data.size) * (width / (data.size - 1))
+        if not np.isfinite(values).all() or not np.all(np.diff(values) < 0):
+            raise ValueError("acquisition axis must be finite and strictly decreasing")
+        axis = Axis(
+            values=values, unit="Hz", label=axis.label, domain="frequency",
+            direction="decreasing", reference=Reference(
+                observation_frequency=sfo, observation_frequency_unit="MHz",
+                source="acquisition",
+            ),
+        )
     mode = "complex" if complex_data else "real"
     operation = {
         "name": "normalize-bruker-processed-components", "stage": "processing",
         "input_dimensions": ("storage",), "output_dimensions": ("F2",),
-        "axis": "F2", "scale": None, "conjugation": "none", "sign": "none",
+        "axis": "F2", "scale": gain_scale,
+        "conjugation": "none", "sign": "none",
         "permutation": None, "evidence": "nmrglue.interop.read_bruker_pdata",
         "source_components": tuple(component.name for component in result.components),
         "reader_corrections": corrections,
     }
+    if gain is not None:
+        operation["receiver_gain"] = gain
     reference = axis.reference
     if reference is None:
         raise ValueError("processed normalization requires a processing reference")
@@ -365,10 +424,12 @@ def normalize_bruker_pdata(result: ReadResult) -> NormalizedAcquisition:
         applied_operations=(operation,),
         provenance={"source": os.fspath(result.source), "format": result.format},
         acquisition={
-            "spectral_width_hz": float(result.metadata["procs"]["SW_p"]),
+            "spectral_width_hz": width,
             "observation_frequency_mhz": reference.observation_frequency,
             "reference_source": reference.source, "nucleus": axis.label,
-            "storage_scaling": corrections, "normalization": "none",
+            **({"acquisition_frequency_mhz": sfo} if sfo is not None else {}),
+            "storage_scaling": corrections,
+            "normalization": "none" if gain is None else "receiver-gain",
         },
         metadata=result.metadata, encoding=result.encoding, diagnostics=result.diagnostics,
     )
