@@ -14,6 +14,7 @@
           <div class="ng-actions">
             <a class="ng-button ng-button-primary" href="install.html">Install</a>
             <a class="ng-button ng-button-secondary" href="getting-started/index.html">Get started</a>
+            <a class="ng-button ng-button-secondary" href="migration.html">Coming from nmrglue?</a>
             <a class="ng-button ng-button-secondary" href="tutorials/index.html">Explore tutorials</a>
             <a class="ng-button ng-button-secondary" href="whats-new.html">What's new</a>
           </div>
@@ -90,6 +91,7 @@
     :maxdepth: 2
 
     getting-started/index
+    migration
     whats-new
     tutorials/index
     how-to/index
