@@ -88,19 +88,34 @@ def test_nmrpipe_data_nd_contract():
     assert_data_nd_contract(data, expected)
 
 
-@pytest.mark.parametrize(
-    "isfloat, storage_dtype",
-    [(False, "<i4"), (True, "<f8")],
-)
-def test_bruker_data_nd_contract(tmp_path, isfloat, storage_dtype):
-    expected = np.arange(6, dtype=np.int32).reshape(1, 6)
-    filename = tmp_path / "bruker.bin"
-    filename.write_bytes(expected.astype(storage_dtype).tobytes())
-    data = bruker.bruker_nd(
-        str(filename), expected.shape, False, False, isfloat=isfloat
+@pytest.mark.parametrize("big", [False, True])
+@pytest.mark.parametrize("cplex", [False, True])
+@pytest.mark.parametrize("isfloat", [False, True])
+def test_bruker_data_nd_contract(tmp_path, isfloat, cplex, big):
+    real = np.arange(12, dtype=np.int32).reshape(3, 4)
+    imag = -real - 1
+    if isfloat:
+        real = real + 0.25
+        imag = imag - 0.5
+
+    byte_order = ">" if big else "<"
+    storage_dtype = byte_order + ("f8" if isfloat else "i4")
+    stored = np.stack((real, imag), axis=-1) if cplex else real
+    (tmp_path / "ser").write_bytes(stored.astype(storage_dtype).tobytes())
+    expected = real + 1j * imag if cplex else real
+    _, data = bruker.read_lowmem(
+        str(tmp_path),
+        shape=expected.shape,
+        cplex=cplex,
+        big=big,
+        isfloat=isfloat,
+        read_pulseprogram=False,
+        read_acqus=False,
+        read_procs=False,
     )
 
     assert_data_nd_contract(data, expected)
+    assert_array_equal(data[1:, ::-2], expected[1:, ::-2])
     assert copy.copy(data).isfloat is isfloat
     assert data.swapaxes(-1, 0).isfloat is isfloat
 

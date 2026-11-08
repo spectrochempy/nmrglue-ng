@@ -48,6 +48,8 @@ original nmrglue project and are preserved for attribution and continuity.
 ### Compatibility and fixes
 
 - Fix indexing and slicing of 1D Bruker FIDs opened with `read_lowmem()`. (#189, #190)
+- Fix Bruker low-memory trace offsets for real int32 and real or complex
+  float64 data. Preserve fractional values in real float64 reads. (#191)
 - The package attribute `nmrglue.interop.normalize` now refers to the generic
   function. Import individual normalizers from `nmrglue.interop.normalize`
   or from `nmrglue.interop`.
