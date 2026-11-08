@@ -7,7 +7,7 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
-- Read and normalize native SIMPSON complex 1D FIDs in interop.
+- Read and normalize native SIMPSON complex 1D FIDs in interop. (#176)
 
 - Read and normalize real JCAMP-DX 2D NTUPLES planes with explicit F1 pages. (#175)
 

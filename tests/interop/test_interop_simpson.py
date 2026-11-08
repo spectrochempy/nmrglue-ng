@@ -14,7 +14,10 @@ TEXT = HEADER + "DATA\n1 -2\n3 4\nEND\n"
 BINARY = HEADER + 'FORMAT=BINARY\nDATA\n!!!1!1!!!QQ!!!Y1!!!1"1!!\nEND\n'
 
 
-@pytest.mark.parametrize("contents", [TEXT, BINARY], ids=["text", "binary"])
+@pytest.mark.parametrize(
+    "contents", [TEXT, BINARY, BINARY.replace("\nEND", "END")],
+    ids=["text", "binary", "binary-inline-end"],
+)
 def test_simpson_fid_axis_and_sign(tmp_path, contents):
     path = tmp_path / "signal.fid"
     path.write_text(contents)
@@ -36,6 +39,7 @@ def test_simpson_fid_axis_and_sign(tmp_path, contents):
         (TEXT.replace("SW=8000", "SW=0"), "positive SW"),
         (TEXT.replace("TYPE=FID", "TYPE=FID\nNI=1"), "single-element 1D FID"),
         (BINARY.replace("!!!QQ", "!!QQ"), "BINARY block disagrees with NP"),
+        (BINARY.replace("!!!1", "END\n1", 1), "premature END"),
     ],
 )
 def test_simpson_fid_rejects_invalid_input(tmp_path, contents, message):

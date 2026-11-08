@@ -50,7 +50,10 @@ def _preflight(stream):
     points, _ = _fid_geometry(header)
     binary = "FORMAT" in header
     if binary:
-        payload = "".join(line.rstrip("\n") for line in stream)
+        lines = [line.rstrip("\n") for line in stream]
+        if "END" in lines[:-1]:
+            raise ValueError("SIMPSON BINARY block has a premature END")
+        payload = "".join(lines)
         expected = 4 * ((8 * points + 2) // 3)
         if (not payload.endswith("END") or len(payload) != expected + 3
                 or any(not 33 <= ord(char) <= 96 for char in payload[:-3])):
