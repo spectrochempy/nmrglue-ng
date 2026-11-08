@@ -93,21 +93,27 @@ def _axes(header, data, kind, ndim):
                  domain="time", direction="increasing")
             for points, width, label in zip(shape, widths, ("time",) if ndim == 1 else ("F1", "F2"))
         )
-    points, = shape
-    width, = widths
-    indices = np.arange(points, dtype=float)
+    keys = ("REF",) if ndim == 1 else ("REF1", "REF")
+    labels = ("frequency",) if ndim == 1 else ("F1", "F2")
+    return tuple(
+        _frequency_axis(points, width, header.get(key, 0), key, label)
+        for points, width, key, label in zip(shape, widths, keys, labels)
+    )
+
+
+def _frequency_axis(points, width, reference, key, label):
     try:
-        reference = float(header.get("REF", 0))
+        reference = float(reference)
     except (TypeError, ValueError) as exc:
-        raise ValueError("SIMPSON requires a finite REF in Hz") from exc
+        raise ValueError(f"SIMPSON requires a finite {key} in Hz") from exc
     if not np.isfinite(reference):
-        raise ValueError("SIMPSON requires a finite REF in Hz")
+        raise ValueError(f"SIMPSON requires a finite {key} in Hz")
     with np.errstate(over="ignore"):
-        frequencies = reference + (indices / points - 0.5) * width
+        frequencies = reference + (np.arange(points, dtype=float) / points - 0.5) * width
     if not np.isfinite(frequencies).all() or not np.all(np.diff(frequencies) > 0):
         raise ValueError("SIMPSON frequency axis is not strictly increasing")
-    return (Axis(values=frequencies, unit="Hz", label="frequency",
-                 domain="frequency", direction="increasing"),)
+    return Axis(values=frequencies, unit="Hz", label=label,
+                domain="frequency", direction="increasing")
 
 
 def _storage_dimensions(data):
@@ -148,6 +154,11 @@ def read_simpson_fid_2d(filename):
     return _read(filename, "FID", "simpson-fid-2d", ndim=2)
 
 
+def read_simpson_spectrum_2d(filename):
+    """Read a single-element 2D SIMPSON TEXT or BINARY spectrum."""
+    return _read(filename, "SPE", "simpson-spectrum-2d", ndim=2)
+
+
 def normalize_simpson_fid(result, *, conjugation):
     """Validate a SIMPSON FID and apply the caller's sign convention."""
     if conjugation not in ("none", "conjugate"):
@@ -165,6 +176,11 @@ def normalize_simpson_fid_2d(result, *, conjugation):
     if conjugation not in ("none", "conjugate"):
         raise ValueError("SIMPSON requires conjugation='none' or 'conjugate'")
     return _normalize(result, "FID", "simpson-fid-2d", conjugation, ndim=2)
+
+
+def normalize_simpson_spectrum_2d(result):
+    """Validate a SIMPSON spectrum and retain its samples and F1/F2 axes."""
+    return _normalize(result, "SPE", "simpson-spectrum-2d", "none", ndim=2)
 
 
 def _normalize(result, kind, format_name, conjugation, ndim=1):
@@ -189,24 +205,27 @@ def _normalize(result, kind, format_name, conjugation, ndim=1):
     ):
         raise ValueError("SIMPSON axes disagree with the declared sweep widths")
     width = result.metadata["SW"]
-    acquisition = {"spectral_width_hz": width}
+    widths = (width,) if ndim == 1 else (result.metadata["SW1"], width)
+    acquisition = {"spectral_width_hz": width if ndim == 1 else widths}
     if kind == "FID":
-        acquisition["dwell_time_s"] = 1 / width
-    if ndim == 2:
-        width1 = result.metadata["SW1"]
-        acquisition = {"spectral_width_hz": (width1, width),
-                       "dwell_time_s": (1 / width1, 1 / width)}
+        dwell = tuple(1 / value for value in widths)
+        acquisition["dwell_time_s"] = dwell[0] if ndim == 1 else dwell
+    if kind == "FID":
+        evidence = ("SIMPSON NP/SW and caller-selected conjugation" if ndim == 1
+                    else "SIMPSON NI/NP, SW1/SW and caller-selected conjugation")
+    else:
+        evidence = ("SIMPSON XREIM bin convention and NP/SW" if ndim == 1
+                    else "SIMPSON XYREIM bin convention and NI/NP, SW1/SW, REF1/REF")
     operation_name = format_name.removesuffix("-1d")
     operation = {
         "name": f"normalize-{operation_name}",
         "stage": "acquisition" if kind == "FID" else "processing",
         "input_dimensions": ("storage",) if ndim == 1 else dimensions,
         "output_dimensions": dimensions,
-        "axis": "F2", "scale": None, "conjugation": conjugation, "sign": "none",
+        "axis": None if kind == "SPE" and ndim == 2 else "F2",
+        "scale": None, "conjugation": conjugation, "sign": "none",
         "permutation": None,
-        "evidence": ("SIMPSON NI/NP, SW1/SW and caller-selected conjugation" if ndim == 2
-                     else "SIMPSON NP/SW and caller-selected conjugation" if kind == "FID"
-                     else "SIMPSON XREIM bin convention and NP/SW"),
+        "evidence": evidence,
     }
     return NormalizedAcquisition(
         data=result.data.conj() if conjugation == "conjugate" else result.data,

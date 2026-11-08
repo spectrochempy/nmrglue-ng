@@ -30,7 +30,8 @@ from .jcampdx import (
 from .jeol import normalize_jeol_2d, normalize_jeol_fid, read_jeol_2d_storage, read_jeol_fid
 from .simpson import (
     normalize_simpson_fid, normalize_simpson_fid_2d, normalize_simpson_spectrum,
-    read_simpson_fid, read_simpson_fid_2d, read_simpson_spectrum,
+    normalize_simpson_spectrum_2d,
+    read_simpson_fid, read_simpson_fid_2d, read_simpson_spectrum, read_simpson_spectrum_2d,
 )
 from .storage import read_agilent_fid_storage, read_bruker_ser_storage
 from .nmrpipe import write_readresult_nmrpipe
@@ -74,6 +75,8 @@ __all__ = [
     "read_simpson_fid_2d",
     "normalize_simpson_fid_2d",
     "read_simpson_spectrum",
+    "read_simpson_spectrum_2d",
+    "normalize_simpson_spectrum_2d",
     "normalize_simpson_spectrum",
     "normalize_simpson_fid",
     "read_jcampdx_1d",

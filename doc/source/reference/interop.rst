@@ -67,6 +67,7 @@ Read processed spectra and exchange files
     read_nmrml_1d
     read_jcampdx_1d
     read_simpson_spectrum
+    read_simpson_spectrum_2d
     read_jcampdx_2d
     read_nmrml_2d
     read_nmrml_raw_2d
@@ -83,6 +84,7 @@ Normalize a supported result
     normalize_simpson_fid
     normalize_simpson_fid_2d
     normalize_simpson_spectrum
+    normalize_simpson_spectrum_2d
     normalize_jeol_2d
     normalize_bruker_pdata
     normalize_bruker_pdata_2d
@@ -252,6 +254,21 @@ starts at ``REF - SW/2`` and increases in steps of ``SW/NP``. The
 reference frequency ``REF`` falls on bin ``NP/2`` for even ``NP`` and
 between two bins for odd spectra with at least two points.
 The bin convention was verified against SIMPSON 4.2.1 XREIM exports.
+
+SIMPSON complex 2D spectra
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:func:`~nmrglue.interop.read_simpson_spectrum_2d` reads a single-element
+``TYPE=SPE`` plane in native TEXT or BINARY form.
+:func:`~nmrglue.interop.normalize_simpson_spectrum_2d` preserves the
+complex samples in ``(F1, F2)`` order with shape ``(NI, NP)``.
+
+For zero-based indices ``i`` and ``j``, the coordinates are
+``REF1 + (i / NI - 0.5) * SW1`` on F1 and
+``REF + (j / NP - 0.5) * SW`` on F2, in Hz. Each reference offset
+defaults to zero when absent. The two axes follow the native XYREIM
+bin convention, including odd point counts. The indirect quadrature
+convention remains unknown.
 
 Agilent 1D scan-count evidence
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

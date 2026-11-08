@@ -166,3 +166,46 @@ def test_simpson_fid_2d_reference(filename):
     np.testing.assert_allclose(normalized.axes[1].values, indexed["units"].np_unit[0], rtol=5e-6)
     assert normalized.axes[0].values[-1] == pytest.approx(0.00092470697117)
     assert normalized.axes[1].values[-1] == pytest.approx(0.003175)
+
+
+SPE_2D = (
+    "SIMP\nNP=3\nNI=2\nSW=90\nSW1=80\nREF=-12.5\nREF1=15\nTYPE=SPE\nDATA\n"
+    "0 0\n1 -1\n2 -2\n3 -3\n4 -4\n5 -5\nEND\n"
+)
+
+
+def test_simpson_spectrum_2d_reference_offsets_and_odd_bins(tmp_path):
+    path = tmp_path / "shifted.spe"
+    path.write_text(SPE_2D)
+    normalized = interop.normalize_simpson_spectrum_2d(interop.read_simpson_spectrum_2d(path))
+    # Independent SIMPSON 4.2.1 fload/fsave -xyreim on this input.
+    np.testing.assert_allclose(normalized.axes[0].values, [-25, 15])
+    np.testing.assert_allclose(normalized.axes[1].values, [-57.5, -27.5, 2.5])
+    np.testing.assert_array_equal(normalized.data, [[0, 1 - 1j, 2 - 2j], [3 - 3j, 4 - 4j, 5 - 5j]])
+    assert normalized.domains == ("frequency", "frequency")
+    assert normalized.dimensions == ("F1", "F2")
+    assert normalized.acquisition == {"spectral_width_hz": (80, 90)}
+
+
+@pytest.mark.parametrize("key, value", [("REF", "-12.5"), ("REF1", "15")])
+def test_simpson_spectrum_2d_rejects_invalid_reference(tmp_path, key, value):
+    path = tmp_path / "shifted.spe"
+    path.write_text(SPE_2D.replace(f"{key}={value}", f"{key}=nan"))
+    with pytest.raises(ValueError, match=f"finite {key} in Hz"):
+        interop.read_simpson_spectrum_2d(path)
+
+
+@pytest.mark.dataset
+@pytest.mark.parametrize("filename", ["2d_text.spe", "2d.spe"])
+def test_simpson_spectrum_2d_corpus(filename):
+    directory = os.environ.get("SIMPSON_INTEROP_2D_DATA")
+    if not directory:
+        pytest.skip("set SIMPSON_INTEROP_2D_DATA to the simpson_2d corpus directory")
+    directory = Path(directory)
+    normalized = interop.normalize_simpson_spectrum_2d(interop.read_simpson_spectrum_2d(directory / filename))
+    indexed, samples = simpson.read(directory / "2d_ftext.spe")
+    assert normalized.data.shape == (512, 256)
+    np.testing.assert_allclose(normalized.data, samples, rtol=1e-5, atol=1e-7)
+    np.testing.assert_allclose(normalized.axes[0].values, indexed["units"].ni_unit[:, 0], rtol=5e-6)
+    np.testing.assert_allclose(normalized.axes[1].values, indexed["units"].np_unit[0], rtol=5e-6)
+    assert normalized.axes[0].values[256] == normalized.axes[1].values[128] == 0
