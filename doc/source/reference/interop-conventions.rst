@@ -5,6 +5,25 @@ See the :ref:`interop-profile-table` to select a reader and normalizer.
 The sections below describe the layouts, calibrations and limitations
 needed to interpret the results.
 
+.. _interop-bruker-agilent-storage:
+
+Bruker and Agilent storage layouts
+----------------------------------
+
+The storage readers label axes by array position. Their results leave the
+physical axes uncalibrated and retain the parameters needed for reconstruction.
+
+* **Bruker SER** returns scalar words in trace order, including padding
+  to the 1024-byte-aligned trace stride. When present, ``nuslist`` and
+  ``pulseprogram`` are retained as bytes in ``metadata["nuslist_raw"]``
+  and ``metadata["pulseprogram_raw"]``.
+* **Agilent/Varian FID** returns scalar words in block and trace order.
+  It supports one or two headers per binary block and retains the block
+  headers and any available ``procpar`` metadata.
+* **Bruker 2D pdata** returns the available named planes at their stored
+  scale, with disk tiles restored to rows and columns. Extracted strips
+  use ``STSI`` for the stored size when present.
+
 JCAMP-DX real 1D spectra
 ------------------------
 

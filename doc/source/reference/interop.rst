@@ -14,6 +14,16 @@ layouts, signs, scales and calibration rules, see :doc:`interop-conventions`.
 
     interop-conventions
 
+.. raw:: html
+
+    <span id="interop-jeol-2d-storage"></span>
+    <span id="jeol-2d-storage"></span>
+    <span id="interop-nmrpipe-2d-storage"></span>
+    <span id="nmrpipe-2d-storage"></span>
+
+Storage layout details moved to the conventions page. See
+:ref:`interop-jeol-2d-storage` and :ref:`interop-nmrpipe-2d-storage`.
+
 Result types and diagnostics
 ----------------------------
 
@@ -69,7 +79,7 @@ when no normalizer is registered.
      - Yes
    * - ``agilent-fid-storage``
      - Automatic
-     - Stored scalar FID traces
+     - :ref:`Stored scalar FID traces <interop-bruker-agilent-storage>`
      - Unavailable
    * - ``agilent-states-2d``
      - Explicit
@@ -89,7 +99,7 @@ when no normalizer is registered.
      - Qualified four-plane grid
    * - ``bruker-pdata-2d-storage``
      - Automatic
-     - Stored processed 2D planes
+     - :ref:`Stored processed 2D planes <interop-bruker-agilent-storage>`
      - Unavailable
    * - ``bruker-ser``
      - Explicit
@@ -97,7 +107,7 @@ when no normalizer is registered.
      - Unavailable
    * - ``bruker-ser-storage``
      - Automatic
-     - Stored scalar SER traces
+     - :ref:`Stored scalar SER traces <interop-bruker-agilent-storage>`
      - Unavailable
    * - ``jcampdx-fid-1d``
      - Explicit
