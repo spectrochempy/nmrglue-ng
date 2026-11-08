@@ -307,3 +307,15 @@ def test_jcampdx_2d_uses_local_endpoint_precision_for_row_check(tmp_path):
                     .replace("10 4 5 6", "10.4 4 5 6"))
     with pytest.raises(ValueError, match="line abscissa"):
         interop.read_jcampdx_2d(path)
+
+
+@pytest.mark.parametrize("precise_local_first", [False, True])
+def test_jcampdx_2d_rejects_conflicting_fractional_anchors(tmp_path, precise_local_first):
+    path = tmp_path / "plane.jdx"
+    contents = (PROFILE.replace("FIRST=1,10.00", "FIRST=1,10")
+                .replace("10 1 2 3", "9.6 1 2 3").replace("10 4 5 6", "10.4 4 5 6"))
+    if not precise_local_first:
+        contents = contents.replace("##FIRST=1.25,10.00,8\n", "")
+    path.write_text(contents)
+    with pytest.raises(ValueError, match="line absciss"):
+        interop.read_jcampdx_2d(path)

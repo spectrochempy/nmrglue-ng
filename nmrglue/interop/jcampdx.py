@@ -355,13 +355,16 @@ def _profile_endpoints(block, key, first_page):
         raise ValueError(f"JCAMP-DX 2D requires one global {key} record")
     columns = _profile_columns(values[0], key)[:2]
     endpoints = _profile_numbers(columns, key)
+    precision = Decimal(columns[1]).as_tuple().exponent
     for position, value in zip(positions[1:], values[1:]):
         previous = next((name for name in reversed(records[:position])
                          if name in ("PAGE", "DATATABLE")), None)
-        local = _profile_numbers(_profile_columns(value, key)[:2], key)
+        local_columns = _profile_columns(value, key)[:2]
+        local = _profile_numbers(local_columns, key)
         if previous != "PAGE" or local[1] != endpoints[1]:
             raise ValueError(f"JCAMP-DX 2D requires a common F2 grid across pages ({key})")
-    return endpoints, columns[1]
+        precision = min(precision, Decimal(local_columns[1]).as_tuple().exponent)
+    return endpoints, precision
 
 
 def _profile_2d_geometry(block):
@@ -418,8 +421,7 @@ def _profile_2d_geometry(block):
     if f1[0] != first[0] or f1[-1] != last[0]:
         raise ValueError("JCAMP-DX 2D PAGE endpoints disagree with FIRST/LAST")
     # Endpoints can themselves be rounded before line anchors are quantized.
-    tolerances = tuple(float(f"5e{Decimal(value).as_tuple().exponent - 1}")
-                       for value in (first_f2, last_f2))
+    tolerances = tuple(float(f"5e{precision - 1}") for precision in (first_f2, last_f2))
     if not np.isfinite(tolerances).all():
         raise ValueError("JCAMP-DX 2D F2 endpoint precision is outside float range")
     return f1, (first[1], last[1]), units, (int(ny), int(nx)), factors, tolerances
@@ -466,8 +468,22 @@ def read_jcampdx_2d(filename):
         fraction = index / intervals
         return (1 - fraction) * tolerances[0] + fraction * tolerances[1]
 
-    check = _check_line_grid(first, (last - first) / intervals,
-                             factors[1], endpoint_tolerance=endpoint_tolerance)
+    xfactor = factors[1]
+    check_grid = _check_line_grid(first, (last - first) / intervals, xfactor,
+                                  endpoint_tolerance=endpoint_tolerance)
+    anchor_ranges = {}
+
+    def check(raw, index):
+        check_grid(raw, index)
+        # Intersect the possible coordinates at each repeated sample index.
+        center = raw * xfactor
+        radius = (abs(xfactor) * 0.5 if raw.is_integer() else 0.0) + abs(center) * 1e-12
+        lower, upper = anchor_ranges.get(index, (-np.inf, np.inf))
+        lower, upper = max(lower, center - radius), min(upper, center + radius)
+        if lower > upper:
+            raise ValueError("JCAMP-DX 2D line abscissae disagree across pages")
+        anchor_ranges[index] = lower, upper
+
     parts = jcampdx.getdataarray(block, show_all_data=True, _check_xydata_x=check,
                                  _xydata_max_points=shape[1])
     if (
