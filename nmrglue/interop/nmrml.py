@@ -393,9 +393,12 @@ def _read_hsqc_legacy_payload(binary, shape):
         or hashlib.sha256(encoded).hexdigest() != _HSQC_FID_SHA256
     ):
         raise ValueError('nmrML official HSQC compatibility requires the original payload and geometry')
+    compressed = base64.b64decode(encoded, validate=True)
+    # The encoded text is no longer needed while zlib allocates its output.
+    del encoded
     decoder = zlib.decompressobj()
-    payload = decoder.decompress(base64.b64decode(encoded, validate=True))
-    if not decoder.eof or len(payload) != 8388608 or any(decoder.unused_data):
+    payload = decoder.decompress(compressed)
+    if not decoder.eof or len(payload) != 8388608 or decoder.unused_data.strip(b'\0'):
         raise ValueError('nmrML official HSQC payload has invalid padding or size')
     return np.frombuffer(payload, dtype='<c16')
 

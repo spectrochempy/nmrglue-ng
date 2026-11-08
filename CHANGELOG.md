@@ -7,6 +7,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Reduce decoding time and peak memory for the official nmrML 2D HSQC
+  compatibility profile.
+
 - Add `nmrglue.interop.read(path, profile=None, **options)` with explicit
   profile selection and automatic detection for recognized headers and
   dataset directories.
