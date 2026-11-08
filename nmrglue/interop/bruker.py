@@ -75,12 +75,16 @@ def read_bruker_fid(
     isfloat=None,
     read_pulseprogram=True,
     read_acqus=True,
+    acqus_files=None,
+    procs_files=None,
 ):
     """Read a raw Bruker 1D FID as a neutral :class:`ReadResult`.
 
     No RG/NS normalization is applied. If ``remove_digital_filter`` is true,
     the existing Bruker correction is applied once and recorded in
-    ``applied_corrections``.
+    ``applied_corrections``. Optional explicit acquisition and processing
+    file lists are forwarded to the Bruker reader. Processing files are
+    read only when a list is supplied.
     """
     if not os.path.isdir(dir):
         raise OSError("directory %s does not exist" % (dir,))
@@ -93,7 +97,9 @@ def read_bruker_fid(
         isfloat=isfloat,
         read_pulseprogram=read_pulseprogram,
         read_acqus=read_acqus,
-        read_procs=False,
+        acqus_files=None if acqus_files is None else list(acqus_files),
+        procs_files=None if procs_files is None else list(procs_files),
+        read_procs=procs_files is not None,
     )
     data = np.asarray(data)
     if data.ndim != 1 or not np.issubdtype(data.dtype, np.number):

@@ -102,3 +102,102 @@ def test_missing_reference_keeps_time_calibration(monkeypatch, tmp_path):
     result = ng.interop.normalize_bruker_fid(raw)
     assert result.acquisition["frequency_axis"]["reference_frequency_mhz"] is None
     assert result.acquisition["frequency_axis"]["offsets_hz"] == {}
+
+
+@pytest.mark.parametrize("preserve_storage", [False, True])
+@pytest.mark.parametrize("filtered", [False, True])
+def test_dc_filter_and_gain_order(monkeypatch, tmp_path, preserve_storage, filtered):
+    raw, data = _result(monkeypatch, tmp_path, padding=7, delay=8.5)
+    result = ng.interop.normalize(
+        raw,
+        remove_dc_offset=True,
+        remove_digital_filter=filtered,
+        normalize_scan_gain=True,
+        preserve_storage=preserve_storage,
+    )
+    expected = data.copy() if preserve_storage else data[:32].copy()
+    input_points = expected.size
+    expected -= expected.mean()
+    if filtered:
+        expected = np.roll(expected, -8)
+        expected[:4] += expected[:-5:-1].copy()
+        expected = expected[:-10]
+    divisor = 16 * 40.3
+    np.testing.assert_allclose(result.data, expected.conj() / divisor, atol=1e-15)
+    np.testing.assert_allclose(result.axes[0].values, np.arange(expected.size) / 2000)
+    assert result.acquisition["trimmed_padding_points"] == (0 if preserve_storage else 7)
+    assert result.applied_operations[0]["dc_offset"] == {
+        "applied": True, "input_points": input_points,
+    }
+    assert result.applied_operations[0]["scan_gain"]["divisor"] == divisor
+    assert result.applied_operations[0]["scale"] == 1 / divisor
+    np.testing.assert_array_equal(raw.data, data)
+
+
+def test_no_decimation_keeps_dc_and_gain_corrections(monkeypatch, tmp_path):
+    raw, data = _result(monkeypatch, tmp_path)
+    raw = replace(
+        raw,
+        acquisition={key: value for key, value in raw.acquisition.items() if key != "RG"},
+        applied_corrections={
+            "normalization": "none",
+            "digital_filter": {"applied": False, "parameters": {"DECIM": 1}},
+        },
+    )
+    result = ng.interop.normalize_bruker_fid(
+        raw, remove_digital_filter=True, remove_dc_offset=True, normalize_scan_gain=True
+    )
+    np.testing.assert_array_equal(result.data, (data - data.mean()).conj() / 16)
+    assert result.acquisition["digital_filter"] == {
+        "requested": True, "applied": False, "reason": "no-decimation",
+    }
+
+
+@pytest.mark.parametrize("key,value", [("NS", 0), ("RG", -1), ("RG", np.inf)])
+def test_invalid_scan_gain_is_rejected_when_requested(monkeypatch, tmp_path, key, value):
+    raw, data = _result(monkeypatch, tmp_path)
+    raw = replace(raw, acquisition={**raw.acquisition, key: value})
+    with pytest.raises(ValueError, match=key):
+        ng.interop.normalize_bruker_fid(raw, normalize_scan_gain=True)
+    np.testing.assert_array_equal(ng.interop.normalize_bruker_fid(raw).data, data.conj())
+
+
+def test_read_fid_forwards_parameter_selection(monkeypatch, tmp_path):
+    raw, data = _result(monkeypatch, tmp_path)
+    calls = []
+
+    def read(directory, **options):
+        calls.append((directory, options))
+        return raw.metadata, data
+
+    monkeypatch.setattr(ng.bruker, "read", read)
+    acqus_files = [tmp_path / "acqus"]
+    procs_files = [tmp_path / "pdata" / "1" / "procs"]
+    ng.interop.read_bruker_fid(tmp_path, acqus_files=acqus_files, procs_files=procs_files)
+    assert calls[0][1]["acqus_files"] == acqus_files
+    assert calls[0][1]["procs_files"] == procs_files
+    assert calls[0][1]["read_procs"] is True
+
+
+def test_fft_display_and_phase_are_separate_from_acquisition_reference(monkeypatch, tmp_path):
+    raw, data = _result(monkeypatch, tmp_path, padding=7)
+    raw = replace(raw, metadata={
+        "acqus": {**raw.metadata["acqus"], "SW": 16.0},
+        "proc": {"SF": 124.9, "PHC1": -12.0},
+        "procs": {"SF": 125.00015, "PHC0": 42.0},
+    })
+    result = ng.interop.normalize_bruker_fid(raw, preserve_storage=True)
+    display = result.acquisition["fft_display_axis"]
+    assert display["grid"] == "inclusive-endpoints"
+    assert display["direction"] == "decreasing"
+    assert display["center_hz"] == pytest.approx(100)
+    assert display["spectral_width_hz"] == pytest.approx(2000.004)
+    assert display["reference_frequency_mhz"] == 125.0
+    assert result.acquisition["frequency_axis"]["offsets_hz"]["acquisition"] == 250.0
+    assert result.acquisition["fft_initial_phase"] == {
+        "zero_order_deg": 42.0, "first_order_deg": -12.0, "pivot_index": 0,
+    }
+    np.testing.assert_array_equal(result.data, data.conj())
+    default = ng.interop.normalize_bruker_fid(raw)
+    assert "fft_display_axis" not in default.acquisition
+    assert "fft_initial_phase" not in default.acquisition

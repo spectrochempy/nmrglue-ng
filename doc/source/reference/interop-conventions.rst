@@ -277,15 +277,20 @@ with complex QSIM or DQD encoding::
    raw = ng.interop.read_bruker_fid("/path/to/acquisition")
    normalized = ng.interop.normalize_bruker_fid(raw, remove_digital_filter=True)
 
-The reader is kept unchanged. Normalization trims zero storage padding to the
-complex acquisition size ``TD/2`` before optional filter removal. It rejects
-nonzero samples beyond TD, missing or inconsistent time calibration, real/QSEQ
-input and prefiltered input. Prefiltered input may already contain padding in
+By default normalization trims zero storage padding to ``TD/2``. Choose
+``preserve_storage=True`` to keep verified padding in the signal, including
+during DC removal and digital-filter correction. This matches the point
+selection in the public TopSpin FID reader. The normalizer rejects nonzero
+samples beyond TD, missing or inconsistent time calibration, real/QSEQ input
+and prefiltered input. Prefiltered input may already contain padding in
 its correction; read it again with the default uncorrected reader instead.
 
-Digital-filter removal is opt-in and uses the existing time-domain correction
-with a truncated integer group delay. A positive scalar GRPDLY takes priority;
-otherwise DSPFVS/DECIM must identify a known table entry. Unknown delays and
+``remove_dc_offset=True`` subtracts the complex mean of the selected samples
+before any digital-filter correction. This also removes genuine signal at
+the carrier. Digital-filter removal is opt-in and uses the existing
+time-domain correction with a truncated integer group delay. For
+``DECIM=1``, the trace records that the filter was skipped. When filtering,
+a positive scalar GRPDLY takes priority over the DSPFVS/DECIM table. Unknown delays and
 corrections leaving fewer than two points are rejected. No firmware clamping is
 introduced by this profile. The trace records the original delay, its source,
 parameters, truncation and number of removed points. The existing head/tail
@@ -294,9 +299,12 @@ recipe; this is not a claim of equivalence to an arbitrary vendor recipe.
 
 The output conjugates the corrected or uncorrected acquired samples. This
 explicit quadrature normalization aligns the centered negative-exponent DFT
-with the standard NMR frequency orientation; samples are not RG/NS scaled.
-The operation record preserves storage/acquired/output sizes, trimmed padding,
-conjugation and filter state. Raw metadata remains available unchanged.
+with the standard NMR frequency orientation. With ``normalize_scan_gain=True``,
+the corrected samples are divided by NS times RG. Missing factors default
+individually to one. Nonpositive or nonfinite factors are rejected.
+The operation records storage, acquired and output sizes, trimmed padding,
+DC removal, filter state, scan/gain divisor and conjugation. Raw metadata
+remains available unchanged.
 
 The numeric frequency-axis descriptor uses sign -1, BF1 (MHz) as the
 acquisition chemical-zero frequency and O1 (Hz) as the explicitly selected
@@ -306,6 +314,19 @@ proof of a calibrated chemical standard. The relation
 ``SFO1 [MHz] = BF1 [MHz] + O1 [Hz] / 10^6`` follows the
 `Bruker Avance frequency guide
 <https://2210pc.chem.uic.edu/nmr/downloads/bruker/en-US/html/Avance%20Beginners%20Guide/en-US/371498891.html>`_.
+
+To reproduce the public TopSpin reader's FFT presentation, pass the selected
+processing files to ``read_bruker_fid(procs_files=...)`` and normalize with
+``preserve_storage=True``. When the selected parameters provide the required
+calibration, ``acquisition["fft_display_axis"]`` describes a decreasing grid
+from center plus half the width to center minus half the width, with both
+endpoints included. Its center is ``(SFO1 - SF) * 10**6`` Hz, its width is
+``SW * SFO1`` Hz and its ppm conversion frequency is BF1 in MHz. It is a
+presentation convention separate from the physical FFT bins.
+``acquisition["fft_initial_phase"]``, when present, records the zero- and
+first-order phase in degrees at the first bin. For N FFT points, its
+multiplier at bin i is ``exp(+1j * radians(zero_order_deg +
+first_order_deg * i / N))``. Neither descriptor changes the FID.
 
 Two local real acquisitions qualify QSIM/DQD, opposite int32 byte orders,
 zero storage padding and both explicit/table group-delay paths. The consumer
