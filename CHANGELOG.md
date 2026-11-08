@@ -7,6 +7,8 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+## 1.2.0 - 2026-11-08
+
 ### Interoperability
 
 - Use `nmrglue.interop.read(path, profile=None, **options)` to select a profile
@@ -19,18 +21,18 @@ original nmrglue project and are preserved for attribution and continuity.
   documented padding, sign, and optional digital-filter handling. Read
   processed 1D and stored 2D data and normalize complete 1D spectra and
   qualified four-component 2D int32 spectra with calibrated axes.
-  (#142, #144, #156, #158)
+  (#140, #142, #144, #156, #158, #162, #164)
 - **Agilent/Varian:** Read stored traces, descriptive 2D States acquisitions,
   and complex 1D FIDs. Normalize the supported 1D profile without rescaling
   samples and expose reference candidates and requested and completed
   scan-count evidence. Use the observed transmitter nucleus `tn` for the
-  acquisition label, leaving it unknown when absent. (#146, #151, #152, #153, #154, #155)
+  acquisition label, leaving it unknown when absent. (#146, #151, #152, #153, #154, #155, #164)
 - **NMRPipe:** Read and normalize complete processed 1D spectra with
   last-point ORIG calibration. Read 2D storage in file order and normalize
   qualified frequency, time, and mixed-domain grids, including supported
   States and pure TPPI layouts. Export qualified 1D and raw 2D QF and
   States-TPPI `ReadResult` profiles to float32 NMRPipe storage.
-  (#143, #145, #159, #165, #166, #167)
+  (#141, #143, #145, #159, #161, #165, #166, #167)
 - **nmrML:** Extend 1D reading and add a precision-preserving writer with
   optional XSD validation. Interop supports raw and processed 1D, real
   processed 2D, and qualified raw 2D echo/anti-echo pairs. Reduce decoding
@@ -52,10 +54,10 @@ original nmrglue project and are preserved for attribution and continuity.
   float64 data. Preserve fractional values in real float64 reads. (#191)
 - The package attribute `nmrglue.interop.normalize` now refers to the generic
   function. Import individual normalizers from `nmrglue.interop.normalize`
-  or from `nmrglue.interop`.
+  or from `nmrglue.interop`. (#180)
 - Automatic Bruker pdata 1D detection uses stored scale
   (`scale_data=False`). Pass `scale_data` explicitly when the scale matters,
-  especially when comparing with the specialized reader.
+  especially when comparing with the specialized reader. (#181)
 - Preserve real and imaginary samples independently when decoding NMRPipe
   complex traces containing infinities or NaNs. (#165)
 
@@ -64,13 +66,15 @@ original nmrglue project and are preserved for attribution and continuity.
 - Put installation, a runnable example, and the additions in released
   versions of nmrglue-ng at the top of the repository and PyPI README. (#186)
 - Add a home-page migration guide for users of the historical nmrglue distribution. (#188)
-- Shorten the interop tutorial and add a profile table covering detection,
-  reader options, and normalization. Document format conventions separately. (#187)
+- Clarify the interop workflow and restore mobile documentation navigation.
+  Shorten the tutorial and add a profile table covering detection, reader
+  options, and normalization, with format conventions on a separate page.
+  (#163, #187)
 
 ### Project infrastructure
 
-- Automate PyPI and GitHub Release publication from validated release tags.
-  (#139)
+- Derive the Conda package version from the release tag and automate PyPI
+  and GitHub Release publication from validated tags. (#134, #136, #139)
 - Align commit-subject and pull-request-title prefixes with SpectroChemPy and
   validate pull-request titles in CI. (#157)
 
