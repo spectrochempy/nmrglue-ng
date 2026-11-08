@@ -105,6 +105,30 @@ def test_bruker_data_nd_contract(tmp_path, isfloat, storage_dtype):
     assert data.swapaxes(-1, 0).isfloat is isfloat
 
 
+@pytest.mark.parametrize(
+    "isfloat, storage_dtype",
+    [(False, "<i4"), (True, "<f8")],
+)
+def test_bruker_read_lowmem_1d_fid(tmp_path, isfloat, storage_dtype):
+    stored = np.array([1, -2, 3, -4, 5, -6, 7, -8], dtype=storage_dtype)
+    (tmp_path / "fid").write_bytes(stored.tobytes())
+    expected = np.array([1 - 2j, 3 - 4j, 5 - 6j, 7 - 8j])
+    options = dict(
+        shape=expected.shape,
+        cplex=True,
+        big=False,
+        isfloat=isfloat,
+        read_pulseprogram=False,
+        read_acqus=False,
+        read_procs=False,
+    )
+    _, data = bruker.read_lowmem(str(tmp_path), **options)
+
+    assert_view(data, expected, (0,))
+    assert_array_equal(data[:2], expected[:2])
+    assert_array_equal(data[::-2], expected[::-2])
+
+
 def test_rnmrtk_data_nd_contract(tmp_path):
     expected = np.arange(6, dtype=np.float32).reshape(2, 3)
     filename = tmp_path / "rnmrtk.sec"

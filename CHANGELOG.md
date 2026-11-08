@@ -47,6 +47,7 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ### Compatibility and fixes
 
+- Fix indexing and slicing of 1D Bruker FIDs opened with `read_lowmem()`. (#189)
 - The package attribute `nmrglue.interop.normalize` now refers to the generic
   function. Import individual normalizers from `nmrglue.interop.normalize`
   or from `nmrglue.interop`.
