@@ -342,7 +342,7 @@ def normalize_bruker_pdata(
         or not np.allclose(axis.values, expected.values, rtol=1e-12, atol=1e-9)
         or axis.reference != expected.reference or axis.direction != expected.direction):
         raise ValueError("processed frequency axis disagrees with its calibration")
-    if not np.all(np.diff(expected.values) < 0):
+    if not (np.all(np.diff(expected.values) < 0) and np.all(np.diff(axis.values) < 0)):
         raise ValueError("Bruker processing axis must be strictly decreasing")
     corrections = dict(result.applied_corrections)
     if set(corrections) - {"scale_data", "NC_proc"} or type(corrections.get("scale_data")) is not bool:
@@ -362,10 +362,14 @@ def normalize_bruker_pdata(
     complex_data = "1i" in components
     output = components["1r"] + 1j * components["1i"] if complex_data else data
     gain = None
+    gain_scale = None
     if normalize_receiver_gain:
         gain = _raw_number(result.metadata, "acqus", "RG")
         if gain is None or gain <= 0:
             raise ValueError("receiver-gain normalization requires a positive Bruker RG")
+        gain_scale = 1 / gain
+        if not np.isfinite(gain_scale):
+            raise ValueError("Bruker receiver-gain correction factor must be finite")
         with np.errstate(over="ignore"):
             output = output / gain
         if not np.isfinite(output).all():
@@ -399,7 +403,7 @@ def normalize_bruker_pdata(
     operation = {
         "name": "normalize-bruker-processed-components", "stage": "processing",
         "input_dimensions": ("storage",), "output_dimensions": ("F2",),
-        "axis": "F2", "scale": None if gain is None else 1 / gain,
+        "axis": "F2", "scale": gain_scale,
         "conjugation": "none", "sign": "none",
         "permutation": None, "evidence": "nmrglue.interop.read_bruker_pdata",
         "source_components": tuple(component.name for component in result.components),

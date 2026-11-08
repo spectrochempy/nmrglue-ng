@@ -147,3 +147,19 @@ def test_pdata_refuses_to_guess_requested_metadata(tmp_path):
         ng.interop.normalize(raw, normalize_receiver_gain=True)
     with pytest.raises(ValueError, match="positive acquisition SFO1"):
         ng.interop.normalize(raw, axis_reference="acquisition")
+
+
+def test_zero_spectrum_rejects_nonfinite_receiver_gain_factor(tmp_path):
+    source = _write_pdata(tmp_path, component_values={"1r": [0, 0, 0, 0]})
+    raw = ng.interop.read_bruker_pdata(source)
+    raw = replace(raw, metadata={**raw.metadata, "acqus": {"RG": 5e-324}})
+    with pytest.raises(ValueError, match="correction factor must be finite"):
+        ng.interop.normalize(raw, normalize_receiver_gain=True)
+
+
+def test_pdata_rejects_flat_supplied_axis_within_calibration_tolerance(tmp_path):
+    raw = ng.interop.read_bruker_pdata(_write_pdata(tmp_path, sw_p=1e-9))
+    assert np.all(np.diff(raw.axes[0].values) < 0)
+    flat = replace(raw.axes[0], values=np.full(4, raw.axes[0].values[0]))
+    with pytest.raises(ValueError, match="processing axis must be strictly decreasing"):
+        ng.interop.normalize(replace(raw, axes=(flat,)))
