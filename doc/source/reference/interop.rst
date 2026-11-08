@@ -49,6 +49,7 @@ Read raw acquisitions
     read_bruker_fid
     read_bruker_ser
     read_jeol_fid
+    read_simpson_fid
     read_jcampdx_fid
     read_jeol_2d_storage
 
@@ -77,6 +78,7 @@ Normalize a supported result
     normalize_agilent_fid
     normalize_bruker_fid
     normalize_jeol_fid
+    normalize_simpson_fid
     normalize_jeol_2d
     normalize_bruker_pdata
     normalize_bruker_pdata_2d
@@ -189,6 +191,29 @@ monotonic page coordinates, unity F1 factor and a shared F2 grid.
 
 The regression reference is the `β-pinene COSY from nmrXiv
 <https://doi.org/10.57992/nmrxiv.p33>`_.
+
+SIMPSON complex 1D FIDs
+^^^^^^^^^^^^^^^^^^^^^^^
+
+:func:`~nmrglue.interop.read_simpson_fid` reads a single-element complex
+1D ``TYPE=FID`` block in native SIMPSON TEXT or BINARY form. The existing
+decoder supplies the complex samples. The header specifies the sample
+count ``NP`` and sweep width ``SW`` in Hz. Sample ``i`` is at
+``i / SW`` seconds, starting at zero.
+
+.. code-block:: python
+
+    import nmrglue as ng
+
+    read = ng.interop.read_simpson_fid("1d_text.fid")
+    fid = ng.interop.normalize_simpson_fid(read, conjugation="none")
+    print(fid.acquisition["dwell_time_s"])
+
+Use ``conjugation="none"`` to preserve the stored sign or
+``"conjugate"`` to reverse the imaginary sign explicitly. The qualification
+tests compare both native encodings against the indexed export of the same
+SIMPSON 4.2.1 simulation. Set ``SIMPSON_INTEROP_DATA`` to the
+``simpson_1d`` corpus directory to run those tests.
 
 Agilent 1D scan-count evidence
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
