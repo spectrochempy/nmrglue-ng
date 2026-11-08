@@ -15,9 +15,10 @@ In a few minutes, you will read a time-domain NMR signal, inspect its metadata,
 apply a Fourier transformation, construct a chemical-shift axis, detect the
 peaks, and plot the resulting spectrum.
 
-This guide starts after **nmrglue-ng 1.0.0** has been installed. Choose one of
-the {doc}`installation procedures <../install>` first, then return here with
-that environment active.
+Install nmrglue-ng using one of the {doc}`installation procedures <../install>`,
+then return here with that environment active. If you want to reproduce the
+original notebook environment in Colab, the installation guide shows how to
+pin the package to version 1.0.0.
 
 The example signal is stored in the **NMRPipe** file format. NMRPipe is one of
 the formats supported by nmrglue-ng; it is used here as a compact way to keep

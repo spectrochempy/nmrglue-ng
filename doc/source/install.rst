@@ -173,7 +173,8 @@ workflow and documentation-specific dependencies.
 Use in Google Colab
 -------------------
 
-Install the stable PyPI release in a Colab code cell:
+To reproduce the package version used by the original getting-started
+notebook, pin version 1.0.0 in a Colab code cell:
 
 .. code-block:: ipython3
 
