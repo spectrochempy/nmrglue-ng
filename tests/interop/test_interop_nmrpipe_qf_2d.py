@@ -179,3 +179,38 @@ def test_qf_2d_export_rejects_unsupported_or_incomplete_profiles(tmp_path, match
         ng.interop.write_readresult_nmrpipe(
             result, tmp_path / "invalid.ft2", overwrite=True
         )
+
+
+@pytest.mark.parametrize("transposed", [False, True])
+def test_normalize_qf_2d_export_preserves_samples_and_dwell(tmp_path, transposed):
+    result = _result()
+    path = tmp_path / "qf.fid"
+    header = ng.interop.write_readresult_nmrpipe(result, path)
+    assert header["FD2DPHASE"] == 0
+    order, encoding, branches = ("F1", "F2"), ("real", "complex"), ("rr", "ri")
+    expected = result.data
+    axes = result.axes
+    if transposed:
+        rows, cols = expected.shape
+        header.update(FDTRANSPOSED=1, FDDIMORDER1=1, FDDIMORDER2=2, FDSIZE=rows, FDSPECNUM=cols)
+        expected = expected.T
+        packed = np.stack((expected.real, expected.imag), axis=1).reshape(2 * cols, rows)
+        path.write_bytes(ng.pipe.dic2fdata(header).tobytes() + packed.astype(np.float32).tobytes())
+    stored = ng.interop.read(path)
+    if transposed:
+        with pytest.raises(ValueError, match="non-transposed"):
+            ng.interop.normalize(stored, confirm_time_grid=True)
+        return
+    with pytest.raises(ValueError, match="confirm_time_grid=True"):
+        ng.interop.normalize(stored)
+    normalized = ng.interop.normalize(stored, confirm_time_grid=True)
+    assert normalized.acquisition["indirect_sampling"] == "qf"
+    assert normalized.physical_dimensions == order
+    assert normalized.domains == ("time", "time")
+    assert normalized.encoding == encoding
+    assert normalized.branch_order == branches
+    np.testing.assert_array_equal(normalized.data[0], expected.real)
+    np.testing.assert_array_equal(normalized.data[1], expected.imag)
+    for axis, expected_axis in zip(normalized.axes, axes, strict=True):
+        assert axis.unit == "s"
+        np.testing.assert_array_equal(axis.values, expected_axis.values)

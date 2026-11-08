@@ -160,7 +160,7 @@ def test_unappend_data_preserves_components_independently():
         ({"FDF1X1": 1}, "unextracted grid"),
         ({"FDNUSDIM": 1}, "uniformly sampled grid"),
         ({"FD2DPHASE": 1}, "F1 requires real samples"),
-        ({"FD2DPHASE": 0}, "requires States or TPPI layout"),
+        ({"FD2DPHASE": 0}, "F1 requires real samples"),
         ({"FD2DPHASE": 3}, "requires a spectral plane"),
     ],
 )
