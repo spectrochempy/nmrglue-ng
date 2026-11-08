@@ -253,54 +253,88 @@ def normalize_bruker_fid(
         work -= work.mean()
     dc_trace = {"applied": remove_dc_offset, "input_points": int(input_points)}
     parameters = filtering.get("parameters", {})
-    filter_trace: dict[str, object] = {"requested": bool(remove_digital_filter), "applied": False}
-    if remove_digital_filter:
+    def resolve_filter(only_if_decimated):
         if not isinstance(parameters, Mapping):
             raise ValueError("invalid Bruker digital-filter parameters")
         decim = number(parameters, "DECIM", positive=True)
         if not decim.is_integer():
             raise ValueError("Bruker digital-filter decimation must be an integer")
-        if if_decimated and decim == 1:
-            filter_trace["reason"] = "no-decimation"
+        if only_if_decimated and decim == 1:
+            return None
+        firmware = number(parameters, "DSPFVS")
+        if not firmware.is_integer():
+            raise ValueError("Bruker digital-filter firmware must be an integer")
+        delay = number(parameters, "GRPDLY", optional=True)
+        if delay is None or delay <= 0:
+            table = bruker.bruker_dsp_table.get(int(firmware), {})
+            if int(decim) not in table:
+                raise ValueError("unknown Bruker digital-filter group delay")
+            delay = float(table[int(decim)])
+            source = "DSPFVS/DECIM"
         else:
-            firmware = number(parameters, "DSPFVS")
-            if not firmware.is_integer():
-                raise ValueError("Bruker digital-filter firmware must be an integer")
-            delay = number(parameters, "GRPDLY", optional=True)
-            if delay is None or delay <= 0:
-                table = bruker.bruker_dsp_table.get(int(firmware), {})
-                if int(decim) not in table:
-                    raise ValueError("unknown Bruker digital-filter group delay")
-                delay = float(table[int(decim)])
-                source = "DSPFVS/DECIM"
-            else:
-                source = "GRPDLY"
-            if not np.isfinite(delay) or delay <= 0:
-                raise ValueError("invalid Bruker digital-filter group delay")
-            skip = int(np.floor(delay)) + 2
-            if skip >= points - 1:
-                raise ValueError("Bruker group delay leaves fewer than two acquired points")
-            work = bruker.rm_dig_filter(
-                work, int(decim), int(firmware), delay, truncate_grpdly=True
-            )
-            filter_trace = {
-                "requested": True, "applied": True, "group_delay_points": delay,
-                "delay_source": source, "truncate_group_delay": True,
-                "removed_points": skip, "parameters": dict(parameters),
-            }
-    gain_trace: dict[str, object] = {"applied": normalize_scan_gain}
-    if normalize_scan_gain:
+            source = "GRPDLY"
+        if not np.isfinite(delay) or delay <= 0:
+            raise ValueError("invalid Bruker digital-filter group delay")
+        skip = int(np.floor(delay)) + 2
+        if skip >= points - 1:
+            raise ValueError("Bruker group delay leaves fewer than two acquired points")
+        return int(decim), int(firmware), delay, source, skip
+
+    def resolve_gain():
         scans = number(acquisition, "NS", positive=True, optional=True)
         gain = number(acquisition, "RG", positive=True, optional=True)
         divisor = (1.0 if scans is None else scans) * (1.0 if gain is None else gain)
         if not np.isfinite(divisor) or divisor <= 0:
             raise ValueError("invalid Bruker scan/gain divisor")
-        scale = 1.0 / divisor
-        if not np.isfinite(scale):
+        if not np.isfinite(1.0 / divisor):
             raise ValueError("invalid Bruker scan/gain scale")
-        work /= divisor
-        gain_trace.update({"scans": scans, "receiver_gain": gain, "divisor": divisor})
-        operation["scale"] = scale
+        return {"scans": scans, "receiver_gain": gain, "divisor": divisor}
+
+    filter_trace: dict[str, object] = {"requested": bool(remove_digital_filter), "applied": False}
+    try:
+        filter_spec = resolve_filter(if_decimated or not remove_digital_filter)
+    except ValueError:
+        if remove_digital_filter:
+            raise
+        pending_filter: dict[str, object] = {"state": "unavailable"}
+    else:
+        if filter_spec is None:
+            pending_filter = {"state": "not-required"}
+            if remove_digital_filter:
+                filter_trace["reason"] = "no-decimation"
+        else:
+            decim, firmware, delay, source, skip = filter_spec
+            pending_filter = {
+                "state": "available",
+                "method": "integer-shift-fold-trim",
+                "group_delay_points": delay,
+                "left_shift_points": skip - 2,
+                "fold_points": max(skip - 6, 0),
+                "discard_points": skip,
+            }
+            if remove_digital_filter:
+                work = bruker.rm_dig_filter(
+                    work, decim, firmware, delay, truncate_grpdly=True
+                )
+                filter_trace = {
+                    "requested": True, "applied": True, "group_delay_points": delay,
+                    "delay_source": source, "truncate_group_delay": True,
+                    "removed_points": skip, "parameters": dict(parameters),
+                }
+    gain_trace: dict[str, object] = {"applied": normalize_scan_gain}
+    try:
+        gain_spec = resolve_gain()
+    except ValueError:
+        if normalize_scan_gain:
+            raise
+        pending_gain: dict[str, object] = {"state": "unavailable"}
+    else:
+        pending_gain = {"state": "available", **gain_spec}
+        if normalize_scan_gain:
+            divisor = gain_spec["divisor"]
+            work /= divisor
+            gain_trace.update(gain_spec)
+            operation["scale"] = 1.0 / divisor
     if not np.isfinite(work).all():
         raise ValueError("Bruker corrections produced nonfinite samples")
     operation["dc_offset"] = dc_trace
@@ -322,6 +356,13 @@ def normalize_bruker_fid(
         },
         "normalization": "scan-gain" if normalize_scan_gain else "none",
         "digital_filter": filter_trace, "dc_offset": dc_trace, "scan_gain": gain_trace,
+        "fid_preparation": {
+            "schema": "fid-preparation-v1",
+            "complex_convention": "centered-negative-exponent-dft",
+            "sample_count": int(work.size),
+            "digital_filter": pending_filter,
+            "scan_gain": pending_gain,
+        },
         "storage_points": int(data.size), "acquired_points": points,
         "returned_points": int(work.size), "trimmed_padding_points": int(trimmed_points),
     }

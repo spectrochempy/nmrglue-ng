@@ -333,6 +333,25 @@ first-order phase in degrees at the first bin. For N FFT points, its
 multiplier at bin i is ``exp(+1j * radians(zero_order_deg +
 first_order_deg * i / N))``. Neither descriptor changes the FID.
 
+.. rubric:: Deferred FID preparation
+
+When the correction options are left off, the FID remains uncorrected and
+``acquisition["fid_preparation"]`` describes what a consumer can apply later.
+The ``fid-preparation-v1`` descriptor declares the complex convention and the
+returned sample count. Check that the time grid and sample count still
+describe the acquisition before using it. The separate ``dc_offset``,
+``digital_filter`` and ``scan_gain`` acquisition records state which
+operations have already been applied.
+
+For the qualified ``integer-shift-fold-trim`` method, rotate the canonical
+samples left by ``left_shift_points``, add the reversed last ``fold_points``
+samples of that rotated array to its first points, then discard the final
+``discard_points`` samples. Apply optional complex-mean subtraction before
+this operation and divide by the declared scan/gain divisor afterward.
+The filter status is ``not-required`` for a non-decimated acquisition or
+``unavailable`` when there is insufficient evidence for this method. Missing
+or unsupported correction evidence does not prevent importing the FID.
+
 Two local real acquisitions qualify QSIM/DQD, opposite int32 byte orders,
 zero storage padding and both explicit/table group-delay paths. The consumer
 compares unfiltered conversion, FFT and ppm axes with NMRPipe13. Filter removal
