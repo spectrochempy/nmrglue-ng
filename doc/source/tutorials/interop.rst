@@ -164,7 +164,7 @@ They are still available even when no interop normalizer is provided for that
      - Storage: scalar sections of standard tiled float64 2D JDF files.
        Qualified: complex float64 1D FIDs with a time axis in seconds.
    * - SIMPSON
-     - Qualified: complex 1D FIDs in native TEXT and BINARY form.
+     - Qualified: complex 1D FIDs and spectra in native TEXT and BINARY form.
    * - JCAMP-DX
      - Qualified: real 1D NMR spectra with regular XYDATA in Hz or ppm
        complex 1D FIDs in regular NTUPLES form, and complete real 2D NTUPLES planes.
@@ -191,7 +191,7 @@ validates a layout or calibration for a consumer.
   grids. Complete grids in NMRPipe States or pure TPPI layout require
   confirmation of the original time grid for time or mixed domains. See
   :func:`~nmrglue.interop.normalize_nmrpipe_2d`.
-* SIMPSON: complex 1D FIDs with a time grid derived from the sweep width.
+* SIMPSON: complex 1D FIDs and spectra with axes derived from the sweep width.
 * JCAMP-DX: real 1D XYDATA spectra, complex 1D NTUPLES FIDs and real 2D NTUPLES planes.
   FID normalization preserves the time grid and records the requested conjugation.
 * nmrML: explicit 1D raw and processed profiles and real processed 2D planes
