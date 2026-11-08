@@ -9,7 +9,7 @@ import numpy as np
 from ..fileio import jcampdx
 from .result import (
     Axis, Component, NormalizedAcquisition, ReadResult, Reference,
-    _same_axis_grid, _same_component,
+    _same_axis_grid, _same_component, _unscaled_normalization_operation,
 )
 
 
@@ -144,12 +144,12 @@ def normalize_jcampdx_1d(result):
     observed = result.axes[0]
     if observed.reference != axis.reference or not _same_axis_grid(observed, axis):
         raise ValueError("JCAMP-DX axis disagrees with its spectrum metadata")
-    operation = {
-        "name": "normalize-jcampdx-1d", "stage": "processing",
-        "input_dimensions": ("storage",), "output_dimensions": ("F2",),
-        "axis": "F2", "scale": None, "conjugation": "none", "sign": "none",
-        "permutation": None, "evidence": "JCAMP-DX FIRSTX, LASTX, NPOINTS and XUNITS",
-    }
+    operation = _unscaled_normalization_operation(
+        name="normalize-jcampdx-1d", stage="processing",
+        input_dimensions=("storage",), output_dimensions=("F2",),
+        axis="F2", conjugation="none",
+        evidence="JCAMP-DX FIRSTX, LASTX, NPOINTS and XUNITS",
+    )
     return NormalizedAcquisition(
         data=result.data, axes=(axis,), dimensions=("F2",), physical_dimensions=("F2",),
         domains=result.domains, quadrature_mode="real-1d", branch_order=("real",),
@@ -306,12 +306,12 @@ def normalize_jcampdx_fid(result, *, conjugation):
     observed = result.axes[0]
     if observed.reference != axis.reference or not _same_axis_grid(observed, axis):
         raise ValueError("JCAMP-DX axis disagrees with its FID metadata")
-    operation = {
-        "name": "normalize-jcampdx-fid", "stage": "acquisition",
-        "input_dimensions": ("storage",), "output_dimensions": ("F2",),
-        "axis": "F2", "scale": None, "conjugation": conjugation, "sign": "none",
-        "permutation": None, "evidence": "JCAMP-DX NTUPLES time endpoints and explicit sign choice",
-    }
+    operation = _unscaled_normalization_operation(
+        name="normalize-jcampdx-fid", stage="acquisition",
+        input_dimensions=("storage",), output_dimensions=("F2",),
+        axis="F2", conjugation=conjugation,
+        evidence="JCAMP-DX NTUPLES time endpoints and explicit sign choice",
+    )
     dwell = (last - first) / (points - 1)
     return NormalizedAcquisition(
         data=result.data.conj() if conjugation == "conjugate" else result.data,
@@ -547,12 +547,12 @@ def normalize_jcampdx_2d(result):
         )
     ):
         raise ValueError("JCAMP-DX 2D description disagrees with its spectrum")
-    operation = {
-        "name": "normalize-jcampdx-2d", "stage": "processing",
-        "input_dimensions": dimensions, "output_dimensions": dimensions,
-        "axis": None, "scale": None, "conjugation": "none", "sign": "none",
-        "permutation": None, "evidence": "JCAMP-DX PAGE coordinates and F2 endpoints",
-    }
+    operation = _unscaled_normalization_operation(
+        name="normalize-jcampdx-2d", stage="processing",
+        input_dimensions=dimensions, output_dimensions=dimensions,
+        axis=None, conjugation="none",
+        evidence="JCAMP-DX PAGE coordinates and F2 endpoints",
+    )
     return NormalizedAcquisition(
         data=result.data, axes=axes, dimensions=dimensions, physical_dimensions=dimensions,
         domains=domains, quadrature_mode="real-2d", branch_order=("real",),

@@ -235,6 +235,31 @@ class ReadResult:
         object.__setattr__(self, "acquisition", _readonly(self.acquisition))
 
 
+def _unscaled_normalization_operation(
+    *,
+    name: str,
+    stage: str,
+    input_dimensions: tuple[str, ...],
+    output_dimensions: tuple[str, ...],
+    axis: str | None,
+    conjugation: str,
+    evidence: str,
+) -> dict[str, Any]:
+    """Record normalization without scaling, a separate sign change or permutation."""
+    return {
+        "name": name,
+        "stage": stage,
+        "input_dimensions": input_dimensions,
+        "output_dimensions": output_dimensions,
+        "axis": axis,
+        "scale": None,
+        "conjugation": conjugation,
+        "sign": "none",
+        "permutation": None,
+        "evidence": evidence,
+    }
+
+
 @dataclass(frozen=True)
 class NormalizedAcquisition:
     """Immutable, dependency-free acquisition contract for consumers.
