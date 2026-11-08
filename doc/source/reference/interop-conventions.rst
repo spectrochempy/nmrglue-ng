@@ -658,6 +658,11 @@ are present. A real plane has no channel axis. These are stored components.
 Acquisition sign and phase conventions remain in the header for later
 processing.
 
+Complete non-transposed raw QF files (``FD2DPHASE=0``) are supported when F1 is real and
+F2 is complex. The caller must confirm the time grid. Both dwell times are
+``1 / SW``. The normalized acquisition identifies this convention with
+``acquisition["indirect_sampling"] == "qf"``.
+
 Real NMRPipe 2D spectra (experimental)
 --------------------------------------
 

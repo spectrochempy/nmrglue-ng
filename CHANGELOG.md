@@ -7,6 +7,8 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Normalize complete raw NMRPipe QF 2D grids after explicit confirmation.
+
 ## 1.2.0 - 2026-11-08
 
 ### Interoperability

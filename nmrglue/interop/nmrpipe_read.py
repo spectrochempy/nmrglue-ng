@@ -358,10 +358,13 @@ def _normalize_nmrpipe_2d_storage(result, confirm_time_grid):
     plane_type = _number(header, "FD2DPHASE")
     if plane_type not in (0, 1, 2):
         raise ValueError("NMRPipe normalization requires a spectral plane")
+    qf = plane_type == 0 and domains == ("time", "time")
+    if qf and order != ("F1", "F2"):
+        raise ValueError("NMRPipe raw QF normalization requires a non-transposed file")
     if "time" in domains:
         if confirm_time_grid is not True:
             raise ValueError("NMRPipe time-domain normalization requires confirm_time_grid=True")
-        if plane_type not in (1, 2):
+        if not qf and plane_type not in (1, 2):
             raise ValueError("NMRPipe time-domain normalization requires States or TPPI layout")
 
     axes = []
@@ -378,7 +381,7 @@ def _normalize_nmrpipe_2d_storage(result, confirm_time_grid):
         if domain == "frequency":
             axis, width = _frequency_axis(header, prefix, size)
         else:
-            expected_kind = "real" if tppi_indirect else "complex"
+            expected_kind = "real" if dim == "F1" and (qf or tppi_indirect) else "complex"
             if kind != expected_kind:
                 raise ValueError(
                     f"NMRPipe time-domain {dim} requires {expected_kind} samples for this layout"
@@ -427,6 +430,9 @@ def _normalize_nmrpipe_2d_storage(result, confirm_time_grid):
         "permutation": None,
         "evidence": "nmrglue.interop.read_nmrpipe_2d_storage",
     }
+    acquisition: dict[str, object] = {"spectral_width_hz": tuple(widths)}
+    if qf:
+        acquisition["indirect_sampling"] = "qf"
     return NormalizedAcquisition(
         data=data, axes=tuple(axes), dimensions=dimensions, physical_dimensions=order,
         domains=domains, quadrature_mode="stored-components-2d" if channel_axis == 0 else "real-2d",
@@ -435,8 +441,8 @@ def _normalize_nmrpipe_2d_storage(result, confirm_time_grid):
         normalization_profile="nmrpipe-stored-components-2d-v1",
         applied_operations=(operation,),
         provenance={"source": result.source, "format": result.format},
-        acquisition={"spectral_width_hz": tuple(widths)},
-        metadata=header, encoding=encoding, diagnostics=result.diagnostics,
+        acquisition=acquisition, metadata=header, encoding=encoding,
+        diagnostics=result.diagnostics,
     )
 
 
@@ -445,7 +451,8 @@ def normalize_nmrpipe_2d(result, *, confirm_time_grid=False):
 
     Preserve file axis order and split stored quadrature into real channels.
     Time axes support complex States storage and pure TPPI with a real
-    indirect time axis sampled at twice its spectral width.
+    indirect time axis sampled at twice its spectral width. Complete raw QF
+    grids in non-transposed order use a real indirect axis and 1 / SW dwell times.
     Set ``confirm_time_grid=True`` only for a known complete, uniformly
     sampled acquisition grid starting at the original time and branch.
     NMRPipe time-domain extraction can leave the relevant header fields
