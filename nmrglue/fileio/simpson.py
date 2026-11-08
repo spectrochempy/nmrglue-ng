@@ -138,8 +138,11 @@ def guess_ftype(filename):
 
 def read_text(filename):
     """Read a SIMPSON text file. See :py:func:`read`."""
-    f = open(filename, 'r')  # open the file
+    with open(filename, 'r') as stream:
+        return _read_text(stream)
 
+
+def _read_text(f):
     dic = {}                # initialize dictionary of parameters
 
     # parse the header of the file, storing parameters in dictionary, stop
@@ -196,7 +199,6 @@ def read_text(filename):
         if dic['NELEM'] > 1:    # multi-element 1D data stays 2D
             data = data.reshape(dic['NELEM'], -1)
 
-    f.close()
     return dic, data
 
 
@@ -311,8 +313,11 @@ def unappend_data(data):
 
 def read_binary(filename):
     """Read a binary SIMPSON file. See :py:func:`read`."""
-    f = open(filename, 'r')  # open the file
+    with open(filename, 'r') as stream:
+        return _read_binary(stream)
 
+
+def _read_binary(f):
     dic = {}                # initialize dictionary of parameters
 
     # parse the header of the file, storing parameters in dictionary, stop
@@ -346,7 +351,6 @@ def read_binary(filename):
     # extract characters from data block
     chardata = "".join([line.strip('\n') for line in f])
     chardata = chardata[:-3]    # remove END
-    f.close()
 
     # convert every 4 character to 3 'bytes'
     nquads, mod = divmod(len(chardata), 4)
