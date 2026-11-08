@@ -7,6 +7,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Offer acquisition-centered axes and optional receiver-gain normalization for
+  the Bruker 1D processed interop profile.
+
 - Document the Bruker post-FFT digital-filter phase convention and how to use
   it with NMRPipe-style positive-exponent FFTs. (#194)
 
