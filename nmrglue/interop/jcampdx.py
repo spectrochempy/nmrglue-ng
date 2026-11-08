@@ -7,7 +7,7 @@ import re
 import numpy as np
 
 from ..fileio import jcampdx
-from .result import Axis, Component, NormalizedAcquisition, ReadResult, Reference
+from .result import Axis, Component, NormalizedAcquisition, ReadResult, Reference, _same_axis_grid
 
 
 def _label(block, name):
@@ -140,11 +140,7 @@ def normalize_jcampdx_1d(result):
     ):
         raise ValueError("JCAMP-DX description disagrees with its spectrum")
     observed = result.axes[0]
-    if (
-        observed.unit != axis.unit or observed.domain != axis.domain
-        or observed.direction != axis.direction or observed.reference != axis.reference
-        or not np.array_equal(observed.values, axis.values)
-    ):
+    if observed.reference != axis.reference or not _same_axis_grid(observed, axis):
         raise ValueError("JCAMP-DX axis disagrees with its spectrum metadata")
     operation = {
         "name": "normalize-jcampdx-1d", "stage": "processing",
@@ -306,11 +302,7 @@ def normalize_jcampdx_fid(result, *, conjugation):
     ):
         raise ValueError("JCAMP-DX description disagrees with its FID")
     observed = result.axes[0]
-    if (
-        observed.unit != axis.unit or observed.domain != axis.domain
-        or observed.direction != axis.direction or observed.reference != axis.reference
-        or not np.array_equal(observed.values, axis.values)
-    ):
+    if observed.reference != axis.reference or not _same_axis_grid(observed, axis):
         raise ValueError("JCAMP-DX axis disagrees with its FID metadata")
     operation = {
         "name": "normalize-jcampdx-fid", "stage": "acquisition",
@@ -548,10 +540,10 @@ def normalize_jcampdx_2d(result):
         or result.applied_corrections != {"yfactor": factors[2]}
         or len(result.components) != 1 or result.components[0].name != "real"
         or not np.array_equal(result.components[0].data, result.data)
-        or any(observed.unit != expected.unit or observed.domain != expected.domain
-               or observed.direction != expected.direction
-               or not np.array_equal(observed.values, expected.values)
-               for observed, expected in zip(result.axes, axes))
+        or any(
+            not _same_axis_grid(observed, expected)
+            for observed, expected in zip(result.axes, axes)
+        )
     ):
         raise ValueError("JCAMP-DX 2D description disagrees with its spectrum")
     operation = {

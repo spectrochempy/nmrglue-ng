@@ -8,7 +8,7 @@ from pathlib import Path
 import numpy as np
 
 from ..fileio import simpson
-from .result import Axis, Component, NormalizedAcquisition, ReadResult
+from .result import Axis, Component, NormalizedAcquisition, ReadResult, _same_axis_grid
 
 
 def _geometry(header, kind, ndim):
@@ -199,8 +199,7 @@ def _normalize(result, kind, format_name, conjugation, ndim=1):
     ):
         raise ValueError("SIMPSON description disagrees with its samples")
     if any(
-        observed.unit != axis.unit or observed.domain != axis.domain
-        or observed.direction != axis.direction or not np.array_equal(observed.values, axis.values)
+        not _same_axis_grid(observed, axis)
         for observed, axis in zip(result.axes, axes)
     ):
         raise ValueError("SIMPSON axes disagree with the declared sweep widths")
