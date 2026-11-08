@@ -8,7 +8,7 @@ original nmrglue project and are preserved for attribution and continuity.
 ## Unreleased
 
 - Document the Bruker post-FFT digital-filter phase convention and how to use
-  it with NMRPipe-style positive-exponent FFTs.
+  it with NMRPipe-style positive-exponent FFTs. (#194)
 
 - Normalize complete raw NMRPipe QF 2D grids after explicit confirmation.
 
