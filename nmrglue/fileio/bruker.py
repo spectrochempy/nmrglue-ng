@@ -2062,9 +2062,10 @@ def remove_digital_filter(dic, data, truncate=True, post_proc=False,
         This typically produces a better looking spectrum but may remove
         useful data.  False uses a non-truncated phase.
     post_proc : bool, optional
-        True if the digital filter is to be removed post processing, i.e after
-        fourier transformation. The corrected FID will not be returned, only a
-        corrected spectrum in the frequency dimension will be returned
+        Correct a Fourier-transformed complex spectrum on its last axis.
+        This preserves the array shape and applies a positive phase ramp,
+        starting at the first stored frequency bin. See Notes for the
+        positive-exponent FFT convention.
     remove_dc_offset : bool, optional
         True to remove the receiver DC offset from the FID before digital
         filter removal.  This subtracts the mean of each row along the last
@@ -2092,6 +2093,22 @@ def remove_digital_filter(dic, data, truncate=True, post_proc=False,
     See Also
     ---------
     rm_dig_filter : Remove digital filter by specifying parameters.
+
+    Notes
+    -----
+    Set ``truncate=False`` to preserve the fractional group delay. With a
+    spectrum from :func:`nmrglue.process.proc_base.fft_positive`, the
+    NMRPipe ``FT -df`` convention uses the opposite ramp sign. Conjugate
+    before and after calling this function to reverse the sign while
+    preserving the shifted bin order::
+
+        spectrum = ng.proc_base.fft_positive(fid)
+        corrected = ng.bruker.remove_digital_filter(
+            dic, spectrum.conj(), truncate=False, post_proc=True
+        ).conj()
+
+    Apply the correction once, using an FID that still contains the filter
+    delay.
 
     """
     if 'acqus' not in dic:
@@ -2137,10 +2154,9 @@ def rm_dig_filter(
         This typically produces a better looking spectrum but may remove useful
         data.  False uses a non-truncated grpdly value.
     post_proc : bool, optional
-        True if the digital filter is to be removed post processing, i.e after
-        fourier transformation. The corrected time domain data will not be
-        returned, only the corrected spectrum in the frequency dimension will
-        be returned
+        Apply a positive phase ramp starting at the first stored frequency
+        bin along the last axis, preserving the spectrum shape. See
+        :func:`remove_digital_filter` for the NMRPipe FFT convention.
     remove_dc_offset : bool, optional
         True to remove the receiver DC offset from the FID before digital
         filter removal.  This subtracts the mean of each row along the last
