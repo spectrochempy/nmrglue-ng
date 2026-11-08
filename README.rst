@@ -2,197 +2,76 @@
 nmrglue-ng
 ==========
 
-**An independent continuation of nmrglue for processing and working with NMR data in Python.**
+Read, write, convert, process, and analyse NMR data in Python. nmrglue-ng is
+an independent continuation of `nmrglue <https://github.com/jjhelmus/nmrglue>`_,
+originally developed by Jonathan J. Helmus and contributors.
 
-``nmrglue-ng`` is an independent fork of `nmrglue <https://github.com/jjhelmus/nmrglue>`_, originally developed by Jonathan J. Helmus and contributors.
+Quick start
+===========
 
-The project aims to preserve the simplicity, scientific capabilities, and established API of nmrglue while providing ongoing maintenance, reproducible testing, up-to-date documentation, and a predictable contribution and release process.
+Install the ``nmrglue-ng`` distribution in a Python 3.10+ environment::
 
-.. important::
+    python -m pip install nmrglue-ng
 
-   ``nmrglue-ng`` is an independent project. It is not the official nmrglue distribution and is not maintained or endorsed by the maintainers of the original project. It is a continuation of that work, **not a replacement for it**: nmrglue remains the reference project, and ``nmrglue-ng`` aims to sustain its maintenance rather than to supersede or compete with it.
+The Python import remains ``nmrglue``. For example, read an NMRPipe FID:
+
+`Download the sample FID
+<https://github.com/spectrochempy/nmrglue-ng/raw/v1.1.2/doc/source/getting-started/synthetic_1d_time.fid>`_
+and save it beside your script.
+
+.. code-block:: python
+
+    import nmrglue as ng
+
+    dic, data = ng.pipe.read("synthetic_1d_time.fid")
+
+The reader returns a dictionary of NMRPipe header values and a NumPy array.
+Use separate environments for the historical ``nmrglue`` distribution and
+``nmrglue-ng``, since both install the same Python package.
+The `installation guide <https://nmrglue-ng.readthedocs.io/stable/install.html>`_
+covers uv, pip, and Conda.
+
+What nmrglue-ng adds
+====================
+
+* **Structured results for interoperability.** The optional
+  ``nmrglue.interop`` API exposes data, calibrated axes, metadata, and
+  diagnostics for supported profiles. The first published profile reads
+  processed Bruker/TopSpin 1D spectra. Existing format readers continue
+  to return ``(dic, data)``. Interop is still in development, and coverage
+  varies by format and profile. To help prioritize the remaining profiles,
+  `open a GitHub issue <https://github.com/spectrochempy/nmrglue-ng/issues>`_
+  describing your format, data type, and workflow.
+* **Corrections to scientific workflows.** Releases include fixes for the
+  endpoints of descending processed JCAMP-DX axes and for scaling noise
+  estimates in 1D and multidimensional integration.
+* **Runnable examples and maintained distributions.** Follow downloadable
+  notebooks with reproducible example data and install releases from PyPI
+  or the ``spectrocat`` Conda channel.
 
 Documentation
 =============
 
-The stable documentation is available on Read the Docs:
-`nmrglue-ng.readthedocs.io/stable/ <https://nmrglue-ng.readthedocs.io/stable/>`_.
+* `Getting started <https://nmrglue-ng.readthedocs.io/stable/getting-started/index.html>`_
+  walks through reading, processing, and plotting a first spectrum.
+* `API reference <https://nmrglue-ng.readthedocs.io/stable/reference/index.html>`_
+  covers the format readers, processing, analysis, and interop interfaces.
+* `Release notes <https://nmrglue-ng.readthedocs.io/stable/whats-new.html>`_
+  describe changes by release. See the `development documentation
+  <https://nmrglue-ng.readthedocs.io/latest/>`_ for unreleased features.
+* `Contributor guide <https://github.com/spectrochempy/nmrglue-ng/blob/master/CONTRIBUTING.md>`_
+  covers reporting issues, running tests, and contributing fixes.
 
-Why nmrglue-ng?
-===============
+Citation and license
+====================
 
-nmrglue has provided the NMR community with a lightweight and powerful Python toolkit for reading, writing, converting, processing, and analysing NMR data for more than a decade.
-
-Its broad support for NMR formats and its NumPy-oriented API make it particularly valuable for scientific scripting and interoperability.
-
-``nmrglue-ng`` builds on that work rather than replacing it, and does not seek to compete with the historical project.
-
-One motivation for the fork was a concrete downstream need: `SpectroChemPy <https://www.spectrochempy.fr/>`_, whose NMR support depends on nmrglue, needed a base that is actively maintained and kept compatible with current Python, NumPy, and SciPy releases. Providing that up-to-date base is part of why ``nmrglue-ng`` exists.
-
-The main goals of this fork are:
-
-* preserve compatibility with the established nmrglue API wherever practical;
-* maintain and test existing NMR file-format support;
-* fix confirmed bugs and scientific inconsistencies;
-* provide reproducible test datasets for critical I/O operations;
-* maintain compatibility with current Python, NumPy, and SciPy releases;
-* keep packaging and continuous integration up to date;
-* maintain and continuously build the documentation;
-* establish a clear process for reviewing contributions as the project grows;
-* document important scientific and API decisions.
-
-Large API redesigns are explicitly **not** an initial objective.
-
-Compatibility
-=============
-
-Backward compatibility with existing nmrglue code is a primary goal.
-
-Existing code should, whenever possible, continue to work unchanged::
-
-    import nmrglue as ng
-
-    dic, data = ng.bruker.read("experiment")
-
-The distribution name and Python import name are intentionally distinct::
-
-    distribution: nmrglue-ng
-    import:       nmrglue
-
-Compatibility cannot be guaranteed indefinitely when correcting scientifically incorrect behaviour. Such changes will be documented, tested, and introduced through an explicit compatibility policy.
-
-Scientific scope
-================
-
-The project retains nmrglue's established scope, including:
-
-* reading and writing NMR data;
-* vendor and interchange file formats;
-* conversion between formats;
-* spectral processing;
-* unit and axis conversion;
-* peak picking and fitting;
-* low-memory access to large datasets.
-
-Scientific correctness and preservation of acquisition and processing metadata are considered part of the public behaviour of the library, not implementation details.
-
-Development priorities
-======================
-
-The initial development effort focuses on maintenance rather than redesign.
-
-Reliability
------------
-
-* reproducible test fixtures for supported NMR formats;
-* read/write and conversion round-trip tests;
-* regression tests for confirmed bugs;
-* validation of spectral axes and metadata.
-
-Scientific consistency
-----------------------
-
-Particular attention is being given to the relationships between:
-
-* observation frequency;
-* reference frequency;
-* carrier frequency and offset;
-* spectral width;
-* point, Hz, and ppm coordinates;
-* quadrature and complex-data conventions.
-
-Infrastructure
---------------
-
-* modern Python packaging;
-* current Python/NumPy/SciPy compatibility;
-* Linux, macOS, and Windows CI;
-* automated documentation builds;
-* reproducible releases.
-
-File formats
-------------
-
-Existing format support will be preserved and progressively strengthened with real and synthetic reference datasets.
-
-Changes to parsers are expected to include regression tests demonstrating the corresponding format convention.
-
-Relationship with upstream nmrglue
-==================================
-
-``nmrglue-ng`` is a continuation of nmrglue, not a replacement for it. It retains the complete Git history of nmrglue and acknowledges the original authors and all contributors whose work forms the basis of this project.
-
-Where practical, fixes developed here that are applicable to the original nmrglue project may also be proposed upstream through pull requests or reported as issues in the original repository. This may include bug fixes, regression tests, documentation improvements, compatibility updates, and clarifications of scientific or format-specific behaviour.
-
-Before opening an upstream contribution, the proposed change will be reviewed for relevance to the original project, compatibility with its maintenance policy, and consistency with its existing API and scope. Changes that are specific to ``nmrglue-ng``, or that depend on its independent development direction, will remain in this project.
-
-Likewise, useful upstream developments may be incorporated into ``nmrglue-ng`` with their original authorship and attribution preserved.
-
-The intention is not to obscure or replace the history of nmrglue, but to continue building on it transparently and, where appropriate, to contribute improvements back to the original project.
-
-Contributions
-=============
-
-Contributions are welcome, particularly:
-
-* reproducible bug reports;
-* regression tests;
-* small NMR datasets that can legally be redistributed for testing;
-* fixes for file-format readers and writers;
-* documentation improvements;
-* scientific validation against vendor software or documented format specifications;
-* performance improvements accompanied by correctness tests and benchmarks.
-
-Changes affecting scientific conventions or public API semantics may require a short design discussion before implementation.
-
-As the project develops, contribution and maintenance practices may evolve to make it easier for additional maintainers to participate.
-
-Installation
-============
-
-The current stable release is published on PyPI:
-`nmrglue-ng <https://pypi.org/project/nmrglue-ng/>`_. Install it with pip::
-
-    python -m pip install nmrglue-ng
-
-It is also available from the ``spectrocat`` Conda channel::
-
-    mamba install -c spectrocat -c conda-forge nmrglue-ng
-
-Do not install ``nmrglue`` and ``nmrglue-ng`` in the same environment: both
-distributions provide the ``nmrglue`` Python package. See
-`INSTALL.txt <INSTALL.txt>`_ for source and development installation options.
-
-The distribution is named ``nmrglue-ng``, while the Python import remains::
-
-    import nmrglue as ng
-
-Citation and attribution
-========================
-
-nmrglue-ng is derived from **nmrglue**, created by Jonathan J. Helmus and contributors.
-
-Users should continue to acknowledge the original nmrglue work where appropriate:
+Please cite the original nmrglue paper where appropriate:
 
     Jonathan J. Helmus and Christopher P. Jaroniec,
+    *Nmrglue: an open source Python package for the analysis of
+    multidimensional NMR data*, Journal of Biomolecular NMR 55,
+    355–367 (2013). doi:10.1007/s10858-013-9718-x.
 
-    *Nmrglue: an open source Python package for the analysis of multidimensional NMR data*,
-
-    Journal of Biomolecular NMR (2013).
-
-A citation specific to ``nmrglue-ng`` will be provided if and when an appropriate archival release or publication becomes available.
-
-License
-=======
-
-``nmrglue-ng`` is distributed under the BSD 3-Clause License inherited from nmrglue.
-
-The original copyright notices and contributor history are preserved.
-
-See ``LICENSE.txt`` for details.
-
-----
-
-**nmrglue-ng is an independent continuation of nmrglue.**
-
-Its objective is deliberately conservative: preserve a useful and established NMR toolkit while making its maintenance, testing, documentation, and evolution sustainable.
+nmrglue-ng retains the original Git history and is distributed under the
+`BSD 3-Clause License
+<https://github.com/spectrochempy/nmrglue-ng/blob/master/LICENSE.txt>`_.
