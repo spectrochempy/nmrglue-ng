@@ -252,3 +252,48 @@ def test_selected_acquisition_files_supply_missing_status_fields(monkeypatch, tm
     assert result.acquisition["frequency_axis"]["offsets_hz"]["acquisition"] == 250
     assert result.acquisition["fft_display_axis"]["center_hz"] == pytest.approx(100)
     assert result.acquisition["fft_display_axis"]["spectral_width_hz"] == pytest.approx(2000.004)
+
+
+@pytest.mark.parametrize("preserve_storage", [False, True])
+def test_preparation_descriptor_replays_eager_corrections(monkeypatch, tmp_path, preserve_storage):
+    raw, data = _result(monkeypatch, tmp_path, padding=7, delay=8.5)
+    normalized = ng.interop.normalize_bruker_fid(raw, preserve_storage=preserve_storage)
+    expected = data if preserve_storage else data[:32]
+    np.testing.assert_array_equal(normalized.data, expected.conj())
+
+    preparation = normalized.acquisition["fid_preparation"]
+    assert preparation["schema"] == "fid-preparation-v1"
+    assert preparation["complex_convention"] == "centered-negative-exponent-dft"
+    assert preparation["sample_count"] == expected.size
+    delay = preparation["digital_filter"]
+    assert delay == {
+        "state": "available", "method": "integer-shift-fold-trim",
+        "group_delay_points": 8.5, "left_shift_points": 8,
+        "fold_points": 4, "discard_points": 10,
+    }
+    assert preparation["scan_gain"]["divisor"] == 16 * 40.3
+    assert not normalized.acquisition["digital_filter"]["applied"]
+    assert not normalized.acquisition["scan_gain"]["applied"]
+
+    deferred = normalized.data - normalized.data.mean()
+    deferred = np.roll(deferred, -delay["left_shift_points"])
+    fold = delay["fold_points"]
+    deferred[:fold] += deferred[-1:-fold - 1:-1].copy()
+    deferred = deferred[:-delay["discard_points"]] / preparation["scan_gain"]["divisor"]
+    eager = ng.interop.normalize_bruker_fid(
+        raw, preserve_storage=preserve_storage, remove_dc_offset=True,
+        remove_digital_filter="if-decimated", normalize_scan_gain=True,
+    )
+    np.testing.assert_allclose(deferred, eager.data, rtol=1e-12, atol=1e-14)
+
+
+@pytest.mark.parametrize("decimation,state", [(1, "not-required"), (2, "unavailable")])
+def test_preparation_descriptor_distinguishes_missing_filter_evidence(monkeypatch, tmp_path, decimation, state):
+    raw, _ = _result(monkeypatch, tmp_path)
+    raw = replace(raw, acquisition={**raw.acquisition, "RG": 0}, applied_corrections={
+        "normalization": "none",
+        "digital_filter": {"applied": False, "parameters": {"DECIM": decimation}},
+    })
+    normalized = ng.interop.normalize_bruker_fid(raw)
+    assert normalized.acquisition["fid_preparation"]["digital_filter"] == {"state": state}
+    assert normalized.acquisition["fid_preparation"]["scan_gain"] == {"state": "unavailable"}
