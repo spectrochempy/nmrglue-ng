@@ -224,3 +224,86 @@ def test_jcampdx_external_fid_reference(variable, digest, points, last, first):
     assert normalized.axes[0].values[0] == 0
     assert normalized.axes[0].values[-1] == last
     assert normalized.acquisition["dwell_time_s"] == pytest.approx(last / (points - 1))
+
+
+def test_betapinene_cosy_2d():
+    path = EPICATECHIN.with_name("betapinene_cosy_400mhz.jdx")
+    result = interop.read_jcampdx_2d(path)
+    normalized = interop.normalize_jcampdx_2d(result)
+    _, historical = jcampdx.read(path, show_all_data=True)
+    assert normalized.data.shape == (128, 3278)
+    assert normalized.dimensions == ("F1", "F2")
+    np.testing.assert_array_equal(normalized.data, np.stack(historical["real"]))
+    assert normalized.data[0, 0] == pytest.approx(170 * 3.9441e-9, rel=1e-12)
+    f1, f2 = normalized.axes
+    assert (f1.unit, f2.unit) == ("Hz", "Hz")
+    assert (f1.direction, f2.direction) == ("decreasing", "decreasing")
+    np.testing.assert_array_equal(f1.values[[0, 1, 2, -1]], [4997.59, 4950.37, 4903.14, -999.77])
+    np.testing.assert_array_equal(f2.values[[0, -1]], [5003.72, -1005.9])
+    assert f2.values[1] == pytest.approx(5003.72 - 6009.62 / 3277)
+
+
+PROFILE = """##TITLE=real 2D spectrum
+##JCAMP-DX=6.0
+##DATA TYPE=nD NMR SPECTRUM
+##DATA CLASS=NTUPLES
+##NUMDIM=2
+##NTUPLES=nD NMR SPECTRUM
+##SYMBOL=F1,F2,Y
+##VAR_DIM=3,3,9
+##UNITS=PPM,HZ,ARBITRARY UNITS
+##FIRST=1,10.00,2
+##LAST=3,8.00,18
+##FACTOR=1,1,2
+##PAGE=F1=1
+##DATA TABLE=(F2++(Y..Y)),PROFILE
+10 1 2 3
+##PAGE=F1=1.25
+##FIRST=1.25,10.00,8
+##DATA TABLE=(F2++(Y..Y)),PROFILE
+10 4 5 6
+##PAGE=F1=3
+##DATA TABLE=(F2++(Y..Y)),PROFILE
+10 7 8 9
+##END NTUPLES=nD NMR SPECTRUM
+##END=
+"""
+
+
+def test_jcampdx_2d_preserves_explicit_page_coordinates(tmp_path):
+    path = tmp_path / "plane.jdx"
+    path.write_text(PROFILE)
+    result = interop.read_jcampdx_2d(path)
+    normalized = interop.normalize_jcampdx_2d(result)
+    np.testing.assert_array_equal(normalized.axes[0].values, [1, 1.25, 3])
+    np.testing.assert_array_equal(normalized.axes[1].values, [10, 9, 8])
+    np.testing.assert_array_equal(normalized.data, np.arange(2, 19, 2).reshape(3, 3))
+    with pytest.raises(ValueError, match="disagrees"):
+        interop.normalize_jcampdx_2d(replace(result, dimensions={"shape": (1, 9)}))
+
+
+@pytest.mark.parametrize(
+    "old, new, message",
+    [
+        ("PAGE=F1=1.25", "PAGE=F1=1", "monotonic F1"),
+        ("PAGE=F1=1.25", "PAGE=N=2", "F1 coordinate"),
+        ("FIRST=1.25,10.00", "FIRST=1.25,11.00", "common F2 grid"),
+        ("10 4 5 6", "10 4\n20 5 6", "line abscissa"),
+        ("VAR_DIM=3,3,9", "VAR_DIM=3,3,8", "complete real plane"),
+        ("##PAGE=F1=1.25", "##PAGE=F1=1.25\n##NPOINTS=2", "NPOINTS disagrees"),
+        ("##VAR_DIM=", "##VAR_TYPE=DEPENDENT,DEPENDENT,INDEPENDENT\n##VAR_DIM=", "VAR_TYPE"),
+    ],
+)
+def test_jcampdx_2d_rejects_inconsistent_pages(tmp_path, old, new, message):
+    path = tmp_path / "plane.jdx"
+    path.write_text(PROFILE.replace(old, new))
+    with pytest.raises(ValueError, match=message):
+        interop.read_jcampdx_2d(path)
+
+
+def test_jcampdx_2d_uses_local_endpoint_precision_for_row_check(tmp_path):
+    path = tmp_path / "plane.jdx"
+    path.write_text(PROFILE.replace("LAST=3,8.00", "LAST=3,8")
+                    .replace("10 4 5 6", "10.4 4 5 6"))
+    with pytest.raises(ValueError, match="line abscissa"):
+        interop.read_jcampdx_2d(path)

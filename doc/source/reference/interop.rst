@@ -64,6 +64,7 @@ Read processed spectra and exchange files
     read_nmrpipe_2d
     read_nmrml_1d
     read_jcampdx_1d
+    read_jcampdx_2d
     read_nmrml_2d
     read_nmrml_raw_2d
 
@@ -83,6 +84,7 @@ Normalize a supported result
     normalize_nmrpipe_2d
     normalize_nmrml_1d
     normalize_jcampdx_1d
+    normalize_jcampdx_2d
     normalize_jcampdx_fid
     normalize_nmrml_2d
     normalize_nmrml_raw_2d
@@ -163,6 +165,30 @@ and ``JCAMP_ASPIRIN_FID_DX`` for the
 Set each variable to the path of the corresponding downloaded file.
 The tests check the archive file hashes and compare the full complex
 arrays with the historical reader.
+
+JCAMP-DX real 2D spectra
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+:func:`~nmrglue.interop.read_jcampdx_2d` reads a complete real NTUPLES
+plane with one F2 PROFILE table per F1 PAGE and an explicit common F2
+grid. It uses the existing decoder and applies the Y factor once.
+
+.. code-block:: python
+
+    import nmrglue as ng
+
+    read = ng.interop.read_jcampdx_2d("betapinene_cosy_400mhz.jdx")
+    spectrum = ng.interop.normalize_jcampdx_2d(read)
+    print(spectrum.data.shape)  # (128, 3278) in (F1, F2) order
+
+F1 follows the explicit page coordinates, including their written precision
+and spacing. F2 is reconstructed from the common first and last sample
+coordinates and the declared number of points. Each axis retains its
+declared Hz or ppm unit and direction. The supported profile requires
+monotonic page coordinates, unity F1 factor and a shared F2 grid.
+
+The regression reference is the `β-pinene COSY from nmrXiv
+<https://doi.org/10.57992/nmrxiv.p33>`_.
 
 Agilent 1D scan-count evidence
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
