@@ -288,9 +288,12 @@ its correction; read it again with the default uncorrected reader instead.
 ``remove_dc_offset=True`` subtracts the complex mean of the selected samples
 before any digital-filter correction. This also removes genuine signal at
 the carrier. Digital-filter removal is opt-in and uses the existing
-time-domain correction with a truncated integer group delay. For
-``DECIM=1``, the trace records that the filter was skipped. When filtering,
-a positive scalar GRPDLY takes priority over the DSPFVS/DECIM table. Unknown delays and
+time-domain correction with a truncated integer group delay.
+``remove_digital_filter=True`` applies an explicit positive GRPDLY even at
+``DECIM=1``. Choose ``remove_digital_filter="if-decimated"`` to match the
+public TopSpin reader and record the correction as skipped at ``DECIM=1``.
+When filtering, a positive scalar GRPDLY takes priority over the
+DSPFVS/DECIM table. Unknown delays and
 corrections leaving fewer than two points are rejected. No firmware clamping is
 introduced by this profile. The trace records the original delay, its source,
 parameters, truncation and number of removed points. The existing head/tail
@@ -316,7 +319,9 @@ proof of a calibrated chemical standard. The relation
 <https://2210pc.chem.uic.edu/nmr/downloads/bruker/en-US/html/Avance%20Beginners%20Guide/en-US/371498891.html>`_.
 
 To reproduce the public TopSpin reader's FFT presentation, pass the selected
-processing files to ``read_bruker_fid(procs_files=...)`` and normalize with
+acquisition and processing files to ``read_bruker_fid(acqus_files=...,
+procs_files=...)``. Fields in ``acqus`` and ``procs`` take precedence over
+their counterparts in ``acqu`` and ``proc``. Normalize with
 ``preserve_storage=True``. When the selected parameters provide the required
 calibration, ``acquisition["fft_display_axis"]`` describes a decreasing grid
 from center plus half the width to center minus half the width, with both

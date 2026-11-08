@@ -162,7 +162,10 @@ def normalize_bruker_fid(
     Trim storage padding to TD/2 by default. Use ``preserve_storage=True``
     to retain the decoded length, including verified zero padding.
     Optional DC removal subtracts the mean of the selected points before
-    filtering. Optional scan/gain normalization divides by NS times RG
+    filtering. Use ``remove_digital_filter="if-decimated"`` to skip the
+    correction for DECIM=1, as the public TopSpin reader does. An explicit
+    ``True`` still applies the correction when a valid delay is supplied.
+    Optional scan/gain normalization divides by NS times RG
     after filtering. Each missing factor defaults to one. The output is
     conjugated into the canonical frequency orientation.
 
@@ -172,8 +175,13 @@ def normalize_bruker_fid(
         raise TypeError("normalize_bruker_fid requires an interop ReadResult")
     if result.format != "bruker-fid":
         raise ValueError("normalize_bruker_fid requires format='bruker-fid'")
+    if_decimated = (
+        isinstance(remove_digital_filter, str)
+        and remove_digital_filter == "if-decimated"
+    )
+    if not isinstance(remove_digital_filter, bool) and not if_decimated:
+        raise ValueError("remove_digital_filter must be a boolean or 'if-decimated'")
     for name, value in (
-        ("remove_digital_filter", remove_digital_filter),
         ("remove_dc_offset", remove_dc_offset),
         ("normalize_scan_gain", normalize_scan_gain),
         ("preserve_storage", preserve_storage),
@@ -245,14 +253,14 @@ def normalize_bruker_fid(
         work -= work.mean()
     dc_trace = {"applied": remove_dc_offset, "input_points": int(input_points)}
     parameters = filtering.get("parameters", {})
-    filter_trace: dict[str, object] = {"requested": remove_digital_filter, "applied": False}
+    filter_trace: dict[str, object] = {"requested": bool(remove_digital_filter), "applied": False}
     if remove_digital_filter:
         if not isinstance(parameters, Mapping):
             raise ValueError("invalid Bruker digital-filter parameters")
         decim = number(parameters, "DECIM", positive=True)
         if not decim.is_integer():
             raise ValueError("Bruker digital-filter decimation must be an integer")
-        if decim == 1:
+        if if_decimated and decim == 1:
             filter_trace["reason"] = "no-decimation"
         else:
             firmware = number(parameters, "DSPFVS")
@@ -299,7 +307,7 @@ def normalize_bruker_fid(
     operation["scan_gain"] = gain_trace
     operation["digital_filter"] = filter_trace
     operation["returned_points"] = int(work.size)
-    acqus = result.metadata.get("acqus", {})
+    acqus = {**result.metadata.get("acqu", {}), **result.metadata.get("acqus", {})}
     frequency = number(acqus, "BF1", positive=True, optional=True)
     carrier = number(acquisition, "carrier_hz", optional=True)
     observation = number(acquisition, "observation_frequency_mhz", positive=True, optional=True)

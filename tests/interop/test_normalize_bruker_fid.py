@@ -145,7 +145,7 @@ def test_no_decimation_keeps_dc_and_gain_corrections(monkeypatch, tmp_path):
         },
     )
     result = ng.interop.normalize_bruker_fid(
-        raw, remove_digital_filter=True, remove_dc_offset=True, normalize_scan_gain=True
+        raw, remove_digital_filter="if-decimated", remove_dc_offset=True, normalize_scan_gain=True
     )
     np.testing.assert_array_equal(result.data, (data - data.mean()).conj() / 16)
     assert result.acquisition["digital_filter"] == {
@@ -201,3 +201,54 @@ def test_fft_display_and_phase_are_separate_from_acquisition_reference(monkeypat
     default = ng.interop.normalize_bruker_fid(raw)
     assert "fft_display_axis" not in default.acquisition
     assert "fft_initial_phase" not in default.acquisition
+
+
+def test_explicit_filter_preserves_delay_at_unit_decimation(monkeypatch, tmp_path):
+    raw, data = _result(monkeypatch, tmp_path)
+    raw = replace(raw, applied_corrections={
+        "normalization": "none",
+        "digital_filter": {
+            "applied": False,
+            "parameters": {"DECIM": 1, "DSPFVS": 12, "GRPDLY": 2.5},
+        },
+    })
+    result = ng.interop.normalize_bruker_fid(raw, remove_digital_filter=True)
+    np.testing.assert_allclose(result.data, np.roll(data, -2)[:-4].conj(), atol=1e-12)
+    assert result.acquisition["digital_filter"]["removed_points"] == 4
+    parameters = {**raw.applied_corrections["digital_filter"]["parameters"], "GRPDLY": np.nan}
+    raw = replace(raw, applied_corrections={
+        "normalization": "none",
+        "digital_filter": {"applied": False, "parameters": parameters},
+    })
+    with pytest.raises(ValueError, match="GRPDLY"):
+        ng.interop.normalize_bruker_fid(raw, remove_digital_filter=True)
+
+
+def test_selected_acquisition_files_supply_missing_status_fields(monkeypatch, tmp_path):
+    raw, data = _result(monkeypatch, tmp_path)
+    status = dict(raw.metadata["acqus"])
+    del status["RG"]
+    del status["BF1"]
+    del status["SFO1"]
+    del status["NS"]
+    del status["SW_h"]
+    metadata = {
+        "acqu": {
+            "RG": 8, "NS": 16, "SW": 16, "BF1": 125, "SFO1": 125.00025,
+            "SW_h": 2000, "TD": 32, "O1": 100,
+        },
+        "acqus": status,
+        "procs": {"SF": 125.00015},
+    }
+    monkeypatch.setattr(ng.bruker, "read", lambda *args, **kwargs: (metadata, data))
+    raw = ng.interop.read_bruker_fid(
+        tmp_path, acqus_files=[tmp_path / "acqu", tmp_path / "acqus"]
+    )
+    result = ng.interop.normalize_bruker_fid(
+        raw, preserve_storage=True, normalize_scan_gain=True,
+    )
+    np.testing.assert_array_equal(result.data, data.conj() / 128)
+    assert result.acquisition["scan_gain"]["divisor"] == 128
+    assert result.acquisition["frequency_axis"]["offsets_hz"]["acquisition"] == 250
+    assert result.acquisition["fft_display_axis"]["center_hz"] == pytest.approx(100)
+    assert result.acquisition["fft_display_axis"]["spectral_width_hz"] == pytest.approx(2000.004)
