@@ -65,6 +65,7 @@ Read processed spectra and exchange files
     read_nmrpipe_2d
     read_nmrml_1d
     read_jcampdx_1d
+    read_simpson_spectrum
     read_jcampdx_2d
     read_nmrml_2d
     read_nmrml_raw_2d
@@ -79,6 +80,7 @@ Normalize a supported result
     normalize_bruker_fid
     normalize_jeol_fid
     normalize_simpson_fid
+    normalize_simpson_spectrum
     normalize_jeol_2d
     normalize_bruker_pdata
     normalize_bruker_pdata_2d
@@ -214,6 +216,21 @@ Use ``conjugation="none"`` to preserve the stored sign or
 tests compare both native encodings against the indexed export of the same
 SIMPSON 4.2.1 simulation. Set ``SIMPSON_INTEROP_DATA`` to the
 ``simpson_1d`` corpus directory to run those tests.
+
+SIMPSON complex 1D spectra
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+:func:`~nmrglue.interop.read_simpson_spectrum` reads a single-element
+``TYPE=SPE`` spectrum in native TEXT or BINARY form.
+:func:`~nmrglue.interop.normalize_simpson_spectrum` preserves the complex
+samples and their order on F2.
+
+For zero-based sample index ``i``, the frequency is
+``REF + (i / NP - 0.5) * SW`` Hz, with ``REF=0`` when absent. The axis
+starts at ``REF - SW/2`` and increases in steps of ``SW/NP``. The
+reference frequency ``REF`` falls on bin ``NP/2`` for even ``NP`` and
+between two bins for odd spectra with at least two points.
+The bin convention was verified against SIMPSON 4.2.1 XREIM exports.
 
 Agilent 1D scan-count evidence
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
