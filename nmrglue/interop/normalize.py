@@ -342,7 +342,10 @@ def normalize_bruker_pdata(
         or not np.allclose(axis.values, expected.values, rtol=1e-12, atol=1e-9)
         or axis.reference != expected.reference or axis.direction != expected.direction):
         raise ValueError("processed frequency axis disagrees with its calibration")
-    if not (np.all(np.diff(expected.values) < 0) and np.all(np.diff(axis.values) < 0)):
+    if not (
+        np.all(expected.values[1:] < expected.values[:-1])
+        and np.all(axis.values[1:] < axis.values[:-1])
+    ):
         raise ValueError("Bruker processing axis must be strictly decreasing")
     corrections = dict(result.applied_corrections)
     if set(corrections) - {"scale_data", "NC_proc"} or type(corrections.get("scale_data")) is not bool:

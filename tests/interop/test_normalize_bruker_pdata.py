@@ -163,3 +163,10 @@ def test_pdata_rejects_flat_supplied_axis_within_calibration_tolerance(tmp_path)
     flat = replace(raw.axes[0], values=np.full(4, raw.axes[0].values[0]))
     with pytest.raises(ValueError, match="processing axis must be strictly decreasing"):
         ng.interop.normalize(replace(raw, axes=(flat,)))
+
+
+def test_pdata_accepts_decreasing_unsigned_coordinates(tmp_path):
+    raw = _result(tmp_path)
+    axis = replace(raw.axes[0], values=np.array([4000, 3000, 2000, 1000], dtype=np.uint64))
+    result = ng.interop.normalize(replace(raw, axes=(axis,)))
+    np.testing.assert_array_equal(result.axes[0].values, axis.values)
