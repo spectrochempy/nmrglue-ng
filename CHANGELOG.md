@@ -70,371 +70,128 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## 1.1.2 - 2026-10-23
 
-### Documentation
-
-- Add a home-page link and button for the complete in-document "What's new" changelog.
-
-### Security
-
-- Upgrade the PyPI and Conda publication and release-artifact workflows to the
-  hash-verified `pip` security release, and document the temporary
-  certificate-authority incident guidance for installers. (#130)
+- Link the complete release notes from the documentation home page.
+- Update the publication and artifact workflows to a hash-verified pip
+  security release and document temporary certificate guidance. (#130)
 
 ## 1.1.1 - 2026-10-23
 
-### Documentation
-
-- Simplify the documentation home page section labels while retaining its
-  established visual design. (#127)
-
-### Added
-
-- Add noarch Conda packaging for the `spectrocat` channel, including an
-  installation workflow and an explicit constraint against co-installing the
-  historical `nmrglue` distribution. (#117)
-- Add scoped Codespell validation to pre-commit while excluding historical
-  examples, documentation and scientific fixtures. (#118)
-- Add a scoped Ruff undefined-name check for maintained package code. (#120)
-- Add a scoped Ruff unused-import check for maintained package code. (#121)
-- Add a scoped mypy static-typing check for the maintained `nmrglue.interop`
-  package. (#124)
-- Widen the default-mode mypy gate to the whole `nmrglue` package, including
-  typing cleanup for legacy fallbacks and a clearer missing-key failure in
-  Spinsolve acquisition metadata. (#125)
-
-### Fixed
-
-- Correct 1D and n-dimensional integration noise estimates to use the same
-  bin width or bin volume as their integrated values; n-dimensional noise
-  regions now use valid multidimensional slice indexing. (upstream #295, #296;
-  #128)
-- Correct the `nmrglue.fileio.glue` low-memory wrappers (`glue_2d`, `glue_3d`)
-  to use the numeric axis-order contract of `fileiobase.data_nd`, restoring
-  public slicing, iteration, and axis transforms. The `order` constructor
-  argument is now the numeric file-axis order (`(0, 1)` / `(0, 1, 2)`) like
-  every other `data_nd` subclass; the previous string labels were unusable with
-  the base class. Regression coverage uses the optional `h5py` HDF5 path, which
-  is added to the test dependencies and runs in CI. The wrapper's undefined-name
-  and unused-import findings are resolved, so `glue.py` is no longer excluded
-  from the Ruff gate. (#122)
+- Publish noarch Conda packages on `spectrocat`, with a constraint against
+  installing both distributions in one environment. (#117)
+- Correct 1D and multidimensional integration noise estimates to use the
+  same bin width or volume as the integral. Fix multidimensional noise-region
+  indexing. (upstream #295, #296, fork #128)
+- Restore slicing, iteration and axis transforms for the HDF5 low-memory
+  wrappers `glue_2d` and `glue_3d`. Their `order` argument uses numeric
+  file-axis indices. (#122)
+- Simplify the documentation home page labels. (#127)
+- Add spelling and import checks for maintained sources and extend static
+  typing checks from interop to the whole package. Improve the missing-key
+  error for Spinsolve acquisition metadata. (#118, #120, #121, #124, #125)
 
 ## 1.1.0 - 2026-10-16
 
-### Added
-
-- Add an optional, additive `nmrglue.interop` layer exposing a neutral
-  `ReadResult` built from existing readers. It imports no SpectroChemPy,
-  NDDataset, Pint or CSDM dependency, and the historical `(dic, data)` reader
-  APIs are unchanged. The first supported profile is Bruker/TopSpin processed
-  1D data (`interop.read_bruker_pdata`), with a normative Hz axis
-  (`f[i] = OFFSET * SF - i * (SW_p / N)`), name-to-array components, and
-  schema-validated diagnostics. (#113)
-
-### Documentation
-
-- Make the public documentation English-only: remove the top-bar language
-  selector, the French gettext catalogs and the bilingual build targets, so the
-  site is built once, in English, at the version root. (#115)
-- Clarify in the README that `nmrglue-ng` continues `nmrglue` rather than
-  replacing or competing with it, and mirror the continuation stance in
-  `CONTRIBUTING.md`. (#114)
-- Clarify the `read_pdata` documentation on the two Bruker processed-parameter
-  file families (status `procs`/`procNs` versus singular `proc`/`procN`), and
-  add an autonomous regression covering the default status-file behavior and
-  explicit `procs_files` selection using the packaged fixtures. (#104)
+- Introduce the optional `nmrglue.interop` API with `ReadResult`. Its first
+  profile reads processed Bruker/TopSpin 1D data with a calibrated Hz axis,
+  named components and validated diagnostics. Historical `(dic, data)`
+  readers keep their existing return values. (#113)
+- Publish the public documentation in English at the version root, clarify
+  the project's relationship to upstream, and explain Bruker status
+  parameter files and explicit `procs_files` selection. (#104, #114, #115)
 
 ## 1.0.2 - 2026-10-14
 
-### Changed
-
-- Show the current package version next to the documentation title in the top
-  navigation.
-- Derive package versions from Git tags with `setuptools_scm`, and show `dev`
-  instead of the full development version in the latest documentation header.
-- Point the package homepage metadata to the stable Read the Docs site.
-- Add a documentation `What's new` page generated from the current changelog
-  cycle.
+- Derive the package version from Git tags with setuptools-scm. Display the
+  version in the documentation navigation, or `dev` for development builds.
+- Point package metadata to the stable documentation and publish release
+  notes generated from the changelog.
 
 ## 1.0.1 - 2026-10-14
 
-### Changed
-
-- Add the stable Read the Docs URL to the README and package metadata.
-- Build the English API reference at the Read the Docs version root instead of
-  under an extra `en/` path.
-- Remove the JBNMR examples and glossary pages from the top-level documentation
-  navigation while keeping the pages available by direct link.
+- Point the README and package metadata to stable Read the Docs. Build the
+  English API reference at the version root and keep the historical JBNMR
+  examples and glossary available by direct link.
 
 ## 1.0.0 - 2026-10-14
 
-### Fixed
-
-- Preserve descending processed JCAMP-DX `FIRSTX`/`LASTX` endpoints when axes
-  are reconstructed through `guess_udic()` and `uc_from_udic()` by converting
-  the endpoint span to the universal dictionary spectral-width convention.
-  (#87; fixes issue #86)
-
-### Changed
-
-- Move contributor guidance and issue-reporting information into a top-level
-  documentation sidebar section, replacing the obsolete historical development
-  guide with current nmrglue-ng contribution guidance, and publish local
-  English/French documentation builds together on Read the Docs. Add French
-  translations for the main documentation entry pages and glossary while
-  leaving API and code examples untranslated. (#96)
-- Convert the Agilent/Varian and Bruker separation examples, interactive
-  plotting examples, and simulation examples to executable MyST-NB notebooks
-  using deterministic or packaged inputs; add a 1D line-shape simulation
-  how-to; and modernize the downloadable separation scripts for Python 3.
-  (#95)
-- Convert the coadd examples to executable MyST-NB notebooks using
-  deterministic synthetic NMRPipe inputs, and modernize the downloadable
-  pseudo-3D coadd script for Python 3. (#94)
-- Convert plotting, integration, and peak-picking examples to executable
-  MyST-NB notebooks, add packaged 1D example data, and reuse the existing 2D
-  processing archive for plotting and quantification walkthroughs. (#93)
-- Restructure the example documentation into task-oriented How-to pages,
-  promote JBNMR examples to top-level navigation, convert conversion and
-  processing examples to executable MyST-NB notebooks, and package the
-  redistributable historical example archives used by those notebooks. (#92)
-- Add a versioned CC0 JEOL 1H epicatechin fixture and extend autonomous reader,
-  universal-dictionary, and data-point checks. (#91)
-- Stop retaining built distributions from routine CI and manual release dry-run
-  workflows as GitHub Actions artifacts; the workflows still build and validate
-  the files, and CI keeps only its JUnit reports for diagnostics. (#89)
-- Prototype the 1.0.0 documentation structure with Sphinx Book Theme,
-  tutorial-first navigation, and executable MyST-NB Markdown notebooks for 1D
-  and 2D NMRPipe walkthroughs while preserving the existing examples and API
-  reference. Include downloadable notebooks and synthetic data, explicit text
-  and figure outputs, instructions for running outside the checkout, and a
-  fast local documentation build that omits the generated API reference. (#85)
-- Extend the documentation prototype into a progressive path from file reading
-  through unit-aware axes, plotting, array manipulation, writing, conversion,
-  processing, and low-memory access. Convert the guides to downloadable,
-  executable MyST-NB notebooks; add 1D JCAMP-DX and 2D NMRPipe examples, data
-  credits, and an archive for exploratory notebooks outside the published
-  documentation. (#90)
+- Preserve descending processed JCAMP-DX `FIRSTX` and `LASTX` coordinates
+  when building axes with `guess_udic()` and `uc_from_udic()`.
+  (#87, issue #86)
+- Introduce tutorial-first documentation with downloadable MyST-NB notebooks
+  and reproducible inputs. Cover reading and calibrated axes, plotting,
+  conversion, processing, quantification, simulation and low-memory access.
+  Keep historical examples available and provide a fast documentation build.
+  (#85, #90, #92, #93, #94, #95)
+- Publish English and French documentation builds and provide a dedicated
+  contributor guide. (#96)
+- Add the CC0 JEOL epicatechin fixture and verify its samples and metadata.
+  Stop retaining built distributions from routine CI and release dry runs
+  while continuing to validate them. (#89, #91)
 
 ## 1.0.0rc1 - 2026-10-11
 
-### Changed
+### Installation and compatibility
 
-- Add a manual, no-publish release artifact dry-run workflow that checks
-  version/changelog/tag coherence, builds sdist and wheel artifacts, verifies
-  their metadata and contents, and retains them for review. PyPI/TestPyPI
-  publishing remains deferred until a separately authorized final 1.0.0 release
-  workflow. (#84)
-- Replace the two release-critical JCAMP-DX historical data dependencies with
-  committed synthetic CC0 fixtures covering AFFN/PAC/SQZ/DIF encoding
-  equivalence and NTUPLES real/imaginary arrays. `test_jcampdx1` is now
-  self-contained, the test-data manifest records the JCAMP-DX components with
-  the existing `replaced` status, and release-critical corpus availability now
-  has zero absent components. (#74)
-- Replace the two historical Bruker processed-data (`pdata`) test dependencies
-  with the committed CC0 fixtures under
-  `tests/fixtures/fileio/data/bruker_pdata/` and record them in the test-data
-  manifest through a new `replaced` component status: a component whose corpus
-  path is absent but whose declared versioned fixture is inventoried and
-  checksummed counts as availability coverage without weakening corpus
-  integrity. The four historical `read_pdata`/`write_pdata` tests are retired
-  in favour of fixture-based metadata and read/write round-trip tests in
-  `tests/fileio/test_bruker_pdata.py`, so release-critical corpus absences drop
-  from four to two (the JCAMP-DX pair). No external data is committed or
-  redistributed. (#69)
-- Translate the approved first-release corpus scope decisions into the
-  machine-readable test-data contract and integrate the validated NMRPipe and
-  SIMPSON references into the local external corpus. The regenerated manifest
-  (schema v4) records the 29 release-critical tests and the 13
-  RNMRTK/Sparky/JEOL historical reference tests deferred from that contract,
-  with a three-valued component scope (`critical`/`deferred`/`extended`);
-  tests, declarations and format support are retained and no redistribution
-  status changes. No data is committed or redistributed by this change. (#68)
-- Document accepted local use of the historical test archive separately from
-  redistribution rights, and record maintainer-approved first-release corpus
-  scope decisions. The manifest and executable test contract will be updated
-  separately; no data is redistributed by this policy change. (#67)
-- Centralize the test suite under `tests/` with file-I/O, processing,
-  analysis, infrastructure and fixture directories. The wheel is now
-  runtime-only and no longer exposes the non-public
-  `nmrglue.fileio.tests` or `nmrglue.analysis.tests` namespaces; the matching
-  sdist retains tests and fixtures for distribution validation. (#64)
+- Publish under the distribution name `nmrglue-ng` with a `pyproject.toml`
+  build, retaining the `nmrglue` import. Update source installation
+  instructions. The wheel contains runtime code only and drops the
+  `nmrglue.fileio.tests` and `nmrglue.analysis.tests` namespaces. Tests and
+  fixtures remain in the source distribution. (#3, #11, #64)
 
-### Fixed
+### File formats and processing
 
-- Normalize CR-only line endings in `bruker.read_jcamp()` after deterministic
-  decoding, so Bruker JCAMP records from such files are parsed as separate
-  lines. Adapted from upstream jjhelmus/nmrglue#261 (harivyasi). (#81)
-- Restore the Read the Docs configuration by selecting a current RTD build
-  image and Python version compatible with nmrglue-ng's `>=3.10` requirement,
-  and update the local documentation build instructions. (#70)
-- Return one-dimensional arrays for single-element 1D SIMPSON data
-  (`NELEM` absent or 1) from `read_text()` and `read_binary()` instead of
-  `(1, NP)`, so the TEXT, BINARY, XREIM and RAWBIN encodings of one 1D data
-  set share the `(NP,)` shape. Multi-element 1D data still returns
-  `(NELEM, NP)` and 2D data is unchanged. Add 9 self-contained shape-contract
-  regressions: seven encode/shape tests plus two guards that keep the BINARY
-  header/content validation of the single-element path (short block raises
-  `ValueError`, missing `NP` raises `KeyError`). (#66)
-- Preserve the NMRPipe digital-filter value `FDDMXVAL` in Pipe-to-Pipe
-  conversions. (#65)
-- Fix `pipe_proc.ext()` retaining stale indirect-dimension size metadata after
-  a 2D extraction and crashing when an indirect extraction extends past the
-  last row. Preserve rounded-window placement after clipping out-of-range
-  coordinates. Adapted from jjhelmus/nmrglue#289 (reneeotten), with additional
-  clipping and rounding corrections validated against NMRPipe. (#62)
-- Fix `bruker.read_jcamp()` locale-dependent encoding: replace bare `except`
-  with strict codec detection loop (utf-8-sig, cp1252, latin-1). Encoding no
-  longer depends on the system locale. Adapted from upstream
-  jjhelmus/nmrglue#261 (harivyasi). Add 5 fixture-based tests. (#53)
-- Fix `jcampdx.guess_udic()` returning acquisition time instead of spectral
-  width for FID data. Add `get_complex_array()` helper, `time`/`freq`/`complex`
-  flags, and `car` calculation for processed spectra. Related to upstream
-  jjhelmus/nmrglue#231 and jjhelmus/nmrglue#284; follow-up alignment with
-  jjhelmus/nmrglue#291 uses the final `(N - 1) / span` FID sweep-width
-  convention, exact NTUPLES FID fallback, precision-independent complex-array
-  detection, and safer opt-in R/I conversion. Add 3 synthetic regressions.
-  (#54, #63)
-- Clamp `DSPFVS` values below 10 to 10 (default for DQD) in
-  `bruker.remove_digital_filter()` and `bruker.rm_dig_filter()` instead of
-  raising `ValueError`. Older Bruker files may report `DSPFVS < 10`; the
-  lookup table starts at 10, so clamping makes these files readable. (#51)
-- Fix `data_nd.transpose()` raising `TypeError` on 1-D arrays when called as
-  `transpose()` or `transpose(0)`. The unpacking guard now skips unwrapping
-  for scalar integer arguments (including `np.int64` and similar), matching
-  NumPy semantics. (#56)
-- Fix `data_nd.swapaxes()` and `data_nd.transpose()` silently accepting
-  floating-point axis arguments (e.g. `swapaxes(0.5, 1)` truncated to axis 0).
-  Both methods now use `operator.index` to validate axis types, matching NumPy.
-  (#57)
-- Correct the external-data manifest scope: every reference consumed by the
-  release-critical dataset tests (NMRPipe `test.fid` outputs, RNMRTK
-  `.sec`/`.par` pairs, processed datasets, encoding outputs) is now either
-  inventoried or explicitly declared absent as a required component, and
-  group availability is derived from those components instead of being
-  asserted by hand. `scripts/verify_testdata.py` reports file integrity and
-  required-component availability separately and exits 2 (instead of 0) when
-  the release-critical corpus is incomplete. The manifest is shipped in the
-  sdist so the distributed manifest tests can load it. (#61)
+- **Bruker:** Support explicit processing-parameter axis selection with
+  `pdata=True`, preserving default acquisition precedence. Add optional
+  `remove_dc_offset` before digital-filter removal, incompatible with
+  `post_proc=True`, and support older `DSPFVS` values via the DQD lookup
+  default. Make JCAMP text decoding locale-independent and handle CR-only
+  records. The decoding fixes adapt jjhelmus/nmrglue#261 (harivyasi).
+  (#50, #51, #53, #55, #81)
+- **JCAMP-DX:** Read multiple and nested LINK blocks, multidimensional
+  NTUPLES pages, and XYPOINTS/PEAKTABLE coordinate pairs with scaling and
+  decimal commas. Add configurable decoding errors via `read_err`.
+  These reader changes adapt jjhelmus/nmrglue#259, #260, #262 and #277
+  (harivyasi). Correct FID sweep width to `(N - 1) / span`, improve complex
+  data and domain metadata, and derive the carrier for processed spectra.
+  Related upstream work includes jjhelmus/nmrglue#231, #284 and #291.
+  (#46, #47, #49, #52, #54, #63)
+- **NMRPipe:** Preserve `FDDMXVAL` in conversions and write compatible
+  `FDPIPECOUNT` metadata. Correct 2D extraction bounds and indirect sizes,
+  including rounded-window placement after clipping. The extraction fix
+  adapts jjhelmus/nmrglue#289 (reneeotten). Match NMRPipe's ZD width and
+  `HT -ps90-180` conventions. (#9, #13, #15, #62, #65)
+- **SIMPSON:** Return shape `(NP,)` for single-element 1D TEXT and BINARY
+  data, matching XREIM and RAWBIN. Multi-element 1D and 2D shapes are
+  unchanged. (#66)
+- **Agilent/Varian:** Fix multi-trace block-header reads and preserve each
+  block's header in low-memory writes. Add the `correct` option and derive
+  structural header fields from the written data layout. Includes
+  adaptations of jjhelmus/nmrglue#268 and #270. (#36, #37, #38)
+- **Low-memory access:** Repair copying and negative-axis handling, including
+  Bruker and RNMRTK subclasses, based on jjhelmus/nmrglue#272. Match NumPy
+  for 1D transpose and reject floating-point axes. Restore linear prediction
+  with current SciPy. (#14, #33, #56, #57)
 
-### Added
+### Validation and documentation
 
-- Add a `pdata` parameter to `bruker.guess_udic()` and
-  `bruker.add_axis_to_udic()`: an explicit option selecting which parameter
-  set builds the axis. `pdata=True` uses the processing parameters
-  (`procs`/`procNs`: `OFFSET`, `SF`, `SW_p`), i.e. the axis the processed
-  file was written with, which is the appropriate choice for data read with
-  `read_pdata()` when the processed files and the acquisition headers
-  disagree. `pdata=False` and the default `pdata=None` keep the existing
-  behaviour (acquisition parameters take priority when both are present, and
-  processing parameters are used only when the acquisition header is absent),
-  so no axis changes by default. The option is not required for raw data, nor
-  when acquisition and processing parameters agree. (#55)
-- Add `read_blocks()` to `jcampdx` module: read every data block of a
-  JCAMP-DX file in file order, including blocks nested in LINK blocks.
-  Fix `##END NTUPLES=` incorrectly closing blocks. Adapted from upstream
-  jjhelmus/nmrglue#277 (harivyasi). Add 3 synthetic tests. (#52)
-- Add optional `remove_dc_offset` parameter to `bruker.remove_digital_filter()`
-  and `bruker.rm_dig_filter()`. When True, subtracts the mean of each row
-  along the last axis before digital filter removal, which removes the spike
-  at the centre of the spectrum caused by the receiver DC offset. Default is
-  False, preserving backward compatibility with upstream nmrglue. Cannot be
-  combined with `post_proc=True`. (#50)
-- Add `read_err` parameter to `jcampdx.read()` for configurable character
-  decoding error handling. Adapted from upstream jjhelmus/nmrglue#259
-  (harivyasi). Add 3 synthetic tests. (#49)
-- Add JCAMP-DX coordinate list (XY..XY) format, PEAKTABLE/XYPOINTS parsing,
-  comma decimal separators, and XFACTOR/YFACTOR scaling for coordinate pairs.
-  Adapted from upstream jjhelmus/nmrglue#262 (harivyasi). Add 16 synthetic tests. (#47)
-- Add JCAMP-DX nD NTUPLES support: read multidimensional spectra as sets of
-  1D pages, scale each page by its own dependent-variable factor, and prefer
-  1D sections when both 1D and nD are present. Adapted from upstream
-  jjhelmus/nmrglue#260 (harivyasi). Add 2D JCAMP-DX fixture and tests. (#46)
-- Add packaged JEOL 2D and JCAMP-DX test fixtures with autonomous reader tests.
-  Data from nmrXiv CENAPTNMR project P33 (doi:10.57992/nmrxiv.p33), CC0 1.0.
-  Covers JEOL 2D HSQC/COSY/HMBC, JEOL 1D Beta-Pinene, and JCAMP-DX 1D
-  1H/13C from Epicatechin, Beta-Pinene, and Caffeic acid. (#42, #44, #45)
-- Add packaged Bruker raw and processed data fixtures with autonomous reader
-  tests. 1D sucrose standard from nmrXiv P52 (CC0 1.0); 2D HSQC and COSY from
-  nmrXiv CENAPTNMR dataset (CC0 1.0). Covers `read()` and `read_pdata()` for
-  1D and 2D experiments including all quadrature components. (#41)
-- Add packaged JEOL test fixtures with autonomous reader tests. Fluorine and
-  phosphorus from cheminfo/jeol-data-test commit 70bf716 (MIT); Rutin 1H/13C
-  from Harvard Dataverse doi:10.7910/DVN/ZAZDNM (CC0 1.0). (#40)
-- Add a versioned test-data manifest (`maintainer/testdata-manifest.toml`)
-  with SHA-256 checksums, sizes, provenance classes, availability, and
-  redistribution status for the release-critical corpus. Include generation
-  and verification scripts (Python >= 3.11). (#39)
-- Add an explicit self-contained test profile and classify tests requiring
-  external datasets, optional dependencies, or NMRPipe. (#5)
-- Add maintainer audits and a living development roadmap, including an
-  NMRPipe compatibility baseline. (#2, #8)
-
-### Changed
-
-- Modernize packaging with `pyproject.toml`. (#3)
-- Rename the distribution to `nmrglue-ng` while preserving the `nmrglue`
-  Python import. (#3)
-- Update source installation instructions for the independent project. (#11)
-
-### Fixed
-
-- Mark empty JEOL placeholder tests (test_1d_real, test_2d_rr) as explicitly
-  skipped with documented reasons. Real-axis JEOL data is not available in
-  any sourced dataset. (#18, #43)
-- Fix `write_fid_lowmem()` to use each block's own header instead of repeating
-  the first block header, matching `write_fid()` behavior. (#38)
-- Fix `write_fid_lowmem()` header correction: add the missing `correct`
-  parameter and derive all structural file-header fields (`np`, `nblocks`,
-  `ntraces`, `ebytes`, `tbytes`, `bbytes`) from the physical data layout.
-  Adapted from upstream jjhelmus/nmrglue#268. (#37)
-- Fix Varian multi-trace block-header reading: `get_block_ntraces()` referenced
-  an undefined `file` variable when `read_blockhead=True`. Adapted from
-  upstream jjhelmus/nmrglue#270. (#36)
-- Fix `data_nd` copy (`NameError` from a broken `__fcopy__` call) and
-  negative-axis handling in `swapaxes`/`transpose`, aligning the base class
-  with NumPy axis semantics and fixing incompatible `__fcopy__` hooks in the
-  Bruker and RNMRTK subclasses. Adapted from upstream jjhelmus/nmrglue#272. (#33)
-- Make numerical tolerance assertions symmetric in dataset and autonomous
-  tests. (#29)
-- Implement NMRPipe-compatible `HT -ps90-180` mirror-image processing. (#15)
-- Restore linear-prediction QR solving with current SciPy. (#14)
-- Fix `pipe_proc.save()` to write NMRPipe-compatible `FDPIPECOUNT` metadata. (#13)
-- Fix ZD processing with integral floating-point widths and reproduce
-  NMRPipe's fractional-width convention in `pipe_proc.zd()`. (#9)
-
-### Documentation
-
-- Define the minimal release-critical external test-data corpus and separate
-  extended and historical validation profiles.
-- Add contribution guidance for testing, scientific changes, and file-format
-  work. (#1)
-- Establish the nmrglue-ng changelog policy. (#12)
-
-### Maintenance
-
-- Expand autonomous CI to Windows and macOS, exercise optional CSDM conversion,
-  and validate sdist-derived wheels in an isolated installation. Include and
-  exercise the CI report test and its helper in the sdist. Retain test reports
-  and add weekly/manual validation. Use cross-platform file replacement in the
-  Bruker test helper so the Windows isolation test can run. (#34)
-- Introduce a minimal pre-commit configuration with structural and
-  text-hygiene hooks, explicit fixture exclusions, and a CI quality job.
-  Ruff linting/formatting remain a separate future follow-up. (#35)
-- Version the agent workflow in the repository: a root `AGENTS.md` with
-  permanent rules, plus `nmrglue-ng-dev`, `nmrglue-ng-review`, and
-  `nmrglue-ng-release` OpenCode skills. (#28)
-- Run 10 RNMRTK file-I/O tests against independently generated fixtures while
-  retaining two real 3D references in the external dataset. (#25)
-- Run the SIMPSON reader error-path test without the external historical dataset. (#24)
-- Run CSDM conversion tests without the external historical dataset. (#23)
-- Run JCAMP-DX block-structure tests without the external historical dataset. (#22)
-- Run Bruker JCAMP and pulse-program tests without the external historical
-  dataset. (#21)
-- Run NMRPipe path and bytes file-I/O tests against packaged fixtures instead
-  of the external historical dataset.
-- Remove the obsolete Travis CI configuration. (#11)
-- Replace the historical `TODO.txt` with tracked issues and the maintainer
-  roadmap. (#11)
+- Define self-contained, external dataset, optional dependency and NMRPipe
+  test profiles. Add a versioned manifest with integrity, availability and
+  redistribution evidence. Separate local corpus use from redistribution
+  and make the verifier report incomplete critical coverage separately.
+  (#5, #39, #61, #67, #68)
+- Package redistributable Bruker, JEOL and JCAMP-DX fixtures, including
+  nmrXiv P33 and P52, Harvard Dataverse Rutin, and MIT-licensed cheminfo
+  JEOL samples. Replace release-critical Bruker pdata and JCAMP-DX corpus
+  dependencies with checked fixtures and document unavailable real-axis
+  JEOL cases. (#18, #40, #41, #42, #43, #44, #45, #69, #74)
+- Expand autonomous coverage for Bruker, JCAMP-DX, CSDM, NMRPipe, RNMRTK and
+  SIMPSON, and use symmetric numerical tolerances. Validate on Windows and
+  macOS and test the wheel built from the source distribution.
+  (#21, #22, #23, #24, #25, #29, #34)
+- Restore Read the Docs builds, add a release-artifact dry run and
+  pre-commit checks, and document the contribution process, roadmap,
+  changelog policy and agent workflow. Replace Travis CI and TODO.txt.
+  (#1, #2, #8, #11, #12, #28, #35, #70, #84)
 
 ---
 
