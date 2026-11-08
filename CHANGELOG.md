@@ -7,13 +7,15 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+## 1.2.1 - 2026-11-08
+
 - Offer acquisition-centered axes and optional receiver-gain normalization for
   the Bruker 1D processed interop profile. (#195)
 
 - Document the Bruker post-FFT digital-filter phase convention and how to use
   it with NMRPipe-style positive-exponent FFTs. (#194)
 
-- Normalize complete raw NMRPipe QF 2D grids after explicit confirmation.
+- Normalize complete raw NMRPipe QF 2D grids after explicit confirmation. (#193)
 
 ## 1.2.0 - 2026-11-08
 
