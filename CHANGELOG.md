@@ -7,132 +7,66 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
-- Reduce decoding time and peak memory for the official nmrML 2D HSQC
-  compatibility profile.
+### Interoperability
 
-- Add `nmrglue.interop.read(path, profile=None, **options)` with explicit
-  profile selection and automatic detection for recognized headers and
-  dataset directories.
+- Use `nmrglue.interop.read(path, profile=None, **options)` to select a profile
+  explicitly or detect recognized headers and dataset directories. Use
+  `nmrglue.interop.normalize(result, **options)` to validate and normalize a
+  supported result using its reported profile. Profile-specific options and
+  confirmations still apply. (#180, #181)
+- **Bruker/TopSpin:** Read raw 1D FIDs, stored 2D SER traces, and qualified QF
+  and States-TPPI acquisitions. Normalize complex QSIM/DQD 1D FIDs with
+  documented padding, sign, and optional digital-filter handling. Read
+  processed 1D and stored 2D data and normalize complete 1D spectra and
+  qualified four-component 2D int32 spectra with calibrated axes.
+  (#142, #144, #156, #158)
+- **Agilent/Varian:** Read stored traces, descriptive 2D States acquisitions,
+  and complex 1D FIDs. Normalize the supported 1D profile without rescaling
+  samples and expose reference candidates and requested and completed
+  scan-count evidence. Use the observed transmitter nucleus `tn` for the
+  acquisition label, leaving it unknown when absent. (#146, #151, #152, #153, #154, #155)
+- **NMRPipe:** Read and normalize complete processed 1D spectra with
+  last-point ORIG calibration. Read 2D storage in file order and normalize
+  qualified frequency, time, and mixed-domain grids, including supported
+  States and pure TPPI layouts. Export qualified 1D and raw 2D QF and
+  States-TPPI `ReadResult` profiles to float32 NMRPipe storage.
+  (#143, #145, #159, #165, #166, #167)
+- **nmrML:** Extend 1D reading and add a precision-preserving writer with
+  optional XSD validation. Interop supports raw and processed 1D, real
+  processed 2D, and qualified raw 2D echo/anti-echo pairs. Reduce decoding
+  time and peak memory for the official 2D HSQC compatibility profile.
+  (#160, #168, #169, #185)
+- **JEOL JDF:** Read and normalize complex 1D FIDs and qualified regular or
+  listed-axis 2D acquisitions. Preserve 2D storage geometry and the
+  acquired indirect branches for NUS data. (#170, #171, #172)
+- **JCAMP-DX:** Read and normalize regular real 1D spectra, complex 1D
+  NTUPLES FIDs, and real 2D NTUPLES spectra with explicit F1 pages.
+  (#173, #174, #175)
+- **SIMPSON:** Read and normalize native complex 1D and 2D FIDs and spectra
+  in TEXT and BINARY formats. (#176, #177, #178, #179)
 
-- Add `nmrglue.interop.normalize(result, **options)` to select the normalizer
-  from the read result's profile. This package attribute now refers to the
-  function. Imports of individual functions from the
-  `nmrglue.interop.normalize` submodule still work.
+### Compatibility and fixes
 
-- Read and normalize native SIMPSON complex 2D spectra in interop. (#179)
-
-- Read and normalize native SIMPSON complex 2D FIDs in interop. (#178)
-
-- Read and normalize native SIMPSON complex 1D spectra in interop. (#177)
-
-- Read and normalize native SIMPSON complex 1D FIDs in interop. (#176)
-
-- Read and normalize real JCAMP-DX 2D NTUPLES planes with explicit F1 pages. (#175)
-
-- Read and normalize complex 1D JCAMP-DX NTUPLES FIDs in interop. (#174)
-
-- Read and normalize regular real 1D JCAMP-DX NMR spectra in interop. (#173)
-
-- Normalize regular and listed-axis JEOL 2D acquisitions to sampled time
-  axes, preserving the stored indirect branches for NUS data. (#172)
-
-- Read tiled JEOL 2D JDF storage sections with geometry, metadata and original
-  axis lists for subsequent reconstruction. (#171)
-
-- Read JEOL 1D complex JDF FIDs and normalize their time axes with explicit
-  conjugation and padding removal. (#170)
-
-- Read raw nmrML 2D complex traces and normalize confirmed adjacent
-  echo/anti-echo pairs with explicit indirect dwell time. (#169)
-
-- Read and normalize real processed nmrML 2D planes with explicit shape,
-  storage order and indirect calibration. (#168)
-
-- Normalize complete pure TPPI NMRPipe 2D grids in time and mixed domains,
-  with real indirect samples and the corresponding time calibration. (#167)
-
-- Normalize complete NMRPipe 2D storage grids to calibrated axes and real
-  quadrature channels. Time and mixed domains support confirmed grids in NMRPipe
-  States layout. (#166)
-
-- Read NMRPipe 2D traces through interop in time, frequency and mixed domains,
-  preserving file order and describing real and complex storage layouts. (#165)
+- The package attribute `nmrglue.interop.normalize` now refers to the generic
+  function. Import individual normalizers from `nmrglue.interop.normalize`
+  or from `nmrglue.interop`.
+- Automatic Bruker pdata 1D detection uses stored scale
+  (`scale_data=False`). Pass `scale_data` explicitly when the scale matters,
+  especially when comparing with the specialized reader.
 - Preserve real and imaginary samples independently when decoding NMRPipe
   complex traces containing infinities or NaNs. (#165)
 
-- Add interop readers for stored Bruker 2D pdata planes and scalar Bruker and
-  Agilent/Varian acquisition traces, with metadata for later reconstruction.
+### Documentation
 
-- Add experimental interop reading and normalization for complete Bruker
-  processed 2D int32 spectra with four named components and calibrated axes.
+- Put installation, a runnable example, and the additions in released
+  versions of nmrglue-ng at the top of the repository and PyPI README.
 
-- Add experimental NMRPipe real 2D spectrum reading and normalization with
-  calibrated axes in file order.
+### Project infrastructure
 
-- Extend nmrML 1D reading, add a precision-preserving metadata-based writer
-  with optional XSD validation, and expose explicit neutral raw/processed
-  profiles with documented count, sign, endpoint and reference conventions. (#160)
-
-- Add strict experimental NMRPipe processed 1D reading and normalization for
-  complete real/complex spectra, preserving last-point ORIG calibration. (#159)
-
-- Normalize complete Bruker processed 1D spectra into real or complex branches,
-  preserving reader storage scaling and the supplied processing-reference axis.
-  Add the neutral real-1d branch contract without changing historical readers. (#158)
-
-
+- Automate PyPI and GitHub Release publication from validated release tags.
+  (#139)
 - Align commit-subject and pull-request-title prefixes with SpectroChemPy and
-  add CI validation for pull-request titles. (#157)
-
-- Add an experimental normalized Bruker complex QSIM/DQD 1D profile: trim
-  storage padding before explicit digital-filter correction, record conjugation
-  and expose a numeric frequency descriptor for vendor-neutral consumers.
-  Existing reader APIs and RG/NS scaling behavior remain unchanged. (#156)
-
-- Add an optional numeric frequency-axis descriptor to the normalized Agilent
-  complex 1D profile, allowing consumers to reference without inspecting origin
-  or raw vendor metadata. Keep candidate references explicit and samples unchanged. (#155)
-
-
-- Expose sourced scan-count evidence in Agilent raw 1D interop: requested
-  `nt`, completed procpar `ct`, binary block `ctcount` and scale values. Report
-  conflicting, invalid or ambiguous evidence without inventing a completed
-  count. Keep samples unscaled and preserve the historical `NS`/`NE` fields. (#154)
-
-- Correct the Agilent raw 1D interop acquisition nucleus and time-axis label
-  to use the observed transmitter nucleus `tn`, never the decoupler `dn`.
-  Missing or empty `tn` now leaves the nucleus unknown. Raw procpar metadata,
-  sample values and historical Varian reader APIs are unchanged. (#153)
-
-- Add an additive raw Bruker 1D `ReadResult` interop profile with explicit
-  acquisition metadata, digital-filter corrections, and no implicit RG/NS
-  normalization.
-- Add an experimental, validated 1D `ReadResult` to NMRPipe export using the
-  existing NMRPipe writer, with explicit float32 storage and raw real/complex
-  quadrature validation.
-- Add an additive Bruker raw 2D QF `ReadResult` profile preserving physical
-  and storage dimensions, per-axis acquisition metadata, and explicit trace
-  conventions without constructing hypercomplex components. (#142)
-- Extend the experimental `ReadResult` to NMRPipe export to the strict raw QF
-  2D profile, reusing the existing NMRPipe writer and preserving QF/DQD
-  headers and F1/F2 storage order. (#143)
-- Add an additive Bruker raw 2D States-TPPI `ReadResult` profile exposing
-  stored traces and canonical RR/RI/IR/II components without applying TPPI or
-  quaternion processing. (#144)
-- Extend the experimental `ReadResult` to NMRPipe export to strict raw
-  States-TPPI/DQD storage with explicit `FDF1AQSIGN=16` and `FD2DPHASE=2`. (#145)
-- Add an experimental Agilent/Varian raw 1D `ReadResult` profile with explicit
-  carrier/reference handling and no implicit ns/ne normalization. (#146)
-- Add a descriptive Agilent/Varian 2D States `ReadResult` profile preserving
-  raw storage traces, phase-branch order and physical/storage dimensions
-  without quaternion reconstruction or canonical RR/RI/IR/II components.
-  (#151)
-- Add a dependency-free, immutable normalized acquisition contract and a
-  validated storage-normalized Agilent complex 1D FID profile. (#152)
-
-### CI
-
-- Automate PyPI and GitHub Release publication from validated release tags. (#139)
+  validate pull-request titles in CI. (#157)
 
 ## 1.1.2 - 2026-10-23
 
