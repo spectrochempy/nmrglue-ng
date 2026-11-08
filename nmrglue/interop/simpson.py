@@ -10,7 +10,7 @@ import numpy as np
 from ..fileio import simpson
 from .result import (
     Axis, Component, NormalizedAcquisition, ReadResult,
-    _same_axis_grid, _same_component,
+    _same_axis_grid, _same_component, _unscaled_normalization_operation,
 )
 
 
@@ -218,16 +218,15 @@ def _normalize(result, kind, format_name, conjugation, ndim=1):
         evidence = ("SIMPSON XREIM bin convention and NP/SW" if ndim == 1
                     else "SIMPSON XYREIM bin convention and NI/NP, SW1/SW, REF1/REF")
     operation_name = format_name.removesuffix("-1d")
-    operation = {
-        "name": f"normalize-{operation_name}",
-        "stage": "acquisition" if kind == "FID" else "processing",
-        "input_dimensions": ("storage",) if ndim == 1 else dimensions,
-        "output_dimensions": dimensions,
-        "axis": None if kind == "SPE" and ndim == 2 else "F2",
-        "scale": None, "conjugation": conjugation, "sign": "none",
-        "permutation": None,
-        "evidence": evidence,
-    }
+    operation = _unscaled_normalization_operation(
+        name=f"normalize-{operation_name}",
+        stage="acquisition" if kind == "FID" else "processing",
+        input_dimensions=("storage",) if ndim == 1 else dimensions,
+        output_dimensions=dimensions,
+        axis=None if kind == "SPE" and ndim == 2 else "F2",
+        conjugation=conjugation,
+        evidence=evidence,
+    )
     return NormalizedAcquisition(
         data=result.data.conj() if conjugation == "conjugate" else result.data,
         axes=axes, dimensions=dimensions, physical_dimensions=dimensions,
