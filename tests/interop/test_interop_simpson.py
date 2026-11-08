@@ -117,3 +117,52 @@ def test_simpson_spectrum_reference(filename):
     np.testing.assert_allclose(normalized.data, samples, rtol=1e-5, atol=1e-7)
     np.testing.assert_allclose(normalized.axes[0].values, indexed["units"], rtol=5e-6, atol=0)
     np.testing.assert_array_equal(normalized.axes[0].values[[0, 2048, -1]], [-20000, 0, 19990.234375])
+
+
+@pytest.mark.parametrize("contents", [TEXT, BINARY], ids=["text", "binary"])
+def test_simpson_fid_2d_axis_order_and_sign(tmp_path, contents):
+    path = tmp_path / "signal.fid"
+    path.write_text(contents.replace("NP=2", "NP=1\nNI=2\nSW1=4000"))
+    read = interop.read_simpson_fid_2d(path)
+    normalized = interop.normalize_simpson_fid_2d(read, conjugation="conjugate")
+    assert normalized.dimensions == ("F1", "F2")
+    assert normalized.encoding == ("unknown", "complex")
+    np.testing.assert_array_equal(read.data, [[1 - 2j], [3 + 4j]])
+    np.testing.assert_array_equal(normalized.data, [[1 + 2j], [3 - 4j]])
+    np.testing.assert_array_equal(normalized.axes[0].values, [0, 0.00025])
+    np.testing.assert_array_equal(normalized.axes[1].values, [0])
+    assert normalized.acquisition["dwell_time_s"] == (0.00025, 0.000125)
+
+
+@pytest.mark.parametrize(
+    "changes, message",
+    [
+        (("SW1=4000", "SW1=nan"), "positive SW1"),
+        (("NI=2\n", ""), "single-element 2D FID"),
+        (("NI=2", "NI=2\nNELEM=2"), "single-element 2D FID"),
+        (("NI=2", "NI=3"), "block disagrees"),
+    ],
+)
+def test_simpson_fid_2d_rejects_inconsistent_header(tmp_path, changes, message):
+    path = tmp_path / "signal.fid"
+    path.write_text(TEXT.replace("NP=2", "NP=1\nNI=2\nSW1=4000").replace(*changes))
+    with pytest.raises(ValueError, match=message):
+        interop.read_simpson_fid_2d(path)
+
+
+@pytest.mark.dataset
+@pytest.mark.parametrize("filename", ["2d_text.fid", "2d.fid"])
+def test_simpson_fid_2d_reference(filename):
+    directory = os.environ.get("SIMPSON_INTEROP_2D_DATA")
+    if not directory:
+        pytest.skip("set SIMPSON_INTEROP_2D_DATA to the simpson_2d corpus directory")
+    directory = Path(directory)
+    read = interop.read_simpson_fid_2d(directory / filename)
+    normalized = interop.normalize_simpson_fid_2d(read, conjugation="none")
+    indexed, samples = simpson.read(directory / "2d_ftext.fid")
+    assert normalized.data.shape == (48, 128)
+    np.testing.assert_allclose(normalized.data, samples, rtol=1e-5, atol=1e-7)
+    np.testing.assert_allclose(normalized.axes[0].values, indexed["units"].ni_unit[:, 0], rtol=5e-6)
+    np.testing.assert_allclose(normalized.axes[1].values, indexed["units"].np_unit[0], rtol=5e-6)
+    assert normalized.axes[0].values[-1] == pytest.approx(0.00092470697117)
+    assert normalized.axes[1].values[-1] == pytest.approx(0.003175)

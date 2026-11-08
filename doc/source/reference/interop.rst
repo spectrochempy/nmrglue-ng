@@ -50,6 +50,7 @@ Read raw acquisitions
     read_bruker_ser
     read_jeol_fid
     read_simpson_fid
+    read_simpson_fid_2d
     read_jcampdx_fid
     read_jeol_2d_storage
 
@@ -80,6 +81,7 @@ Normalize a supported result
     normalize_bruker_fid
     normalize_jeol_fid
     normalize_simpson_fid
+    normalize_simpson_fid_2d
     normalize_simpson_spectrum
     normalize_jeol_2d
     normalize_bruker_pdata
@@ -216,6 +218,25 @@ Use ``conjugation="none"`` to preserve the stored sign or
 tests compare both native encodings against the indexed export of the same
 SIMPSON 4.2.1 simulation. Set ``SIMPSON_INTEROP_DATA`` to the
 ``simpson_1d`` corpus directory to run those tests.
+
+SIMPSON complex 2D FIDs
+^^^^^^^^^^^^^^^^^^^^^^^
+
+:func:`~nmrglue.interop.read_simpson_fid_2d` reads a single-element
+``TYPE=FID`` block in native TEXT or BINARY form. Samples are returned in
+``(F1, F2)`` order with shape ``(NI, NP)``. Times are ``i / SW1`` on
+F1 and ``j / SW`` on F2, in seconds.
+
+.. code-block:: python
+
+    read = ng.interop.read_simpson_fid_2d("2d.fid")
+    fid = ng.interop.normalize_simpson_fid_2d(read, conjugation="none")
+
+The normalized result reports sweep widths and dwell times in ``(F1, F2)``
+order. The caller may request conjugation of the stored complex samples.
+The indirect quadrature convention remains unknown. Set
+``SIMPSON_INTEROP_2D_DATA`` to the ``simpson_2d`` corpus directory for the
+tests that compare both encodings with the XYREIM export.
 
 SIMPSON complex 1D spectra
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
