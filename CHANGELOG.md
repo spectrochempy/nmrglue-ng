@@ -7,6 +7,8 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Read and normalize native SIMPSON complex 2D spectra in interop.
+
 - Read and normalize native SIMPSON complex 2D FIDs in interop. (#178)
 
 - Read and normalize native SIMPSON complex 1D spectra in interop. (#177)
