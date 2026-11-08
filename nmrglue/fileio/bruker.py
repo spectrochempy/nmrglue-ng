@@ -1860,7 +1860,7 @@ class bruker_nd(fileiobase.data_nd):
             for out_index, in_index in nd_iter:
 
                 # determine the trace number from the index
-                ntrace = fileiobase.index2trace_flat(ffshape, in_index) if ffshape else 0
+                ntrace = fileiobase.index2trace_flat(ffshape, in_index) if len(ffshape) else 0
 
                 # seek to the correct place in the file
                 if self.cplex:

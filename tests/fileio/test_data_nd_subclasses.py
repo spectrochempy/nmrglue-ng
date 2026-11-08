@@ -129,6 +129,23 @@ def test_bruker_read_lowmem_1d_fid(tmp_path, isfloat, storage_dtype):
     assert_array_equal(data[::-2], expected[::-2])
 
 
+def test_bruker_read_lowmem_numpy_shape(tmp_path):
+    stored = np.arange(48, dtype="<i4")
+    (tmp_path / "ser").write_bytes(stored.tobytes())
+    expected = (stored[::2] + 1j * stored[1::2]).reshape(2, 3, 4)
+    _, data = bruker.read_lowmem(
+        str(tmp_path),
+        shape=np.array(expected.shape),
+        cplex=True,
+        big=False,
+        read_pulseprogram=False,
+        read_acqus=False,
+        read_procs=False,
+    )
+
+    assert_view(data, expected, (0, 1, 2))
+
+
 def test_rnmrtk_data_nd_contract(tmp_path):
     expected = np.arange(6, dtype=np.float32).reshape(2, 3)
     filename = tmp_path / "rnmrtk.sec"
