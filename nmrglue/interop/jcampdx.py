@@ -7,7 +7,10 @@ import re
 import numpy as np
 
 from ..fileio import jcampdx
-from .result import Axis, Component, NormalizedAcquisition, ReadResult, Reference, _same_axis_grid
+from .result import (
+    Axis, Component, NormalizedAcquisition, ReadResult, Reference,
+    _same_axis_grid, _same_component,
+)
 
 
 def _label(block, name):
@@ -135,8 +138,7 @@ def normalize_jcampdx_1d(result):
         or result.domains != ("frequency",) or result.encoding != ("real",)
         or result.dimensions != {"points": result.data.size}
         or result.applied_corrections != {"yfactor": _yfactor(result.metadata)}
-        or result.components[0].name != "real"
-        or not np.array_equal(result.components[0].data, result.data)
+        or not _same_component(result.components[0], "real", result.data)
     ):
         raise ValueError("JCAMP-DX description disagrees with its spectrum")
     observed = result.axes[0]
@@ -538,8 +540,7 @@ def normalize_jcampdx_2d(result):
         or result.domains != domains or result.encoding != encoding
         or result.dimensions != {"shape": shape, "axis_order": dimensions}
         or result.applied_corrections != {"yfactor": factors[2]}
-        or len(result.components) != 1 or result.components[0].name != "real"
-        or not np.array_equal(result.components[0].data, result.data)
+        or len(result.components) != 1 or not _same_component(result.components[0], "real", result.data)
         or any(
             not _same_axis_grid(observed, expected)
             for observed, expected in zip(result.axes, axes)
