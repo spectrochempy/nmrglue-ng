@@ -169,6 +169,11 @@ class Component:
         object.__setattr__(self, "data", _freeze_array(self.data))
 
 
+def _same_component(observed: Component, name: str, data: np.ndarray) -> bool:
+    """Compare the component name and exact sample values."""
+    return observed.name == name and np.array_equal(observed.data, data)
+
+
 @dataclass(frozen=True)
 class Diagnostic:
     code: str

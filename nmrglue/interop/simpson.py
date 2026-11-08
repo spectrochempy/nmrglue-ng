@@ -8,7 +8,10 @@ from pathlib import Path
 import numpy as np
 
 from ..fileio import simpson
-from .result import Axis, Component, NormalizedAcquisition, ReadResult, _same_axis_grid
+from .result import (
+    Axis, Component, NormalizedAcquisition, ReadResult,
+    _same_axis_grid, _same_component,
+)
 
 
 def _geometry(header, kind, ndim):
@@ -194,8 +197,7 @@ def _normalize(result, kind, format_name, conjugation, ndim=1):
         result.domains != domains or result.encoding != encoding
         or result.dimensions != _storage_dimensions(result.data) or result.applied_corrections
         or len(result.axes) != ndim or len(result.components) != 1
-        or result.components[0].name != "complex"
-        or not np.array_equal(result.components[0].data, result.data)
+        or not _same_component(result.components[0], "complex", result.data)
     ):
         raise ValueError("SIMPSON description disagrees with its samples")
     if any(
