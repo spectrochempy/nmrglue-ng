@@ -52,13 +52,18 @@ it as a frequency-domain spectrum even though its name ends in ``.fid``.
     udic = ng.pipe.guess_udic(header, samples)
     print(udic[0]["size"], udic[0]["sw"])
 
-    raw = ng.interop.read_nmrpipe_1d(filename)
+    raw = ng.interop.read(filename)
     spectrum = ng.interop.normalize(raw)
 
     axis = spectrum.axes[0]
     print(spectrum.dimensions, axis.unit, axis.values[-1])
     print(spectrum.provenance, raw.applied_corrections)
     np.testing.assert_array_equal(spectrum.data, samples)
+
+The generic reader selects the NMRPipe profile from the header. You can
+also select a specific reader with ``profile=``. For example, pass
+``profile="nmrpipe-2d"`` to request the qualified processed 2D reader,
+or let detection select ``nmrpipe-2d-storage`` for a 2D file.
 
 The reader returns a :class:`~nmrglue.interop.ReadResult`. In this profile, the
 normalizer checks its layout and calibration and returns a

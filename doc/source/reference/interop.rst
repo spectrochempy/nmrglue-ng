@@ -23,6 +23,27 @@ Result types and diagnostics
     Diagnostic
     DIAGNOSTIC_CONTEXT_SCHEMA
 
+Select a reader by profile
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. autosummary::
+    :toctree: generated/
+
+    read
+
+Omit ``profile`` to detect SIMPSON, JEOL JDF and NMRPipe from their headers.
+Pass the dataset directory for automatic Bruker and Agilent detection.
+The dispatcher selects storage profiles for Bruker SER, Bruker 2D pdata,
+Agilent FID, JEOL 2D and NMRPipe 2D. Auto-detected Bruker 1D pdata defaults
+to ``scale_data=False``; set it explicitly to request scaling.
+Each selected reader checks that the file satisfies its own constraints.
+
+Use ``profile=`` for nmrML, JCAMP-DX and sources that match more than one
+reader. Profile names generally match the specialized reader's
+``ReadResult.format``. Use ``profile="bruker-ser"`` for the qualified SER
+reader, which reports the QF or States-TPPI profile in the result. The
+generic reader passes additional keyword arguments to the selected reader.
+
 Read stored planes and traces
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
