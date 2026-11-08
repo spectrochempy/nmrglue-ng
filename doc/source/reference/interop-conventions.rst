@@ -333,8 +333,7 @@ first-order phase in degrees at the first bin. For N FFT points, its
 multiplier at bin i is ``exp(+1j * radians(zero_order_deg +
 first_order_deg * i / N))``. Neither descriptor changes the FID.
 
-Deferred FID preparation
-~~~~~~~~~~~~~~~~~~~~~~~~
+.. rubric:: Deferred FID preparation
 
 When the correction options are left off, the FID remains uncorrected and
 ``acquisition["fid_preparation"]`` describes what a consumer can apply later.
