@@ -150,6 +150,16 @@ class Axis:
             object.__setattr__(self, "values", _freeze_array(self.values))
 
 
+def _same_axis_grid(observed: Axis, expected: Axis) -> bool:
+    """Compare exact coordinates and their unit, domain and direction."""
+    return (
+        observed.unit == expected.unit
+        and observed.domain == expected.domain
+        and observed.direction == expected.direction
+        and np.array_equal(observed.values, expected.values)
+    )
+
+
 @dataclass(frozen=True)
 class Component:
     name: str
