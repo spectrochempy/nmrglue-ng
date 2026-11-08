@@ -59,7 +59,7 @@ original nmrglue project and are preserved for attribution and continuity.
 ### Documentation
 
 - Put installation, a runnable example, and the additions in released
-  versions of nmrglue-ng at the top of the repository and PyPI README.
+  versions of nmrglue-ng at the top of the repository and PyPI README. (#186)
 
 ### Project infrastructure
 
