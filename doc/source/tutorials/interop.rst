@@ -53,7 +53,7 @@ it as a frequency-domain spectrum even though its name ends in ``.fid``.
     print(udic[0]["size"], udic[0]["sw"])
 
     raw = ng.interop.read_nmrpipe_1d(filename)
-    spectrum = ng.interop.normalize_nmrpipe_1d(raw)
+    spectrum = ng.interop.normalize(raw)
 
     axis = spectrum.axes[0]
     print(spectrum.dimensions, axis.unit, axis.values[-1])
@@ -178,8 +178,17 @@ The storage readers require the binary layouts described above.
 When a normalizer is available
 ------------------------------
 
-A normalizer accepts the result of its corresponding qualified reader and
-validates a layout or calibration for a consumer.
+Use :func:`~nmrglue.interop.normalize` to select a normalizer from the
+profile recorded in ``result.format``. It validates the layout or calibration
+for a consumer. Any options required by the selected profile still need to
+be supplied explicitly. For example, to confirm the indirect time grid of
+a pure-TPPI NMRPipe acquisition::
+
+    stored = ng.interop.read_nmrpipe_2d_storage("tppi.fid")
+    acquisition = ng.interop.normalize(stored, confirm_time_grid=True)
+
+If the profile has no normalizer, the function raises ``ValueError``.
+The original read result remains available for working with the stored data.
 
 * Agilent/Varian and Bruker raw: qualified 1D FIDs.
 * JEOL: complex 1D FIDs and qualified 2D raw time-domain acquisitions.

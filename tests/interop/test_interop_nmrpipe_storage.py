@@ -201,7 +201,7 @@ def test_pure_tppi_time_and_mixed(tmp_path, transposed, direct_transformed):
     with pytest.raises(ValueError, match="requires confirm_time_grid=True"):
         interop.normalize_nmrpipe_2d(stored)
 
-    result = interop.normalize_nmrpipe_2d(stored, confirm_time_grid=True)
+    result = interop.normalize(stored, confirm_time_grid=True)
     assert result.channel_axis == 0
     assert result.branch_order == (("rr", "ir") if transposed else ("rr", "ri"))
     expected = (real.T, imag.T) if transposed else (real, imag)
