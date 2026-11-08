@@ -60,6 +60,8 @@ original nmrglue project and are preserved for attribution and continuity.
 
 - Put installation, a runnable example, and the additions in released
   versions of nmrglue-ng at the top of the repository and PyPI README. (#186)
+- Shorten the interop tutorial and add a profile table covering detection,
+  reader options, and normalization. Document format conventions separately. (#187)
 
 ### Project infrastructure
 
