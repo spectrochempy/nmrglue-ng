@@ -147,3 +147,16 @@ does not automatically authorize publishing its outputs.
    data may then become public fixtures through a separate reviewed change.
 4. Track historical-project data updates without making progress dependent on
    an anticipated archive or license clarification.
+
+## External interop qualification
+
+Run the relevant dataset tests in `tests/interop/` with these inputs:
+
+- `JCAMP_TESTFID_DX` and `JCAMP_ASPIRIN_FID_DX` point to the ethylbenzene
+  FID in the [IUPAC archive](https://github.com/IUPAC/JCAMP-DX) and the
+  [aspirin FID](https://unpkg.com/jcamp-data-test@0.4.0/data/aspirin-1h.fid.dx).
+  The tests check their hashes and compare the full complex arrays with the
+  historical reader.
+- `SIMPSON_INTEROP_DATA` and `SIMPSON_INTEROP_2D_DATA` point to the
+  `simpson_1d` and `simpson_2d` corpus directories. The tests compare the
+  native encodings with indexed exports from SIMPSON 4.2.1.
