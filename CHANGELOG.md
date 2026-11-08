@@ -7,6 +7,10 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Add `nmrglue.interop.read(path, profile=None, **options)` with explicit
+  profile selection and automatic detection for recognized headers and
+  dataset directories.
+
 - Add `nmrglue.interop.normalize(result, **options)` to select the normalizer
   from the read result's profile. This package attribute now refers to the
   function. Imports of individual functions from the

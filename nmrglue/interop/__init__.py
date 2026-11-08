@@ -21,6 +21,7 @@ from collections.abc import Callable
 from typing import Any
 
 from .bruker import read_bruker_fid, read_bruker_pdata, read_bruker_ser
+from .dispatch import read
 from .bruker_pdata_2d import (
     normalize_bruker_pdata_2d,
     read_bruker_pdata_2d,
@@ -112,6 +113,7 @@ __all__ = [
     "ReadResult",
     "Reference",
     "normalize",
+    "read",
     "read_bruker_pdata",
     "read_bruker_pdata_2d",
     "read_bruker_pdata_2d_storage",
