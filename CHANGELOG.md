@@ -8,7 +8,7 @@ original nmrglue project and are preserved for attribution and continuity.
 ## Unreleased
 
 - Extend Bruker 1D FID interop with optional storage-length preservation,
-  DC removal before digital filtering, and scan/gain normalization.
+  DC removal before digital filtering, and scan/gain normalization. (#197)
 
 ## 1.2.1 - 2026-11-08
 
