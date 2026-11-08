@@ -8,7 +8,7 @@ original nmrglue project and are preserved for attribution and continuity.
 ## Unreleased
 
 - Describe deferred DC, digital-filter and scan/gain preparation for
-  normalized Bruker 1D FIDs without applying the corrections at import.
+  normalized Bruker 1D FIDs without applying the corrections at import. (#198)
 
 - Extend Bruker 1D FID interop with optional storage-length preservation,
   DC removal before digital filtering, and scan/gain normalization. (#197)
