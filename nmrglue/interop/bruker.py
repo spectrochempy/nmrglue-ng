@@ -75,12 +75,17 @@ def read_bruker_fid(
     isfloat=None,
     read_pulseprogram=True,
     read_acqus=True,
+    acqus_files=None,
+    procs_files=None,
 ):
     """Read a raw Bruker 1D FID as a neutral :class:`ReadResult`.
 
     No RG/NS normalization is applied. If ``remove_digital_filter`` is true,
     the existing Bruker correction is applied once and recorded in
-    ``applied_corrections``.
+    ``applied_corrections``. Optional explicit acquisition and processing
+    file lists are forwarded to the Bruker reader. Processing files are
+    read only when a list is supplied. For acquisition metadata, fields
+    in the selected status file ``acqus`` take precedence over ``acqu``.
     """
     if not os.path.isdir(dir):
         raise OSError("directory %s does not exist" % (dir,))
@@ -93,7 +98,9 @@ def read_bruker_fid(
         isfloat=isfloat,
         read_pulseprogram=read_pulseprogram,
         read_acqus=read_acqus,
-        read_procs=False,
+        acqus_files=None if acqus_files is None else list(acqus_files),
+        procs_files=None if procs_files is None else list(procs_files),
+        read_procs=procs_files is not None,
     )
     data = np.asarray(data)
     if data.ndim != 1 or not np.issubdtype(data.dtype, np.number):
@@ -113,7 +120,7 @@ def read_bruker_fid(
     if remove_digital_filter:
         data = bruker.remove_digital_filter(dic, data, truncate=True)
 
-    acqus = dic.get("acqus", {})
+    acqus = {**dic.get("acqu", {}), **dic.get("acqus", {})}
     required = ("TD", "SW_h", "SFO1", "O1", "AQ_mod")
     missing = tuple(name for name in required if acqus.get(name) is None)
     diagnostics = []
@@ -127,10 +134,11 @@ def read_bruker_fid(
             )
         )
 
-    sw_h = _raw_number(dic, "acqus", "SW_h") if acqus.get("SW_h") is not None else None
-    sfo1 = _raw_number(dic, "acqus", "SFO1") if acqus.get("SFO1") is not None else None
-    o1 = _raw_number(dic, "acqus", "O1") if acqus.get("O1") is not None else None
-    td = _raw_integer(dic, "acqus", "TD") if acqus.get("TD") is not None else None
+    resolved = {"acqus": acqus}
+    sw_h = _raw_number(resolved, "acqus", "SW_h") if acqus.get("SW_h") is not None else None
+    sfo1 = _raw_number(resolved, "acqus", "SFO1") if acqus.get("SFO1") is not None else None
+    o1 = _raw_number(resolved, "acqus", "O1") if acqus.get("O1") is not None else None
+    td = _raw_integer(resolved, "acqus", "TD") if acqus.get("TD") is not None else None
     if td is not None and np.iscomplexobj(data) and td % 2:
         raise ValueError("Bruker acqus parameter TD must be even for complex data")
     if sw_h is not None and sw_h <= 0:

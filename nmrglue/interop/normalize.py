@@ -149,21 +149,45 @@ def normalize_agilent_fid(result: ReadResult) -> NormalizedAcquisition:
     )
 
 
-def normalize_bruker_fid(result: ReadResult, *, remove_digital_filter=False) -> NormalizedAcquisition:
+def normalize_bruker_fid(
+    result: ReadResult,
+    *,
+    remove_digital_filter=False,
+    remove_dc_offset=False,
+    normalize_scan_gain=False,
+    preserve_storage=False,
+) -> NormalizedAcquisition:
     """Normalize an uncorrected complex QSIM/DQD FID for a negative-sign DFT.
 
-    Trim storage padding to TD/2 before any optional digital-filter correction,
-    then conjugate the samples into the canonical frequency orientation.
-    No RG/NS scaling, FFT, phase correction or referencing is applied.
-    Prefiltered results are rejected because padding may already have entered
-    the filter correction. Historical raw reader behavior is unchanged.
+    Trim storage padding to TD/2 by default. Use ``preserve_storage=True``
+    to retain the decoded length, including verified zero padding.
+    Optional DC removal subtracts the mean of the selected points before
+    filtering. Use ``remove_digital_filter="if-decimated"`` to skip the
+    correction for DECIM=1, as the public TopSpin reader does. An explicit
+    ``True`` still applies the correction when a valid delay is supplied.
+    Optional scan/gain normalization divides by NS times RG
+    after filtering. Each missing factor defaults to one. The output is
+    conjugated into the canonical frequency orientation.
+
+    Prefiltered inputs are rejected. No FFT or referencing is applied.
     """
     if not isinstance(result, ReadResult):
         raise TypeError("normalize_bruker_fid requires an interop ReadResult")
     if result.format != "bruker-fid":
         raise ValueError("normalize_bruker_fid requires format='bruker-fid'")
-    if not isinstance(remove_digital_filter, bool):
-        raise ValueError("remove_digital_filter must be an explicit boolean")
+    if_decimated = (
+        isinstance(remove_digital_filter, str)
+        and remove_digital_filter == "if-decimated"
+    )
+    if not isinstance(remove_digital_filter, bool) and not if_decimated:
+        raise ValueError("remove_digital_filter must be a boolean or 'if-decimated'")
+    for name, value in (
+        ("remove_dc_offset", remove_dc_offset),
+        ("normalize_scan_gain", normalize_scan_gain),
+        ("preserve_storage", preserve_storage),
+    ):
+        if not isinstance(value, bool):
+            raise ValueError(f"{name} must be an explicit boolean")
     data = np.asarray(result.data)
     if data.ndim != 1 or not np.iscomplexobj(data) or not np.isfinite(data).all():
         raise ValueError("Bruker normalized profile requires one finite complex FID")
@@ -213,6 +237,8 @@ def normalize_bruker_fid(result: ReadResult, *, remove_digital_filter=False) -> 
     axis = result.axes[0]
     if axis.unit != "s" or axis.values is None or np.asarray(axis.values).shape != data.shape or not np.allclose(axis.values, np.arange(data.size) / sw, rtol=1e-12, atol=1e-15):
         raise ValueError("Bruker time axis does not match the acquisition grid")
+    input_points = data.size if preserve_storage else points
+    trimmed_points = data.size - input_points
     operation: dict[str, object] = {
         "name": "normalize-bruker-complex-fid", "stage": "acquisition",
         "input_dimensions": ("storage",), "output_dimensions": ("F2",),
@@ -220,53 +246,109 @@ def normalize_bruker_fid(result: ReadResult, *, remove_digital_filter=False) -> 
         "sign": "none", "permutation": None,
         "evidence": "nmrglue.interop.normalize_bruker_fid",
         "storage_points": int(data.size), "acquired_points": points,
-        "trimmed_padding_points": int(data.size) - points,
+        "trimmed_padding_points": int(trimmed_points),
     }
-    work = np.array(data[:points], copy=True)
-    filter_trace: dict[str, object] = {"requested": remove_digital_filter, "applied": False}
+    work = np.array(data[:input_points], copy=True)
+    if remove_dc_offset:
+        work -= work.mean()
+    dc_trace = {"applied": remove_dc_offset, "input_points": int(input_points)}
+    parameters = filtering.get("parameters", {})
+    filter_trace: dict[str, object] = {"requested": bool(remove_digital_filter), "applied": False}
     if remove_digital_filter:
-        parameters = filtering.get("parameters", {})
+        if not isinstance(parameters, Mapping):
+            raise ValueError("invalid Bruker digital-filter parameters")
         decim = number(parameters, "DECIM", positive=True)
-        firmware = number(parameters, "DSPFVS")
-        if not decim.is_integer() or not firmware.is_integer():
-            raise ValueError("Bruker digital-filter parameters must be integers")
-        delay = number(parameters, "GRPDLY", optional=True)
-        if delay is None or delay <= 0:
-            if int(firmware) not in bruker.bruker_dsp_table or int(decim) not in bruker.bruker_dsp_table[int(firmware)]:
-                raise ValueError("unknown Bruker digital-filter group delay")
-            delay = float(bruker.bruker_dsp_table[int(firmware)][int(decim)])
-            source = "DSPFVS/DECIM"
+        if not decim.is_integer():
+            raise ValueError("Bruker digital-filter decimation must be an integer")
+        if if_decimated and decim == 1:
+            filter_trace["reason"] = "no-decimation"
         else:
-            source = "GRPDLY"
-        if not np.isfinite(delay) or delay <= 0:
-            raise ValueError("invalid Bruker digital-filter group delay")
-        skip = int(np.floor(delay)) + 2
-        if skip >= points - 1:
-            raise ValueError("Bruker group delay leaves fewer than two points")
-        work = bruker.rm_dig_filter(work, int(decim), int(firmware), delay, truncate_grpdly=True)
-        filter_trace = {
-            "requested": True, "applied": True, "group_delay_points": delay,
-            "delay_source": source, "truncate_group_delay": True,
-            "removed_points": skip, "parameters": dict(parameters),
-        }
+            firmware = number(parameters, "DSPFVS")
+            if not firmware.is_integer():
+                raise ValueError("Bruker digital-filter firmware must be an integer")
+            delay = number(parameters, "GRPDLY", optional=True)
+            if delay is None or delay <= 0:
+                table = bruker.bruker_dsp_table.get(int(firmware), {})
+                if int(decim) not in table:
+                    raise ValueError("unknown Bruker digital-filter group delay")
+                delay = float(table[int(decim)])
+                source = "DSPFVS/DECIM"
+            else:
+                source = "GRPDLY"
+            if not np.isfinite(delay) or delay <= 0:
+                raise ValueError("invalid Bruker digital-filter group delay")
+            skip = int(np.floor(delay)) + 2
+            if skip >= points - 1:
+                raise ValueError("Bruker group delay leaves fewer than two acquired points")
+            work = bruker.rm_dig_filter(
+                work, int(decim), int(firmware), delay, truncate_grpdly=True
+            )
+            filter_trace = {
+                "requested": True, "applied": True, "group_delay_points": delay,
+                "delay_source": source, "truncate_group_delay": True,
+                "removed_points": skip, "parameters": dict(parameters),
+            }
+    gain_trace: dict[str, object] = {"applied": normalize_scan_gain}
+    if normalize_scan_gain:
+        scans = number(acquisition, "NS", positive=True, optional=True)
+        gain = number(acquisition, "RG", positive=True, optional=True)
+        divisor = (1.0 if scans is None else scans) * (1.0 if gain is None else gain)
+        if not np.isfinite(divisor) or divisor <= 0:
+            raise ValueError("invalid Bruker scan/gain divisor")
+        scale = 1.0 / divisor
+        if not np.isfinite(scale):
+            raise ValueError("invalid Bruker scan/gain scale")
+        work /= divisor
+        gain_trace.update({"scans": scans, "receiver_gain": gain, "divisor": divisor})
+        operation["scale"] = scale
+    if not np.isfinite(work).all():
+        raise ValueError("Bruker corrections produced nonfinite samples")
+    operation["dc_offset"] = dc_trace
+    operation["scan_gain"] = gain_trace
     operation["digital_filter"] = filter_trace
     operation["returned_points"] = int(work.size)
-    acqus = result.metadata.get("acqus", {})
+    acqus = {**result.metadata.get("acqu", {}), **result.metadata.get("acqus", {})}
     frequency = number(acqus, "BF1", positive=True, optional=True)
     carrier = number(acquisition, "carrier_hz", optional=True)
+    observation = number(acquisition, "observation_frequency_mhz", positive=True, optional=True)
     normalized_acquisition = {
         "spectral_width_hz": sw, "dwell_time_s": 1 / sw,
-        "observation_frequency_mhz": acquisition.get("observation_frequency_mhz"),
+        "observation_frequency_mhz": observation,
         "nucleus": acquisition.get("nucleus"),
         "frequency_axis": {
             "schema": "normalized-frequency-axis-v1", "bin_sign": -1,
             "reference_frequency_mhz": frequency, "reference_enabled": None,
             "offsets_hz": {} if carrier is None else {"acquisition": carrier},
         },
-        "normalization": "none", "digital_filter": filter_trace,
+        "normalization": "scan-gain" if normalize_scan_gain else "none",
+        "digital_filter": filter_trace, "dc_offset": dc_trace, "scan_gain": gain_trace,
         "storage_points": int(data.size), "acquired_points": points,
-        "returned_points": int(work.size), "trimmed_padding_points": int(data.size) - points,
+        "returned_points": int(work.size), "trimmed_padding_points": int(trimmed_points),
     }
+    if preserve_storage:
+        processing = {
+            **result.metadata.get("proc", {}), **result.metadata.get("procs", {})
+        }
+        processing_frequency = number(processing, "SF", positive=True, optional=True)
+        display_width_ppm = number(acqus, "SW", positive=True, optional=True)
+        if None not in (observation, frequency, processing_frequency, display_width_ppm):
+            center = (observation - processing_frequency) * 1e6
+            width = display_width_ppm * observation
+            if not np.isfinite(center) or not np.isfinite(width):
+                raise ValueError("invalid Bruker compatibility FFT display calibration")
+            normalized_acquisition["fft_display_axis"] = {
+                "grid": "inclusive-endpoints", "direction": "decreasing",
+                "center_hz": center, "spectral_width_hz": width,
+                "reference_frequency_mhz": frequency,
+            }
+        phase_zero = number(processing, "PHC0", optional=True)
+        phase_first = number(processing, "PHC1", optional=True)
+        if phase_zero is not None or phase_first is not None:
+            normalized_acquisition["fft_initial_phase"] = {
+                "zero_order_deg": phase_zero if phase_zero is not None else 0.0,
+                "first_order_deg": phase_first if phase_first is not None else 0.0,
+                "pivot_index": 0,
+            }
     return NormalizedAcquisition(
         data=np.conj(work),
         axes=(Axis(values=np.arange(work.size) / sw, unit="s", label=axis.label,
