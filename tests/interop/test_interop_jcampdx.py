@@ -319,3 +319,14 @@ def test_jcampdx_2d_rejects_conflicting_fractional_anchors(tmp_path, precise_loc
     path.write_text(contents)
     with pytest.raises(ValueError, match="line absciss"):
         interop.read_jcampdx_2d(path)
+
+
+def test_jcampdx_2d_rejects_incompatible_grid_slope(tmp_path):
+    path = tmp_path / "plane.jdx"
+    path.write_text(
+        PROFILE.replace("FIRST=1,10.00", "FIRST=1,10").replace("LAST=3,8.00", "LAST=3,8")
+        .replace("##FIRST=1.25,10.00,8\n", "")
+        .replace("10 1 2 3", "9.6 1\n9.4 2 3")
+    )
+    with pytest.raises(ValueError, match="common F2 grid"):
+        interop.read_jcampdx_2d(path)

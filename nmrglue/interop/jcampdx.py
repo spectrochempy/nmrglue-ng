@@ -443,6 +443,32 @@ def _profile_axes(f1, f2_endpoints, units, points):
     return tuple(axes)
 
 
+def _check_shared_f2_grid(endpoints, tolerances, intervals, anchor_ranges):
+    # Each vertex is a possible pair of offsets from the written endpoints.
+    first, last = endpoints
+    start_tol, stop_tol = tolerances
+    polygon = [(-start_tol, -stop_tol), (start_tol, -stop_tol),
+               (start_tol, stop_tol), (-start_tol, stop_tol)]
+    for index, (lower, upper) in sorted(anchor_ranges.items()):
+        fraction = index / intervals
+        expected = first + fraction * (last - first)
+        for sign, limit in ((1, upper - expected), (-1, expected - lower)):
+            clipped = []
+            previous = polygon[-1]
+            previous_distance = sign * ((1 - fraction) * previous[0] + fraction * previous[1]) - limit
+            for point in polygon:
+                distance = sign * ((1 - fraction) * point[0] + fraction * point[1]) - limit
+                if (previous_distance <= 0) != (distance <= 0):
+                    weight = previous_distance / (previous_distance - distance)
+                    clipped.append(tuple(a + weight * (b - a) for a, b in zip(previous, point)))
+                if distance <= 0:
+                    clipped.append(point)
+                previous, previous_distance = point, distance
+            if not clipped:
+                raise ValueError("JCAMP-DX 2D line abscissae cannot describe a common F2 grid")
+            polygon = clipped
+
+
 def read_jcampdx_2d(filename):
     """Read a real 2D NTUPLES spectrum in F1 page and F2 sample order."""
     blocks = jcampdx.read_blocks(filename, _record_order=True)
@@ -491,6 +517,7 @@ def read_jcampdx_2d(filename):
         or any(row.shape != (shape[1],) or not np.isfinite(row).all() for row in parts["real"])
     ):
         raise ValueError("JCAMP-DX 2D PROFILE intensities disagree with VAR_DIM")
+    _check_shared_f2_grid(f2_endpoints, tolerances, intervals, anchor_ranges)
     data = np.stack(parts["real"])
     axes = _profile_axes(f1, f2_endpoints, units, shape[1])
     return ReadResult(
