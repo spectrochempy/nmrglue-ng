@@ -7,7 +7,7 @@ See :doc:`../tutorials/interop` for the relationship between readers, the
 universal dictionary and interop, and for a worked example.
 
 Import these entry points from ``nmrglue.interop``. The groups below organize
-the reference by task. Existing import paths and signatures are retained.
+the reference by task.
 
 Result types and diagnostics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -75,9 +75,15 @@ Read processed spectra and exchange files
 Normalize a supported result
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+The package attribute ``nmrglue.interop.normalize`` is the generic function.
+If you previously used ``import nmrglue.interop.normalize as normalizers``
+to access the submodule, import the specific functions you need from
+``nmrglue.interop.normalize`` or from ``nmrglue.interop``.
+
 .. autosummary::
     :toctree: generated/
 
+    normalize
     normalize_agilent_fid
     normalize_bruker_fid
     normalize_jeol_fid

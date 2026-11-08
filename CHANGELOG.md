@@ -7,6 +7,11 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Add `nmrglue.interop.normalize(result, **options)` to select the normalizer
+  from the read result's profile. This package attribute now refers to the
+  function. Imports of individual functions from the
+  `nmrglue.interop.normalize` submodule still work.
+
 - Read and normalize native SIMPSON complex 2D spectra in interop. (#179)
 
 - Read and normalize native SIMPSON complex 2D FIDs in interop. (#178)

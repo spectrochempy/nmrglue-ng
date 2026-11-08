@@ -1,5 +1,6 @@
 """SIMPSON 1D FID decoding and calibration."""
 
+from dataclasses import replace
 import os
 from pathlib import Path
 
@@ -28,6 +29,23 @@ def test_simpson_fid_axis_and_sign(tmp_path, contents):
     np.testing.assert_array_equal(normalized.axes[0].values, [0, 0.000125])
     assert normalized.axes[0].unit == "s"
     assert normalized.acquisition == {"spectral_width_hz": 8000, "dwell_time_s": 0.000125}
+
+
+def test_generic_normalize_selects_profile_and_forwards_options(tmp_path):
+    path = tmp_path / "signal.fid"
+    path.write_text(TEXT)
+    result = interop.read_simpson_fid(path)
+
+    with pytest.raises(TypeError, match="conjugation"):
+        interop.normalize(result)
+    normalized = interop.normalize(result, conjugation="conjugate")
+    np.testing.assert_array_equal(normalized.data, [1 + 2j, 3 - 4j])
+
+    stored = replace(result, format="bruker-ser-storage")
+    with pytest.raises(ValueError, match="No interop normalizer.*bruker-ser-storage"):
+        interop.normalize(stored)
+    with pytest.raises(TypeError, match="ReadResult"):
+        interop.normalize(path)
 
 
 @pytest.mark.parametrize(
