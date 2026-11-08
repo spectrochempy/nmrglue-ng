@@ -10,7 +10,7 @@ from tempfile import TemporaryDirectory
 from packaging.version import Version
 
 
-EXPECTED_CASES = 65
+EXPECTED_CASES = 66
 
 
 class InstalledOriginGuard:

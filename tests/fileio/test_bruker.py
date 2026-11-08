@@ -274,6 +274,27 @@ def test_remove_dc_offset():
     )
 
 
+def test_remove_digital_filter_post_proc_positive_fft():
+    """Conjugation adapts the positive ramp to the NMRPipe FT -df sign."""
+    points, delay = 16, 2.25
+    bins = np.array([3, 10])
+    amplitudes = np.array([2 + 3j, -4 + 1j])
+    dic = {'acqus': {'DECIM': 24, 'DSPFVS': 20, 'GRPDLY': delay}}
+    samples = np.arange(points)
+    fid = amplitudes[:, None] * np.exp(
+        2j * np.pi * (
+            delay * bins[:, None] - (bins[:, None] - points // 2) * samples
+        ) / points
+    )
+    spectrum = ng.proc_base.fft_positive(fid)
+    corrected = ng.bruker.remove_digital_filter(
+        dic, spectrum.conj(), truncate=False, post_proc=True
+    ).conj()
+    expected = np.zeros((2, points), dtype=complex)
+    expected[np.arange(2), bins] = points * amplitudes
+    np.testing.assert_allclose(corrected, expected, rtol=0, atol=1e-12)
+
+
 def test_remove_dc_offset_post_proc_incompatible():
     """remove_dc_offset=True with post_proc=True raises ValueError."""
     data = np.exp(-np.arange(256) / 30.0).astype(np.complex128)
