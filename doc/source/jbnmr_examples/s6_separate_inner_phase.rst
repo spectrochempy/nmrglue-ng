@@ -3,6 +3,9 @@
 The data used in this example is available for
 `download. <https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/nmrglue/jbnmr_s6_seperate_inner_phase.zip>`_ [12.42 MB]
 
+Extract the archive and run the current script linked below from the
+extracted directory containing the input data.
+
 Listing S6
 
 [:download:`separate.py <../../../examples/jbnmr_examples/s6_separate_inner_phase/separate.py>`]
