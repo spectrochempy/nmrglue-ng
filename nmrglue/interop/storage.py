@@ -8,7 +8,7 @@ from pathlib import Path
 from warnings import warn
 
 from ..fileio import bruker, varian
-from .bruker import _raw_integer, _raw_number
+from .bruker import _raw_integer, _raw_number, _require_bruker_2d
 from .result import Axis, Component, ReadResult
 
 
@@ -49,6 +49,8 @@ def read_bruker_ser_storage(
     if states_tppi_only and echo_antiecho_only:
         raise ValueError("select one Bruker SER mode for preflight")
     paired_only = states_tppi_only or echo_antiecho_only
+    if echo_antiecho_only:
+        _require_bruker_2d(metadata)
     mode = 6 if echo_antiecho_only else 5
     if paired_only and (
         metadata.get("acqus", {}).get("FnTYPE", 0) != 0

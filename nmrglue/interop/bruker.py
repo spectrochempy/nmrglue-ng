@@ -50,6 +50,16 @@ def _raw_number(dic, section, key):
     return float(value)
 
 
+def _require_bruker_2d(metadata):
+    """Reject explicit evidence that the acquisition is not two-dimensional."""
+    if (
+        metadata.get("acqus", {}).get("PARMODE", 1) != 1
+        or "acqu3s" in metadata
+        or "acqu4s" in metadata
+    ):
+        raise ValueError("Bruker SER requires a two-dimensional acquisition")
+
+
 def _raw_integer(dic, section, key):
     value = dic.get(section, {}).get(key)
     if value is None:

@@ -209,12 +209,17 @@ def test_normalize_states_tppi_storage_preserves_asymmetric_pairs_and_padding(tm
         ng.interop.normalize_bruker_ser_states_tppi(ng.interop.read_bruker_ser_storage(tmp_path))
 
 
-def test_normalize_echo_antiecho_storage_keeps_branch_order_and_delay(tmp_path):
+@pytest.mark.parametrize("extra_dimension", [None, "PARMODE", "acqu3s"])
+def test_normalize_echo_antiecho_storage_keeps_branch_order_and_delay(
+    tmp_path, extra_dimension,
+):
     (tmp_path / "acqus").write_text(
         "##TITLE= Synthetic direct\n"
         "##$TD= 16\n##$BYTORDA= 0\n##$DTYPA= 0\n##$AQ_mod= 3\n"
         "##$FnTYPE= 0\n##$SW_h= 2000\n##$SFO1= 125\n"
-        "##$DECIM= 2.5\n##$DSPFVS= 12\n##$GRPDLY= 2.75\n##END=\n"
+        "##$DECIM= 2.5\n##$DSPFVS= 12\n##$GRPDLY= 2.75\n"
+        + ("##$PARMODE= 2\n" if extra_dimension == "PARMODE" else "")
+        + "##END=\n"
     )
     (tmp_path / "acqu2s").write_text(
         "##TITLE= Synthetic indirect\n"
@@ -222,6 +227,16 @@ def test_normalize_echo_antiecho_storage_keeps_branch_order_and_delay(tmp_path):
     )
     words = np.arange(4 * 256, dtype=np.int32).reshape(4, 256)
     (tmp_path / "ser").write_bytes(words.astype("<i4").tobytes())
+    if extra_dimension == "acqu3s":
+        (tmp_path / "acqu3s").write_text("##TITLE= Third axis\n##$TD= 8\n##END=\n")
+    if extra_dimension is not None:
+        with pytest.raises(ValueError, match="two-dimensional acquisition"):
+            ng.interop.read_bruker_ser_storage(tmp_path, echo_antiecho_only=True)
+        stored = ng.interop.read_bruker_ser_storage(tmp_path)
+        with pytest.raises(ValueError, match="two-dimensional acquisition"):
+            ng.interop.normalize_bruker_ser_echo_antiecho(stored)
+        return
+
     stored = ng.interop.read_bruker_ser_storage(tmp_path, echo_antiecho_only=True)
     presented = ng.interop.normalize_bruker_ser_echo_antiecho(
         stored, fft_presentation=True

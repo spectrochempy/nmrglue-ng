@@ -6,7 +6,7 @@ from dataclasses import replace
 import numpy as np
 
 from ..fileio import bruker
-from .bruker import _raw_integer, _raw_number
+from .bruker import _raw_integer, _raw_number, _require_bruker_2d
 from .result import Axis, NormalizedAcquisition, ReadResult, Reference
 
 
@@ -301,6 +301,8 @@ def _normalize_paired_ser(
     )):
         raise ValueError(f"{label} correction and storage options must be booleans")
     metadata = result.metadata
+    if echo_antiecho:
+        _require_bruker_2d(metadata)
     direct = metadata.get("acqus", {})
     indirect = metadata.get("acqu2s", {})
     if (
