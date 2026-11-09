@@ -7,6 +7,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Keep integration uncertainty nonnegative after signed normalization and
+  reject a zero reference integral.
+
 - Fix Cadzow enhancement for 2D arrays by processing each row independently. (#205)
 
 - Allow Bruker raw readers to retain flat samples after a declared shape

@@ -48,10 +48,12 @@ def integrate(data, unit_conv, limits, unit='ppm', noise_limits=None,
         noise range.
     norm_to_range: Optional[int]
         If given, all values are normalized to the value determined within the
-        range given by limits[norm_to_range, :]
+        range given by limits[norm_to_range, :]. The reference integral must
+        be nonzero.
     calibrate: Optional[float]
         If norm_to_range is given, the values are re-normalized so that the
-        integral within limits[norm_to_range, :] equals some number.
+        integral within limits[norm_to_range, :] equals some number. The
+        uncertainty scales with the magnitude of the normalization factor.
 
     Returns
     -------
@@ -81,6 +83,12 @@ def integrate(data, unit_conv, limits, unit='ppm', noise_limits=None,
 
     # put together the integral
     values = sum_slice * dx
+    reference = None
+    if norm_to_range is not None:
+        reference = values[norm_to_range]
+        if reference == 0:
+            raise ValueError("normalization integral is zero")
+        values = (values / reference) * calibrate
 
     if noise_limits is not None:
 
@@ -93,17 +101,11 @@ def integrate(data, unit_conv, limits, unit='ppm', noise_limits=None,
         std = np.std(data[slice(*noise_inds)])
         errors = std * np.sqrt(inds[:, 1] - inds[:, 0]) * dx
 
-        if norm_to_range is not None:
-            # You must normalize the error before you normalize the value!
-            errors = (errors / values[norm_to_range]) * calibrate
-            values = (values / values[norm_to_range]) * calibrate
+        if reference is not None:
+            errors = (errors / abs(reference)) * abs(calibrate)
         return np.vstack((values, errors)).T
 
-    else:
-
-        if norm_to_range is not None:
-            values = (values / values[norm_to_range]) * calibrate
-        return values
+    return values
 
 
 def ndintegrate(data, unit_conv, limits, unit='ppm', noise_limits=None):
