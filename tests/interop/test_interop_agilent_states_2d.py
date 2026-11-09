@@ -236,3 +236,34 @@ def test_tppi_preflight_rejects_sparse_sampling(monkeypatch, tmp_path):
     (tmp_path / "sampling.sch").touch()
     with pytest.raises(ValueError, match="uniform sampling"):
         ng.interop.read_agilent_fid_storage(tmp_path, tppi_only=True)
+
+
+@pytest.mark.parametrize("legacy", [False, True])
+def test_normalize_agilent_multitrace_series(tmp_path, legacy):
+    from nmrglue.interop.storage import _trace_result
+
+    words = np.arange(48, dtype=np.int32).reshape(6, 8)
+    words[:, 1::2] *= -3
+    procpar = {
+        key: _parameter(values)
+        for key, values in {
+            "np": [8], "nf": [3], "arraydim": [2], "sw": [5000],
+            "array": [""], "ns": [3], "ne": [2],
+        }.items()
+    }
+    metadata = dict(procpar=procpar, nblocks=2, ntraces=3, np=8,
+                    S_SPEC=0, S_HYPERCOMPLEX=0)
+    stored = _trace_result(
+        tmp_path / "fid", words, metadata, "agilent-fid-storage",
+        blocks=2, traces_per_block=3,
+    )
+    result = ng.interop.normalize(stored, legacy_presentation=legacy)
+    expected = words[:, ::2] + 1j * words[:, 1::2]
+    np.testing.assert_array_equal(result.data, expected / (6 if legacy else 1))
+    assert result.dimensions == ("trace", "F2")
+    assert result.domains == ("unknown", "time")
+    assert result.axes[0].values is None
+    assert result.axes[0].reference is None
+    assert result.acquisition["blocks"] == 2
+    assert result.acquisition["traces_per_block"] == 3
+    np.testing.assert_allclose(result.axes[1].values, np.arange(4) / 5000)

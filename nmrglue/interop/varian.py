@@ -531,6 +531,25 @@ def _agilent_2d_storage_shape(procpar, *, tppi):
     return len(phases) * ni, words
 
 
+def _agilent_series_shape(procpar, blocks, traces):
+    """Recognize a flat series without declared indirect acquisition axes."""
+    words = _procpar_integer(procpar, "np")
+    nf = _procpar_integer(procpar, "nf")
+    if (
+        blocks < 1 or traces < 1 or blocks * traces < 2
+        or words is None or words < 2 or words % 2
+        or _procpar_integer(procpar, "arraydim") != blocks
+        or any(key in procpar for key in ("ni", "ni2", "ni3", "seqcon", "sw2"))
+        or _procpar_phase(procpar) != ()
+        or ("nf" in procpar and nf != traces)
+    ):
+        raise ValueError("Agilent FID series requires a flat trace layout")
+    shape = varian.find_shape(procpar)
+    if shape not in ((words // 2,), (blocks * traces, words // 2)):
+        raise ValueError("Agilent FID series does not match the declared procpar shape")
+    return blocks * traces, words
+
+
 def normalize_agilent_states_2d(result, *, legacy_presentation=False):
     """Pair verified Varian storage as two complex States branches in file order.
 
@@ -539,7 +558,7 @@ def normalize_agilent_states_2d(result, *, legacy_presentation=False):
     preserves the historical public axes and explicit NS/NE divisor. Neither
     presentation applies phase, alternation, conjugation or an FFT.
     """
-    return _normalize_agilent_2d(result, legacy_presentation, tppi=False)
+    return _normalize_agilent_2d(result, legacy_presentation, mode="states")
 
 
 def normalize_agilent_tppi_2d(result, *, legacy_presentation=False):
@@ -548,21 +567,32 @@ def normalize_agilent_tppi_2d(result, *, legacy_presentation=False):
     Preserve one complex FID per F1 increment. The indirect TPPI phase
     convention is retained for downstream processing.
     """
-    return _normalize_agilent_2d(result, legacy_presentation, tppi=True)
+    return _normalize_agilent_2d(result, legacy_presentation, mode="tppi")
+
+
+def normalize_agilent_fid_series(result, *, legacy_presentation=False):
+    """Decode a flat Agilent/Varian FID series in block and trace order.
+
+    The leading axis is a trace index with no physical time calibration.
+    Each row retains its complex F2 samples and acquisition provenance.
+    """
+    return _normalize_agilent_2d(result, legacy_presentation, mode="series")
 
 
 def _normalize_agilent_fid_storage(result, *, legacy_presentation=False):
     procpar = result.metadata.get("procpar", {})
-    normalizer = (
-        normalize_agilent_tppi_2d
-        if _procpar_phase(procpar) == (3,)
-        else normalize_agilent_states_2d
-    )
+    phase = _procpar_phase(procpar)
+    normalizer = {
+        (): normalize_agilent_fid_series,
+        (3,): normalize_agilent_tppi_2d,
+    }.get(phase, normalize_agilent_states_2d)
     return normalizer(result, legacy_presentation=legacy_presentation)
 
 
-def _normalize_agilent_2d(result, legacy_presentation, *, tppi):
-    mode = "tppi" if tppi else "states"
+def _normalize_agilent_2d(result, legacy_presentation, *, mode):
+    series = mode == "series"
+    states = mode == "states"
+    tppi = mode == "tppi"
     if not isinstance(result, ReadResult):
         raise TypeError("Agilent 2D normalization requires an interop ReadResult")
     if result.format != "agilent-fid-storage":
@@ -570,23 +600,29 @@ def _normalize_agilent_2d(result, legacy_presentation, *, tppi):
 
     metadata = result.metadata
     procpar = metadata.get("procpar", {})
-    rows, words = _agilent_2d_storage_shape(procpar, tppi=tppi)
+    blocks = metadata.get("nblocks", 0)
+    traces_per_block = metadata.get("ntraces", 0)
+    rows, words = (
+        _agilent_series_shape(procpar, blocks, traces_per_block)
+        if series else _agilent_2d_storage_shape(procpar, tppi=tppi)
+    )
     if tppi and metadata.get("sampling_schedule_present"):
         raise ValueError("Agilent TPPI storage requires uniform sampling")
+    if series and metadata.get("sampling_schedule_present"):
+        raise ValueError("Agilent FID series does not accept a sampling schedule")
     if (
         result.data.shape != (rows, words)
         or metadata.get("np") != words
-        or metadata.get("nblocks") != rows
-        or metadata.get("ntraces") != 1
+        or (not series and (blocks != rows or traces_per_block != 1))
         or metadata.get("S_SPEC") != 0
         or metadata.get("S_HYPERCOMPLEX") != 0
         or not np.isfinite(result.data).all()
     ):
         raise ValueError("Agilent 2D storage disagrees with the declared raw trace geometry")
     traces = varian.uninterleave_data(result.data)
-    data = traces if tppi else np.stack((traces[::2], traces[1::2]))
+    data = np.stack((traces[::2], traces[1::2])) if states else traces
     direct_width = _procpar_number(procpar, "sw")
-    indirect_width = _procpar_number(procpar, "sw1")
+    indirect_width = None if series else _procpar_number(procpar, "sw1")
     transmitters = tuple(_procpar_number(procpar, key) for key in ("sfrq2", "sfrq"))
     observation = tuple(frequency or None for frequency in transmitters)
     reported_nuclei = tuple(
@@ -597,28 +633,35 @@ def _normalize_agilent_2d(result, legacy_presentation, *, tppi):
     nuclei = (reported_nuclei[0], _procpar_string(procpar, "tn"))
     if tppi:
         nuclei = (_procpar_string(procpar, "tn2") or None, nuclei[1])
+    if series:
+        nuclei = (None, nuclei[1])
+        observation = (None, observation[1])
     acquisition = {
         "spectral_widths_hz": widths,
         "observation_frequencies_mhz": observation,
         "nuclei": nuclei,
-        "phase": (3,) if tppi else (1, 2),
-        "physical_indirect_increments": rows if tppi else rows // 2,
+        "phase": _procpar_phase(procpar),
+        "physical_indirect_increments": None if series else rows // 2 if states else rows,
         "storage_shape": (rows, words),
     }
-    dimensions = ("F1", "F2") if tppi else ("channels", "F1", "F2")
+    physical = ("trace", "F2") if series else ("F1", "F2")
+    dimensions = ("channels", *physical) if states else physical
+    if series:
+        acquisition.update(blocks=blocks, traces_per_block=traces_per_block)
     decode = {
-        "name": "decode-tppi-traces" if tppi else "pair-states-traces",
+        "name": "pair-states-traces" if states else f"decode-{mode}-traces",
         "stage": "acquisition",
         "input_dimensions": ("trace", "word"),
         "output_dimensions": dimensions,
-        "axis": "F1",
+        "axis": "F2" if series else "F1",
         "scale": None,
         "conjugation": "none",
         "sign": "none",
-        "permutation": None if tppi else "even traces to first branch, odd traces to second branch",
+        "permutation": "even traces to first branch, odd traces to second branch" if states else None,
         "evidence": (
             "procpar phase=[3] and binary block order"
             if tppi else "procpar phase=[1, 2], array=phase and binary block order"
+            if states else "binary block and trace order"
         ),
     }
     operations = (decode,)
@@ -675,21 +718,23 @@ def _normalize_agilent_2d(result, legacy_presentation, *, tppi):
                 source="acquisition",
             ),
         ))
+    if series:
+        axes[0] = Axis(label="trace")
     return NormalizedAcquisition(
         data=data,
         axes=tuple(axes),
         dimensions=dimensions,
-        physical_dimensions=("F1", "F2"),
-        domains=("time", "time"),
+        physical_dimensions=physical,
+        domains=("unknown", "time") if series else ("time", "time"),
         quadrature_mode=f"{mode}-stored-2d",
-        branch_order=("complex",) if tppi else ("branch_0", "branch_1"),
+        branch_order=("branch_0", "branch_1") if states else ("complex",),
         normalization_state="storage-normalized",
         normalization_profile=f"agilent-{mode}-2d-v1",
         applied_operations=operations,
         provenance={"source": os.fspath(result.source), "format": result.format},
         acquisition=acquisition,
         metadata=metadata,
-        encoding=(mode, "complex"),
+        encoding=("unknown" if series else mode, "complex"),
         diagnostics=result.diagnostics,
-        channel_axis=None if tppi else 0,
+        channel_axis=0 if states else None,
     )
