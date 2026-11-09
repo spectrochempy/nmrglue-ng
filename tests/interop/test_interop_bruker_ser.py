@@ -211,3 +211,47 @@ def test_normalize_qf_ser_refuses_invalid_time_grid(monkeypatch, tmp_path, inval
         source = replace(source, acquisition=acquisition)
     with pytest.raises(ValueError, match="time grid"):
         ng.interop.normalize(replace(source, axes=(source.axes[0], replace(axis, values=values))))
+
+
+def test_normalize_qf_ser_corrections_preserve_stored_convention(monkeypatch, tmp_path):
+    metadata = _ser_dictionary()
+    metadata["acqus"].update(TD=32, DECIM=2.5, GRPDLY=2.75)
+    metadata["acqu"] = {"NS": 8, "RG": 99}
+    del metadata["acqus"]["NS"]
+    real = np.arange(48, dtype=float).reshape(3, 16)
+    data = real + 1j * (real**2 - 7)
+    monkeypatch.setattr(ng.bruker, "read", lambda *args, **kwargs: (metadata, data))
+    raw = ng.interop.read_bruker_ser(tmp_path)
+    result = ng.interop.normalize(
+        raw, remove_dc_offset=True, remove_digital_filter=True, normalize_scan_gain=True,
+    )
+    expected = np.roll(data - data.mean(axis=-1, keepdims=True), -2, axis=-1)
+    expected = expected[:, :-4] / (8 * 40.3)
+    np.testing.assert_allclose(result.data, np.stack((expected.real, expected.imag)), atol=1e-13)
+    np.testing.assert_array_equal(result.axes[1].values, np.arange(12) / 1000)
+    np.testing.assert_array_equal(raw.data, data)
+    assert result.acquisition["digital_filter"]["removed_points"] == 4
+    assert result.acquisition["scan_gain"]["divisor"] == 8 * 40.3
+    assert result.applied_operations[0]["dc_offset"]["applied"] is True
+
+
+@pytest.mark.parametrize(("observation", "width", "sf"), [(1e-200, 1e-200, 1), (1, 1000, 1e20), (1, 256, 1e12)])
+def test_qf_ser_rejects_unrepresentable_display_endpoints(monkeypatch, tmp_path, observation, width, sf):
+    metadata = _ser_dictionary()
+    metadata["acqus"].update(SFO1=observation, SW=width, BF1=1)
+    metadata["procs"] = {"SF": sf}
+    monkeypatch.setattr(ng.bruker, "read", lambda *args, **kwargs: (metadata, _ser_data()))
+    source = ng.interop.read_bruker_ser(tmp_path)
+    with pytest.raises(ValueError, match="display calibration"):
+        ng.interop.normalize(source, fft_presentation=True)
+
+
+@pytest.mark.parametrize(("mode", "sampling"), [(5, 0), (6, 0), (1, 2)])
+def test_qf_ser_preflight_refuses_other_profiles_without_binary_read(monkeypatch, tmp_path, mode, sampling):
+    metadata = _ser_dictionary()
+    metadata["acqus"]["FnTYPE"] = sampling
+    metadata["acqu2s"]["FnMODE"] = mode
+    monkeypatch.setattr(ng.bruker, "read_acqus_file", lambda *args, **kwargs: metadata)
+    monkeypatch.setattr(ng.bruker, "read", lambda *args, **kwargs: pytest.fail("unexpected binary read"))
+    with pytest.raises(ValueError, match="uniform sampling"):
+        ng.interop.read_bruker_ser(tmp_path, qf_only=True)
