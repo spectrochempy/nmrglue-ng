@@ -235,7 +235,7 @@ def test_normalize_qf_ser_corrections_preserve_stored_convention(monkeypatch, tm
     assert result.applied_operations[0]["dc_offset"]["applied"] is True
 
 
-@pytest.mark.parametrize(("observation", "width", "sf"), [(1e-200, 1e-200, 1), (1, 1000, 1e20)])
+@pytest.mark.parametrize(("observation", "width", "sf"), [(1e-200, 1e-200, 1), (1, 1000, 1e20), (1, 256, 1e12)])
 def test_qf_ser_rejects_unrepresentable_display_endpoints(monkeypatch, tmp_path, observation, width, sf):
     metadata = _ser_dictionary()
     metadata["acqus"].update(SFO1=observation, SW=width, BF1=1)

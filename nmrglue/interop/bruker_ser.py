@@ -10,9 +10,11 @@ from .bruker import _raw_number
 from .result import NormalizedAcquisition, ReadResult
 
 
-def _fft_presentation(metadata):
+def _fft_presentation(metadata, shape):
     presentation = {}
-    for role, acqu, proc in (("F1", "acqu2", "proc2"), ("F2", "acqu", "proc")):
+    for size, (role, acqu, proc) in zip(
+        shape, (("F1", "acqu2", "proc2"), ("F2", "acqu", "proc")), strict=True
+    ):
         acquisition = {**metadata.get(acqu, {}), **metadata.get(acqu + "s", {})}
         processing = {**metadata.get(proc, {}), **metadata.get(proc + "s", {})}
         acquisition = {"acqus": acquisition}
@@ -36,6 +38,14 @@ def _fft_presentation(metadata):
                 or high / reference <= low / reference
             ):
                 raise ValueError("invalid Bruker QF FFT display calibration")
+            grid = high - np.arange(size, dtype=float) * (width / (size - 1))
+            ppm = grid / reference
+            if (
+                not np.isfinite(grid).all() or not np.isfinite(ppm).all()
+                or not np.all(grid[1:] < grid[:-1])
+                or not np.all(ppm[1:] < ppm[:-1])
+            ):
+                raise ValueError("unrepresentable Bruker QF FFT display calibration")
             entry["display_axis"] = {
                 "grid": "inclusive-endpoints",
                 "direction": "decreasing",
@@ -200,7 +210,7 @@ def normalize_bruker_ser_qf(
         "scan_gain": gain_trace,
     }
     presentation = (
-        {"fft_presentation": _fft_presentation(result.metadata)}
+        {"fft_presentation": _fft_presentation(result.metadata, corrected.shape)}
         if fft_presentation else {}
     )
     return NormalizedAcquisition(
