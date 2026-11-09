@@ -8,7 +8,7 @@ original nmrglue project and are preserved for attribution and continuity.
 ## Unreleased
 
 - Link to PyPI and Conda releases from the documentation toolbar, remove
-  page downloads, and improve dark-mode visibility in mobile navigation.
+  page downloads, and improve dark-mode visibility in mobile navigation. (#215)
 
 - Normalize verified Agilent/Varian States 2D storage into two complex
   acquisition branches with time axes and explicit operations. (#213)
