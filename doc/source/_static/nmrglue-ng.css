@@ -100,8 +100,8 @@ body { letter-spacing: 0.002em; }
 
 html[data-theme="dark"] .bd-header .search-button-field,
 html[data-theme="dark"] .bd-header .search-button-field *,
-html[data-theme="dark"] .bd-header .ng-global-actions .btn,
-html[data-theme="dark"] .bd-header .ng-global-actions .btn *,
+html[data-theme="dark"] .ng-global-actions .btn,
+html[data-theme="dark"] .ng-global-actions .btn *,
 html[data-theme="dark"] .bd-header-article .btn,
 html[data-theme="dark"] .bd-header-article .btn *,
 html[data-theme="dark"] .bd-sidebar-primary .search-button-field,

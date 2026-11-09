@@ -7,5 +7,9 @@
 {% set _ = button_options.pop("type") %}
 {{ render_funcs[button_type](**button_options) }}
 {%- endfor -%}
+<a class="btn btn-sm" href="https://pypi.org/project/nmrglue-ng/#history"
+   aria-label="nmrglue-ng releases on PyPI">PyPI</a>
+<a class="btn btn-sm" href="https://anaconda.org/spectrocat/nmrglue-ng/files"
+   aria-label="nmrglue-ng releases on Conda">Conda</a>
 {% include "theme-switcher.html" %}
 </div>
