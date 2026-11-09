@@ -7,7 +7,7 @@ from collections.abc import Mapping
 
 import numpy as np
 
-from .result import Axis, NormalizedAcquisition, ReadResult, Reference
+from .result import Axis, NormalizedAcquisition, ReadResult
 from ..fileio import bruker
 
 
@@ -422,7 +422,7 @@ def normalize_bruker_pdata(
     acquisition["acquisition_frequency_mhz"]. Scan-count scaling, FFT and
     phasing are outside this profile.
     """
-    from .bruker import _build_axis, _raw_number
+    from .bruker import _build_axis, _processed_acquisition_axis, _raw_number
 
     if axis_reference not in ("processing", "acquisition"):
         raise ValueError("Bruker pdata axis_reference must be processing or acquisition")
@@ -510,21 +510,9 @@ def normalize_bruker_pdata(
         if sfo is None:
             raise ValueError("acquisition axis requires positive acquisition SFO1")
         sweep_ppm = _raw_number(result.metadata, "acqus", "SW")
-        sf = _raw_number(result.metadata, "procs", "SF")
         if sweep_ppm is None or sweep_ppm <= 0:
             raise ValueError("acquisition axis requires positive Bruker SW")
-        width = sweep_ppm * sfo
-        center = (sfo - sf) * 1e6
-        values = (center + width / 2) - np.arange(data.size) * (width / (data.size - 1))
-        if not np.isfinite(values).all() or not np.all(np.diff(values) < 0):
-            raise ValueError("acquisition axis must be finite and strictly decreasing")
-        axis = Axis(
-            values=values, unit="Hz", label=axis.label, domain="frequency",
-            direction="decreasing", reference=Reference(
-                observation_frequency=sfo, observation_frequency_unit="MHz",
-                source="acquisition",
-            ),
-        )
+        axis, width = _processed_acquisition_axis(result.metadata, data.size, axis.label)
     mode = "complex" if complex_data else "real"
     operation = {
         "name": "normalize-bruker-processed-components", "stage": "processing",
