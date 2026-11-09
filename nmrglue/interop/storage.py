@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import struct
 from pathlib import Path
+from warnings import warn
 
 from ..fileio import bruker, varian
 from .bruker import _raw_integer, _raw_number
@@ -78,7 +79,10 @@ def read_bruker_ser_storage(
         if ancillary.is_file():
             metadata[filename + "_raw"] = ancillary.read_bytes()
     if read_pulseprogram and (directory / "pulseprogram").is_file():
-        metadata["pprog"] = bruker.read_pprog(directory / "pulseprogram")
+        try:
+            metadata["pprog"] = bruker.read_pprog(directory / "pulseprogram")
+        except (OSError, ValueError, IndexError):
+            warn("Error reading the pulse program", stacklevel=2)
     return _trace_result(path, data, metadata, "bruker-ser-storage", declared_td=td)
 
 

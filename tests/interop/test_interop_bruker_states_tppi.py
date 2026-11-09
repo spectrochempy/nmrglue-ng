@@ -164,7 +164,14 @@ def test_normalize_states_tppi_storage_preserves_asymmetric_pairs_and_padding(tm
     )
     words = np.arange(4 * 256, dtype=np.int32).reshape(4, 256)
     (tmp_path / "ser").write_bytes(words.astype(">i4").tobytes())
-    stored = ng.interop.read_bruker_ser_storage(tmp_path)
+    (tmp_path / "pulseprogram").write_bytes(b"lo to\n")
+    with pytest.warns(UserWarning, match="Error reading the pulse program"):
+        stored = ng.interop.read_bruker_ser_storage(
+            tmp_path, states_tppi_only=True, read_pulseprogram=True,
+        )
+    assert stored.metadata["pulseprogram_raw"] == b"lo to\n"
+    assert "pprog" not in stored.metadata
+    np.testing.assert_array_equal(stored.data, words)
     result = ng.interop.normalize_bruker_ser_states_tppi(stored)
     assert result.branch_order == ("rr", "ri", "ir", "ii")
     assert result.acquisition["tppi_alternation"] == "declared_not_applied"
