@@ -7,7 +7,7 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 - Preserve all raw Varian traces when the declared 3D or 4D layout disagrees
-  with the stored matrix. Offer a legacy singleton-trace layout for consumers.
+  with the stored matrix. Offer a legacy singleton-trace layout for consumers. (#218)
 
 - Normalize verified flat Agilent/Varian FID series in block and trace order
   while retaining an uncalibrated trace index. (#217)
