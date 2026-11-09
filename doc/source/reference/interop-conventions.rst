@@ -53,6 +53,26 @@ widths (``sw2``, ``sw``) and applies the explicit ``NS*NE`` divisor
 recorded in the operations. This option retains the physical width and
 observed-nucleus evidence in the acquisition metadata.
 
+Agilent/Varian raw TPPI 2D
+--------------------------
+
+The scalar storage reader can check this profile before reading samples
+with ``read_agilent_fid_storage("acquisition.fid", tppi_only=True)``.
+``normalize()`` selects the TPPI normalizer for ``phase=[3]``. A
+qualified input has no additional arrayed parameter and exactly one raw
+trace per block and per F1 increment (``arraydim=ni``, ``ni>=2``).
+This profile requires uniform sampling and excludes a ``sampling.sch``
+schedule.
+
+The normalized matrix has shape ``(F1, F2)``, one complex F2 FID for
+each F1 increment, in file order. The normalizer retains the TPPI
+encoding and the acquired signs. Physical and compatibility time axes
+follow the same conventions as the States profile above. For TPPI,
+``1/sw1`` describes the stored F1 time step. The effective Fourier
+bandwidth belongs to the processing convention. An undeclared F1
+transmitter nucleus remains unknown, while the compatibility
+presentation retains the historical decoupler label.
+
 JCAMP-DX real 1D spectra
 ------------------------
 
