@@ -221,6 +221,15 @@ and can lag acquisition until processing. The binary definition in `VnmrJ
 User Programming <https://www.agilent.com/cs/library/usermanuals/public/0199937900a.pdf>`_
 (printed pages 275-276) associates ``ctcount`` with the individual FID.
 
+A consumer preserving the historical 1D public display can request
+``normalize_agilent_fid(..., legacy_presentation=True)``. The option
+applies the historical NS/NE divisor and records the conjugated-input
+display FFT. The returned FID remains in canonical complex orientation.
+Requested and completed counts remain acquisition evidence. The default
+normalizer continues to expose unscaled samples. The reader's
+``single_trace_only=True`` option rejects multi-block or multi-trace
+files at the file header, before sample decoding.
+
 Two hash-verified original 1D acquisitions have matching ``nt``, ``ct`` and
 ``ctcount`` values of 160 and 512, with block scale zero. Aborted acquisition,
 conflicting counts and nonzero scale cases are synthetic regressions, not

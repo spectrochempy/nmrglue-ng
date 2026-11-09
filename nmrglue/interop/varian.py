@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import math
 import os
+import struct
 from collections.abc import Mapping
 from decimal import Decimal, InvalidOperation
 
@@ -152,6 +153,7 @@ def read_agilent_fid(
     read_blockhead=False,
     carrier_hz=None,
     carrier_ppm=None,
+    single_trace_only=False,
 ):
     """Read an Agilent/Varian raw 1D FID as a neutral ``ReadResult``.
 
@@ -166,11 +168,22 @@ def read_agilent_fid(
     ``ct`` and block-header ``ctcount``. A completed count is reported only
     for one valid, unambiguous block without contradictory procpar evidence.
     Counts and binary scale values are descriptive: no scaling is applied.
+    Set single_trace_only=True to reject multi-block or multi-trace files
+    from the binary header before reading samples.
     Block headers are always parsed for this evidence; ``read_blockhead``
     controls whether the full headers are retained in ``metadata``.
     """
     if not os.path.isdir(dir):
         raise OSError("directory %s does not exist" % (dir,))
+
+    if single_trace_only:
+        with open(os.path.join(dir, "fid"), "rb") as stream:
+            try:
+                header = varian.get_fileheader(stream)
+            except struct.error as exc:
+                raise ValueError("Agilent FID has an incomplete file header") from exc
+        if header[:2] != (1, 1):
+            raise ValueError("Agilent single-trace profile requires one block and one trace")
 
     dic, data = varian.read(
         dir,
