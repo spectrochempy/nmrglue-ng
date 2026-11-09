@@ -102,7 +102,7 @@ def integrate(data, unit_conv, limits, unit='ppm', noise_limits=None,
         errors = std * np.sqrt(inds[:, 1] - inds[:, 0]) * dx
 
         if reference is not None:
-            errors = (errors / abs(reference)) * abs(calibrate)
+            errors = np.abs((errors / reference) * calibrate)
         return np.vstack((values, errors)).T
 
     return values

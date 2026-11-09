@@ -122,7 +122,10 @@ def test_integrate_noise_has_integral_units(width, norm_to_range, unit):
     np.testing.assert_allclose(actual[:, 1], expected_errors, rtol=1e-12)
 
 
-@pytest.mark.parametrize("reference_sign, calibrate", [(-1, 1), (1, -1), (-1, -1)])
+@pytest.mark.parametrize(
+    "reference_sign, calibrate",
+    [(-1, 1), (1, -1), (-1, -1), (-1, np.int8(-128))],
+)
 def test_integrate_noise_uses_absolute_calibration_scale(reference_sign, calibrate):
     data = np.array([2 * reference_sign, 2 * reference_sign, 0, 0, -1, 1, 0, 0])
     uc = ng.fileiobase.unit_conversion(8, False, 800, 400, 0)
@@ -131,7 +134,7 @@ def test_integrate_noise_uses_absolute_calibration_scale(reference_sign, calibra
                        noise_limits=(uc.ppm(4), uc.ppm(6)),
                        norm_to_range=0, calibrate=calibrate)
 
-    np.testing.assert_allclose(result, [[calibrate, np.sqrt(2) / 4]])
+    np.testing.assert_allclose(result, [[calibrate, abs(float(calibrate)) * np.sqrt(2) / 4]])
 
 
 @pytest.mark.parametrize("use_noise", [False, True])
