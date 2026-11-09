@@ -148,3 +148,55 @@ def test_states_tppi_rejects_non_states_encoding(monkeypatch, tmp_path):
 
     with pytest.raises(ValueError, match="FnMODE=1"):
         ng.interop.read_bruker_ser(str(tmp_path))
+
+
+def test_normalize_states_tppi_storage_preserves_asymmetric_pairs_and_padding(tmp_path):
+    (tmp_path / "acqus").write_text(
+        "##TITLE= Synthetic direct\n"
+        "##$TD= 8\n##$BYTORDA= 1\n##$DTYPA= 0\n##$AQ_mod= 3\n"
+        "##$FnTYPE= 0\n##$SW_h= 2000\n##$SFO1= 125\n"
+        "##$DECIM= 2.5\n##$DSPFVS= 12\n##$GRPDLY= 2.75\n"
+        "##$NS= 8\n##$RG= 4\n##END=\n"
+    )
+    (tmp_path / "acqu2s").write_text(
+        "##TITLE= Synthetic indirect\n"
+        "##$TD= 4\n##$FnMODE= 5\n##$SW= 10\n##$SFO1= 100\n##END=\n"
+    )
+    words = np.arange(4 * 256, dtype=np.int32).reshape(4, 256)
+    (tmp_path / "ser").write_bytes(words.astype(">i4").tobytes())
+    stored = ng.interop.read_bruker_ser_storage(tmp_path)
+    result = ng.interop.normalize_bruker_ser_states_tppi(stored)
+    assert result.branch_order == ("rr", "ri", "ir", "ii")
+    assert result.acquisition["tppi_alternation"] == "declared_not_applied"
+    assert result.applied_operations[0]["padding_words_per_trace"] == 248
+    for plane, (row, word) in zip(result.data, ((0, 0), (0, 1), (1, 0), (1, 1)), strict=True):
+        np.testing.assert_array_equal(plane, words[row::2, word:8:2])
+    np.testing.assert_array_equal(result.axes[0].values, np.arange(2) / 1000)
+    np.testing.assert_array_equal(result.axes[1].values, np.arange(4) / 2000)
+
+    corrected = ng.interop.normalize_bruker_ser_states_tppi(
+        stored, preserve_storage=True, remove_dc_offset=True,
+        remove_digital_filter=True, normalize_scan_gain=True,
+    )
+    traces = words[:, ::2] + 1j * words[:, 1::2]
+    traces = np.roll(traces - traces.mean(axis=-1, keepdims=True), -2, axis=-1)
+    traces = traces[:, :-4] / 32
+    expected = np.stack((
+        traces[0::2].real, traces[0::2].imag,
+        traces[1::2].real, traces[1::2].imag,
+    ))
+    np.testing.assert_allclose(corrected.data, expected, atol=1e-12)
+    np.testing.assert_array_equal(corrected.axes[1].values, np.arange(124) / 2000)
+    assert corrected.applied_operations[0]["retained_padding_words_per_trace"] == 248
+    assert corrected.acquisition["digital_filter"]["removed_points"] == 4
+    assert corrected.acquisition["scan_gain"]["divisor"] == 32
+    assert corrected.acquisition["tppi_alternation"] == "declared_not_applied"
+
+
+    (tmp_path / "ser").write_bytes(words[:-1].astype(">i4").tobytes())
+    with pytest.raises(ValueError, match="complete TD geometry"):
+        ng.interop.normalize_bruker_ser_states_tppi(ng.interop.read_bruker_ser_storage(tmp_path))
+    (tmp_path / "ser").write_bytes(words.astype(">i4").tobytes())
+    (tmp_path / "nuslist").write_text("0\n1\n")
+    with pytest.raises(ValueError, match="uniform States-TPPI"):
+        ng.interop.normalize_bruker_ser_states_tppi(ng.interop.read_bruker_ser_storage(tmp_path))

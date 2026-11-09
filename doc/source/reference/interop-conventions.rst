@@ -392,6 +392,32 @@ When calibrated, the display spans inclusive decreasing endpoints about
 The descriptor leaves the stored samples and physical QF FFT grid unchanged.
 
 
+Normalized Bruker States-TPPI SER
+--------------------------------
+
+Pass a complete Bruker SER storage result to the explicit
+``normalize_bruker_ser_states_tppi()`` profile::
+
+   stored = ng.interop.read_bruker_ser_storage("/path/to/acquisition")
+   normalized = ng.interop.normalize_bruker_ser_states_tppi(stored)
+
+For uniform States-TPPI with direct DQD, adjacent acquired traces form the
+E1 and E2 branches. The normalized planes are RR, RI, IR and II in F1/F2
+order. The aligned words beyond direct TD are storage padding. The F1
+coordinate counts pairs, and F2 counts acquired complex points. The
+alternation remains encoded for downstream processing. Nonuniform or
+incomplete acquisitions are outside this profile.
+
+Use ``preserve_storage=True`` when reproducing the public reader's aligned
+trace length. The same optional per-trace DC removal, digital filter and
+scan/gain corrections as for QF apply to the selected points in that order.
+If the filter shortens the trace, F2 follows its new length. Neither
+corrections nor storage-length selection apply indirect alternation.
+When selected processing files are supplied to the storage reader,
+``fft_presentation=True`` describes the public F2 transform and the F1
+States-TPPI cross-pair transform, with each axis's display calibration and
+initial phase.
+
 Normalized Bruker processed 1D spectra (experimental)
 -----------------------------------------------------
 
