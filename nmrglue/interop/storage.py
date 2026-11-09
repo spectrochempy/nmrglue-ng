@@ -93,27 +93,30 @@ def read_bruker_ser_storage(
     return _trace_result(path, data, metadata, "bruker-ser-storage", declared_td=td)
 
 
-def read_agilent_fid_storage(directory, *, states_only=False, tppi_only=False):
+def read_agilent_fid_storage(directory, *, states_only=False, tppi_only=False, series_only=False):
     """Read Agilent/Varian FID scalar traces in block and trace order.
 
     Return the binary file and block headers alongside procpar. Each row
     contains the original scalar words, even for complex or hypercomplex
     encodings. The binary geometry determines the shape. With ``states_only`` or
-    ``tppi_only``, check the requested topology before reading samples.
+    ``tppi_only`` or ``series_only``, check the requested topology before reading samples.
     """
+    from .varian import _agilent_2d_storage_shape, _agilent_series_shape
+
     directory = Path(directory)
     path = directory / "fid"
     procpar = directory / "procpar"
     schedule_present = (directory / "sampling.sch").exists()
     if tppi_only and schedule_present:
         raise ValueError("Agilent TPPI storage requires uniform sampling")
+    if series_only and schedule_present:
+        raise ValueError("Agilent FID series does not accept a sampling schedule")
     parameters = None
-    if states_only and tppi_only:
+    if sum((states_only, tppi_only, series_only)) > 1:
         raise ValueError("Select only one Agilent storage profile")
-    if states_only or tppi_only:
-        from .varian import _agilent_2d_storage_shape
-
+    if states_only or tppi_only or series_only:
         parameters = varian.read_procpar(procpar)
+    if states_only or tppi_only:
         expected_shape = _agilent_2d_storage_shape(parameters, tppi=tppi_only)
     with path.open("rb") as stream:
         try:
@@ -124,8 +127,18 @@ def read_agilent_fid_storage(directory, *, states_only=False, tppi_only=False):
         traces = metadata["ntraces"]
         words = metadata["np"]
         headers = metadata["nbheaders"]
-        if parameters is not None and (traces != 1 or (blocks, words) != expected_shape):
-            raise ValueError("Agilent 2D storage disagrees with binary block dimensions")
+        if parameters is not None:
+            if series_only:
+                expected = _agilent_series_shape(parameters, blocks, traces)
+                matches = (
+                    expected == (blocks * traces, words)
+                    and metadata["S_DATA"] == metadata["S_COMPLEX"] == 1
+                    and metadata["S_SPEC"] == metadata["S_HYPERCOMPLEX"] == 0
+                )
+            else:
+                matches = traces == 1 and expected_shape == (blocks, words)
+            if not matches:
+                raise ValueError("Agilent storage disagrees with binary block dimensions")
         dtype = varian.find_dtype(metadata)
         trace_bytes = words * dtype.itemsize
         block_bytes = headers * 28 + traces * trace_bytes
