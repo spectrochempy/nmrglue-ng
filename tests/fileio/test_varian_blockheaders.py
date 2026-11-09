@@ -87,3 +87,13 @@ def test_multitrace_flat_shape_can_infer_an_axis(tmp_path, shape):
     raw = _write_multitrace_fid(path)
     _, actual = varian.read_fid_ntraces(path, shape=shape, torder="flat")
     assert_array_equal(actual, raw.reshape(3, 2, 4))
+
+
+@pytest.mark.parametrize("phase", [None, ["3"]])
+def test_find_shape_uses_third_dimension_phase_count(phase):
+    values = {"np": ["8"], "ni": ["2"], "ni2": ["2"], "ni3": ["3"],
+              "phase2": ["3"], "phase3": ["1", "2"]}
+    if phase is not None:
+        values["phase"] = phase
+    procpar = {key: {"values": value} for key, value in values.items()}
+    assert varian.find_shape(procpar) == (6, 2, 4 if phase is None else 2, 4)

@@ -1833,7 +1833,7 @@ def find_shape(pdic):
     if "ni3" in pdic:
         multi = 2
         if "phase3" in pdic:
-            multi = len(pdic["phase"]["values"])
+            multi = len(pdic["phase3"]["values"])
         s = max(int(pdic["ni3"]["values"][0]), 1)
         shape.insert(0, s * multi)
 
