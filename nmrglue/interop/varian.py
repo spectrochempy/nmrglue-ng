@@ -11,7 +11,7 @@ from decimal import Decimal, InvalidOperation
 import numpy as np
 
 from ..fileio import varian
-from .result import Axis, Component, Diagnostic, ReadResult, Reference
+from .result import Axis, Component, Diagnostic, NormalizedAcquisition, ReadResult, Reference
 
 
 def _number(value, name):
@@ -499,4 +499,157 @@ def read_agilent_states_2d(
         encoding=("STATES", "QSIM"),
         dimensions=dimensions,
         acquisition=acquisition,
+    )
+
+
+def _states_storage_shape(procpar):
+    """Require one phase array and a single indirect dimension."""
+    ni = _procpar_integer(procpar, "ni")
+    words = _procpar_integer(procpar, "np")
+    if (
+        _procpar_phase(procpar) != (1, 2)
+        or "seqcon" in procpar
+        or procpar.get("array", {}).get("values") not in (["phase"], ("phase",))
+        or any(
+            key in procpar and _procpar_integer(procpar, key) != 0
+            for key in ("ni2", "ni3")
+        )
+        or ni is None or ni < 1
+        or _procpar_integer(procpar, "arraydim") != 2 * ni
+        or words is None or words < 2 or words % 2
+    ):
+        raise ValueError("Agilent States storage requires only phase=[1, 2] and arraydim=2*ni")
+    return 2 * ni, words
+
+
+def normalize_agilent_states_2d(result, *, legacy_presentation=False):
+    """Pair verified Varian storage as two complex States branches in file order.
+
+    Accept the scalar result of :func:`read_agilent_fid_storage`. The default
+    uses physical time coordinates when known. The compatibility presentation
+    preserves the historical public axes and explicit NS/NE divisor. Neither
+    presentation applies phase, alternation, conjugation or an FFT.
+    """
+    if not isinstance(result, ReadResult):
+        raise TypeError("Agilent States normalization requires an interop ReadResult")
+    if result.format != "agilent-fid-storage":
+        raise ValueError("Agilent States normalization requires scalar FID storage")
+
+    metadata = result.metadata
+    procpar = metadata.get("procpar", {})
+    rows, words = _states_storage_shape(procpar)
+    if (
+        result.data.shape != (rows, words)
+        or metadata.get("np") != words
+        or metadata.get("nblocks") != rows
+        or metadata.get("ntraces") != 1
+        or metadata.get("S_SPEC") != 0
+        or metadata.get("S_HYPERCOMPLEX") != 0
+        or not np.isfinite(result.data).all()
+    ):
+        raise ValueError("Agilent States storage disagrees with the declared raw trace geometry")
+    traces = varian.uninterleave_data(result.data)
+    channels = np.stack((traces[::2], traces[1::2]))
+    direct_width = _procpar_number(procpar, "sw")
+    indirect_width = _procpar_number(procpar, "sw1")
+    transmitters = tuple(_procpar_number(procpar, key) for key in ("sfrq2", "sfrq"))
+    observation = tuple(frequency or None for frequency in transmitters)
+    reported_nuclei = tuple(
+        _procpar_string(procpar, dn) or _procpar_string(procpar, tn)
+        for dn, tn in (("dn2", "tn2"), ("dn", "tn"))
+    )
+    widths = (indirect_width, direct_width)
+    nuclei = (reported_nuclei[0], _procpar_string(procpar, "tn"))
+    acquisition = {
+        "spectral_widths_hz": widths,
+        "observation_frequencies_mhz": observation,
+        "nuclei": nuclei,
+        "phase": (1, 2),
+        "physical_indirect_increments": rows // 2,
+        "storage_shape": (rows, words),
+    }
+    dimensions = ("channels", "F1", "F2")
+    pairing = {
+        "name": "pair-states-traces",
+        "stage": "acquisition",
+        "input_dimensions": ("trace", "word"),
+        "output_dimensions": dimensions,
+        "axis": "F1",
+        "scale": None,
+        "conjugation": "none",
+        "sign": "none",
+        "permutation": "even traces to first branch, odd traces to second branch",
+        "evidence": "procpar phase=[1, 2], array=phase and binary block order",
+    }
+    operations = (pairing,)
+    if legacy_presentation:
+        from .normalize import _scale_agilent_ns_ne
+
+        ns = _procpar_number(procpar, "ns")
+        ne = _procpar_number(procpar, "ne")
+        channels, divisor = _scale_agilent_ns_ne(channels, ns, ne)
+        decoupler = tuple(_procpar_number(procpar, key) for key in ("dfrq2", "dfrq"))
+        displayed_observation = tuple(
+            fallback if transmitter is None else transmitter
+            for transmitter, fallback in zip(transmitters, decoupler, strict=True)
+        )
+        widths = (_procpar_number(procpar, "sw2"), direct_width)
+        nuclei = reported_nuclei
+        acquisition["legacy_presentation"] = {
+            "spectral_widths_hz": widths,
+            "observation_frequencies_mhz": displayed_observation,
+            "decoupler_frequencies_mhz": decoupler,
+            "reported_nuclei": reported_nuclei,
+            "pulse_program": _procpar_string(procpar, "array"),
+            "sequence": _procpar_string(procpar, "seqfil"),
+            "date_raw": _procpar_string(procpar, "date"),
+            "acquisition_time_s": _procpar_number(procpar, "at"),
+            "ns": 1.0 if ns is None else ns,
+            "ne": 1.0 if ne is None else ne,
+        }
+        operations += ({
+            **pairing,
+            "name": "normalize-agilent-ns-ne",
+            "input_dimensions": dimensions,
+            "axis": None,
+            "scale": 1 / divisor,
+            "divisor": divisor,
+            "permutation": None,
+            "evidence": "procpar.ns and procpar.ne",
+        },)
+    axes = []
+    for size, width, frequency, nucleus in zip(
+        channels.shape[1:], widths, observation, nuclei, strict=True
+    ):
+        if any(value is not None and value <= 0 for value in (width, frequency)):
+            raise ValueError("Agilent States widths and observation frequencies must be positive")
+        axes.append(Axis(
+            values=None if width is None else np.arange(size, dtype=float) * (1 / width),
+            unit=None if width is None else "s",
+            label=nucleus,
+            domain="time",
+            direction="unknown" if width is None else "increasing",
+            reference=None if frequency is None else Reference(
+                observation_frequency=frequency,
+                observation_frequency_unit="MHz",
+                source="acquisition",
+            ),
+        ))
+    return NormalizedAcquisition(
+        data=channels,
+        axes=tuple(axes),
+        dimensions=dimensions,
+        physical_dimensions=("F1", "F2"),
+        domains=("time", "time"),
+        quadrature_mode="states-stored-2d",
+        branch_order=("branch_0", "branch_1"),
+        normalization_state="storage-normalized",
+        normalization_profile="agilent-states-2d-v1",
+        applied_operations=operations,
+        provenance={"source": os.fspath(result.source), "format": result.format},
+        acquisition=acquisition,
+        metadata=metadata,
+        encoding=("states", "complex"),
+        diagnostics=result.diagnostics,
+        channel_axis=0,
     )
