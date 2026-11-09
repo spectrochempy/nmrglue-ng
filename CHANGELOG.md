@@ -7,6 +7,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Organize the workflow guides and JBNMR examples under Tutorials, restore
+  historical data links, and document verified experimental results. (#216)
+
 - Preserve the qualified JEOL 1D FID carrier offset and offer opt-in
   acquisition metadata and the historical display FFT convention. (#220)
 

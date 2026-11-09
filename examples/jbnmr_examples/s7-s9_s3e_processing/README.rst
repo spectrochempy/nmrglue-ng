@@ -5,10 +5,9 @@ Introduction
 ------------
 
 This example is taken from Listing S7, S8 and S9 in the 2013 JBNMR nmrglue
-paper.  In this example a 2D Agilent/Varian data set collect using a S3E filter
-is separated (`separate_s3e.py`), converted to NMRPipe format (`Sparky file
-(`data.ucsf`) is converted to a NMRPipe file ('convert.py') and finally
-processed (`xy_s3e.py`).
+paper.  A 2D Agilent/Varian acquisition collected with an S3E filter is
+separated (`separate_s3e.py`), converted to NMRPipe format (`convert.py`),
+and processed and recombined (`xy_s3e.py`).
 
 
 Instructions
@@ -21,5 +20,5 @@ fid_dif and fid_sum.
 Execute `python convert.py` to convert these two files to NMRPipe format.  This
 step creates the files `test_sum.fid` and `test_dif.fid`.
 
-Execute `python xy_s3e.py` to process and combine the sum and different
+Execute `python xy_s3e.py` to process and combine the sum and difference
 spectra. This step creates the `test.ft2` file.

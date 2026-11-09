@@ -1,20 +1,15 @@
+---
+orphan: true
+---
+
 # How-to guides
 
-Use these task-oriented entry points when you want a concrete recipe for a
-specific format, operation, or workflow.
+These chapters are part of the {doc}`tutorial <../tutorials/index>`.
+Choose a task to jump directly to the explanation and worked examples.
 
-For a progressive introduction to the modern notebook workflow, follow the
-{doc}`tutorial sequence <../tutorials/index>`.
+- {doc}`conversion` and {doc}`/nmrml_1d`
+- {doc}`plotting` and {doc}`interactive`
+- {doc}`acquisition` and {doc}`processing`
+- {doc}`quantification` and {doc}`simulation`
 
-```{toctree}
-:maxdepth: 2
-
-conversion
-Reading and writing nmrML 1D </nmrml_1d>
-processing
-plotting
-quantification
-acquisition
-interactive
-simulation
-```
+For the publication order, see the {doc}`JBNMR index <../jbnmr_examples/index>`.
