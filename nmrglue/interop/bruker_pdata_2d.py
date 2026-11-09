@@ -9,7 +9,7 @@ from pathlib import Path
 import numpy as np
 
 from ..fileio import bruker
-from .bruker import _build_processed_axis, _raw_number
+from .bruker import _build_processed_axis, _processed_acquisition_axis, _raw_number, _require_bruker_2d
 from .result import Axis, Component, NormalizedAcquisition, ReadResult
 
 _FORMAT = "bruker-pdata-2d"
@@ -158,7 +158,7 @@ def read_bruker_pdata_2d_storage(directory):
     )
 
 
-def read_bruker_pdata_2d(directory, *, scale_data=True):
+def read_bruker_pdata_2d(directory, *, scale_data=True, acqus_files=None, procs_files=None):
     """Read four complete Bruker processed int32 planes in F1, F2 order.
 
     Component names are the original file names. Applying storage scaling
@@ -167,7 +167,9 @@ def read_bruker_pdata_2d(directory, *, scale_data=True):
     path = Path(directory)
     if not path.is_dir():
         raise OSError(f"directory {path} does not exist")
-    metadata = bruker.read_procs_file(path)
+    metadata = bruker.read_procs_file(path, procs_files)
+    if acqus_files is not None:
+        metadata.update(bruker.read_acqus_file(path.parent.parent, acqus_files))
     shape, tiles, big, isfloat = _profile_geometry(metadata)
     corrections = _corrections(metadata, scale_data)
     axes = _axes(metadata, shape)
@@ -195,8 +197,15 @@ def read_bruker_pdata_2d(directory, *, scale_data=True):
     )
 
 
-def normalize_bruker_pdata_2d(result):
-    """Stack the four named planes along a channel axis without mixing them."""
+def normalize_bruker_pdata_2d(result, *, axis_reference=None):
+    """Stack the stored planes or opt into the calibrated TopSpin spectrum.
+
+    With axis_reference="acquisition" or "processing", return two complex
+    channels with receiver gain applied once and the selected calibrated axes.
+    The default retains the four stored planes and their storage scale.
+    """
+    if axis_reference not in (None, "acquisition", "processing"):
+        raise ValueError("Bruker pdata axis_reference must be processing or acquisition")
     if not isinstance(result, ReadResult) or result.format != _FORMAT:
         raise ValueError(
             "normalize_bruker_pdata_2d requires a bruker-pdata-2d ReadResult"
@@ -266,21 +275,61 @@ def normalize_bruker_pdata_2d(result):
         "permutation": None,
         "evidence": "nmrglue.interop.read_bruker_pdata_2d",
     }
+    data = np.stack(planes) if axis_reference is None else None
+    mode, branches, encoding = "stored-components-2d", _COMPONENTS, result.encoding
+    profile = "bruker-pdata-2d-int32-v1"
+    acquisition = {"storage_scaling": corrections, "reference_source": "processing"}
+    if axis_reference is not None:
+        metadata = result.metadata
+        _require_bruker_2d(metadata)
+        if not corrections["scale_data"]:
+            raise ValueError("Bruker public pdata requires NC_proc storage scaling")
+        gain = _raw_number(metadata, "acqus", "RG")
+        if gain is None or gain <= 0 or not np.isfinite(1 / gain):
+            raise ValueError("Bruker public pdata requires a positive finite gain correction")
+        direct = _raw_number(metadata, "acqus", "SFO1")
+        indirect = _raw_number(metadata, "acqu2s", "SFO1")
+        if direct is None or indirect is None or min(direct, indirect) <= 0:
+            raise ValueError("Bruker public pdata requires positive SFO1 for both axes")
+        if axis_reference == "acquisition":
+            axes = tuple(
+                _processed_acquisition_axis(
+                    {"acqus": metadata[acqu], "procs": metadata[proc]}, size, axis.label,
+                )[0]
+                for acqu, proc, size, axis in zip(
+                    ("acqu2s", "acqus"), ("proc2s", "procs"), shape, axes, strict=True,
+                )
+            )
+        rr, ri, ir, ii = planes
+        with np.errstate(over="ignore", invalid="ignore"):
+            data = np.stack((rr + 1j * ir, ri + 1j * ii)) / gain
+        if not np.isfinite(data).all():
+            raise ValueError("Bruker receiver-gain normalization produced non-finite values")
+        mode, branches, encoding = "complex-channel-pair-2d", ("S_R", "S_I"), ("complex", "complex")
+        profile = "bruker-pdata-2d-public-v1"
+        operation.update(
+            name="pack-bruker-processed-channels", scale=1 / gain,
+            source_components=_COMPONENTS, receiver_gain=gain,
+        )
+        acquisition.update(
+            reference_source=axis_reference, acquisition_frequency_mhz=(indirect, direct),
+            normalization="receiver-gain", complex_axis="F1",
+        )
     return NormalizedAcquisition(
-        data=np.stack(planes),
+        data=data,
         axes=axes,
         dimensions=dimensions,
         physical_dimensions=_AXES,
         domains=_DOMAINS,
-        quadrature_mode="stored-components-2d",
-        branch_order=_COMPONENTS,
+        quadrature_mode=mode,
+        branch_order=branches,
         normalization_state="storage-normalized",
-        normalization_profile="bruker-pdata-2d-int32-v1",
+        normalization_profile=profile,
         applied_operations=(operation,),
         provenance={"source": os.fspath(result.source), "format": result.format},
-        acquisition={"storage_scaling": corrections, "reference_source": "processing"},
+        acquisition=acquisition,
         metadata=result.metadata,
-        encoding=result.encoding,
+        encoding=encoding,
         diagnostics=result.diagnostics,
         channel_axis=0,
     )

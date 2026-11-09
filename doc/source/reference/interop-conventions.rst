@@ -435,6 +435,19 @@ normalizer declares the public branchwise FFT convention, its initial
 phases and the display calibration when the required parameters are
 available. This descriptor leaves the stored branches unchanged.
 
+Bruker 2D processed channel pairs
+---------------------------------
+
+The default 2D processed normalizer retains the four named planes at the
+scale declared by the reader. Pass the acquisition status files to
+``read_bruker_pdata_2d(..., acqus_files=...)`` and select
+``axis_reference="acquisition"`` or ``axis_reference="processing"`` on
+``normalize_bruker_pdata_2d()`` to request the public spectrum convention.
+It returns ``S_R = 2rr + i*2ir`` and ``S_I = 2ri + i*2ii`` after dividing
+both channels by RG. The input planes already include NC_proc scaling.
+The selected axis convention controls ppm calibration independently of
+the acquisition frequencies retained in the result.
+
 Normalized Bruker processed 1D spectra (experimental)
 -----------------------------------------------------
 

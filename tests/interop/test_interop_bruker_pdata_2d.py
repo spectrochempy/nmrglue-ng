@@ -152,3 +152,38 @@ def test_storage_preserves_float64_and_does_not_scale(tmp_path):
     assert stored.data.dtype == np.dtype("<f8")
     assert stored.applied_corrections == {}
     np.testing.assert_array_equal(stored.data, plane)
+
+
+@pytest.mark.parametrize("reference", ["acquisition", "processing"])
+def test_public_processed_channels(tmp_path, reference):
+    path = tmp_path / "pdata" / "1"
+    path.mkdir(parents=True)
+    rr, ri, ir, ii = write_planes(path)
+    direct = tmp_path / "acqus"
+    indirect = tmp_path / "acqu2s"
+    direct.write_text(
+        "##TITLE= direct\n##$PARMODE= 1\n##$RG= 4\n##$NS= 32\n"
+        "##$SFO1= 500.001\n##$SW= 8\n##END=\n"
+    )
+    indirect.write_text(
+        "##TITLE= indirect\n##$SFO1= 100.002\n##$SW= 10\n##END=\n"
+    )
+    stored = interop.read_bruker_pdata_2d(path, acqus_files=[direct, indirect])
+    normalized = interop.normalize_bruker_pdata_2d(stored, axis_reference=reference)
+    np.testing.assert_array_equal(
+        normalized.data, np.stack((rr + 1j * ir, ri + 1j * ii)) / 32
+    )
+    assert normalized.branch_order == ("S_R", "S_I")
+    assert normalized.acquisition["complex_axis"] == "F1"
+    assert normalized.acquisition["acquisition_frequency_mhz"] == (100.002, 500.001)
+    assert normalized.applied_operations[0]["scale"] == 0.25
+    if reference == "processing":
+        np.testing.assert_array_equal(normalized.axes[0].values, [300, 100, -100, -300])
+        assert normalized.axes[0].reference.observation_frequency == 100
+    else:
+        np.testing.assert_allclose(
+            normalized.axes[0].values[[0, -1]], [2500.01, 1499.99],
+            rtol=0, atol=1e-8,
+        )
+        assert normalized.axes[0].reference.observation_frequency == 100.002
+    np.testing.assert_array_equal(interop.normalize_bruker_pdata_2d(stored).data[0], rr / 8)

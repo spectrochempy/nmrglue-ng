@@ -7,6 +7,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Add opt-in Bruker 2D pdata normalization for calibrated complex channel pairs,
+  with acquisition or processing axes and explicit receiver gain.
+
 - Normalize complete uniform Bruker echo/anti-echo SER storage and retain
   both branches in file order for downstream reconstruction.
 

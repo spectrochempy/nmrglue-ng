@@ -740,6 +740,26 @@ def _build_axis(dic, data):
     return _build_processed_axis(dic, int(data.shape[0]))
 
 
+def _processed_acquisition_axis(metadata, size, label):
+    sfo = _raw_number(metadata, "acqus", "SFO1")
+    sweep_ppm = _raw_number(metadata, "acqus", "SW")
+    sf = _raw_number(metadata, "procs", "SF")
+    if sfo is None or sfo <= 0 or sweep_ppm is None or sweep_ppm <= 0 or sf is None:
+        raise ValueError("acquisition axis requires Bruker SFO1, SW and SF")
+    width = sweep_ppm * sfo
+    center = (sfo - sf) * 1e6
+    values = (center + width / 2) - np.arange(size) * (width / (size - 1))
+    if not np.isfinite(values).all() or not np.all(np.diff(values) < 0):
+        raise ValueError("acquisition axis must be finite and strictly decreasing")
+    return Axis(
+        values=values, unit="Hz", label=label, domain="frequency",
+        direction="decreasing", reference=Reference(
+            observation_frequency=sfo, observation_frequency_unit="MHz",
+            source="acquisition",
+        ),
+    ), width
+
+
 def _build_processed_axis(dic, n):
     diagnostics = []
     procs = dic.get("procs", {})
