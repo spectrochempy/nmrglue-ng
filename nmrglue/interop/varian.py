@@ -614,6 +614,7 @@ def _normalize_agilent_2d(result, legacy_presentation, *, mode):
         result.data.shape != (rows, words)
         or metadata.get("np") != words
         or (not series and (blocks != rows or traces_per_block != 1))
+        or (series and (metadata.get("S_DATA") != 1 or metadata.get("S_COMPLEX") != 1))
         or metadata.get("S_SPEC") != 0
         or metadata.get("S_HYPERCOMPLEX") != 0
         or not np.isfinite(result.data).all()

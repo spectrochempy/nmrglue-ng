@@ -77,7 +77,8 @@ Agilent/Varian flat FID series
 ------------------------------
 
 Use ``read_agilent_fid_storage(directory, series_only=True)`` to check
-a flat series before decoding samples. ``normalize()`` returns one
+a flat series with explicit acquired-data and complex flags before
+decoding samples. ``normalize()`` returns one
 complex FID per row, in block and trace order, and records the binary
 block and trace counts. The leading axis is a trace index. The direct
 axis uses the acquired dwell time when available. No indirect time

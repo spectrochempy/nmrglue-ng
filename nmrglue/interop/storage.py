@@ -130,7 +130,10 @@ def read_agilent_fid_storage(directory, *, states_only=False, tppi_only=False, s
         if parameters is not None:
             if series_only:
                 expected = _agilent_series_shape(parameters, blocks, traces)
-                matches = expected == (blocks * traces, words)
+                matches = (
+                    expected == (blocks * traces, words)
+                    and metadata["S_DATA"] == metadata["S_COMPLEX"] == 1
+                )
             else:
                 matches = traces == 1 and expected_shape == (blocks, words)
             if not matches:

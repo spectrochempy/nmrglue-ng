@@ -252,7 +252,7 @@ def test_normalize_agilent_multitrace_series(tmp_path, legacy):
         }.items()
     }
     metadata = dict(procpar=procpar, nblocks=2, ntraces=3, np=8,
-                    S_SPEC=0, S_HYPERCOMPLEX=0)
+                    S_SPEC=0, S_HYPERCOMPLEX=0, S_DATA=1, S_COMPLEX=1)
     stored = _trace_result(
         tmp_path / "fid", words, metadata, "agilent-fid-storage",
         blocks=2, traces_per_block=3,
@@ -267,3 +267,8 @@ def test_normalize_agilent_multitrace_series(tmp_path, legacy):
     assert result.acquisition["blocks"] == 2
     assert result.acquisition["traces_per_block"] == 3
     np.testing.assert_allclose(result.axes[1].values, np.arange(4) / 5000)
+
+    from dataclasses import replace
+
+    with pytest.raises(ValueError, match="raw trace geometry"):
+        ng.interop.normalize(replace(stored, metadata={**metadata, "S_COMPLEX": 0}))
