@@ -8,7 +8,7 @@ original nmrglue project and are preserved for attribution and continuity.
 ## Unreleased
 
 - Organize the workflow guides and JBNMR examples under Tutorials, restore
-  historical data links, and document verified experimental results.
+  historical data links, and document verified experimental results. (#216)
 
 - Link to PyPI and Conda releases from the documentation toolbar, remove
   page downloads, and improve dark-mode visibility in mobile navigation. (#215)
