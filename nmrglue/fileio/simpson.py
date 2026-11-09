@@ -3,13 +3,14 @@ Functions for reading and writing files created by the `SIMPSON simulations
 program <http://www.bionmr.chem.au.dk/bionmr/software/simpson.php>`_.
 """
 
+from itertools import islice
 import math
 from warnings import warn
 
 import numpy as np
 
 
-def read(filename, ftype=None, ndim=None, NP=None, NI=None, spe=None):
+def read(filename, ftype=None, ndim=None, NP=None, NI=None, spe=None, *, legacy_layout=False):
     """
     Read a SIMPSON file.
 
@@ -59,6 +60,10 @@ def read(filename, ftype=None, ndim=None, NP=None, NI=None, spe=None):
         True when the data is in the frequency domain, False for time domain
         data.  Only used when ftype is "RAWBIN"
 
+    legacy_layout : bool, optional
+        Sort both coordinate axes of XYREIM data as in the historical
+        SpectroChemPy reader. The default retains first occurrence order.
+
     Returns
     -------
     dic : dict
@@ -82,7 +87,7 @@ def read(filename, ftype=None, ndim=None, NP=None, NI=None, spe=None):
     elif ftype == "XREIM":
         return read_xreim(filename)
     elif ftype == "XYREIM":
-        return read_xyreim(filename)
+        return read_xyreim(filename, sort_axes=legacy_layout)
     elif ftype == "RAWBIN":
         if spe is None:
             raise ValueError('spe must be True or False for raw_bin data')
@@ -99,37 +104,28 @@ def read(filename, ftype=None, ndim=None, NP=None, NI=None, spe=None):
 
 
 def guess_ftype(filename):
-    """ Determine a SIMPSON file type from the first few lines of the file. """
-    f = open(filename, 'rb')
-    line = f.readline()
+    """Determine the SIMPSON file type from a bounded sample of rows."""
+    with open(filename, "rb") as stream:
+        first = next((line.strip() for line in stream if line.strip()), b"")
+        if first.startswith(b"SIMP"):
+            for line in stream:
+                record = line.strip()
+                if record.startswith(b"FORMAT"):
+                    return "BINARY"
+                if record == b"DATA":
+                    break
+            return "TEXT"
+        stream.seek(0)
+        rows = list(islice((line.split() for line in stream if line.strip()), 8))
 
-    if line[:4] == b"SIMP":   # either text or binary
-        f.seek(0)
-        for line in f:  # look for format line
-            line = line.decode('ascii', 'ignore').strip('\n')
-            if line[:6] == "FORMAT":
-                f.close()
-                return "BINARY"
-            elif line == "DATA":    # early end if we screw up
-                break
-            else:
-                continue
-        f.close()
-        return "TEXT"
-
-    else:   # xyreim, xreim, or binary
-        # determine the number of columns in the first 4 lines of the file
-        ll1 = len(line.split())
-        ll2 = len(f.readline().split())
-        ll3 = len(f.readline().split())
-        ll4 = len(f.readline().split())
-        f.close()
-        if ll1 == ll2 == ll3 == ll4 == 3:   # all have 3 columns
-            return "XREIM"
-        elif ll1 == ll2 == ll3 == ll4 == 4:  # all have 4 columns
-            return "XYREIM"
-        else:
+    if rows and len(rows[0]) in (3, 4) and all(len(row) == len(rows[0]) for row in rows):
+        try:
+            for row in rows:
+                tuple(float(value) for value in row)
+        except ValueError:
             return "RAWBIN"
+        return "XREIM" if len(rows[0]) == 3 else "XYREIM"
+    return "RAWBIN"
 
 ###############################
 # Read SIMPSON text file data #
@@ -142,63 +138,54 @@ def read_text(filename):
         return _read_text(stream)
 
 
-def _read_text(f):
-    dic = {}                # initialize dictionary of parameters
-
-    # parse the header of the file, storing parameters in dictionary, stop
-    # when we hit the data line
-    for line in f:
-        line = line.strip('\n')
-        if line == "SIMP":
+def _read_header(stream):
+    metadata = {}
+    for line in stream:
+        record = line.strip()
+        if not record or record == "SIMP":
             continue
-        elif line == "DATA":
+        if record == "DATA":
             break
-        elif "=" in line:
-            key, value = line.split("=")
-            dic[key] = value
+        key, separator, value = record.partition("=")
+        if separator:
+            metadata[key.strip()] = value.strip()
         else:
-            warn("Warning, skipping line: %s" % (line))
+            warn(f"Skipping SIMPSON header line: {record!r}", stacklevel=2)
+    else:
+        raise ValueError("SIMPSON requires a DATA block")
+    for key in ("SW", "SW1"):
+        if key in metadata:
+            metadata[key] = float(metadata[key])
+    for key in ("NP", "NI", "NELEM"):
+        if key in metadata:
+            metadata[key] = int(metadata[key])
+    metadata.setdefault("NELEM", 1)
+    return metadata
 
-    # convert float and int keys
-    for key in ['SW1', 'SW']:    # convert keys to floats
-        if key in dic:
-            dic[key] = float(dic[key])
-    for key in ['NP', 'NI', 'NELEM']:    # convert keys to ints
-        if key in dic:
-            dic[key] = int(dic[key])
 
-    # set NELEM to 1 if its a single 1D/2D dataset
-    if 'NELEM' not in dic:
-        dic['NELEM'] = 1
-
-    # DEBUGGING
-    # return dic
-
-    if "NI" in dic:     # 2D data
-        data = np.empty((dic['NI']*dic['NELEM'], dic['NP']), dtype='complex64')
-
-        # loop over remaining lines, extracting data values
-        for iline, line in enumerate(f):
-            if line[0:3] == "END":   # END marks end of data block
-                break
-            ni_idx, np_idx = divmod(iline, dic['NP'])
-            r_val, i_val = (float(i) for i in line.split())
-            data.real[ni_idx, np_idx] = r_val
-            data.imag[ni_idx, np_idx] = i_val
-
-    else:   # 1D data
-        data = np.empty((dic['NP']*dic['NELEM']), dtype='complex64')
-
-        # loop over remaining lines, extracting data values
-        for iline, line in enumerate(f):
-            if line[0:3] == "END":
-                break
-            r_val, i_val = (float(i) for i in line.split())
-            data.real[iline] = r_val
-            data.imag[iline] = i_val
-        if dic['NELEM'] > 1:    # multi-element 1D data stays 2D
-            data = data.reshape(dic['NELEM'], -1)
-
+def _read_text(f):
+    dic = _read_header(f)
+    elements = dic["NELEM"]
+    direct = dic["NP"]
+    indirect = dic.get("NI", 1)
+    if min(elements, direct, indirect) < 1:
+        raise ValueError("SIMPSON point and element counts must be positive")
+    shape = (elements * indirect, direct) if "NI" in dic or elements > 1 else (direct,)
+    data = np.empty(shape, dtype="complex64")
+    count = 0
+    for line in f:
+        record = line.strip()
+        if record == "END":
+            break
+        if not record:
+            continue
+        fields = record.split()
+        if len(fields) < 2 or count == data.size:
+            raise ValueError("SIMPSON TEXT block disagrees with its declared shape")
+        data.flat[count] = complex(float(fields[0]), float(fields[1]))
+        count += 1
+    if count != data.size:
+        raise ValueError("SIMPSON TEXT block disagrees with its declared shape")
     return dic, data
 
 
@@ -208,59 +195,40 @@ def _read_text(f):
 
 
 def read_xreim(filename):
-    """Read a 1D indexed SIMPSON file.  See :py:func:`read`."""
-    f = open(filename, 'r')
-    # first pass, determine NP
-    for iline, line in enumerate(f):
-        pass
-    NP = int(iline + 1)
-
-    # second pass, place text-data into data and unit arrays
-    f.seek(0)
-    data = np.empty((NP, ), dtype='complex64')
-    units = np.empty((NP, ), dtype='float32')
-
-    for l_idx, line in enumerate(f):
-        np_unit, r_val, i_val = (float(i) for i in line.split())
-        units[l_idx] = np_unit
-        data.real[l_idx] = r_val
-        data.imag[l_idx] = i_val
-
-    f.close()
-    return {'units': units}, data
+    """Read indexed 1D points in file order."""
+    rows = np.loadtxt(filename, ndmin=2, comments=None)
+    if rows.shape[0] == 0 or rows.shape[1] != 3:
+        raise ValueError("SIMPSON XREIM requires three columns")
+    data = np.empty(rows.shape[0], dtype="complex64")
+    data.real, data.imag = rows[:, 1], rows[:, 2]
+    return {"units": rows[:, 0].astype("float32")}, data
 
 
-def read_xyreim(filename):
-    """Read a 2D indexed SIMPSON file. See :py:func:`read`."""
-    f = open(filename, 'r')
+def read_xyreim(filename, *, sort_axes=False):
+    """Read a rectangular indexed 2D grid with consistent axis ordering."""
+    rows = np.loadtxt(filename, ndmin=2, comments=None)
+    if rows.shape[0] == 0 or rows.shape[1] != 4 or not np.isfinite(rows[:, :2]).all():
+        raise ValueError("SIMPSON XYREIM requires four columns and finite coordinates")
 
-    # first pass, determine NP, NI
-    blines = 0  # number of blank lines, gives us num. of indirect points
-    for nline, line in enumerate(f):
-        if line == '\n':
-            if blines == 0:     # location of first blank line gives us NP
-                NP = int(nline)
-            blines += 1
-    NI = blines
+    axes = []
+    indices = []
+    for column in rows[:, :2].T:
+        values, first, inverse = np.unique(column, return_index=True, return_inverse=True)
+        order = np.arange(values.size) if sort_axes else np.argsort(first)
+        axes.append(values[order])
+        indices.append(np.argsort(order)[inverse])
 
-    # second pass, place text-data into data and unit arrays
-    f.seek(0)
-    data = np.empty((NI, NP), dtype='complex64')
-    units = np.recarray((NI, NP), dtype=[('ni_unit', 'f8'), ('np_unit', 'f8')])
-
-    for l_idx, line in enumerate(f):
-        ni_idx, np_idx = divmod(l_idx, NP + 1)  # determine indices
-        if np_idx == NP:    # skip blank line between blocks
-            continue
-        # unpack the line and store
-        ni_unit, np_unit, r_val, i_val = (float(i) for i in line.split())
-        data.real[ni_idx, np_idx] = r_val
-        data.imag[ni_idx, np_idx] = i_val
-        units[ni_idx, np_idx].ni_unit = ni_unit
-        units[ni_idx, np_idx].np_unit = np_unit
-
-    f.close()
-    return {'units': units}, data
+    shape = tuple(axis.size for axis in axes)
+    positions = np.ravel_multi_index(tuple(indices), shape)
+    if positions.size != math.prod(shape) or np.unique(positions).size != positions.size:
+        raise ValueError("SIMPSON XYREIM requires one sample per point of a complete grid")
+    data = np.empty(shape, dtype="complex64")
+    data.real.flat[positions] = rows[:, 2]
+    data.imag.flat[positions] = rows[:, 3]
+    units = np.recarray(shape, dtype=[("ni_unit", "f8"), ("np_unit", "f8")])
+    units.ni_unit = axes[0][:, None]
+    units.np_unit = axes[1][None, :]
+    return {"units": units}, data
 
 
 ######################
@@ -318,43 +286,16 @@ def read_binary(filename):
 
 
 def _read_binary(f):
-    dic = {}                # initialize dictionary of parameters
-
-    # parse the header of the file, storing parameters in dictionary, stop
-    # when we hit the data line
-    for line in f:
-        line = line.strip('\n')
-        if line == "SIMP":
-            continue
-        elif line == "DATA":
-            break
-        elif "=" in line:
-            key, value = line.split("=")
-            dic[key] = value
-        else:
-            warn("Warning, skipping line: %s" % (line))
-
-    # convert float and int keys
-    for key in ['SW1', 'SW']:    # convert keys to floats
-        if key in dic:
-            dic[key] = float(dic[key])
-    for key in ['NP', 'NI', 'NELEM']:    # convert keys to ints
-        if key in dic:
-            dic[key] = int(dic[key])
-
-    if not 'NELEM' in dic.keys():
-        dic['NELEM'] = 1
-
-    # DEBUGGING
-    # return dic, f
+    dic = _read_header(f)
 
     # extract characters from data block
     chardata = "".join([line.strip('\n') for line in f])
-    chardata = chardata[:-3]    # remove END
+    chardata = chardata.removesuffix("END")
 
     # convert every 4 character to 3 'bytes'
     nquads, mod = divmod(len(chardata), 4)
-    assert mod == 0     # character should be in blocks of 4
+    if mod:
+        raise ValueError("SIMPSON binary data length is not a multiple of four")
     bytes = []
     for i in range(nquads):
         bytes += chars2bytes(chardata[i * 4:(i + 1) * 4])
