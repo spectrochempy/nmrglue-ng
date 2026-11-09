@@ -502,24 +502,33 @@ def read_agilent_states_2d(
     )
 
 
-def _states_storage_shape(procpar):
-    """Require one phase array and a single indirect dimension."""
+def _agilent_2d_storage_shape(procpar, *, tppi):
+    """Require an unambiguous single indirect dimension."""
     ni = _procpar_integer(procpar, "ni")
     words = _procpar_integer(procpar, "np")
+    phases = (3,) if tppi else (1, 2)
+    array = procpar.get("array", {}).get("values")
+    allowed_arrays = (None, [""], ("",)) if tppi else (["phase"], ("phase",))
+    if tppi and _procpar_string(procpar, "sampling", "").strip().lower() not in (
+        "", "uniform"
+    ):
+        raise ValueError("Agilent TPPI storage requires uniform sampling")
     if (
-        _procpar_phase(procpar) != (1, 2)
+        _procpar_phase(procpar) != phases
         or "seqcon" in procpar
-        or procpar.get("array", {}).get("values") not in (["phase"], ("phase",))
+        or array not in allowed_arrays
         or any(
-            key in procpar and _procpar_integer(procpar, key) != 0
+            key in procpar and (tppi or _procpar_integer(procpar, key) != 0)
             for key in ("ni2", "ni3")
         )
-        or ni is None or ni < 1
-        or _procpar_integer(procpar, "arraydim") != 2 * ni
+        or ni is None or ni < (2 if tppi else 1)
+        or _procpar_integer(procpar, "arraydim") != len(phases) * ni
         or words is None or words < 2 or words % 2
     ):
+        if tppi:
+            raise ValueError("Agilent TPPI storage requires phase=[3], ni>=2 and arraydim=ni")
         raise ValueError("Agilent States storage requires only phase=[1, 2] and arraydim=2*ni")
-    return 2 * ni, words
+    return len(phases) * ni, words
 
 
 def normalize_agilent_states_2d(result, *, legacy_presentation=False):
@@ -530,14 +539,40 @@ def normalize_agilent_states_2d(result, *, legacy_presentation=False):
     preserves the historical public axes and explicit NS/NE divisor. Neither
     presentation applies phase, alternation, conjugation or an FFT.
     """
+    return _normalize_agilent_2d(result, legacy_presentation, tppi=False)
+
+
+def normalize_agilent_tppi_2d(result, *, legacy_presentation=False):
+    """Normalize verified Varian phase=[3] scalar storage in acquisition order.
+
+    Preserve one complex FID per F1 increment. The indirect TPPI phase
+    convention is retained for downstream processing.
+    """
+    return _normalize_agilent_2d(result, legacy_presentation, tppi=True)
+
+
+def _normalize_agilent_fid_storage(result, *, legacy_presentation=False):
+    procpar = result.metadata.get("procpar", {})
+    normalizer = (
+        normalize_agilent_tppi_2d
+        if _procpar_phase(procpar) == (3,)
+        else normalize_agilent_states_2d
+    )
+    return normalizer(result, legacy_presentation=legacy_presentation)
+
+
+def _normalize_agilent_2d(result, legacy_presentation, *, tppi):
+    mode = "tppi" if tppi else "states"
     if not isinstance(result, ReadResult):
-        raise TypeError("Agilent States normalization requires an interop ReadResult")
+        raise TypeError("Agilent 2D normalization requires an interop ReadResult")
     if result.format != "agilent-fid-storage":
-        raise ValueError("Agilent States normalization requires scalar FID storage")
+        raise ValueError("Agilent 2D normalization requires scalar FID storage")
 
     metadata = result.metadata
     procpar = metadata.get("procpar", {})
-    rows, words = _states_storage_shape(procpar)
+    rows, words = _agilent_2d_storage_shape(procpar, tppi=tppi)
+    if tppi and metadata.get("sampling_schedule_present"):
+        raise ValueError("Agilent TPPI storage requires uniform sampling")
     if (
         result.data.shape != (rows, words)
         or metadata.get("np") != words
@@ -547,9 +582,9 @@ def normalize_agilent_states_2d(result, *, legacy_presentation=False):
         or metadata.get("S_HYPERCOMPLEX") != 0
         or not np.isfinite(result.data).all()
     ):
-        raise ValueError("Agilent States storage disagrees with the declared raw trace geometry")
+        raise ValueError("Agilent 2D storage disagrees with the declared raw trace geometry")
     traces = varian.uninterleave_data(result.data)
-    channels = np.stack((traces[::2], traces[1::2]))
+    data = traces if tppi else np.stack((traces[::2], traces[1::2]))
     direct_width = _procpar_number(procpar, "sw")
     indirect_width = _procpar_number(procpar, "sw1")
     transmitters = tuple(_procpar_number(procpar, key) for key in ("sfrq2", "sfrq"))
@@ -560,17 +595,19 @@ def normalize_agilent_states_2d(result, *, legacy_presentation=False):
     )
     widths = (indirect_width, direct_width)
     nuclei = (reported_nuclei[0], _procpar_string(procpar, "tn"))
+    if tppi:
+        nuclei = (_procpar_string(procpar, "tn2") or None, nuclei[1])
     acquisition = {
         "spectral_widths_hz": widths,
         "observation_frequencies_mhz": observation,
         "nuclei": nuclei,
-        "phase": (1, 2),
-        "physical_indirect_increments": rows // 2,
+        "phase": (3,) if tppi else (1, 2),
+        "physical_indirect_increments": rows if tppi else rows // 2,
         "storage_shape": (rows, words),
     }
-    dimensions = ("channels", "F1", "F2")
-    pairing = {
-        "name": "pair-states-traces",
+    dimensions = ("F1", "F2") if tppi else ("channels", "F1", "F2")
+    decode = {
+        "name": "decode-tppi-traces" if tppi else "pair-states-traces",
         "stage": "acquisition",
         "input_dimensions": ("trace", "word"),
         "output_dimensions": dimensions,
@@ -578,16 +615,19 @@ def normalize_agilent_states_2d(result, *, legacy_presentation=False):
         "scale": None,
         "conjugation": "none",
         "sign": "none",
-        "permutation": "even traces to first branch, odd traces to second branch",
-        "evidence": "procpar phase=[1, 2], array=phase and binary block order",
+        "permutation": None if tppi else "even traces to first branch, odd traces to second branch",
+        "evidence": (
+            "procpar phase=[3] and binary block order"
+            if tppi else "procpar phase=[1, 2], array=phase and binary block order"
+        ),
     }
-    operations = (pairing,)
+    operations = (decode,)
     if legacy_presentation:
         from .normalize import _scale_agilent_ns_ne
 
         ns = _procpar_number(procpar, "ns")
         ne = _procpar_number(procpar, "ne")
-        channels, divisor = _scale_agilent_ns_ne(channels, ns, ne)
+        data, divisor = _scale_agilent_ns_ne(data, ns, ne)
         decoupler = tuple(_procpar_number(procpar, key) for key in ("dfrq2", "dfrq"))
         displayed_observation = tuple(
             fallback if transmitter is None else transmitter
@@ -600,7 +640,7 @@ def normalize_agilent_states_2d(result, *, legacy_presentation=False):
             "observation_frequencies_mhz": displayed_observation,
             "decoupler_frequencies_mhz": decoupler,
             "reported_nuclei": reported_nuclei,
-            "pulse_program": _procpar_string(procpar, "array"),
+            "pulse_program": _procpar_string(procpar, "array") or _procpar_string(procpar, "pulprog"),
             "sequence": _procpar_string(procpar, "seqfil"),
             "date_raw": _procpar_string(procpar, "date"),
             "acquisition_time_s": _procpar_number(procpar, "at"),
@@ -608,7 +648,7 @@ def normalize_agilent_states_2d(result, *, legacy_presentation=False):
             "ne": 1.0 if ne is None else ne,
         }
         operations += ({
-            **pairing,
+            **decode,
             "name": "normalize-agilent-ns-ne",
             "input_dimensions": dimensions,
             "axis": None,
@@ -619,10 +659,10 @@ def normalize_agilent_states_2d(result, *, legacy_presentation=False):
         },)
     axes = []
     for size, width, frequency, nucleus in zip(
-        channels.shape[1:], widths, observation, nuclei, strict=True
+        data.shape[-2:], widths, observation, nuclei, strict=True
     ):
         if any(value is not None and value <= 0 for value in (width, frequency)):
-            raise ValueError("Agilent States widths and observation frequencies must be positive")
+            raise ValueError("Agilent 2D widths and observation frequencies must be positive")
         axes.append(Axis(
             values=None if width is None else np.arange(size, dtype=float) * (1 / width),
             unit=None if width is None else "s",
@@ -636,20 +676,20 @@ def normalize_agilent_states_2d(result, *, legacy_presentation=False):
             ),
         ))
     return NormalizedAcquisition(
-        data=channels,
+        data=data,
         axes=tuple(axes),
         dimensions=dimensions,
         physical_dimensions=("F1", "F2"),
         domains=("time", "time"),
-        quadrature_mode="states-stored-2d",
-        branch_order=("branch_0", "branch_1"),
+        quadrature_mode=f"{mode}-stored-2d",
+        branch_order=("complex",) if tppi else ("branch_0", "branch_1"),
         normalization_state="storage-normalized",
-        normalization_profile="agilent-states-2d-v1",
+        normalization_profile=f"agilent-{mode}-2d-v1",
         applied_operations=operations,
         provenance={"source": os.fspath(result.source), "format": result.format},
         acquisition=acquisition,
         metadata=metadata,
-        encoding=("states", "complex"),
+        encoding=(mode, "complex"),
         diagnostics=result.diagnostics,
-        channel_axis=0,
+        channel_axis=None if tppi else 0,
     )

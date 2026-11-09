@@ -7,6 +7,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Normalize verified Agilent/Varian TPPI 2D storage as one complex FID per
+  indirect increment, with explicit time axes and operations. (#214)
+
 - Normalize verified Agilent/Varian States 2D storage into two complex
   acquisition branches with time axes and explicit operations. (#213)
 
