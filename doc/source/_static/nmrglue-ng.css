@@ -336,8 +336,6 @@ html[data-theme="dark"] .ng-button-secondary:hover {
   object-position: bottom;
 }
 
-html[data-theme="light"] .ng-terminal-spectrum img { filter: brightness(0.4); }
-
 @supports (mask: url("home-fid.svg") bottom / cover no-repeat) {
   .ng-terminal-spectrum {
     background: var(--ng-mint);
@@ -345,18 +343,8 @@ html[data-theme="light"] .ng-terminal-spectrum img { filter: brightness(0.4); }
   }
 
   .ng-terminal-spectrum img { display: none; }
-  html[data-theme="light"] .ng-terminal-spectrum { background: var(--ng-cyan); }
+  html[data-theme="light"] .ng-terminal-spectrum { background: #f3e1bc; }
 }
-
-html[data-theme="light"] .ng-terminal {
-  border-color: var(--ng-line);
-  background: var(--ng-surface);
-}
-
-html[data-theme="light"] .ng-terminal pre { color: var(--ng-ink); }
-html[data-theme="light"] .ng-terminal .ng-prompt,
-html[data-theme="light"] .ng-terminal .ng-code-keyword { color: var(--ng-cyan); }
-html[data-theme="light"] .ng-terminal .ng-code-string { color: #a34423; }
 
 .ng-quick-nav {
   display: grid;
