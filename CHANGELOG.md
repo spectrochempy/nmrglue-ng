@@ -8,7 +8,7 @@ original nmrglue project and are preserved for attribution and continuity.
 ## Unreleased
 
 - Keep integration uncertainty nonnegative after signed normalization and
-  reject a zero reference integral.
+  reject a zero reference integral. (#208)
 
 - Fix Cadzow enhancement for 2D arrays by processing each row independently. (#205)
 
