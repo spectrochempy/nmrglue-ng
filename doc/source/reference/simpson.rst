@@ -10,6 +10,12 @@ This modules is imported as nmrglue.simpson and can be called as such.
 User Information
 ----------------
 
+Indexed XREIM files can contain fewer than four rows. For XYREIM, the
+reader reconstructs the complete coordinate grid from the rows, with or
+without blank separators. Axes follow first occurrence order by default.
+Use ``read(path, legacy_layout=True)`` to sort both XYREIM axes in ascending
+order, matching historical SpectroChemPy imports.
+
 User Functions
 ^^^^^^^^^^^^^^
 

@@ -7,6 +7,10 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Read short SIMPSON XREIM and complete XYREIM grids without requiring
+  blank separators. Offer ascending XYREIM axes for legacy consumers. (#223)
+- Accept padded SIMPSON headers and reject incomplete TEXT sample blocks.
+
 - Offer the historical interleaved matrix for listed JEOL 2D acquisitions
   while preserving the acquired F1 time for each pair of rows. (#222)
 
