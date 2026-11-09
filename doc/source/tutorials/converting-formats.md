@@ -80,6 +80,3 @@ The converter also supports other source and destination formats. See the
 [conversion examples](../how-to/conversion) for additional workflows and the
 <a href="../reference/index.html">API reference</a> for format-specific
 readers and writers.
-
-The JBNMR {doc}`Sparky to NMRPipe example <../jbnmr_examples/s1_sparky_to_nmrpipe>`
-demonstrates the opposite conversion on an experimental 2D spectrum.

@@ -21,37 +21,27 @@ J. Biomol. NMR,
 
 .. _article: http://dx.doi.org/10.1007/s10858-013-9718-x
 
-Read these workflows after the :doc:`tutorials <../tutorials/index>`.
-The :doc:`workflow guides <../how-to/index>` provide shorter recipes for
-individual steps. Each example links to the original data archive and
-shows a result or expected output where available.
+These listings are used throughout the :doc:`tutorial <../tutorials/index>`.
+This index retains their publication order for readers following the article.
+Each example links to the original data and shows a result where available.
 
 Convert and visualize
 =====================
 
-.. toctree::
-   :maxdepth: 1
-
-   s1_sparky_to_nmrpipe
-   s2_s3_1d_plotting
-   s4_2d_plotting
+* :doc:`s1_sparky_to_nmrpipe`
+* :doc:`s2_s3_1d_plotting`
+* :doc:`s4_2d_plotting`
 
 Separate and process acquisitions
 =================================
 
-.. toctree::
-   :maxdepth: 1
-
-   s5_separate_interleaved
-   s6_separate_inner_phase
-   s7-s9_s3e_processing
+* :doc:`s5_separate_interleaved`
+* :doc:`s6_separate_inner_phase`
+* :doc:`s7-s9_s3e_processing`
 
 Analyse and display multidimensional data
 =========================================
 
-.. toctree::
-   :maxdepth: 1
-
-   s10_covariance_processing
-   s11_strip_plots
-   s12-s15_relaxation_analysis
+* :doc:`s10_covariance_processing`
+* :doc:`s11_strip_plots`
+* :doc:`s12-s15_relaxation_analysis`
