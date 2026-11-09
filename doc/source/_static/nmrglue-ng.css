@@ -338,7 +338,7 @@ html[data-theme="dark"] .ng-button-secondary:hover {
 
 html[data-theme="light"] .ng-terminal-spectrum img { filter: brightness(0.4); }
 
-@supports (mask: url("home-fid.svg")) {
+@supports (mask: url("home-fid.svg") bottom / cover no-repeat) {
   .ng-terminal-spectrum {
     background: var(--ng-mint);
     mask: url("home-fid.svg") bottom / cover no-repeat;
