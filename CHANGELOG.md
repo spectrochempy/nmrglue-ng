@@ -7,6 +7,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Allow Bruker raw readers to retain flat samples after a declared shape
+  mismatch and skip opening the NUS schedule independently.
+
 - Add opt-in Bruker 2D pdata normalization for calibrated complex channel pairs,
   with acquisition or processing axes and explicit receiver gain.
 
