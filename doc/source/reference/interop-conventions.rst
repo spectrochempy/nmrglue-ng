@@ -393,7 +393,7 @@ The descriptor leaves the stored samples and physical QF FFT grid unchanged.
 
 
 Normalized Bruker States-TPPI SER
---------------------------------
+---------------------------------
 
 Pass a complete Bruker SER storage result to the explicit
 ``normalize_bruker_ser_states_tppi()`` profile::
