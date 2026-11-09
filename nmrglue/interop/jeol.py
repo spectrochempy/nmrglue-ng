@@ -1,5 +1,6 @@
 """JEOL storage readers and explicit normalization for complex 1D FIDs."""
 
+from dataclasses import replace
 import os
 from pathlib import Path
 import struct
@@ -360,8 +361,9 @@ def _jeol_2d_time_axis(result, index, size, axis_name):
 def normalize_jeol_2d(result, *, conjugation, legacy_presentation=False):
     """Untile a raw JEOL acquisition and calibrate sampled times.
 
-    The optional public presentation covers regular single-matrix acquisitions
+    The optional public presentation preserves the historical complex matrix
     with conjugated samples. It permits direct FFT and leaves F1 unqualified.
+    For listed sampling, consecutive rows share an acquired F1 time.
     """
     if type(legacy_presentation) is not bool:
         raise ValueError("JEOL legacy_presentation must be a bool")
@@ -379,11 +381,9 @@ def normalize_jeol_2d(result, *, conjugation, legacy_presentation=False):
     ):
         raise ValueError("JEOL 2D requires a qualified regular or listed raw layout")
     if legacy_presentation and (
-        axis_modes != ("ranged", "ranged")
-        or header["reversed"][0]
-        or conjugation != "conjugate"
+        header["reversed"][0] or conjugation != "conjugate"
     ):
-        raise ValueError("JEOL public 2D presentation requires regular conjugated traces")
+        raise ValueError("JEOL public 2D presentation requires conjugated traces on an unreversed direct axis")
     if (
         result.data.shape != shape or result.data.dtype.kind != "f"
         or result.data.dtype.itemsize != 8 or result.dimensions != layout
@@ -437,6 +437,22 @@ def normalize_jeol_2d(result, *, conjugation, legacy_presentation=False):
         "sampling": ("listed" if channel_axis is not None else "regular", "regular"),
         "nominal_shape": (nominal_y, nx),
     }
+    operations = (operation,)
+    if legacy_presentation and channel_axis is not None:
+        data = np.empty((2 * ny, nx), dtype=branches.dtype)
+        data[0::2] = branches[0]
+        data[1::2] = -branches[1]
+        channel_axis = None
+        y_axis = replace(y_axis, values=np.repeat(y_axis.values, 2), direction="unknown")
+        acquisition["sampling"] = ("listed-paired", "regular")
+        acquisition["trace_branch_order"] = branch_order
+        operations += ({
+            "name": "interleave-jeol-section-pairs", "stage": "acquisition",
+            "input_dimensions": output_dimensions, "output_dimensions": dimensions,
+            "axis": "F1", "scale": None, "conjugation": "none", "sign": "negate-second",
+            "permutation": None, "evidence": "Historical JEOL four-section matrix ordering",
+        },)
+        output_dimensions = dimensions
     if legacy_presentation:
         params = result.metadata["parameters"]
         acquisition.update(
@@ -453,7 +469,7 @@ def normalize_jeol_2d(result, *, conjugation, legacy_presentation=False):
                          else "jeol-stored-section-pairs"),
         branch_order=("complex",) if legacy_presentation else branch_order,
         channel_axis=channel_axis, normalization_state="storage-normalized",
-        normalization_profile="jeol-2d-time-v1", applied_operations=(operation,),
+        normalization_profile="jeol-2d-time-v1", applied_operations=operations,
         provenance={"source": result.source, "format": result.format},
         acquisition=acquisition,
         metadata=result.metadata, diagnostics=result.diagnostics,

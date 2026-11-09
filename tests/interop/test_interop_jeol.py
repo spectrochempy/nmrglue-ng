@@ -318,14 +318,28 @@ def test_jeol_cosy_public_presentation():
     np.testing.assert_array_equal(result.data, jeol.read(path)[1])
 
 
-@pytest.mark.parametrize(
-    "filename, conjugation",
-    [("epicatechin_cosy.jdf", "none"), ("epicatechin_hsqc.jdf", "conjugate")],
-)
-def test_jeol_public_2d_presentation_refuses_unqualified_input(filename, conjugation):
-    stored = interop.read(_JDF_FIXTURES / filename)
-    with pytest.raises(ValueError, match="regular conjugated traces"):
-        interop.normalize(stored, conjugation=conjugation, legacy_presentation=True)
+def test_jeol_public_2d_presentation_requires_explicit_sign():
+    stored = interop.read(_JDF_FIXTURES / "epicatechin_cosy.jdf")
+    with pytest.raises(ValueError, match="requires conjugated traces"):
+        interop.normalize(stored, conjugation="none", legacy_presentation=True)
+
+
+@pytest.mark.parametrize("experiment", ["hsqc", "hmbc"])
+def test_jeol_listed_public_presentation(experiment):
+    path = _JDF_FIXTURES / f"epicatechin_{experiment}.jdf"
+    stored = interop.read(path)
+    branches = interop.normalize(stored, conjugation="conjugate")
+    public = interop.normalize(stored, conjugation="conjugate", legacy_presentation=True)
+    assert public.quadrature_mode == "f2-traces-stored-2d"
+    assert public.channel_axis is None
+    assert public.acquisition["sampling"] == ("listed-paired", "regular")
+    assert public.acquisition["trace_branch_order"] == branches.branch_order
+    assert public.acquisition["nominal_shape"] == branches.acquisition["nominal_shape"]
+    assert public.applied_operations[1]["sign"] == "negate-second"
+    np.testing.assert_array_equal(public.axes[0].values, np.repeat(branches.axes[0].values, 2))
+    np.testing.assert_array_equal(public.data, jeol.read(path)[1])
+    np.testing.assert_array_equal(public.data[::2], branches.data[0])
+    np.testing.assert_array_equal(public.data[1::2], -branches.data[1])
 
 
 @pytest.mark.parametrize(
