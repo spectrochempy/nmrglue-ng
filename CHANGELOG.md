@@ -7,6 +7,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Document the Cadzow 2D result change in the migration guide and require
+  a migration-note review for each release. (#212)
+
 - Keep integration uncertainty nonnegative after signed normalization and
   reject a zero reference integral. (#208)
 

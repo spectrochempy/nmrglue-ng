@@ -23,6 +23,9 @@ versions and check the :doc:`release notes <whats-new>`. For example:
   JCAMP-DX spectra preserve the declared first and last coordinates.
 * Since nmrglue-ng 1.1.1, integration noise estimates use the same bin width
   or volume as the integral. This can change uncertainty estimates.
+* Since nmrglue-ng 1.2.2, ``ng.proc_lp.cadzow()`` processes each row of a 2D
+  array. Earlier versions returned the input unchanged for 2D arrays.
+  Re-run Cadzow if you need to compare previously processed 2D results.
 
 These versions describe when the fixes landed in nmrglue-ng. For a dated
 upstream reference, see the
