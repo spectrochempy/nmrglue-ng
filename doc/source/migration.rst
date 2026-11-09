@@ -27,6 +27,19 @@ versions and check the :doc:`release notes <whats-new>`. For example:
   array. Earlier versions returned the input unchanged for 2D arrays.
   Re-run Cadzow if you need to compare previously processed 2D results.
 
+* Since nmrglue-ng 1.2.3, Varian reads warn and retain the complete flat
+  trace matrix when declared multidimensional geometry conflicts with the
+  binary data. Check the warning before treating the leading axis as a
+  calibrated indirect dimension. Use ``legacy_layout=True`` if a consumer
+  expects the historical singleton-trace presentation.
+* Since nmrglue-ng 1.2.3, integration uncertainty remains nonnegative
+  after normalization against a signed reference integral. A zero
+  reference integral raises an error. Recompute previously normalized
+  uncertainties when comparing results.
+* Since nmrglue-ng 1.2.3, peak-minima automatic phasing evaluates the
+  samples available when a scoring window reaches a spectrum boundary.
+  Re-run automatic phasing if edge peaks affected the earlier result.
+
 These versions describe when the fixes landed in nmrglue-ng. For a dated
 upstream reference, see the
 `nmrglue source at cd0c2c9 (8 October 2026)
