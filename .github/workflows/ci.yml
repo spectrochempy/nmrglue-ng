@@ -130,7 +130,7 @@ jobs:
         "${{ runner.temp }}"/sdist/*
         "${{ runner.temp }}/wheel.xml"
     - name: Require executed packaged tests
-      run: python .github/scripts/check_test_report.py "${{ runner.temp }}/wheel.xml" 66
+      run: python .github/scripts/check_test_report.py "${{ runner.temp }}/wheel.xml" 73
   quality:
     name: Pre-commit (3.13)
     runs-on: ubuntu-latest
