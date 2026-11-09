@@ -30,7 +30,15 @@ versions and check the :doc:`release notes <whats-new>`. For example:
 * Since nmrglue-ng 1.2.3, Varian reads warn and retain the complete flat
   trace matrix when declared multidimensional geometry conflicts with the
   binary data. Check the warning before treating the leading axis as a
-  calibrated indirect dimension.
+  calibrated indirect dimension. Use ``legacy_layout=True`` if a consumer
+  expects the historical singleton-trace presentation.
+* Since nmrglue-ng 1.2.3, integration uncertainty remains nonnegative
+  after normalization against a signed reference integral. A zero
+  reference integral raises an error. Recompute previously normalized
+  uncertainties when comparing results.
+* Since nmrglue-ng 1.2.3, peak-minima automatic phasing evaluates the
+  samples available when a scoring window reaches a spectrum boundary.
+  Re-run automatic phasing if edge peaks affected the earlier result.
 
 These versions describe when the fixes landed in nmrglue-ng. For a dated
 upstream reference, see the
