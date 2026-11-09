@@ -194,6 +194,43 @@ def _positive_parameter(parameters, key, *, unit=None):
     return value
 
 
+def _carrier_offset(params, axis, *, required):
+    offset = params.get(f"{axis}_offset")
+    if offset is not None:
+        record = params.get("info", {}).get(f"{axis}_offset", {})
+        expected_units = [("none", 1, "ppm")] + [("none", 0, None)] * 4
+        try:
+            offset = float(offset)
+        except (TypeError, ValueError, OverflowError):
+            offset = float("nan")
+        if (
+            record.get("value_type") in ("integer", "float")
+            and record.get("units") == expected_units
+            and np.isfinite(offset)
+        ):
+            return offset
+        if required:
+            raise ValueError("JEOL legacy presentation requires a finite offset in ppm")
+    return None
+
+
+def _legacy_metadata(header, params):
+    date = header["creation_time"]
+    return {
+        "data_endianness": header.get("endian"),
+        "storage_format": header.get("data_format"),
+        "storage_dtype": header.get("data_type"),
+        "scan_count": params.get("total_scans", params.get("scans", 1)),
+        "solvent": params.get("solvent"),
+        "sample": params.get("sample"),
+        "pulse_program": params.get("experiment"),
+        "acquisition_time": params.get("x_acq_time"),
+        "relaxation_delay": params.get("relaxation_delay"),
+        "pulse_width": params.get("x90"),
+        "acquisition_date": (date["year"], date["month"], date["day"]),
+    }
+
+
 def normalize_jeol_fid(result, *, conjugation, legacy_presentation=False):
     """Trim padding and construct the time axis, with an explicit sign policy.
 
@@ -255,37 +292,13 @@ def normalize_jeol_fid(result, *, conjugation, legacy_presentation=False):
         "trimmed_padding_points": points - acquired,
         "nucleus": params.get("x_domain"),
     }
-    offset = params.get("x_offset")
+    offset = _carrier_offset(params, "x", required=legacy_presentation)
     if offset is not None:
-        record = params.get("info", {}).get("x_offset", {})
-        expected_units = [("none", 1, "ppm")] + [("none", 0, None)] * 4
-        try:
-            offset = float(offset)
-        except (TypeError, ValueError, OverflowError):
-            offset = float("nan")
-        if (
-            record.get("value_type") in ("integer", "float")
-            and record.get("units") == expected_units
-            and np.isfinite(offset)
-        ):
-            acquisition["carrier_offset_ppm"] = offset
-        elif legacy_presentation:
-            raise ValueError("JEOL legacy presentation requires a finite offset in ppm")
+        acquisition["carrier_offset_ppm"] = offset
     if legacy_presentation:
-        date = header["creation_time"]
         acquisition["legacy_presentation"] = {
+            **_legacy_metadata(header, params),
             "fft_input_transform": "conjugate-input",
-            "data_endianness": header.get("endian"),
-            "storage_format": header.get("data_format"),
-            "storage_dtype": header.get("data_type"),
-            "scan_count": params.get("total_scans", params.get("scans", 1)),
-            "solvent": params.get("solvent"),
-            "sample": params.get("sample"),
-            "pulse_program": params.get("experiment"),
-            "acquisition_time": params.get("x_acq_time"),
-            "relaxation_delay": params.get("relaxation_delay"),
-            "pulse_width": params.get("x90"),
-            "acquisition_date": (date["year"], date["month"], date["day"]),
         }
     return NormalizedAcquisition(
         data=work, axes=(axis,), dimensions=("F2",), physical_dimensions=("F2",),
@@ -344,8 +357,14 @@ def _jeol_2d_time_axis(result, index, size, axis_name):
     return axis, width, nominal_size
 
 
-def normalize_jeol_2d(result, *, conjugation):
-    """Untile a qualified raw JEOL 2D acquisition and calibrate sampled times."""
+def normalize_jeol_2d(result, *, conjugation, legacy_presentation=False):
+    """Untile a raw JEOL acquisition and calibrate sampled times.
+
+    The optional public presentation covers regular single-matrix acquisitions
+    with conjugated samples. It permits direct FFT and leaves F1 unqualified.
+    """
+    if type(legacy_presentation) is not bool:
+        raise ValueError("JEOL legacy_presentation must be a bool")
     if not isinstance(result, ReadResult) or result.format != "jeol-2d-storage":
         raise ValueError("normalize_jeol_2d requires a jeol-2d-storage ReadResult")
     if conjugation not in ("none", "conjugate"):
@@ -359,6 +378,12 @@ def normalize_jeol_2d(result, *, conjugation):
         (("complex", "complex"), ("ranged", "listed")),
     ):
         raise ValueError("JEOL 2D requires a qualified regular or listed raw layout")
+    if legacy_presentation and (
+        axis_modes != ("ranged", "ranged")
+        or header["reversed"][0]
+        or conjugation != "conjugate"
+    ):
+        raise ValueError("JEOL public 2D presentation requires regular conjugated traces")
     if (
         result.data.shape != shape or result.data.dtype.kind != "f"
         or result.data.dtype.itemsize != 8 or result.dimensions != layout
@@ -406,19 +431,31 @@ def normalize_jeol_2d(result, *, conjugation):
         "axis": "F2", "scale": None, "conjugation": conjugation, "sign": "none",
         "permutation": None, "evidence": "JDF tile order and section pairs; caller-selected conjugation",
     }
+    acquisition = {
+        "dwell_time_s": (1 / y_width, 1 / x_width),
+        "spectral_width_hz": (y_width, x_width),
+        "sampling": ("listed" if channel_axis is not None else "regular", "regular"),
+        "nominal_shape": (nominal_y, nx),
+    }
+    if legacy_presentation:
+        params = result.metadata["parameters"]
+        acquisition.update(
+            legacy_presentation=_legacy_metadata(header, params),
+            nucleus=tuple(params.get(f"{axis}_domain") for axis in ("y", "x")),
+            carrier_offset_ppm=tuple(
+                _carrier_offset(params, axis, required=True) for axis in ("y", "x")
+            ),
+        )
     return NormalizedAcquisition(
         data=data, axes=(y_axis, x_axis), dimensions=output_dimensions,
         physical_dimensions=dimensions, domains=("time", "time"),
-        quadrature_mode="jeol-stored-section-pairs", branch_order=branch_order,
+        quadrature_mode=("f2-traces-stored-2d" if legacy_presentation
+                         else "jeol-stored-section-pairs"),
+        branch_order=("complex",) if legacy_presentation else branch_order,
         channel_axis=channel_axis, normalization_state="storage-normalized",
         normalization_profile="jeol-2d-time-v1", applied_operations=(operation,),
         provenance={"source": result.source, "format": result.format},
-        acquisition={
-            "dwell_time_s": (1 / y_width, 1 / x_width),
-            "spectral_width_hz": (y_width, x_width),
-            "sampling": ("listed" if channel_axis is not None else "regular", "regular"),
-            "nominal_shape": (nominal_y, nx),
-        },
+        acquisition=acquisition,
         metadata=result.metadata, diagnostics=result.diagnostics,
-        encoding=(types[1], types[0]),
+        encoding=("unknown", "complex") if legacy_presentation else (types[1], types[0]),
     )

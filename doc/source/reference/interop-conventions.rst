@@ -763,6 +763,12 @@ The channels hold section pairs (0, 1) and (2, 3) in that order.
     print(fid.axes[0].values)  # acquired indirect times, in seconds
     print(fid.acquisition["nominal_shape"])  # full sampling grid
 
+With ``conjugation="conjugate"``, ``legacy_presentation=True`` qualifies the
+regular single-matrix layout for the historical direct FFT. The result
+describes F2 traces in physical ``(F1, F2)`` order, with the sweep widths and
+carrier offsets in the same order. F1 quadrature remains unqualified.
+Listed indirect sampling continues to use the explicit section-pair contract.
+
 Both time axes follow the order of the stored points. The header's reversal flags
 remain available in the metadata. A regular axis is calibrated with
 its sweep width and checked against the header endpoints. A listed Y

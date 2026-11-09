@@ -303,6 +303,31 @@ def test_normalize_jeol_2d_reference(
         np.testing.assert_array_equal(normalized.data[1], -legacy[1::2])
 
 
+def test_jeol_cosy_public_presentation():
+    path = _JDF_FIXTURES / "epicatechin_cosy.jdf"
+    stored = interop.read(path)
+    result = interop.normalize(stored, conjugation="conjugate", legacy_presentation=True)
+    assert result.quadrature_mode == "f2-traces-stored-2d"
+    assert result.encoding == ("unknown", "complex")
+    assert result.branch_order == ("complex",)
+    assert result.acquisition["carrier_offset_ppm"] == (5.0, 5.0)
+    assert result.acquisition["spectral_width_hz"] == pytest.approx(
+        (1 / 166.74e-6, 1 / 133.12e-6)
+    )
+    assert result.acquisition["legacy_presentation"]["pulse_program"] == "cosy.jxp"
+    np.testing.assert_array_equal(result.data, jeol.read(path)[1])
+
+
+@pytest.mark.parametrize(
+    "filename, conjugation",
+    [("epicatechin_cosy.jdf", "none"), ("epicatechin_hsqc.jdf", "conjugate")],
+)
+def test_jeol_public_2d_presentation_refuses_unqualified_input(filename, conjugation):
+    stored = interop.read(_JDF_FIXTURES / filename)
+    with pytest.raises(ValueError, match="regular conjugated traces"):
+        interop.normalize(stored, conjugation=conjugation, legacy_presentation=True)
+
+
 @pytest.mark.parametrize(
     "index, time_ms",
     [(1, float("nan")), (1, 0.0), (1, 0.1), (1, 20.0),
