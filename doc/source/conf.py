@@ -143,6 +143,7 @@ html_theme_options = {
     'repository_url': 'https://github.com/spectrochempy/nmrglue-ng',
     'use_repository_button': True,
     'use_issues_button': True,
+    'use_download_button': False,
     'home_page_in_toc': False,
     'show_navbar_depth': 2,
     'collapse_navbar': True,
