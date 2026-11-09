@@ -7,21 +7,18 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
-- Read short SIMPSON XREIM and complete XYREIM grids without requiring
-  blank separators. Offer ascending XYREIM axes for legacy consumers. (#223)
-- Accept padded SIMPSON headers and reject incomplete TEXT sample blocks.
+## 1.2.4 - 2026-11-10
 
-- Offer the historical interleaved matrix for listed JEOL 2D acquisitions
-  while preserving the acquired F1 time for each pair of rows. (#222)
-
-- Describe the direct FFT and acquisition metadata for qualified regular
-  JEOL 2D FID matrices. Keep the indirect transform unqualified. (#221)
-
+- Read short indexed SIMPSON XREIM files, padded headers, and complete
+  XYREIM grids with or without blank separators. Set `legacy_layout=True`
+  to sort both XYREIM axes for SpectroChemPy compatibility. Reject incomplete
+  TEXT blocks and incomplete or duplicated XYREIM samples. (#223)
+- Expose the JEOL complex 1D carrier offset and opt-in historical
+  presentation. Qualify the direct F2 convention for regular and listed 2D
+  acquisitions. The listed presentation pairs each acquired F1 time with
+  its two historical rows. F1 remains unqualified. (#220, #221, #222)
 - Organize the workflow guides and JBNMR examples under Tutorials, restore
   historical data links, and document verified experimental results. (#216)
-
-- Preserve the qualified JEOL 1D FID carrier offset and offer opt-in
-  acquisition metadata and the historical display FFT convention. (#220)
 
 ## 1.2.3 - 2026-11-09
 
