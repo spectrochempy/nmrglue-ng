@@ -133,6 +133,7 @@ def read_agilent_fid_storage(directory, *, states_only=False, tppi_only=False, s
                 matches = (
                     expected == (blocks * traces, words)
                     and metadata["S_DATA"] == metadata["S_COMPLEX"] == 1
+                    and metadata["S_SPEC"] == metadata["S_HYPERCOMPLEX"] == 0
                 )
             else:
                 matches = traces == 1 and expected_shape == (blocks, words)
