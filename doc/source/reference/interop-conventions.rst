@@ -361,6 +361,22 @@ No SpectroChemPy dependency is added to this producer.
 
 :func:`~nmrglue.interop.normalize_bruker_fid`
 
+Normalized Bruker QF SER
+------------------------
+
+Use ``normalize_bruker_ser_qf()`` or generic ``normalize()`` with an
+uncorrected QF result from ``read_bruker_ser()``::
+
+   raw = ng.interop.read_bruker_ser("/path/to/acquisition")
+   normalized = ng.interop.normalize(raw)
+
+The normalized data contain real and imaginary F2 planes, in the stored
+complex convention, with shape ``(2, F1, F2)``. F1 is real and both time
+axes retain their physical order and calibrated sampling. This profile
+requires a complete, uniformly sampled grid and excludes prefiltered or
+otherwise corrected input. Filter correction, DC removal and scan/gain
+normalization remain separate processing operations.
+
 Normalized Bruker processed 1D spectra (experimental)
 -----------------------------------------------------
 

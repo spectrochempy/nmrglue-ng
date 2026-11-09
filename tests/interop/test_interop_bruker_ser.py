@@ -1,5 +1,7 @@
 """Self-contained tests for the additive Bruker raw 2D QF profile."""
 
+from dataclasses import replace
+
 import numpy as np
 import pytest
 
@@ -155,3 +157,57 @@ def test_bruker_qf_ser_rejects_qsim_direct_mode(monkeypatch, tmp_path):
 
     with pytest.raises(ValueError, match="AQ_mod=3"):
         ng.interop.read_bruker_ser(str(tmp_path))
+
+
+def test_normalize_qf_ser_preserves_direct_components(monkeypatch, tmp_path):
+    data = _ser_data()
+    monkeypatch.setattr(ng.bruker, "read", lambda *args, **kwargs: (_ser_dictionary(), data))
+    source = ng.interop.read_bruker_ser(tmp_path)
+    normalized = ng.interop.normalize(source)
+    assert normalized.dimensions == ("channels", "F1", "F2")
+    assert normalized.encoding == ("real", "complex")
+    assert normalized.branch_order == ("rr", "ri")
+    assert normalized.acquisition["spectral_width_hz"] == (1000.0, 1000.0)
+    np.testing.assert_array_equal(normalized.data, np.stack((data.real, data.imag)))
+    np.testing.assert_array_equal(normalized.axes[0].values, np.arange(3) / 1000)
+    np.testing.assert_array_equal(normalized.axes[1].values, np.arange(4) / 1000)
+
+
+def test_normalize_qf_ser_refuses_nonuniform_sampling(monkeypatch, tmp_path):
+    metadata = _ser_dictionary()
+    metadata["acqus"]["FnTYPE"] = 2
+    monkeypatch.setattr(ng.bruker, "read", lambda *args, **kwargs: (metadata, _ser_data()))
+    source = ng.interop.read_bruker_ser(tmp_path)
+    with pytest.raises(ValueError, match="uniform sampling"):
+        ng.interop.normalize(source)
+
+
+@pytest.mark.parametrize("extra_record", ["dc_offset", "digital_filter"])
+def test_normalize_qf_ser_refuses_unknown_correction_evidence(monkeypatch, tmp_path, extra_record):
+    monkeypatch.setattr(ng.bruker, "read", lambda *args, **kwargs: (_ser_dictionary(), _ser_data()))
+    source = ng.interop.read_bruker_ser(tmp_path)
+    corrections = dict(source.applied_corrections)
+    if extra_record == "digital_filter":
+        corrections[extra_record] = {**corrections[extra_record], "phase_applied": True}
+    else:
+        corrections[extra_record] = {"applied": True}
+    with pytest.raises(ValueError, match="uncorrected SER"):
+        ng.interop.normalize(replace(source, applied_corrections=corrections))
+
+
+@pytest.mark.parametrize("invalid", ["complex", "nonfinite", "unrepresentable_width"])
+def test_normalize_qf_ser_refuses_invalid_time_grid(monkeypatch, tmp_path, invalid):
+    monkeypatch.setattr(ng.bruker, "read", lambda *args, **kwargs: (_ser_dictionary(), _ser_data()))
+    source = ng.interop.read_bruker_ser(tmp_path)
+    axis = source.axes[1]
+    values = axis.values.copy()
+    if invalid == "complex":
+        values = values.astype(complex)
+    elif invalid == "nonfinite":
+        values[1:] = np.inf
+    else:
+        first, second = source.acquisition["axes"]
+        acquisition = {**source.acquisition, "axes": (first, {**second, "SW_hz": 5e-324})}
+        source = replace(source, acquisition=acquisition)
+    with pytest.raises(ValueError, match="time grid"):
+        ng.interop.normalize(replace(source, axes=(source.axes[0], replace(axis, values=values))))
