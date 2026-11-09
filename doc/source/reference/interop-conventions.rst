@@ -418,6 +418,23 @@ When selected processing files are supplied to the storage reader,
 States-TPPI cross-pair transform, with each axis's display calibration and
 initial phase.
 
+Normalized Bruker echo/anti-echo SER
+------------------------------------
+
+Use ``normalize_bruker_ser_echo_antiecho()`` with the result of
+``read_bruker_ser_storage()`` for complete uniform echo/anti-echo with
+direct DQD. The normalized complex planes represent the first and second
+stored traces of each pair. The profile leaves their reconstruction to
+the consumer. A positive explicit GRPDLY is available in the digital-filter
+record in points. The optional DC, filter and gain options operate on
+individual traces before pairing, as in the States-TPPI profile.
+
+Use ``echo_antiecho_only=True`` on the storage reader to check the profile
+before decoding the traces. The optional ``fft_presentation=True`` on the
+normalizer declares the public branchwise FFT convention, its initial
+phases and the display calibration when the required parameters are
+available. This descriptor leaves the stored branches unchanged.
+
 Normalized Bruker processed 1D spectra (experimental)
 -----------------------------------------------------
 

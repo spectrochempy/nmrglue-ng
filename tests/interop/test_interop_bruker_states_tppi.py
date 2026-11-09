@@ -207,3 +207,43 @@ def test_normalize_states_tppi_storage_preserves_asymmetric_pairs_and_padding(tm
     (tmp_path / "nuslist").write_text("0\n1\n")
     with pytest.raises(ValueError, match="uniform States-TPPI"):
         ng.interop.normalize_bruker_ser_states_tppi(ng.interop.read_bruker_ser_storage(tmp_path))
+
+
+def test_normalize_echo_antiecho_storage_keeps_branch_order_and_delay(tmp_path):
+    (tmp_path / "acqus").write_text(
+        "##TITLE= Synthetic direct\n"
+        "##$TD= 16\n##$BYTORDA= 0\n##$DTYPA= 0\n##$AQ_mod= 3\n"
+        "##$FnTYPE= 0\n##$SW_h= 2000\n##$SFO1= 125\n"
+        "##$DECIM= 2.5\n##$DSPFVS= 12\n##$GRPDLY= 2.75\n##END=\n"
+    )
+    (tmp_path / "acqu2s").write_text(
+        "##TITLE= Synthetic indirect\n"
+        "##$TD= 4\n##$FnMODE= 6\n##$SW= 10\n##$SFO1= 100\n##END=\n"
+    )
+    words = np.arange(4 * 256, dtype=np.int32).reshape(4, 256)
+    (tmp_path / "ser").write_bytes(words.astype("<i4").tobytes())
+    stored = ng.interop.read_bruker_ser_storage(tmp_path, echo_antiecho_only=True)
+    presented = ng.interop.normalize_bruker_ser_echo_antiecho(
+        stored, fft_presentation=True
+    )
+    assert presented.acquisition["fft_presentation"]["F1"]["transform"] == (
+        "echo-antiecho-branch-fft"
+    )
+    assert presented.acquisition["fft_presentation"]["F2"]["transform"] == (
+        "conjugate-input"
+    )
+    with pytest.raises(ValueError, match="States-TPPI"):
+        ng.interop.read_bruker_ser_storage(tmp_path, states_tppi_only=True)
+    result = ng.interop.normalize_bruker_ser_echo_antiecho(stored)
+    assert result.branch_order == ("first", "second")
+    assert result.encoding == ("echo-antiecho", "complex")
+    assert result.acquisition["reconstruction"] == "not_applied"
+    assert result.acquisition["digital_filter"] == {
+        "requested": False, "applied": False, "group_delay_points": 2.75,
+    }
+    traces = words[:, :16:2] + 1j * words[:, 1:16:2]
+    np.testing.assert_array_equal(result.data, np.stack((traces[::2], traces[1::2])))
+    np.testing.assert_array_equal(result.axes[0].values, np.arange(2) / 1000)
+    np.testing.assert_array_equal(result.axes[1].values, np.arange(8) / 2000)
+    with pytest.raises(ValueError, match="uniform States-TPPI"):
+        ng.interop.normalize_bruker_ser_states_tppi(stored)

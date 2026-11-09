@@ -33,7 +33,7 @@ def _trace_result(path, data, metadata, format_name, **dimensions):
 
 def read_bruker_ser_storage(
     directory, *, acqus_files=None, procs_files=None, states_tppi_only=False,
-    read_pulseprogram=False,
+    echo_antiecho_only=False, read_pulseprogram=False,
 ):
     """Read a standard Bruker SER as scalar traces, including row padding.
 
@@ -41,18 +41,23 @@ def read_bruker_ser_storage(
     acquisition mode, indirect sizes and referencing parameters. Trace count
     comes from the binary file and its 1024-byte-aligned trace stride.
     Explicit parameter file lists may be supplied. Set
-    ``states_tppi_only=True`` to preflight the acquisition mode before
-    decoding the binary.
+    ``states_tppi_only=True`` or ``echo_antiecho_only=True`` to preflight
+    the requested acquisition mode before decoding the binary.
     """
     directory = Path(directory)
     metadata = bruker.read_acqus_file(directory, acqus_files)
-    if states_tppi_only and (
+    if states_tppi_only and echo_antiecho_only:
+        raise ValueError("select one Bruker SER mode for preflight")
+    paired_only = states_tppi_only or echo_antiecho_only
+    mode = 6 if echo_antiecho_only else 5
+    if paired_only and (
         metadata.get("acqus", {}).get("FnTYPE", 0) != 0
         or metadata.get("acqus", {}).get("AQ_mod") != 3
-        or metadata.get("acqu2s", {}).get("FnMODE") != 5
+        or metadata.get("acqu2s", {}).get("FnMODE") != mode
         or (directory / "nuslist").exists()
     ):
-        raise ValueError("Bruker SER requires uniform States-TPPI with direct DQD")
+        label = "echo/anti-echo" if echo_antiecho_only else "States-TPPI"
+        raise ValueError(f"Bruker SER requires uniform {label} with direct DQD")
     if procs_files is not None:
         metadata.update(bruker.read_procs_file(directory, list(procs_files)))
     td = _raw_integer(metadata, "acqus", "TD")
@@ -67,11 +72,11 @@ def read_bruker_ser_storage(
         trace_count, remainder = divmod(os.fstat(stream.fileno()).st_size, trace_bytes)
         if not trace_count or remainder:
             raise ValueError("Bruker SER size disagrees with the aligned trace stride")
-        if states_tppi_only and (
+        if paired_only and (
             td < 4 or td % 2 or trace_count < 4 or trace_count % 2
             or trace_count != _raw_integer(metadata, "acqu2s", "TD")
         ):
-            raise ValueError("States-TPPI requires complete paired TD geometry")
+            raise ValueError("Bruker SER requires complete paired TD geometry")
         words = bruker.get_data(stream, big=bool(byte_order), isfloat=data_type == 2)
     data = words.reshape(trace_count, trace_bytes // word_bytes)
     for filename in ("nuslist", "pulseprogram"):
