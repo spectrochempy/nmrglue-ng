@@ -259,15 +259,18 @@ def normalize_jeol_fid(result, *, conjugation, legacy_presentation=False):
     if offset is not None:
         record = params.get("info", {}).get("x_offset", {})
         expected_units = [("none", 1, "ppm")] + [("none", 0, None)] * 4
+        try:
+            offset = float(offset)
+        except (TypeError, ValueError, OverflowError):
+            offset = float("nan")
         if (
-            record.get("value_type") not in ("integer", "float")
-            or record.get("units") != expected_units
-            or not np.isfinite(offset)
+            record.get("value_type") in ("integer", "float")
+            and record.get("units") == expected_units
+            and np.isfinite(offset)
         ):
-            if legacy_presentation:
-                raise ValueError("JEOL legacy presentation requires a finite offset in ppm")
-        else:
-            acquisition["carrier_offset_ppm"] = float(offset)
+            acquisition["carrier_offset_ppm"] = offset
+        elif legacy_presentation:
+            raise ValueError("JEOL legacy presentation requires a finite offset in ppm")
     if legacy_presentation:
         date = header["creation_time"]
         acquisition["legacy_presentation"] = {
@@ -279,8 +282,8 @@ def normalize_jeol_fid(result, *, conjugation, legacy_presentation=False):
             "solvent": params.get("solvent"),
             "sample": params.get("sample"),
             "pulse_program": params.get("experiment"),
-            "acquisition_time_s": params.get("x_acq_time"),
-            "relaxation_delay_s": params.get("relaxation_delay"),
+            "acquisition_time": params.get("x_acq_time"),
+            "relaxation_delay": params.get("relaxation_delay"),
             "pulse_width": params.get("x90"),
             "acquisition_date": (date["year"], date["month"], date["day"]),
         }

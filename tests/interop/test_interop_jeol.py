@@ -169,6 +169,31 @@ def test_epicatechin_fid_legacy_presentation():
     assert display["acquisition_date"] == (2019, 8, 5)
 
 
+@pytest.mark.parametrize("scaler, expected", [(20, 5e20), (308, None)])
+def test_jeol_fid_scaled_integer_offset(tmp_path, scaler, expected):
+    payload = bytearray((_JDF_FIXTURES / "epicatechin_1h.jdf").read_bytes())
+    record = payload.index(b"X_OFFSET") - 36
+    struct.pack_into("<h", payload, record + 4, scaler)
+    struct.pack_into("<i", payload, record + 16, 5)
+    struct.pack_into("<i", payload, record + 32, 1)
+    path = tmp_path / "integer-offset.jdf"
+    path.write_bytes(payload)
+    stored = interop.read_jeol_fid(path)
+    assert stored.metadata["parameters"]["x_offset"] == 5 * 10 ** scaler
+    ordinary = interop.normalize_jeol_fid(stored, conjugation="none")
+    assert ordinary.acquisition.get("carrier_offset_ppm") == expected
+    if expected is None:
+        with pytest.raises(ValueError, match="finite offset in ppm"):
+            interop.normalize_jeol_fid(
+                stored, conjugation="conjugate", legacy_presentation=True,
+            )
+    else:
+        legacy = interop.normalize_jeol_fid(
+            stored, conjugation="conjugate", legacy_presentation=True,
+        )
+        assert legacy.acquisition["carrier_offset_ppm"] == expected
+
+
 @pytest.mark.parametrize(
     "experiment, grid, count, data_offset, list_offset, second_time",
     [
