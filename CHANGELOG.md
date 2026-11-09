@@ -10,16 +10,19 @@ original nmrglue project and are preserved for attribution and continuity.
 - Fix automatic peak-minima phasing when a scoring window reaches a
   spectrum boundary. (#207)
 
+## 1.2.2 - 2026-11-09
+
 - Fix Cadzow enhancement for 2D arrays by processing each row independently. (#205)
 
 - Allow Bruker raw readers to retain flat samples after a declared shape
-  mismatch and skip opening the NUS schedule independently.
+  mismatch, select the historical layout, and skip opening the NUS schedule
+  independently. (#204)
 
 - Add opt-in Bruker 2D pdata normalization for calibrated complex channel pairs,
-  with acquisition or processing axes and explicit receiver gain.
+  with acquisition or processing axes and explicit receiver gain. (#203)
 
 - Normalize complete uniform Bruker echo/anti-echo SER storage and retain
-  both branches in file order for downstream reconstruction.
+  both branches in file order for downstream reconstruction. (#202)
 
 - Normalize complete uniform Bruker States-TPPI SER storage, preserving
   acquired E1/E2 branches and deferring indirect alternation. (#201)
