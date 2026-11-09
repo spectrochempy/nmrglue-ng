@@ -7,6 +7,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Normalize complete uniform Bruker States-TPPI SER storage, preserving
+  acquired E1/E2 branches and deferring indirect alternation. (#201)
+
 - Offer explicit per-trace DC removal, digital-filter correction and scan/gain
   normalization for complete Bruker QF SER data. (#200)
 

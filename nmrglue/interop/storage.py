@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import struct
 from pathlib import Path
+from warnings import warn
 
 from ..fileio import bruker, varian
 from .bruker import _raw_integer, _raw_number
@@ -30,15 +31,30 @@ def _trace_result(path, data, metadata, format_name, **dimensions):
     )
 
 
-def read_bruker_ser_storage(directory):
+def read_bruker_ser_storage(
+    directory, *, acqus_files=None, procs_files=None, states_tppi_only=False,
+    read_pulseprogram=False,
+):
     """Read a standard Bruker SER as scalar traces, including row padding.
 
     The acquisition status files describe the stored words and retain the
     acquisition mode, indirect sizes and referencing parameters. Trace count
     comes from the binary file and its 1024-byte-aligned trace stride.
+    Explicit parameter file lists may be supplied. Set
+    ``states_tppi_only=True`` to preflight the acquisition mode before
+    decoding the binary.
     """
     directory = Path(directory)
-    metadata = bruker.read_acqus_file(directory)
+    metadata = bruker.read_acqus_file(directory, acqus_files)
+    if states_tppi_only and (
+        metadata.get("acqus", {}).get("FnTYPE", 0) != 0
+        or metadata.get("acqus", {}).get("AQ_mod") != 3
+        or metadata.get("acqu2s", {}).get("FnMODE") != 5
+        or (directory / "nuslist").exists()
+    ):
+        raise ValueError("Bruker SER requires uniform States-TPPI with direct DQD")
+    if procs_files is not None:
+        metadata.update(bruker.read_procs_file(directory, list(procs_files)))
     td = _raw_integer(metadata, "acqus", "TD")
     byte_order = _raw_number(metadata, "acqus", "BYTORDA")
     data_type = _raw_number(metadata, "acqus", "DTYPA")
@@ -51,12 +67,22 @@ def read_bruker_ser_storage(directory):
         trace_count, remainder = divmod(os.fstat(stream.fileno()).st_size, trace_bytes)
         if not trace_count or remainder:
             raise ValueError("Bruker SER size disagrees with the aligned trace stride")
+        if states_tppi_only and (
+            td < 4 or td % 2 or trace_count < 4 or trace_count % 2
+            or trace_count != _raw_integer(metadata, "acqu2s", "TD")
+        ):
+            raise ValueError("States-TPPI requires complete paired TD geometry")
         words = bruker.get_data(stream, big=bool(byte_order), isfloat=data_type == 2)
     data = words.reshape(trace_count, trace_bytes // word_bytes)
     for filename in ("nuslist", "pulseprogram"):
         ancillary = directory / filename
         if ancillary.is_file():
             metadata[filename + "_raw"] = ancillary.read_bytes()
+    if read_pulseprogram and (directory / "pulseprogram").is_file():
+        try:
+            metadata["pprog"] = bruker.read_pprog(directory / "pulseprogram")
+        except (OSError, ValueError, IndexError):
+            warn("Error reading the pulse program", stacklevel=2)
     return _trace_result(path, data, metadata, "bruker-ser-storage", declared_td=td)
 
 

@@ -6,11 +6,11 @@ from dataclasses import replace
 import numpy as np
 
 from ..fileio import bruker
-from .bruker import _raw_number
-from .result import NormalizedAcquisition, ReadResult
+from .bruker import _raw_integer, _raw_number
+from .result import Axis, NormalizedAcquisition, ReadResult, Reference
 
 
-def _fft_presentation(metadata, shape):
+def _fft_presentation(metadata, shape, *, indirect_transform="conjugate-input"):
     presentation = {}
     for size, (role, acqu, proc) in zip(
         shape, (("F1", "acqu2", "proc2"), ("F2", "acqu", "proc")), strict=True
@@ -23,7 +23,9 @@ def _fft_presentation(metadata, shape):
         reference = _raw_number(acquisition, "acqus", "BF1")
         ppm_width = _raw_number(acquisition, "acqus", "SW")
         sf = _raw_number(processing, "procs", "SF")
-        entry: dict[str, object] = {"transform": "conjugate-input"}
+        entry: dict[str, object] = {
+            "transform": indirect_transform if role == "F1" else "conjugate-input",
+        }
         if (
             observation is not None and reference is not None
             and ppm_width is not None and sf is not None
@@ -62,6 +64,52 @@ def _fft_presentation(metadata, shape):
         }
         presentation[role] = entry
     return presentation
+
+
+def _correct_ser_traces(
+    data, metadata, filter_parameters, *,
+    remove_dc_offset, remove_digital_filter, normalize_scan_gain,
+):
+    corrected = data
+    if remove_dc_offset:
+        corrected = corrected - corrected.mean(axis=-1, keepdims=True)
+    filter_trace = {"requested": remove_digital_filter, "applied": False}
+    if remove_digital_filter:
+        parameters = {"acqus": filter_parameters}
+        decimation = _raw_number(parameters, "acqus", "DECIM")
+        if decimation is None or decimation < 1:
+            raise ValueError("Bruker SER filter requires valid decimation evidence")
+        if decimation > 1:
+            firmware = _raw_number(parameters, "acqus", "DSPFVS")
+            delay = _raw_number(parameters, "acqus", "GRPDLY")
+            if firmware is None or not firmware.is_integer():
+                raise ValueError("Bruker SER filter requires valid firmware evidence")
+            if (delay is None or delay <= 0) and not decimation.is_integer():
+                raise ValueError("Bruker SER fractional decimation requires explicit group delay")
+            corrected = bruker.remove_digital_filter(parameters, corrected, truncate=True)
+            if corrected.shape[1] < 2:
+                raise ValueError("Bruker SER filter leaves fewer than two direct points")
+            filter_trace = {
+                "requested": True, "applied": True,
+                "removed_points": data.shape[1] - corrected.shape[1],
+            }
+    gain_trace = {"applied": normalize_scan_gain}
+    scale = None
+    if normalize_scan_gain:
+        acqus = {**metadata.get("acqu", {}), **metadata.get("acqus", {})}
+        scans = _raw_number({"acqus": acqus}, "acqus", "NS")
+        gain = _raw_number({"acqus": acqus}, "acqus", "RG")
+        divisor = (1.0 if scans is None else scans) * (1.0 if gain is None else gain)
+        if (scans is not None and scans <= 0) or (gain is not None and gain <= 0):
+            raise ValueError("Bruker SER scan count and gain must be positive")
+        if not np.isfinite(divisor) or divisor <= 0 or not np.isfinite(1.0 / divisor):
+            raise ValueError("invalid Bruker SER scan/gain divisor")
+        scale = 1.0 / divisor
+        corrected = corrected / divisor
+        gain_trace = {"applied": True, "scans": scans, "receiver_gain": gain, "divisor": divisor}
+    if corrected is not data and not np.isfinite(corrected).all():
+        raise ValueError("Bruker SER correction produced nonfinite samples")
+    return corrected, filter_trace, gain_trace, scale
 
 
 def normalize_bruker_ser_qf(
@@ -144,45 +192,12 @@ def normalize_bruker_ser_qf(
             raise ValueError("Bruker QF time grid is inconsistent with spectral width")
         widths.append(width)
 
-    corrected = data
-    if remove_dc_offset:
-        corrected = corrected - corrected.mean(axis=-1, keepdims=True)
-    filter_trace = {"requested": remove_digital_filter, "applied": False}
-    if remove_digital_filter:
-        parameters = {"acqus": digital_filter["parameters"]}
-        decimation = _raw_number(parameters, "acqus", "DECIM")
-        if decimation is None or decimation < 1:
-            raise ValueError("Bruker QF filter requires valid decimation evidence")
-        if decimation > 1:
-            firmware = _raw_number(parameters, "acqus", "DSPFVS")
-            delay = _raw_number(parameters, "acqus", "GRPDLY")
-            if firmware is None or not firmware.is_integer():
-                raise ValueError("Bruker QF filter requires valid firmware evidence")
-            if (delay is None or delay <= 0) and not decimation.is_integer():
-                raise ValueError("Bruker QF fractional decimation requires explicit group delay")
-            corrected = bruker.remove_digital_filter(parameters, corrected, truncate=True)
-            if corrected.shape[1] < 2:
-                raise ValueError("Bruker QF filter leaves fewer than two direct points")
-            filter_trace = {
-                "requested": True, "applied": True,
-                "removed_points": data.shape[1] - corrected.shape[1],
-            }
-    gain_trace = {"applied": normalize_scan_gain}
-    scale = None
-    if normalize_scan_gain:
-        acqus = {**result.metadata.get("acqu", {}), **result.metadata.get("acqus", {})}
-        scans = _raw_number({"acqus": acqus}, "acqus", "NS")
-        gain = _raw_number({"acqus": acqus}, "acqus", "RG")
-        divisor = (1.0 if scans is None else scans) * (1.0 if gain is None else gain)
-        if (scans is not None and scans <= 0) or (gain is not None and gain <= 0):
-            raise ValueError("Bruker QF scan count and gain must be positive")
-        if not np.isfinite(divisor) or divisor <= 0 or not np.isfinite(1.0 / divisor):
-            raise ValueError("invalid Bruker QF scan/gain divisor")
-        scale = 1.0 / divisor
-        corrected = corrected / divisor
-        gain_trace = {"applied": True, "scans": scans, "receiver_gain": gain, "divisor": divisor}
-    if corrected is not data and not np.isfinite(corrected).all():
-        raise ValueError("Bruker QF correction produced nonfinite samples")
+    corrected, filter_trace, gain_trace, scale = _correct_ser_traces(
+        data, result.metadata, digital_filter["parameters"],
+        remove_dc_offset=remove_dc_offset,
+        remove_digital_filter=remove_digital_filter,
+        normalize_scan_gain=normalize_scan_gain,
+    )
     axes = result.axes
     if corrected.shape[1] != data.shape[1]:
         direct_values = axes[1].values
@@ -239,5 +254,147 @@ def normalize_bruker_ser_qf(
         },
         metadata=result.metadata,
         encoding=("real", "complex"),
+        diagnostics=result.diagnostics,
+    )
+
+
+def normalize_bruker_ser_states_tppi(
+    result: ReadResult, *, preserve_storage=False, remove_dc_offset=False,
+    remove_digital_filter=False, normalize_scan_gain=False, fft_presentation=False,
+) -> NormalizedAcquisition:
+    """Pair a complete uniform States-TPPI SER without applying alternation.
+
+    The default uses the acquired TD words and applies no corrections.
+    Preserve the aligned length explicitly for public reader parity.
+    """
+    if not isinstance(result, ReadResult) or result.format != "bruker-ser-storage":
+        raise ValueError("States-TPPI normalization requires a Bruker SER storage result")
+    if not all(isinstance(value, bool) for value in (
+        preserve_storage, remove_dc_offset, remove_digital_filter, normalize_scan_gain,
+        fft_presentation,
+    )):
+        raise ValueError("States-TPPI correction and storage options must be booleans")
+    metadata = result.metadata
+    direct = metadata.get("acqus", {})
+    indirect = metadata.get("acqu2s", {})
+    if (
+        direct.get("FnTYPE", 0) != 0 or "nuslist_raw" in metadata
+        or direct.get("AQ_mod") != 3 or indirect.get("FnMODE") != 5
+    ):
+        raise ValueError("Bruker SER requires uniform States-TPPI with direct DQD")
+    rows = _raw_integer(metadata, "acqu2s", "TD")
+    words = _raw_integer(metadata, "acqus", "TD")
+    if rows is None or words is None or min(rows, words) < 4 or rows % 2 or words % 2:
+        raise ValueError("States-TPPI requires complete paired TD geometry")
+
+    data = np.asarray(result.data)
+    word_type = (data.dtype.kind, data.dtype.itemsize)
+    required_type = {0: ("i", 4), 2: ("f", 8)}.get(direct.get("DTYPA"))
+    if word_type != required_type:
+        raise ValueError("States-TPPI requires a supported scalar storage type")
+    stride = ((words * data.dtype.itemsize + 1023) // 1024) * 1024 // data.dtype.itemsize
+    if (
+        data.shape != (rows, stride)
+        or result.dimensions.get("declared_td") != words
+        or result.dimensions.get("axis_order") != ("trace", "word")
+        or result.dimensions.get("shape") != data.shape
+        or result.domains != ("unknown", "unknown") or result.applied_corrections
+        or len(result.components) != 1
+        or result.components[0].name != "stored-words"
+        or not np.array_equal(result.components[0].data, data, equal_nan=True)
+    ):
+        raise ValueError("States-TPPI requires uncorrected storage with complete TD geometry")
+    selected_words = stride if preserve_storage else words
+    selected = data[:, :selected_words]
+    if not np.isfinite(selected).all():
+        raise ValueError("States-TPPI selected samples must be finite")
+    traces = np.empty((rows, selected_words // 2), dtype=np.complex128)
+    traces.real = selected[:, ::2]
+    traces.imag = selected[:, 1::2]
+    traces, filter_trace, gain_trace, scale = _correct_ser_traces(
+        traces, metadata, direct,
+        remove_dc_offset=remove_dc_offset,
+        remove_digital_filter=remove_digital_filter,
+        normalize_scan_gain=normalize_scan_gain,
+    )
+
+    sw_f2 = _raw_number(metadata, "acqus", "SW_h")
+    sw_f1_ppm = _raw_number(metadata, "acqu2s", "SW")
+    obs_f1 = _raw_number(metadata, "acqu2s", "SFO1")
+    obs_f2 = _raw_number(metadata, "acqus", "SFO1")
+    if sw_f2 is None or sw_f1_ppm is None or obs_f1 is None or obs_f2 is None:
+        raise ValueError("States-TPPI requires both calibrated acquisition axes")
+    if min(sw_f2, sw_f1_ppm, obs_f1, obs_f2) <= 0:
+        raise ValueError("States-TPPI axis widths and observations must be positive")
+
+    widths = (sw_f1_ppm * obs_f1, sw_f2)
+    axes = []
+    for size, width, observation, section in zip(
+        (rows // 2, traces.shape[1]), widths, (obs_f1, obs_f2), (indirect, direct), strict=True
+    ):
+        if not np.isfinite(width) or width <= 0:
+            raise ValueError("unrepresentable States-TPPI spectral width")
+        with np.errstate(over="ignore"):
+            values = np.arange(size, dtype=float) / width
+        if not np.isfinite(values).all() or not np.all(values[1:] > values[:-1]):
+            raise ValueError("unrepresentable States-TPPI time grid")
+        axes.append(Axis(
+            values=values, unit="s", label=section.get("NUC1"),
+            domain="time", direction="increasing",
+            reference=Reference(
+                observation_frequency=observation, observation_frequency_unit="MHz",
+                source="acquisition",
+            ),
+        ))
+
+    order = ("F1", "F2")
+    dimensions = ("channels", *order)
+    components = np.stack((
+        traces[0::2].real, traces[0::2].imag,
+        traces[1::2].real, traces[1::2].imag,
+    ))
+    operation = {
+        "name": "pair-bruker-states-tppi-traces",
+        "stage": "acquisition",
+        "input_dimensions": ("trace", "word"),
+        "output_dimensions": dimensions,
+        "axis": "F1",
+        "scale": scale,
+        "conjugation": "none",
+        "sign": "none",
+        "permutation": None,
+        "evidence": "nmrglue.interop.read_bruker_ser_storage",
+        "padding_words_per_trace": stride - words,
+        "retained_padding_words_per_trace": selected_words - words,
+        "dc_offset": {"applied": remove_dc_offset},
+        "digital_filter": filter_trace,
+        "scan_gain": gain_trace,
+    }
+    presentation = (
+        {"fft_presentation": _fft_presentation(
+            metadata, components.shape[1:], indirect_transform="states-tppi-cross-pairs",
+        )}
+        if fft_presentation else {}
+    )
+    return NormalizedAcquisition(
+        data=components, axes=tuple(axes), dimensions=dimensions,
+        physical_dimensions=order, domains=("time", "time"),
+        quadrature_mode="stored-components-2d",
+        branch_order=("rr", "ri", "ir", "ii"), channel_axis=0,
+        normalization_state="storage-normalized",
+        normalization_profile="bruker-ser-states-tppi-2d-v1",
+        applied_operations=(operation,),
+        provenance={"source": result.source, "format": result.format},
+        acquisition={
+            "spectral_width_hz": widths,
+            "indirect_sampling": "states-tppi",
+            "tppi_alternation": "declared_not_applied",
+            **presentation,
+            "storage_shape": data.shape,
+            "dc_offset": operation["dc_offset"],
+            "digital_filter": filter_trace,
+            "scan_gain": gain_trace,
+        },
+        metadata=metadata, encoding=("complex", "complex"),
         diagnostics=result.diagnostics,
     )
