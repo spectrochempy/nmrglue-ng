@@ -103,3 +103,47 @@ def test_agilent_states_result_reports_missing_axis_metadata(monkeypatch, tmp_pa
     assert "sw1" in diagnostic.context["missing"]
     assert "sfrq2" in diagnostic.context["missing"]
     assert result.axes[0].values is None
+
+
+@pytest.mark.parametrize("legacy", [False, True])
+def test_normalize_states_scalar_storage(tmp_path, legacy):
+    dic, _ = _states_fixture()
+    procpar = dic["procpar"]
+    procpar["tn"] = _parameter(["C13"])
+    procpar["ns"] = _parameter([3])
+    procpar["ne"] = _parameter([2])
+    scalar = np.arange(24, dtype=np.float32).reshape(4, 6)
+    scalar[:, 1::2] *= -3
+    metadata = dict(dic, nblocks=4, S_SPEC=0, S_HYPERCOMPLEX=0)
+    from nmrglue.interop.storage import _trace_result
+
+    result = _trace_result(
+        tmp_path / "fid", scalar, metadata, "agilent-fid-storage",
+        blocks=4, traces_per_block=1,
+    )
+    normalized = ng.interop.normalize(result, legacy_presentation=legacy)
+
+    expected = scalar[:, ::2] + 1j * scalar[:, 1::2]
+    divisor = 6 if legacy else 1
+    np.testing.assert_array_equal(normalized.data[0], expected[::2] / divisor)
+    np.testing.assert_array_equal(normalized.data[1], expected[1::2] / divisor)
+    np.testing.assert_array_equal(normalized.axes[1].values, [0, 20e-6, 40e-6])
+    if legacy:
+        assert normalized.axes[0].values is None
+        assert normalized.axes[1].label == "H1"
+        assert normalized.applied_operations[-1]["divisor"] == divisor
+    else:
+        np.testing.assert_allclose(normalized.axes[0].values, [0, 0.00018])
+        assert normalized.axes[1].label == "C13"
+        assert len(normalized.applied_operations) == 1
+    assert normalized.quadrature_mode == "states-stored-2d"
+    assert normalized.encoding == ("states", "complex")
+
+
+@pytest.mark.parametrize("key, value", [("phase", [2, 1]), ("array", ["phase,pw"]), ("ni2", [2])])
+def test_states_storage_preflight_rejects_unsupported_array(monkeypatch, tmp_path, key, value):
+    dic, _ = _states_fixture()
+    dic["procpar"][key] = _parameter(value)
+    monkeypatch.setattr(ng.varian, "read_procpar", lambda _: dic["procpar"])
+    with pytest.raises(ValueError, match="States storage requires"):
+        ng.interop.read_agilent_fid_storage(tmp_path, states_only=True)

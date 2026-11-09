@@ -52,7 +52,7 @@ from .nmrpipe_read import (
     read_nmrpipe_2d_storage,
 )
 from .normalize import normalize_agilent_fid, normalize_bruker_fid, normalize_bruker_pdata
-from .varian import read_agilent_fid, read_agilent_states_2d
+from .varian import normalize_agilent_states_2d, read_agilent_fid, read_agilent_states_2d
 from .result import (
     DIAGNOSTIC_CONTEXT_SCHEMA,
     Axis,
@@ -65,6 +65,7 @@ from .result import (
 
 _NORMALIZERS: dict[str, Callable[..., NormalizedAcquisition]] = {
     "agilent-fid": normalize_agilent_fid,
+    "agilent-fid-storage": normalize_agilent_states_2d,
     "bruker-fid": normalize_bruker_fid,
     "bruker-ser-qf-2d": normalize_bruker_ser_qf,
     "bruker-pdata": normalize_bruker_pdata,
@@ -148,6 +149,7 @@ __all__ = [
     "read_agilent_fid",
     "read_agilent_states_2d",
     "normalize_agilent_fid",
+    "normalize_agilent_states_2d",
     "normalize_bruker_fid",
     "normalize_bruker_ser_echo_antiecho",
     "normalize_bruker_ser_qf",

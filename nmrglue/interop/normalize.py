@@ -61,6 +61,19 @@ def _agilent_frequency_axis(result):
     }
 
 
+def _scale_agilent_ns_ne(data, ns, ne):
+    if any(value is not None and value < 0 for value in (ns, ne)):
+        raise ValueError("Agilent compatibility presentation requires finite nonnegative NS and NE")
+    divisor = (ns or 1.0) * (ne or 1.0)
+    if not np.isfinite(divisor) or divisor <= 0 or not np.isfinite(1 / divisor):
+        raise ValueError("Agilent compatibility presentation requires a finite positive NS/NE divisor")
+    with np.errstate(over="ignore", invalid="ignore", divide="ignore"):
+        scaled = data / divisor
+    if not np.isfinite(scaled).all():
+        raise ValueError("Agilent compatibility presentation scaling produced non-finite samples")
+    return scaled, divisor
+
+
 def _agilent_public_fid(result, data, operation):
     """Preserve the historical public reader's 1D presentation and scaling."""
     from .varian import _number, _procpar_number, _procpar_string
@@ -70,15 +83,7 @@ def _agilent_public_fid(result, data, operation):
         raise ValueError("Agilent public FID requires a calibrated time axis and observation frequency")
     ns = _number(acquisition.get("NS"), "NS")
     ne = _number(acquisition.get("NE"), "NE")
-    if any(value is not None and value < 0 for value in (ns, ne)):
-        raise ValueError("Agilent public FID requires finite nonnegative NS and NE")
-    divisor = (ns or 1.0) * (ne or 1.0)
-    if not np.isfinite(divisor) or divisor <= 0 or not np.isfinite(1 / divisor):
-        raise ValueError("Agilent public FID requires a finite positive NS/NE divisor")
-    with np.errstate(over="ignore", invalid="ignore", divide="ignore"):
-        scaled = data / divisor
-    if not np.isfinite(scaled).all():
-        raise ValueError("Agilent public FID scaling produced non-finite samples")
+    scaled, divisor = _scale_agilent_ns_ne(data, ns, ne)
     procpar = result.metadata.get("procpar", {})
     presentation = {
         "fft_input_transform": "conjugate-input",

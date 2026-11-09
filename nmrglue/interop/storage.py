@@ -93,15 +93,23 @@ def read_bruker_ser_storage(
     return _trace_result(path, data, metadata, "bruker-ser-storage", declared_td=td)
 
 
-def read_agilent_fid_storage(directory):
+def read_agilent_fid_storage(directory, *, states_only=False):
     """Read Agilent/Varian FID scalar traces in block and trace order.
 
     Return the binary file and block headers alongside procpar. Each row
     contains the original scalar words, even for complex or hypercomplex
-    encodings. The binary geometry determines the shape.
+    encodings. The binary geometry determines the shape. With ``states_only``,
+    check the States trace topology before reading samples.
     """
     directory = Path(directory)
     path = directory / "fid"
+    procpar = directory / "procpar"
+    parameters = None
+    if states_only:
+        from .varian import _states_storage_shape
+
+        parameters = varian.read_procpar(procpar)
+        states_shape = _states_storage_shape(parameters)
     with path.open("rb") as stream:
         try:
             metadata = varian.fileheader2dic(varian.get_fileheader(stream))
@@ -111,6 +119,8 @@ def read_agilent_fid_storage(directory):
         traces = metadata["ntraces"]
         words = metadata["np"]
         headers = metadata["nbheaders"]
+        if states_only and (traces != 1 or (blocks, words) != states_shape):
+            raise ValueError("Agilent States storage disagrees with binary block dimensions")
         dtype = varian.find_dtype(metadata)
         trace_bytes = words * dtype.itemsize
         block_bytes = headers * 28 + traces * trace_bytes
@@ -128,8 +138,9 @@ def read_agilent_fid_storage(directory):
         metadata["blockheader"], data = varian.get_nblocks_ntraces(
             stream, blocks, traces, words, headers, dtype, True
         )
-    procpar = directory / "procpar"
-    if procpar.is_file():
+    if parameters is not None:
+        metadata["procpar"] = parameters
+    elif procpar.is_file():
         metadata["procpar"] = varian.read_procpar(procpar)
     return _trace_result(
         path,
