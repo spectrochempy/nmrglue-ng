@@ -15,7 +15,7 @@ complete commands, and results. Use the simplest case first, then choose
 the example that matches your format, dimensionality, or acquisition mode.
 
 1. Read the dataset and establish its axes
------------------------------------------
+------------------------------------------
 
 Read a file and identify the direct dimension, the domain, and the stored
 quadrature. Use the universal dictionary to describe the axes across formats.
@@ -75,7 +75,7 @@ when adapting a recipe to another experiment.
     ../how-to/processing
 
 5. Measure and validate the result
----------------------------------
+----------------------------------
 
 Use the processed spectrum to locate peaks, integrate regions, or fit a
 series. Compare the result with a simulation when you need to isolate
@@ -87,9 +87,3 @@ the effect of an analysis choice.
     ../how-to/quantification
     ../how-to/simulation
     additional-resources
-
-.. toctree::
-    :hidden:
-
-    ../how-to/index
-    ../jbnmr_examples/index

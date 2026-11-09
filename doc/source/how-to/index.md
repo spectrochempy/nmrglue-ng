@@ -1,3 +1,7 @@
+---
+orphan: true
+---
+
 # How-to guides
 
 These chapters are part of the {doc}`tutorial <../tutorials/index>`.
