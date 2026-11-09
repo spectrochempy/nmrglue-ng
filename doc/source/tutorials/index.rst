@@ -22,7 +22,7 @@ quadrature. Use the universal dictionary to describe the axes across formats.
 Choose the reader interface once you know which metadata your workflow needs.
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
 
     reading
     universal-dictionaries
@@ -38,7 +38,7 @@ measure. Move from points to calibrated coordinates when you need to
 interpret chemical shifts. The worked examples include experimental plots.
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
 
     plotting
     ../how-to/plotting
@@ -53,7 +53,7 @@ reading it back. Before processing a series, decide which traces belong
 together.
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
 
     writing-data
     converting-formats
@@ -69,7 +69,7 @@ of a multidimensional acquisition. Compare the intermediate checkpoints
 when adapting a recipe to another experiment.
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
 
     processing
     ../how-to/processing
@@ -82,7 +82,7 @@ series. Compare the result with a simulation when you need to isolate
 the effect of an analysis choice.
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
 
     ../how-to/quantification
     ../how-to/simulation
