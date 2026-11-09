@@ -194,8 +194,16 @@ def _positive_parameter(parameters, key, *, unit=None):
     return value
 
 
-def normalize_jeol_fid(result, *, conjugation):
-    """Trim padding and construct the time axis, with an explicit sign policy."""
+def normalize_jeol_fid(result, *, conjugation, legacy_presentation=False):
+    """Trim padding and construct the time axis, with an explicit sign policy.
+
+    The optional legacy presentation describes the conjugated-input display FFT
+    and preserves acquisition metadata used by historical JDF consumers.
+    """
+    if type(legacy_presentation) is not bool:
+        raise ValueError("JEOL legacy_presentation must be a bool")
+    if legacy_presentation and conjugation != "conjugate":
+        raise ValueError("JEOL legacy presentation requires conjugated samples")
     if not isinstance(result, ReadResult) or result.format != "jeol-fid-1d":
         raise ValueError("normalize_jeol_fid requires a jeol-fid-1d ReadResult")
     if conjugation not in ("none", "conjugate"):
@@ -238,15 +246,55 @@ def normalize_jeol_fid(result, *, conjugation):
         "axis": "F2", "scale": None, "conjugation": conjugation, "sign": "none",
         "permutation": None, "evidence": "JDF offsets and x_sweep; caller-selected conjugation",
     }
+    acquisition = {
+        "spectral_width_hz": width,
+        "dwell_time_s": 1 / width,
+        "observation_frequency_mhz": obs,
+        "storage_points": points,
+        "acquired_points": acquired,
+        "trimmed_padding_points": points - acquired,
+        "nucleus": params.get("x_domain"),
+    }
+    offset = params.get("x_offset")
+    if offset is not None:
+        record = params.get("info", {}).get("x_offset", {})
+        expected_units = [("none", 1, "ppm")] + [("none", 0, None)] * 4
+        try:
+            offset = float(offset)
+        except (TypeError, ValueError, OverflowError):
+            offset = float("nan")
+        if (
+            record.get("value_type") in ("integer", "float")
+            and record.get("units") == expected_units
+            and np.isfinite(offset)
+        ):
+            acquisition["carrier_offset_ppm"] = offset
+        elif legacy_presentation:
+            raise ValueError("JEOL legacy presentation requires a finite offset in ppm")
+    if legacy_presentation:
+        date = header["creation_time"]
+        acquisition["legacy_presentation"] = {
+            "fft_input_transform": "conjugate-input",
+            "data_endianness": header.get("endian"),
+            "storage_format": header.get("data_format"),
+            "storage_dtype": header.get("data_type"),
+            "scan_count": params.get("total_scans", params.get("scans", 1)),
+            "solvent": params.get("solvent"),
+            "sample": params.get("sample"),
+            "pulse_program": params.get("experiment"),
+            "acquisition_time": params.get("x_acq_time"),
+            "relaxation_delay": params.get("relaxation_delay"),
+            "pulse_width": params.get("x90"),
+            "acquisition_date": (date["year"], date["month"], date["day"]),
+        }
     return NormalizedAcquisition(
         data=work, axes=(axis,), dimensions=("F2",), physical_dimensions=("F2",),
         domains=("time",), quadrature_mode="complex-1d", branch_order=("complex",),
         normalization_state="storage-normalized", normalization_profile="jeol-fid-1d-complex-v1",
-        applied_operations=(operation,), metadata=result.metadata, encoding=result.encoding,
+        applied_operations=(operation,), metadata=result.metadata,
+        encoding=("QSIM",) if legacy_presentation else result.encoding,
         diagnostics=result.diagnostics, provenance={"source": result.source, "format": result.format},
-        acquisition={"spectral_width_hz": width, "dwell_time_s": 1 / width,
-                     "observation_frequency_mhz": obs, "storage_points": points,
-                     "acquired_points": acquired, "trimmed_padding_points": points - acquired},
+        acquisition=acquisition,
     )
 
 

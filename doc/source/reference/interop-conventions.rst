@@ -702,7 +702,12 @@ hertz and checks ``x_freq`` against the header base frequency. It preserves
 stored quadrature when
 ``conjugation="none"``. Select ``"conjugate"`` to match the sign convention
 of the historical ``ng.jeol.read()`` reader. Digital filter parameters
-remain available in the metadata for later processing.
+remain available in the metadata for later processing. A finite carrier
+offset with declared ppm units is available as ``acquisition["carrier_offset_ppm"]``.
+With ``conjugation="conjugate"``, consumers can opt into
+``legacy_presentation=True`` for the historical acquisition metadata and
+the conjugated-input FFT convention. The legacy acquisition time, relaxation
+delay and pulse width retain their decoded source units.
 
 .. _interop-jeol-2d-storage:
 
