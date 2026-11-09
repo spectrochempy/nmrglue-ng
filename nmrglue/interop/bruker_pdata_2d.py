@@ -167,7 +167,9 @@ def read_bruker_pdata_2d(directory, *, scale_data=True, acqus_files=None, procs_
     path = Path(directory)
     if not path.is_dir():
         raise OSError(f"directory {path} does not exist")
-    metadata = bruker.read_procs_file(path, procs_files)
+    metadata = bruker.read_procs_file(
+        path, None if procs_files is None else list(procs_files),
+    )
     if acqus_files is not None:
         metadata.update(bruker.read_acqus_file(path.parent.parent, acqus_files))
     shape, tiles, big, isfloat = _profile_geometry(metadata)

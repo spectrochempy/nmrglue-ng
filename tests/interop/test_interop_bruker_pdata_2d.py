@@ -168,7 +168,12 @@ def test_public_processed_channels(tmp_path, reference):
     indirect.write_text(
         "##TITLE= indirect\n##$SFO1= 100.002\n##$SW= 10\n##END=\n"
     )
-    stored = interop.read_bruker_pdata_2d(path, acqus_files=[direct, indirect])
+    procs_files = ["procs", "proc2s"]
+    stored = interop.read_bruker_pdata_2d(
+        path, acqus_files=[direct, indirect],
+        procs_files=tuple(procs_files) if reference == "processing" else procs_files,
+    )
+    assert procs_files == ["procs", "proc2s"]
     normalized = interop.normalize_bruker_pdata_2d(stored, axis_reference=reference)
     np.testing.assert_array_equal(
         normalized.data, np.stack((rr + 1j * ir, ri + 1j * ii)) / 32
