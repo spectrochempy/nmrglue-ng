@@ -40,6 +40,12 @@ versions and check the :doc:`release notes <whats-new>`. For example:
   samples available when a scoring window reaches a spectrum boundary.
   Re-run automatic phasing if edge peaks affected the earlier result.
 
+* Since nmrglue-ng 1.2.4, SIMPSON XYREIM reads validate the complete
+  coordinate grid. The axes follow first occurrence order, and every sample
+  is placed at its coordinate pair. Use ``legacy_layout=True`` to reproduce
+  the ascending axes of historical SpectroChemPy imports. Incomplete grids
+  and truncated TEXT data raise an error.
+
 These versions describe when the fixes landed in nmrglue-ng. For a dated
 upstream reference, see the
 `nmrglue source at cd0c2c9 (8 October 2026)
