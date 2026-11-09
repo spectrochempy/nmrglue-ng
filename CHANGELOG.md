@@ -7,6 +7,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Describe the direct FFT and acquisition metadata for qualified regular
+  JEOL 2D FID matrices. Keep the indirect transform unqualified. (#221)
+
 - Organize the workflow guides and JBNMR examples under Tutorials, restore
   historical data links, and document verified experimental results. (#216)
 
