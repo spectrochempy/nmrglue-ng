@@ -509,20 +509,24 @@ def _agilent_2d_storage_shape(procpar, *, tppi):
     phases = (3,) if tppi else (1, 2)
     array = procpar.get("array", {}).get("values")
     allowed_arrays = (None, [""], ("",)) if tppi else (["phase"], ("phase",))
+    if tppi and _procpar_string(procpar, "sampling", "").strip().lower() not in (
+        "", "uniform"
+    ):
+        raise ValueError("Agilent TPPI storage requires uniform sampling")
     if (
         _procpar_phase(procpar) != phases
         or "seqcon" in procpar
         or array not in allowed_arrays
         or any(
-            key in procpar and _procpar_integer(procpar, key) != 0
+            key in procpar and (tppi or _procpar_integer(procpar, key) != 0)
             for key in ("ni2", "ni3")
         )
-        or ni is None or ni < 1
+        or ni is None or ni < (2 if tppi else 1)
         or _procpar_integer(procpar, "arraydim") != len(phases) * ni
         or words is None or words < 2 or words % 2
     ):
         if tppi:
-            raise ValueError("Agilent TPPI storage requires phase=[3] and arraydim=ni")
+            raise ValueError("Agilent TPPI storage requires phase=[3], ni>=2 and arraydim=ni")
         raise ValueError("Agilent States storage requires only phase=[1, 2] and arraydim=2*ni")
     return len(phases) * ni, words
 
@@ -567,6 +571,8 @@ def _normalize_agilent_2d(result, legacy_presentation, *, tppi):
     metadata = result.metadata
     procpar = metadata.get("procpar", {})
     rows, words = _agilent_2d_storage_shape(procpar, tppi=tppi)
+    if tppi and metadata.get("sampling_schedule_present"):
+        raise ValueError("Agilent TPPI storage requires uniform sampling")
     if (
         result.data.shape != (rows, words)
         or metadata.get("np") != words
@@ -589,6 +595,8 @@ def _normalize_agilent_2d(result, legacy_presentation, *, tppi):
     )
     widths = (indirect_width, direct_width)
     nuclei = (reported_nuclei[0], _procpar_string(procpar, "tn"))
+    if tppi:
+        nuclei = (_procpar_string(procpar, "tn2") or None, nuclei[1])
     acquisition = {
         "spectral_widths_hz": widths,
         "observation_frequencies_mhz": observation,

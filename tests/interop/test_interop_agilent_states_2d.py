@@ -183,18 +183,21 @@ def test_normalize_tppi_scalar_storage(tmp_path, legacy):
     assert normalized.dimensions == ("F1", "F2")
     assert normalized.quadrature_mode == "tppi-stored-2d"
     assert normalized.encoding == ("tppi", "complex")
+    assert normalized.acquisition["nuclei"][0] is None
     assert normalized.channel_axis is None
     assert normalized.applied_operations[0]["permutation"] is None
     if legacy:
         assert normalized.axes[0].values is None
+        assert normalized.axes[0].label == "N15"
         assert normalized.applied_operations[-1]["divisor"] == 6
     else:
         np.testing.assert_allclose(normalized.axes[0].values, np.arange(4) * 0.00018)
+        assert normalized.axes[0].label is None
 
 
 @pytest.mark.parametrize(
     "key, value",
-    [("phase", [2]), ("array", ["phase"]), ("arraydim", [8]), ("ni2", [2]),
+    [("phase", [2]), ("array", ["phase"]), ("arraydim", [8]), ("ni2", [2]), ("ni2", [0]),
      ("seqcon", ["nnnnn"])],
 )
 def test_tppi_preflight_rejects_ambiguous_topology(monkeypatch, tmp_path, key, value):
@@ -205,4 +208,31 @@ def test_tppi_preflight_rejects_ambiguous_topology(monkeypatch, tmp_path, key, v
     procpar[key] = _parameter(value)
     monkeypatch.setattr(ng.varian, "read_procpar", lambda _: procpar)
     with pytest.raises(ValueError, match="TPPI storage requires"):
+        ng.interop.read_agilent_fid_storage(tmp_path, tppi_only=True)
+
+
+
+def test_tppi_preflight_rejects_single_trace(monkeypatch, tmp_path):
+    dic, _ = _states_fixture(phase=(3,), ni=1, arraydim=1)
+    procpar = dic["procpar"]
+    del procpar["seqcon"]
+    procpar["array"] = _parameter([""])
+    monkeypatch.setattr(ng.varian, "read_procpar", lambda _: procpar)
+    with pytest.raises(ValueError, match="ni>=2"):
+        ng.interop.read_agilent_fid_storage(tmp_path, tppi_only=True)
+
+
+
+def test_tppi_preflight_rejects_sparse_sampling(monkeypatch, tmp_path):
+    dic, _ = _states_fixture(phase=(3,), ni=4, arraydim=4)
+    procpar = dic["procpar"]
+    del procpar["seqcon"]
+    procpar["array"] = _parameter([""])
+    procpar["sampling"] = _parameter(["sparse"])
+    monkeypatch.setattr(ng.varian, "read_procpar", lambda _: procpar)
+    with pytest.raises(ValueError, match="uniform sampling"):
+        ng.interop.read_agilent_fid_storage(tmp_path, tppi_only=True)
+    procpar["sampling"] = _parameter(["uniform"])
+    (tmp_path / "sampling.sch").touch()
+    with pytest.raises(ValueError, match="uniform sampling"):
         ng.interop.read_agilent_fid_storage(tmp_path, tppi_only=True)

@@ -104,6 +104,9 @@ def read_agilent_fid_storage(directory, *, states_only=False, tppi_only=False):
     directory = Path(directory)
     path = directory / "fid"
     procpar = directory / "procpar"
+    schedule_present = (directory / "sampling.sch").exists()
+    if tppi_only and schedule_present:
+        raise ValueError("Agilent TPPI storage requires uniform sampling")
     parameters = None
     if states_only and tppi_only:
         raise ValueError("Select only one Agilent storage profile")
@@ -140,6 +143,8 @@ def read_agilent_fid_storage(directory, *, states_only=False, tppi_only=False):
         metadata["blockheader"], data = varian.get_nblocks_ntraces(
             stream, blocks, traces, words, headers, dtype, True
         )
+    if schedule_present:
+        metadata["sampling_schedule_present"] = True
     if parameters is not None:
         metadata["procpar"] = parameters
     elif procpar.is_file():
