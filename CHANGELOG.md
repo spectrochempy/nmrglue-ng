@@ -6,33 +6,27 @@ nmrglue-ng is an independent continuation of nmrglue. Entries in the Historical 
 original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
-- Preserve all raw Varian traces when the declared 3D or 4D layout disagrees
-  with the stored matrix. Offer a legacy singleton-trace layout for consumers. (#218)
 
-- Normalize verified flat Agilent/Varian FID series in block and trace order
-  while retaining an uncalibrated trace index. (#217)
+## 1.2.3 - 2026-11-09
 
-- Link to PyPI and Conda releases from the documentation toolbar, remove
-  page downloads, and improve dark-mode visibility in mobile navigation. (#215)
-
-- Normalize verified Agilent/Varian TPPI 2D storage as one complex FID per
-  indirect increment, with explicit time axes and operations. (#214)
-
-- Normalize verified Agilent/Varian States 2D storage into two complex
-  acquisition branches with time axes and explicit operations. (#213)
-
-- Document the Cadzow 2D result change in the migration guide and require
-  a migration-note review for each release. (#212)
-
+- Normalize Agilent/Varian States, TPPI and flat FID series from verified
+  binary storage. Expose the physical time grid where declared, preserve
+  trace order, and offer explicit historical display and NS/NE scaling.
+  (#213, #214, #217)
+- Preserve all raw Varian traces when declared 3D or 4D geometry disagrees
+  with the binary matrix. Derive the third phase count from `phase3` and
+  offer the legacy presentation of a single stored trace. (#218)
+- Offer an opt-in Agilent 1D FID presentation with explicit NS/NE scaling
+  and the historical direct FFT convention. (#210)
 - Keep integration uncertainty nonnegative after signed normalization and
   reject a zero reference integral. (#208)
-
 - Fix automatic peak-minima phasing when a scoring window reaches a
   spectrum boundary. (#207)
-
-- Offer an opt-in Agilent 1D FID compatibility profile with explicit NS/NE
-  scaling and legacy FFT presentation alongside the unchanged storage profile.
-
+- Link to PyPI and Conda releases from the documentation toolbar, remove
+  page downloads and improve dark-mode visibility in mobile navigation.
+  (#215)
+- Document the Cadzow 2D result change in the migration guide and require
+  a migration-note review for each release. (#212)
 - Improve the homepage FID contrast in light and dark themes. (#211)
 
 ## 1.2.2 - 2026-11-09
