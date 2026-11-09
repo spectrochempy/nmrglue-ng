@@ -28,7 +28,13 @@ def _fft_presentation(metadata):
         ):
             width = observation * ppm_width
             center = (observation - sf) * 1e6
-            if min(observation, reference, ppm_width, sf) <= 0 or not np.isfinite([center, width]).all():
+            high, low = center + width / 2, center - width / 2
+            if (
+                min(observation, reference, ppm_width, sf, width) <= 0
+                or not np.isfinite([high, low]).all() or high <= low
+                or not np.isfinite([high / reference, low / reference]).all()
+                or high / reference <= low / reference
+            ):
                 raise ValueError("invalid Bruker QF FFT display calibration")
             entry["display_axis"] = {
                 "grid": "inclusive-endpoints",

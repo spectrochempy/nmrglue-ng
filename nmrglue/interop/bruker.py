@@ -231,6 +231,7 @@ def read_bruker_ser(
     read_acqus=True,
     acqus_files=None,
     procs_files=None,
+    qf_only=False,
 ):
     """Read a raw Bruker 2D QF or States-TPPI SER as a ReadResult.
 
@@ -244,9 +245,18 @@ def read_bruker_ser(
     No RG/NS normalization, FFT, apodization, phasing, or linear prediction is
     applied. Digital-filter removal is explicit and recorded when requested.
     Explicit acquisition and processing file lists are forwarded to the reader.
+    Set ``qf_only=True`` to reject other acquisition modes and nonuniform
+    sampling before decoding the binary.
     """
     if not os.path.isdir(dir):
         raise OSError("directory %s does not exist" % (dir,))
+
+    if qf_only:
+        parameters = bruker.read_acqus_file(dir, acqus_files)
+        direct = parameters.get("acqus", {})
+        indirect = parameters.get("acqu2s", parameters.get("acqu2", {}))
+        if direct.get("FnTYPE", 0) != 0 or indirect.get("FnMODE") != 1:
+            raise ValueError("Bruker QF requires uniform sampling and indirect FnMODE=1")
 
     dic, data = bruker.read(
         dir,

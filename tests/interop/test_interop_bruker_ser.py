@@ -233,3 +233,25 @@ def test_normalize_qf_ser_corrections_preserve_stored_convention(monkeypatch, tm
     assert result.acquisition["digital_filter"]["removed_points"] == 4
     assert result.acquisition["scan_gain"]["divisor"] == 8 * 40.3
     assert result.applied_operations[0]["dc_offset"]["applied"] is True
+
+
+@pytest.mark.parametrize(("observation", "width", "sf"), [(1e-200, 1e-200, 1), (1, 1000, 1e20)])
+def test_qf_ser_rejects_unrepresentable_display_endpoints(monkeypatch, tmp_path, observation, width, sf):
+    metadata = _ser_dictionary()
+    metadata["acqus"].update(SFO1=observation, SW=width, BF1=1)
+    metadata["procs"] = {"SF": sf}
+    monkeypatch.setattr(ng.bruker, "read", lambda *args, **kwargs: (metadata, _ser_data()))
+    source = ng.interop.read_bruker_ser(tmp_path)
+    with pytest.raises(ValueError, match="display calibration"):
+        ng.interop.normalize(source, fft_presentation=True)
+
+
+@pytest.mark.parametrize(("mode", "sampling"), [(5, 0), (6, 0), (1, 2)])
+def test_qf_ser_preflight_refuses_other_profiles_without_binary_read(monkeypatch, tmp_path, mode, sampling):
+    metadata = _ser_dictionary()
+    metadata["acqus"]["FnTYPE"] = sampling
+    metadata["acqu2s"]["FnMODE"] = mode
+    monkeypatch.setattr(ng.bruker, "read_acqus_file", lambda *args, **kwargs: metadata)
+    monkeypatch.setattr(ng.bruker, "read", lambda *args, **kwargs: pytest.fail("unexpected binary read"))
+    with pytest.raises(ValueError, match="uniform sampling"):
+        ng.interop.read_bruker_ser(tmp_path, qf_only=True)
