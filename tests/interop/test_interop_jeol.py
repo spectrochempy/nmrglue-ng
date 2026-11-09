@@ -144,6 +144,56 @@ def test_zenodo_jeol_fid_reference():
 _JDF_FIXTURES = Path(__file__).parents[1] / "fixtures" / "fileio" / "data" / "jeol"
 
 
+def test_epicatechin_fid_legacy_presentation():
+    path = _JDF_FIXTURES / "epicatechin_1h.jdf"
+    stored = interop.read_jeol_fid(path)
+    ordinary = interop.normalize_jeol_fid(stored, conjugation="none")
+    assert ordinary.acquisition["carrier_offset_ppm"] == 5.0
+    assert ordinary.acquisition["nucleus"] == "Proton"
+    assert ordinary.encoding == ("complex",)
+    with pytest.raises(ValueError, match="requires conjugated"):
+        interop.normalize_jeol_fid(stored, conjugation="none", legacy_presentation=True)
+
+    result = interop.normalize_jeol_fid(
+        stored, conjugation="conjugate", legacy_presentation=True,
+    )
+    np.testing.assert_array_equal(result.data, jeol.read(path)[1])
+    assert result.encoding == ("QSIM",)
+    assert len(result.applied_operations) == 1
+    assert result.applied_operations[0]["conjugation"] == "conjugate"
+    display = result.acquisition["legacy_presentation"]
+    assert display["fft_input_transform"] == "conjugate-input"
+    assert display["scan_count"] == 64
+    assert display["solvent"] == "DMSO-D6"
+    assert display["pulse_program"] == "single_pulse_dec"
+    assert display["acquisition_date"] == (2019, 8, 5)
+
+
+@pytest.mark.parametrize("scaler, expected", [(20, 5e20), (308, None)])
+def test_jeol_fid_scaled_integer_offset(tmp_path, scaler, expected):
+    payload = bytearray((_JDF_FIXTURES / "epicatechin_1h.jdf").read_bytes())
+    record = payload.index(b"X_OFFSET") - 36
+    struct.pack_into("<h", payload, record + 4, scaler)
+    struct.pack_into("<i", payload, record + 16, 5)
+    struct.pack_into("<i", payload, record + 32, 1)
+    path = tmp_path / "integer-offset.jdf"
+    path.write_bytes(payload)
+    stored = interop.read_jeol_fid(path)
+    assert stored.metadata["parameters"]["x_offset"] == 5 * 10 ** scaler
+    ordinary = interop.normalize_jeol_fid(stored, conjugation="none")
+    assert ordinary.acquisition.get("carrier_offset_ppm") == expected
+    if expected is None:
+        with pytest.raises(ValueError, match="finite offset in ppm"):
+            interop.normalize_jeol_fid(
+                stored, conjugation="conjugate", legacy_presentation=True,
+            )
+    else:
+        legacy = interop.normalize_jeol_fid(
+            stored, conjugation="conjugate", legacy_presentation=True,
+        )
+        assert legacy.acquisition["carrier_offset_ppm"] == expected
+
+
 @pytest.mark.parametrize(
     "experiment, grid, count, data_offset, list_offset, second_time",
     [

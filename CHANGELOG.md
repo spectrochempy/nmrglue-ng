@@ -10,6 +10,9 @@ original nmrglue project and are preserved for attribution and continuity.
 - Organize the workflow guides and JBNMR examples under Tutorials, restore
   historical data links, and document verified experimental results. (#216)
 
+- Preserve the qualified JEOL 1D FID carrier offset and offer opt-in
+  acquisition metadata and the historical display FFT convention. (#220)
+
 ## 1.2.3 - 2026-11-09
 
 - Normalize Agilent/Varian States, TPPI and flat FID series from verified
