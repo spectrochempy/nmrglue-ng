@@ -61,12 +61,61 @@ def _agilent_frequency_axis(result):
     }
 
 
-def normalize_agilent_fid(result: ReadResult) -> NormalizedAcquisition:
+def _agilent_public_fid(result, data, operation):
+    """Preserve the historical public reader's 1D presentation and scaling."""
+    from .varian import _number, _procpar_number, _procpar_string
+
+    acquisition = result.acquisition
+    if acquisition.get("spectral_width_hz") is None or acquisition.get("observation_frequency_mhz") is None:
+        raise ValueError("Agilent public FID requires a calibrated time axis and observation frequency")
+    ns = _number(acquisition.get("NS"), "NS")
+    ne = _number(acquisition.get("NE"), "NE")
+    if any(value is not None and value < 0 for value in (ns, ne)):
+        raise ValueError("Agilent public FID requires finite nonnegative NS and NE")
+    divisor = (ns or 1.0) * (ne or 1.0)
+    if not np.isfinite(divisor) or divisor <= 0 or not np.isfinite(1 / divisor):
+        raise ValueError("Agilent public FID requires a finite positive NS/NE divisor")
+    with np.errstate(over="ignore", invalid="ignore", divide="ignore"):
+        scaled = data / divisor
+    if not np.isfinite(scaled).all():
+        raise ValueError("Agilent public FID scaling produced non-finite samples")
+    procpar = result.metadata.get("procpar", {})
+    presentation = {
+        "fft_input_transform": "conjugate-input",
+        "reported_nucleus": _procpar_string(procpar, "dn") or acquisition.get("nucleus"),
+        "decoupler_frequency_mhz": _procpar_number(procpar, "dfrq"),
+        "pulse_program": _procpar_string(procpar, "array") or _procpar_string(procpar, "pulprog"),
+        "date_raw": _procpar_string(procpar, "date"),
+        "acquisition_time_s": _procpar_number(procpar, "at"),
+        "nblocks": result.metadata.get("nblocks", 1),
+        "ntraces": result.metadata.get("ntraces", 1),
+        "ns": 1.0 if ns is None else ns,
+        "ne": 1.0 if ne is None else ne,
+    }
+    correction = {
+        **operation,
+        "name": "normalize-agilent-ns-ne",
+        "input_dimensions": ("F2",),
+        "scale": 1 / divisor,
+        "divisor": divisor,
+        "evidence": "procpar.ns and procpar.ne",
+    }
+    return scaled, (operation, correction), presentation
+
+
+def normalize_agilent_fid(
+    result: ReadResult, *, legacy_presentation=False,
+) -> NormalizedAcquisition:
     """Validate an Agilent descriptive result as a storage-normalized 1D FID.
 
     This profile records decoding and storage semantics only. It does not apply
-    scaling, conjugation, digital-filter removal, FFT, phasing or referencing.
+    scaling, conjugation, digital-filter removal, FFT, phasing or referencing
+    by default. With legacy_presentation=True, apply the historical NS×NE
+    divisor and describe the conjugated-input display FFT. Completed scan
+    counts (nt/ct/ctcount) remain provenance and are never used as the divisor.
     """
+    if type(legacy_presentation) is not bool:
+        raise ValueError("Agilent legacy_presentation must be a bool")
     if not isinstance(result, ReadResult):
         raise TypeError("normalize_agilent_fid requires an interop ReadResult")
     if result.format != "agilent-fid":
@@ -130,6 +179,14 @@ def normalize_agilent_fid(result: ReadResult) -> NormalizedAcquisition:
         "format": result.format,
         "reader_encoding": result.encoding,
     }
+    acquisition = {**result.acquisition, "frequency_axis": _agilent_frequency_axis(result)}
+    operations = (operation,)
+    if legacy_presentation:
+        data, operations, presentation = _agilent_public_fid(result, data, operation)
+        acquisition.update(
+            normalization="ns-ne",
+            legacy_presentation=presentation,
+        )
     return NormalizedAcquisition(
         data=data,
         axes=result.axes,
@@ -140,9 +197,9 @@ def normalize_agilent_fid(result: ReadResult) -> NormalizedAcquisition:
         branch_order=("complex",),
         normalization_state="storage-normalized",
         normalization_profile="agilent-fid-1d-complex-v1",
-        applied_operations=(operation,),
+        applied_operations=operations,
         provenance=provenance,
-        acquisition={**result.acquisition, "frequency_axis": _agilent_frequency_axis(result)},
+        acquisition=acquisition,
         metadata=result.metadata,
         encoding=result.encoding,
         diagnostics=result.diagnostics,

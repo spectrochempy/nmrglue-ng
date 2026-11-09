@@ -7,6 +7,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Offer an opt-in Agilent 1D FID compatibility profile with explicit NS/NE
+  scaling and legacy FFT presentation alongside the unchanged storage profile.
+
 ## 1.2.2 - 2026-11-09
 
 - Fix Cadzow enhancement for 2D arrays by processing each row independently. (#205)
