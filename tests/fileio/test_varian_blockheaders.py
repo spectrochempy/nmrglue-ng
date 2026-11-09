@@ -79,3 +79,11 @@ def test_read_fid_legacy_single_trace_shape(tmp_path, shape, expected_shape):
     assert_array_equal(actual, np.array([2 - 3j]).reshape(expected_shape))
     _, explicit_matrix = varian.read_fid(path, shape=shape, legacy_layout=True, as_2d=True)
     assert_array_equal(explicit_matrix, [[2 - 3j]])
+
+
+@pytest.mark.parametrize("shape", [(-1, 2, 4), (3, 2, -1)])
+def test_multitrace_flat_shape_can_infer_an_axis(tmp_path, shape):
+    path = tmp_path / "fid"
+    raw = _write_multitrace_fid(path)
+    _, actual = varian.read_fid_ntraces(path, shape=shape, torder="flat")
+    assert_array_equal(actual, raw.reshape(3, 2, 4))

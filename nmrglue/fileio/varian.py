@@ -640,11 +640,15 @@ def order_data(data, torder):
 
 
 def _reorder_fid_or_keep_traces(data, shape, torder):
-    if data.shape == (reduce(operator.mul, shape[:-1], 1), shape[-1]):
-        try:
+    try:
+        if torder in ("flat", "f") and -1 in shape:
+            inferred = data.reshape(shape)
+            if inferred.shape[-1] == data.shape[-1]:
+                return inferred
+        elif data.shape == (reduce(operator.mul, shape[:-1], 1), shape[-1]):
             return reorder_data(data, shape, torder)
-        except (ValueError, IndexError):
-            pass
+    except Exception:
+        pass
     warn(f"data cannot be re-ordered, returning raw 2D data\n"
          f"Provided shape: {shape} torder: {torder}")
     return data
@@ -671,6 +675,10 @@ def read_fid(filename, shape=None, torder='flat', as_2d=False,
     read_blockhead : bool, optional
         True to read the Agilent/Varian blockheaders(s) into the returned
         dictionary. False ignores them.
+
+    legacy_layout : bool, optional
+        Apply the historical single-trace presentation described by
+        :py:func:`read`.
 
     Returns
     -------
