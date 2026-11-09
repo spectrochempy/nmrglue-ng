@@ -462,16 +462,20 @@ def test_float64_ser_can_use_historical_flat_shape(tmp_path):
     np.testing.assert_array_equal(flat, expected)
 
 
-def test_historical_fid_layout_ignores_stale_indirect_status(tmp_path):
+@pytest.mark.parametrize("indirect_td", [2, "unavailable"])
+def test_historical_fid_layout_ignores_stale_indirect_status(tmp_path, indirect_td):
     (tmp_path / "acqus").write_text(
         "##TITLE= Synthetic FID\n##$TD= 256\n##$AQ_mod= 3\n"
         "##$BYTORDA= 1\n##$DTYPA= 0\n##$PARMODE= 0\n##END=\n"
     )
-    (tmp_path / "acqu2s").write_text("##TITLE= Stale indirect\n##$TD= 2\n##END=\n")
+    (tmp_path / "acqu2s").write_text(
+        f"##TITLE= Stale indirect\n##$TD= {indirect_td}\n##END=\n"
+    )
     words = np.arange(512, dtype=">i4")
     (tmp_path / "fid").write_bytes(words.tobytes())
-    _, native = ng.bruker.read(tmp_path, read_pulseprogram=False)
-    assert native.shape == (2, 128)
+    if indirect_td == 2:
+        _, native = ng.bruker.read(tmp_path, read_pulseprogram=False)
+        assert native.shape == (2, 128)
 
     with pytest.warns(UserWarning, match="A 1D array will be returned"):
         _, flat = ng.bruker.read(

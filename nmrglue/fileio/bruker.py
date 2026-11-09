@@ -1088,23 +1088,22 @@ def guess_shape(dic, *, legacy_layout=False):
     except KeyError:
         td0 = 1024   # default value
 
-    try:
-        td2 = int(dic["acqu2s"]["TD"])
-    except KeyError:
-        td2 = 0     # default value
+    td3 = td2 = td1 = 0
+    if not legacy_layout or dic.get("acqus", {}).get("PARMODE") != 0:
+        try:
+            td2 = int(dic["acqu2s"]["TD"])
+        except KeyError:
+            td2 = 0     # default value
 
-    try:
-        td1 = float(dic["acqu3s"]["TD"])
-    except KeyError:
-        td1 = int(td2)   # default value
+        try:
+            td1 = float(dic["acqu3s"]["TD"])
+        except KeyError:
+            td1 = int(td2)   # default value
 
-    try:
-        td3 = int(dic["acqu4s"]["TD"])
-    except KeyError:
-        td3 = int(td1)     # default value
-
-    if legacy_layout and dic.get("acqus", {}).get("PARMODE") == 0:
-        td3 = td2 = td1 = 0
+        try:
+            td3 = int(dic["acqu4s"]["TD"])
+        except KeyError:
+            td3 = int(td1)     # default value
 
     # From the acquisition reference manual (section on parameter NBL):
     #     ---
