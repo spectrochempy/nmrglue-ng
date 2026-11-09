@@ -7,6 +7,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Offer the historical interleaved matrix for listed JEOL 2D acquisitions
+  while preserving the acquired F1 time for each pair of rows. (#222)
+
 - Describe the direct FFT and acquisition metadata for qualified regular
   JEOL 2D FID matrices. Keep the indirect transform unqualified. (#221)
 

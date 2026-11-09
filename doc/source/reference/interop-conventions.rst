@@ -764,10 +764,12 @@ The channels hold section pairs (0, 1) and (2, 3) in that order.
     print(fid.acquisition["nominal_shape"])  # full sampling grid
 
 With ``conjugation="conjugate"``, ``legacy_presentation=True`` qualifies the
-regular single-matrix layout for the historical direct FFT. The result
-describes F2 traces in physical ``(F1, F2)`` order, with the sweep widths and
-carrier offsets in the same order. F1 quadrature remains unqualified.
-Listed indirect sampling continues to use the explicit section-pair contract.
+historical direct FFT for both qualified layouts. The result describes
+F2 traces in ``(F1, F2)`` order, with sweep widths and carrier offsets in
+the same order. For listed sampling it interleaves the section pairs,
+negates the second pair and repeats each acquired F1 time for its two rows.
+The nominal shape still counts physical increments. F1 quadrature remains
+unqualified. The default presentation keeps the listed branches separate.
 
 Both time axes follow the order of the stored points. The header's reversal flags
 remain available in the metadata. A regular axis is calibrated with
