@@ -406,3 +406,79 @@ def test_read_jcamp_utf8_bom():
         assert dic["LOCKED"] is True
     finally:
         os.remove(temp_path)
+
+
+@pytest.mark.parametrize("stored_rows", [4, 8])
+@pytest.mark.parametrize("nus", [False, True])
+def test_read_bruker_can_keep_flat_samples_on_declared_shape_mismatch(
+    tmp_path, stored_rows, nus,
+):
+    (tmp_path / "acqus").write_text(
+        "##TITLE= Synthetic SER\n##$TD= 240\n##$AQ_mod= 3\n"
+        "##$BYTORDA= 1\n##$DTYPA= 0\n##$PARMODE= 1\n"
+        f"##$FnTYPE= {2 if nus else 0}\n##END=\n"
+    )
+    (tmp_path / "acqu2s").write_text("##TITLE= Indirect\n##$TD= 6\n##END=\n")
+    words = np.arange(stored_rows * 256, dtype=">i4")
+    (tmp_path / "ser").write_bytes(words.tobytes())
+    expected = words[::2] + 1j * words[1::2]
+    if nus:
+        (tmp_path / "nuslist").write_text("0\n2\n")
+    metadata, automatic = ng.bruker.read(tmp_path, read_pulseprogram=False)
+    np.testing.assert_array_equal(automatic, expected.reshape(stored_rows, 128))
+    if nus:
+        assert metadata["nuslist"] == [(0,), (2,)]
+        (tmp_path / "nuslist").unlink()
+        (tmp_path / "nuslist").mkdir()
+
+    with pytest.warns(UserWarning, match="A 1D array will be returned"):
+        metadata, flat = ng.bruker.read(
+            tmp_path, read_pulseprogram=False, recover_shape=False,
+            read_nus_schedule=False,
+        )
+    assert "nuslist" not in metadata
+    assert metadata["acqus"]["FnTYPE"] == (2 if nus else 0)
+    np.testing.assert_array_equal(flat, expected)
+
+
+
+def test_float64_ser_can_use_historical_flat_shape(tmp_path):
+    (tmp_path / "acqus").write_text(
+        "##TITLE= Float64 SER\n##$TD= 120\n##$AQ_mod= 3\n"
+        "##$BYTORDA= 0\n##$DTYPA= 2\n##$PARMODE= 1\n##END=\n"
+    )
+    (tmp_path / "acqu2s").write_text("##TITLE= Indirect\n##$TD= 8\n##END=\n")
+    words = np.arange(8 * 128, dtype="<f8")
+    (tmp_path / "ser").write_bytes(words.tobytes())
+    expected = words[::2] + 1j * words[1::2]
+
+    _, native = ng.bruker.read(tmp_path, read_pulseprogram=False)
+    np.testing.assert_array_equal(native, expected.reshape(8, 64))
+
+    with pytest.warns(UserWarning, match="A 1D array will be returned"):
+        _, flat = ng.bruker.read(
+            tmp_path, read_pulseprogram=False, recover_shape=False, legacy_layout=True,
+        )
+    np.testing.assert_array_equal(flat, expected)
+
+
+@pytest.mark.parametrize("indirect_td", [2, "unavailable"])
+def test_historical_fid_layout_ignores_stale_indirect_status(tmp_path, indirect_td):
+    (tmp_path / "acqus").write_text(
+        "##TITLE= Synthetic FID\n##$TD= 256\n##$AQ_mod= 3\n"
+        "##$BYTORDA= 1\n##$DTYPA= 0\n##$PARMODE= 0\n##END=\n"
+    )
+    (tmp_path / "acqu2s").write_text(
+        f"##TITLE= Stale indirect\n##$TD= {indirect_td}\n##END=\n"
+    )
+    words = np.arange(512, dtype=">i4")
+    (tmp_path / "fid").write_bytes(words.tobytes())
+    if indirect_td == 2:
+        _, native = ng.bruker.read(tmp_path, read_pulseprogram=False)
+        assert native.shape == (2, 128)
+
+    with pytest.warns(UserWarning, match="A 1D array will be returned"):
+        _, flat = ng.bruker.read(
+            tmp_path, read_pulseprogram=False, recover_shape=False, legacy_layout=True,
+        )
+    np.testing.assert_array_equal(flat, words[::2] + 1j * words[1::2])

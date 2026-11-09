@@ -329,7 +329,8 @@ def create_acqus_dic(adic, direct=False):
 
 def read(dir=".", bin_file=None, acqus_files=None, pprog_file=None, shape=None,
          cplex=None, big=None, isfloat=None, read_pulseprogram=True,
-         read_acqus=True, procs_files=None, read_procs=True):
+         read_acqus=True, procs_files=None, read_procs=True, *,
+         recover_shape=True, read_nus_schedule=True, legacy_layout=False):
     """
     Read Bruker files from a directory.
 
@@ -365,6 +366,19 @@ def read(dir=".", bin_file=None, acqus_files=None, pprog_file=None, shape=None,
         standard files.
     read_procs : bool, optional
         True to read procs files(s), False prevents reading.
+
+    recover_shape : bool, optional
+        Infer a two-dimensional layout when the declared shape does not fit.
+        Set to False to receive a flat array after a shape mismatch.
+    read_nus_schedule : bool, optional
+        Read the sampling schedule for NUS acquisitions. When False, return
+        the samples and acquisition parameters without opening the schedule.
+        NUS samples still use the stored trace order.
+    legacy_layout : bool, optional
+        Use the historical Bruker shape guess for compatibility with readers
+        that handle a flat mismatch themselves. It uses PARMODE to identify
+        1D acquisitions and counts indirect blocks in four-byte words even
+        for float64 data. Direct trace alignment still uses the actual type.
 
     Returns
     -------
@@ -432,9 +446,12 @@ def read(dir=".", bin_file=None, acqus_files=None, pprog_file=None, shape=None,
     # determine file size and add to the dictionary
     dic["FILE_SIZE"] = os.stat(os.path.join(dir, bin_file)).st_size
 
+    if legacy_layout and "acqus" in dic:
+        dic["acqus"].setdefault("PARMODE", int(bin_file == "ser"))
+
     # determine shape and complexity for direct dim if needed
     if shape is None or cplex is None:
-        gshape, gcplex = guess_shape(dic)
+        gshape, gcplex = guess_shape(dic, legacy_layout=legacy_layout)
         if gcplex is True:    # divide last dim by 2 if complex
             t = list(gshape)
             t[-1] = t[-1] // 2
@@ -464,11 +481,13 @@ def read(dir=".", bin_file=None, acqus_files=None, pprog_file=None, shape=None,
 
     try:
         if dic['acqus']['FnTYPE'] == 2: # non-uniformly sampled data
-            try:
-                dic['nuslist'] = read_nuslist(dir)
-            except FileNotFoundError:
-                warn("NUS data detected, but nuslist was not found")
-            shape = (-1, shape[-1])
+            if read_nus_schedule:
+                try:
+                    dic['nuslist'] = read_nuslist(dir)
+                except FileNotFoundError:
+                    warn("NUS data detected, but nuslist was not found")
+            if recover_shape:
+                shape = (-1, shape[-1])
     except KeyError:
         # old datasets do not have the FnTYPE parameter in acqus files.
         # also fails silently when acqus file is absent.
@@ -482,7 +501,8 @@ def read(dir=".", bin_file=None, acqus_files=None, pprog_file=None, shape=None,
     # read the binary file
     f = os.path.join(dir, bin_file)
     _, data = read_binary(f, shape=shape, cplex=cplex, big=big,
-                             isfloat=isfloat, estimated_dims=estimated_dims)
+                             isfloat=isfloat, estimated_dims=estimated_dims,
+                             recover_shape=recover_shape)
 
 
     return dic, data
@@ -1022,9 +1042,17 @@ def write_pdata(dir, dic, data, roll=False, shape=None, submatrix_shape=None,
                  overwrite=overwrite)
 
 
-def guess_shape(dic):
+def guess_shape(dic, *, legacy_layout=False):
     """
     Determine data shape and complexity from Bruker dictionary.
+
+    Parameters
+    ----------
+    dic : dict
+        Bruker acquisition metadata and file size.
+    legacy_layout : bool, optional
+        Use the historical indirect block estimate and omit indirect status
+        files when PARMODE identifies a 1D acquisition.
 
     Returns
     -------
@@ -1060,20 +1088,22 @@ def guess_shape(dic):
     except KeyError:
         td0 = 1024   # default value
 
-    try:
-        td2 = int(dic["acqu2s"]["TD"])
-    except KeyError:
-        td2 = 0     # default value
+    td3 = td2 = td1 = 0
+    if not legacy_layout or dic.get("acqus", {}).get("PARMODE") != 0:
+        try:
+            td2 = int(dic["acqu2s"]["TD"])
+        except KeyError:
+            td2 = 0     # default value
 
-    try:
-        td1 = float(dic["acqu3s"]["TD"])
-    except KeyError:
-        td1 = int(td2)   # default value
+        try:
+            td1 = float(dic["acqu3s"]["TD"])
+        except KeyError:
+            td1 = int(td2)   # default value
 
-    try:
-        td3 = int(dic["acqu4s"]["TD"])
-    except KeyError:
-        td3 = int(td1)     # default value
+        try:
+            td3 = int(dic["acqu4s"]["TD"])
+        except KeyError:
+            td3 = int(td1)     # default value
 
     # From the acquisition reference manual (section on parameter NBL):
     #     ---
@@ -1112,8 +1142,10 @@ def guess_shape(dic):
 
     # additional dimension given by data size
     if shape[2] != 0 and shape[3] != 0:
-        shape[1] = fsize // (shape[3] * shape[2] * bytesize)
-        shape[0] = fsize // (shape[3] * shape[2] * shape[1] * bytesize)
+        indirect_word_bytes = 4 if legacy_layout else bytesize
+        shape[1] = fsize // (shape[3] * shape[2] * indirect_word_bytes)
+        if shape[1]:
+            shape[0] = fsize // (shape[3] * shape[2] * shape[1] * indirect_word_bytes)
 
     # if there in no pulse program parameters in dictionary return current
     # shape after removing zeros
@@ -1594,7 +1626,8 @@ def reorder_submatrix(data, shape, submatrix_shape, reverse=False):
 
 # Bruker binary (fid/ser) reading and writing
 
-def read_binary(filename, shape=(1), cplex=True, big=True, isfloat=False, estimated_dims=None):
+def read_binary(filename, shape=(1), cplex=True, big=True, isfloat=False, estimated_dims=None, *,
+                recover_shape=True):
     """
     Read Bruker binary data from file and return dic,data pair.
 
@@ -1614,6 +1647,9 @@ def read_binary(filename, shape=(1), cplex=True, big=True, isfloat=False, estima
         little-endian.
     isfloat : bool
         Data type of binary file. True for float64, False for int32.
+
+    recover_shape : bool, optional
+        When False, retain a flat array after a declared-shape mismatch.
 
     Returns
     -------
@@ -1643,6 +1679,10 @@ def read_binary(filename, shape=(1), cplex=True, big=True, isfloat=False, estima
         return dic, data.reshape(shape)
 
     except ValueError:
+        if not recover_shape:
+            warn(f"{data.shape} cannot be shaped into {shape}. A 1D array will be returned.",
+                 stacklevel=2)
+            return dic, data
         try:
             data = data.reshape(-1, shape[-1])
             if estimated_dims and (estimated_dims > 2):
