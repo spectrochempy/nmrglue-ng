@@ -7,7 +7,7 @@ from collections.abc import Mapping
 
 import numpy as np
 
-from .result import Axis, NormalizedAcquisition, ReadResult, Reference
+from .result import Axis, NormalizedAcquisition, ReadResult
 from ..fileio import bruker
 
 
