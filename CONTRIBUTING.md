@@ -193,6 +193,15 @@ Python (`-I -m pytest`). It requires all 73 cases through the extracted
 `check_test_report.py sdist.xml 73`. This focused check does not claim that the
 complete repository test suite runs from the sdist.
 
+### Migration notes for each release
+
+Before tagging a release, review **Check results affected by fixes** in
+[`doc/source/migration.rst`](doc/source/migration.rst) against the release's
+changelog entries. Add a short entry for fixes that can change scientific
+results or reproducibility. State the first released version, what changes,
+and which results users may need to recompute. If no entry is warranted,
+record that the section was reviewed in the release preparation PR.
+
 ### Release artifact dry run
 
 The `release artifacts` workflow is manual-only and does not publish. Use it to
