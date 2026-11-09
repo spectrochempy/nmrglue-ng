@@ -61,9 +61,12 @@ def autops(data, fn, p0=0.0, p1=0.0, return_phases=False, peak_width=100, **kwar
             if peak_width < 1:
                 raise ValueError("peak_width must be positive")
             if np.ndim(data) != 1 or len(data) < 3:
-                raise ValueError("peak_minima requires a 1D spectrum with at least three points")
+                raise ValueError(
+                    "peak_minima requires a 1D spectrum with at least three points"
+                )
             arguments.append(peak_width)
-            if np.isinf(_ps_peak_minima_score((p0, p1), *arguments)):
+            initial_peak = np.argmax(ps(data, p0=p0, p1=p1).real)
+            if initial_peak in (0, data.size - 1):
                 raise ValueError("peak_minima initial peak is at a spectrum endpoint")
 
         try:
