@@ -22,7 +22,7 @@
         <div class="ng-terminal" aria-label="Installation and import example">
           <div class="ng-terminal-bar" aria-hidden="true"><span></span><span></span><span></span></div>
           <pre><span class="ng-prompt">$</span> uv add nmrglue-ng&#10;&#10;<span class="ng-code-keyword">import</span> nmrglue <span class="ng-code-keyword">as</span> ng&#10;dic, data = ng.pipe.read(<span class="ng-code-string">"spectrum.ft2"</span>)</pre>
-          <img class="ng-terminal-spectrum" src="_static/home-fid.svg" alt="">
+          <span class="ng-terminal-spectrum" aria-hidden="true"></span>
        </div>
      </section>
 

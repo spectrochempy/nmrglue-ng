@@ -325,12 +325,21 @@ html[data-theme="dark"] .ng-button-secondary:hover {
   left: 0;
   width: 100%;
   height: 48%;
-  object-fit: cover;
-  object-position: bottom;
-  opacity: 0.78;
-  filter: drop-shadow(0 0 0.45rem rgba(243, 225, 188, 0.28));
+  background: var(--ng-mint);
+  mask: url("home-fid.svg") bottom / cover no-repeat;
   z-index: 0;
 }
+
+html[data-theme="light"] .ng-terminal {
+  border-color: var(--ng-line);
+  background: var(--ng-surface);
+}
+
+html[data-theme="light"] .ng-terminal pre { color: var(--ng-ink); }
+html[data-theme="light"] .ng-terminal .ng-prompt,
+html[data-theme="light"] .ng-terminal .ng-code-keyword { color: var(--ng-cyan); }
+html[data-theme="light"] .ng-terminal .ng-code-string { color: #a34423; }
+html[data-theme="light"] .ng-terminal-spectrum { background: var(--ng-cyan); }
 
 .ng-quick-nav {
   display: grid;
