@@ -54,7 +54,7 @@ recorded in the operations. This option retains the physical width and
 observed-nucleus evidence in the acquisition metadata.
 
 Agilent/Varian raw TPPI 2D
--------------------------
+--------------------------
 
 The scalar storage reader can check this profile before reading samples
 with ``read_agilent_fid_storage("acquisition.fid", tppi_only=True)``.
