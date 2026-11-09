@@ -1,5 +1,7 @@
 """Normalize a complete, uncorrected Bruker QF SER for interop."""
 
+from collections.abc import Mapping
+
 import numpy as np
 
 from .result import NormalizedAcquisition, ReadResult
@@ -15,10 +17,17 @@ def normalize_bruker_ser_qf(result: ReadResult) -> NormalizedAcquisition:
         raise ValueError("normalize_bruker_ser_qf requires a Bruker QF SER ReadResult")
     if result.metadata.get("acqus", {}).get("FnTYPE", 0) != 0:
         raise ValueError("Bruker QF normalization requires uniform sampling")
+    corrections = result.applied_corrections
+    digital_filter = corrections.get("digital_filter")
     if (
-        result.applied_corrections.get("digital_filter", {}).get("applied") is not False
-        or result.applied_corrections.get("normalization") != "none"
-        or result.applied_corrections.get("processing") != "none"
+        set(corrections) != {"digital_filter", "normalization", "processing"}
+        or corrections["normalization"] != "none"
+        or corrections["processing"] != "none"
+        or not isinstance(digital_filter, Mapping)
+        or set(digital_filter) != {"applied", "parameters"}
+        or digital_filter["applied"] is not False
+        or not isinstance(digital_filter["parameters"], Mapping)
+        or not set(digital_filter["parameters"]) <= {"DECIM", "DSPFVS", "GRPDLY"}
     ):
         raise ValueError("Bruker QF normalization requires an uncorrected SER")
     data = np.asarray(result.data)
@@ -56,9 +65,17 @@ def normalize_bruker_ser_qf(result: ReadResult) -> NormalizedAcquisition:
             or isinstance(width, bool) or not np.isfinite(width) or width <= 0
             or axis.unit != "s" or axis.domain != "time" or axis.direction != "increasing"
             or axis.values is None or axis.values.shape != (size,)
-            or not np.allclose(axis.values, np.arange(size) / width, rtol=1e-12, atol=0)
+            or axis.values.dtype.kind not in "iuf"
+            or not np.isfinite(axis.values).all()
+            or not np.all(axis.values[1:] > axis.values[:-1])
         ):
             raise ValueError("Bruker QF normalization requires calibrated uniform time grids")
+        with np.errstate(over="ignore"):
+            expected = np.arange(size, dtype=float) / width
+        if not np.isfinite(expected).all() or not np.allclose(
+            axis.values, expected, rtol=1e-12, atol=0
+        ):
+            raise ValueError("Bruker QF time grid is inconsistent with spectral width")
         widths.append(width)
 
     dimensions = ("channels", *order)
