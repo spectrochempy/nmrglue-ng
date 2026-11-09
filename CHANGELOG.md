@@ -10,6 +10,9 @@ original nmrglue project and are preserved for attribution and continuity.
 - Normalize verified Agilent/Varian States 2D storage into two complex
   acquisition branches with time axes and explicit operations. (#213)
 
+- Document the Cadzow 2D result change in the migration guide and require
+  a migration-note review for each release. (#212)
+
 - Keep integration uncertainty nonnegative after signed normalization and
   reject a zero reference integral. (#208)
 
