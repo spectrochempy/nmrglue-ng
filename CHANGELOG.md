@@ -7,6 +7,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Normalize complete uniform Bruker echo/anti-echo SER storage and retain
+  both branches in file order for downstream reconstruction.
+
 - Normalize complete uniform Bruker States-TPPI SER storage, preserving
   acquired E1/E2 branches and deferring indirect alternation. (#201)
 

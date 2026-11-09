@@ -22,7 +22,10 @@ from typing import Any
 
 from .bruker import read_bruker_fid, read_bruker_pdata, read_bruker_ser
 from .dispatch import read
-from .bruker_ser import normalize_bruker_ser_qf, normalize_bruker_ser_states_tppi
+from .bruker_ser import (
+    normalize_bruker_ser_echo_antiecho, normalize_bruker_ser_qf,
+    normalize_bruker_ser_states_tppi,
+)
 from .bruker_pdata_2d import (
     normalize_bruker_pdata_2d,
     read_bruker_pdata_2d,
@@ -146,6 +149,7 @@ __all__ = [
     "read_agilent_states_2d",
     "normalize_agilent_fid",
     "normalize_bruker_fid",
+    "normalize_bruker_ser_echo_antiecho",
     "normalize_bruker_ser_qf",
     "normalize_bruker_ser_states_tppi",
     "normalize_bruker_pdata",

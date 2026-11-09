@@ -6,7 +6,7 @@ from dataclasses import replace
 import numpy as np
 
 from ..fileio import bruker
-from .bruker import _raw_integer, _raw_number
+from .bruker import _raw_integer, _raw_number, _require_bruker_2d
 from .result import Axis, NormalizedAcquisition, ReadResult, Reference
 
 
@@ -267,31 +267,59 @@ def normalize_bruker_ser_states_tppi(
     The default uses the acquired TD words and applies no corrections.
     Preserve the aligned length explicitly for public reader parity.
     """
+    return _normalize_paired_ser(
+        result, echo_antiecho=False, preserve_storage=preserve_storage,
+        remove_dc_offset=remove_dc_offset, remove_digital_filter=remove_digital_filter,
+        normalize_scan_gain=normalize_scan_gain, fft_presentation=fft_presentation,
+    )
+
+
+def normalize_bruker_ser_echo_antiecho(
+    result: ReadResult, *, preserve_storage=False, remove_dc_offset=False,
+    remove_digital_filter=False, normalize_scan_gain=False, fft_presentation=False,
+) -> NormalizedAcquisition:
+    """Pair complete uniform echo/anti-echo traces in their stored order."""
+    return _normalize_paired_ser(
+        result, echo_antiecho=True, preserve_storage=preserve_storage,
+        remove_dc_offset=remove_dc_offset, remove_digital_filter=remove_digital_filter,
+        normalize_scan_gain=normalize_scan_gain, fft_presentation=fft_presentation,
+    )
+
+
+def _normalize_paired_ser(
+    result, *, echo_antiecho, preserve_storage, remove_dc_offset,
+    remove_digital_filter, normalize_scan_gain, fft_presentation,
+):
+    mode = "echo-antiecho" if echo_antiecho else "states-tppi"
+    label = "echo/anti-echo" if echo_antiecho else "States-TPPI"
+    fnmode = 6 if echo_antiecho else 5
     if not isinstance(result, ReadResult) or result.format != "bruker-ser-storage":
-        raise ValueError("States-TPPI normalization requires a Bruker SER storage result")
+        raise ValueError(f"{label} normalization requires a Bruker SER storage result")
     if not all(isinstance(value, bool) for value in (
         preserve_storage, remove_dc_offset, remove_digital_filter, normalize_scan_gain,
         fft_presentation,
     )):
-        raise ValueError("States-TPPI correction and storage options must be booleans")
+        raise ValueError(f"{label} correction and storage options must be booleans")
     metadata = result.metadata
+    if echo_antiecho:
+        _require_bruker_2d(metadata)
     direct = metadata.get("acqus", {})
     indirect = metadata.get("acqu2s", {})
     if (
         direct.get("FnTYPE", 0) != 0 or "nuslist_raw" in metadata
-        or direct.get("AQ_mod") != 3 or indirect.get("FnMODE") != 5
+        or direct.get("AQ_mod") != 3 or indirect.get("FnMODE") != fnmode
     ):
-        raise ValueError("Bruker SER requires uniform States-TPPI with direct DQD")
+        raise ValueError(f"Bruker SER requires uniform {label} with direct DQD")
     rows = _raw_integer(metadata, "acqu2s", "TD")
     words = _raw_integer(metadata, "acqus", "TD")
     if rows is None or words is None or min(rows, words) < 4 or rows % 2 or words % 2:
-        raise ValueError("States-TPPI requires complete paired TD geometry")
+        raise ValueError(f"{label} requires complete paired TD geometry")
 
     data = np.asarray(result.data)
     word_type = (data.dtype.kind, data.dtype.itemsize)
     required_type = {0: ("i", 4), 2: ("f", 8)}.get(direct.get("DTYPA"))
     if word_type != required_type:
-        raise ValueError("States-TPPI requires a supported scalar storage type")
+        raise ValueError(f"{label} requires a supported scalar storage type")
     stride = ((words * data.dtype.itemsize + 1023) // 1024) * 1024 // data.dtype.itemsize
     if (
         data.shape != (rows, stride)
@@ -303,11 +331,11 @@ def normalize_bruker_ser_states_tppi(
         or result.components[0].name != "stored-words"
         or not np.array_equal(result.components[0].data, data, equal_nan=True)
     ):
-        raise ValueError("States-TPPI requires uncorrected storage with complete TD geometry")
+        raise ValueError(f"{label} requires uncorrected storage with complete TD geometry")
     selected_words = stride if preserve_storage else words
     selected = data[:, :selected_words]
     if not np.isfinite(selected).all():
-        raise ValueError("States-TPPI selected samples must be finite")
+        raise ValueError(f"{label} selected samples must be finite")
     traces = np.empty((rows, selected_words // 2), dtype=np.complex128)
     traces.real = selected[:, ::2]
     traces.imag = selected[:, 1::2]
@@ -323,9 +351,9 @@ def normalize_bruker_ser_states_tppi(
     obs_f1 = _raw_number(metadata, "acqu2s", "SFO1")
     obs_f2 = _raw_number(metadata, "acqus", "SFO1")
     if sw_f2 is None or sw_f1_ppm is None or obs_f1 is None or obs_f2 is None:
-        raise ValueError("States-TPPI requires both calibrated acquisition axes")
+        raise ValueError(f"{label} requires both calibrated acquisition axes")
     if min(sw_f2, sw_f1_ppm, obs_f1, obs_f2) <= 0:
-        raise ValueError("States-TPPI axis widths and observations must be positive")
+        raise ValueError(f"{label} axis widths and observations must be positive")
 
     widths = (sw_f1_ppm * obs_f1, sw_f2)
     axes = []
@@ -333,11 +361,11 @@ def normalize_bruker_ser_states_tppi(
         (rows // 2, traces.shape[1]), widths, (obs_f1, obs_f2), (indirect, direct), strict=True
     ):
         if not np.isfinite(width) or width <= 0:
-            raise ValueError("unrepresentable States-TPPI spectral width")
+            raise ValueError(f"unrepresentable {label} spectral width")
         with np.errstate(over="ignore"):
             values = np.arange(size, dtype=float) / width
         if not np.isfinite(values).all() or not np.all(values[1:] > values[:-1]):
-            raise ValueError("unrepresentable States-TPPI time grid")
+            raise ValueError(f"unrepresentable {label} time grid")
         axes.append(Axis(
             values=values, unit="s", label=section.get("NUC1"),
             domain="time", direction="increasing",
@@ -349,12 +377,26 @@ def normalize_bruker_ser_states_tppi(
 
     order = ("F1", "F2")
     dimensions = ("channels", *order)
-    components = np.stack((
-        traces[0::2].real, traces[0::2].imag,
-        traces[1::2].real, traces[1::2].imag,
-    ))
+    if echo_antiecho:
+        components = np.stack((traces[0::2], traces[1::2]))
+        branch_order = ("first", "second")
+        encoding = ("echo-antiecho", "complex")
+        quadrature_mode = "echo-antiecho-stored-2d"
+        group_delay = direct.get("GRPDLY")
+        if isinstance(group_delay, (int, float)) and not isinstance(group_delay, bool) and np.isfinite(group_delay) and group_delay > 0:
+            filter_trace["group_delay_points"] = group_delay
+        indirect_state = {"branch_order": "stored", "reconstruction": "not_applied"}
+    else:
+        components = np.stack((
+            traces[0::2].real, traces[0::2].imag,
+            traces[1::2].real, traces[1::2].imag,
+        ))
+        branch_order = ("rr", "ri", "ir", "ii")
+        encoding = ("complex", "complex")
+        quadrature_mode = "stored-components-2d"
+        indirect_state = {"tppi_alternation": "declared_not_applied"}
     operation = {
-        "name": "pair-bruker-states-tppi-traces",
+        "name": f"pair-bruker-{mode}-traces",
         "stage": "acquisition",
         "input_dimensions": ("trace", "word"),
         "output_dimensions": dimensions,
@@ -372,29 +414,31 @@ def normalize_bruker_ser_states_tppi(
     }
     presentation = (
         {"fft_presentation": _fft_presentation(
-            metadata, components.shape[1:], indirect_transform="states-tppi-cross-pairs",
+            metadata, components.shape[1:], indirect_transform=(
+                "echo-antiecho-branch-fft" if echo_antiecho else "states-tppi-cross-pairs"
+            ),
         )}
         if fft_presentation else {}
     )
     return NormalizedAcquisition(
         data=components, axes=tuple(axes), dimensions=dimensions,
         physical_dimensions=order, domains=("time", "time"),
-        quadrature_mode="stored-components-2d",
-        branch_order=("rr", "ri", "ir", "ii"), channel_axis=0,
+        quadrature_mode=quadrature_mode,
+        branch_order=branch_order, channel_axis=0,
         normalization_state="storage-normalized",
-        normalization_profile="bruker-ser-states-tppi-2d-v1",
+        normalization_profile=f"bruker-ser-{mode}-2d-v1",
         applied_operations=(operation,),
         provenance={"source": result.source, "format": result.format},
         acquisition={
             "spectral_width_hz": widths,
-            "indirect_sampling": "states-tppi",
-            "tppi_alternation": "declared_not_applied",
+            "indirect_sampling": mode,
+            **indirect_state,
             **presentation,
             "storage_shape": data.shape,
             "dc_offset": operation["dc_offset"],
             "digital_filter": filter_trace,
             "scan_gain": gain_trace,
         },
-        metadata=metadata, encoding=("complex", "complex"),
+        metadata=metadata, encoding=encoding,
         diagnostics=result.diagnostics,
     )
