@@ -439,3 +439,42 @@ def test_read_bruker_can_keep_flat_samples_on_declared_shape_mismatch(
     assert "nuslist" not in metadata
     assert metadata["acqus"]["FnTYPE"] == (2 if nus else 0)
     np.testing.assert_array_equal(flat, expected)
+
+
+
+def test_float64_ser_can_use_historical_flat_shape(tmp_path):
+    (tmp_path / "acqus").write_text(
+        "##TITLE= Float64 SER\n##$TD= 120\n##$AQ_mod= 3\n"
+        "##$BYTORDA= 0\n##$DTYPA= 2\n##$PARMODE= 1\n##END=\n"
+    )
+    (tmp_path / "acqu2s").write_text("##TITLE= Indirect\n##$TD= 8\n##END=\n")
+    words = np.arange(8 * 128, dtype="<f8")
+    (tmp_path / "ser").write_bytes(words.tobytes())
+    expected = words[::2] + 1j * words[1::2]
+
+    _, native = ng.bruker.read(tmp_path, read_pulseprogram=False)
+    np.testing.assert_array_equal(native, expected.reshape(8, 64))
+
+    with pytest.warns(UserWarning, match="A 1D array will be returned"):
+        _, flat = ng.bruker.read(
+            tmp_path, read_pulseprogram=False, recover_shape=False, legacy_layout=True,
+        )
+    np.testing.assert_array_equal(flat, expected)
+
+
+def test_historical_fid_layout_ignores_stale_indirect_status(tmp_path):
+    (tmp_path / "acqus").write_text(
+        "##TITLE= Synthetic FID\n##$TD= 256\n##$AQ_mod= 3\n"
+        "##$BYTORDA= 1\n##$DTYPA= 0\n##$PARMODE= 0\n##END=\n"
+    )
+    (tmp_path / "acqu2s").write_text("##TITLE= Stale indirect\n##$TD= 2\n##END=\n")
+    words = np.arange(512, dtype=">i4")
+    (tmp_path / "fid").write_bytes(words.tobytes())
+    _, native = ng.bruker.read(tmp_path, read_pulseprogram=False)
+    assert native.shape == (2, 128)
+
+    with pytest.warns(UserWarning, match="A 1D array will be returned"):
+        _, flat = ng.bruker.read(
+            tmp_path, read_pulseprogram=False, recover_shape=False, legacy_layout=True,
+        )
+    np.testing.assert_array_equal(flat, words[::2] + 1j * words[1::2])

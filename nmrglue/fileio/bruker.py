@@ -330,7 +330,7 @@ def create_acqus_dic(adic, direct=False):
 def read(dir=".", bin_file=None, acqus_files=None, pprog_file=None, shape=None,
          cplex=None, big=None, isfloat=None, read_pulseprogram=True,
          read_acqus=True, procs_files=None, read_procs=True, *,
-         recover_shape=True, read_nus_schedule=True):
+         recover_shape=True, read_nus_schedule=True, legacy_layout=False):
     """
     Read Bruker files from a directory.
 
@@ -374,6 +374,11 @@ def read(dir=".", bin_file=None, acqus_files=None, pprog_file=None, shape=None,
         Read the sampling schedule for NUS acquisitions. When False, return
         the samples and acquisition parameters without opening the schedule.
         NUS samples still use the stored trace order.
+    legacy_layout : bool, optional
+        Use the historical Bruker shape guess for compatibility with readers
+        that handle a flat mismatch themselves. It uses PARMODE to identify
+        1D acquisitions and counts indirect blocks in four-byte words even
+        for float64 data. Direct trace alignment still uses the actual type.
 
     Returns
     -------
@@ -441,9 +446,12 @@ def read(dir=".", bin_file=None, acqus_files=None, pprog_file=None, shape=None,
     # determine file size and add to the dictionary
     dic["FILE_SIZE"] = os.stat(os.path.join(dir, bin_file)).st_size
 
+    if legacy_layout and "acqus" in dic:
+        dic["acqus"].setdefault("PARMODE", int(bin_file == "ser"))
+
     # determine shape and complexity for direct dim if needed
     if shape is None or cplex is None:
-        gshape, gcplex = guess_shape(dic)
+        gshape, gcplex = guess_shape(dic, legacy_layout=legacy_layout)
         if gcplex is True:    # divide last dim by 2 if complex
             t = list(gshape)
             t[-1] = t[-1] // 2
@@ -1034,9 +1042,17 @@ def write_pdata(dir, dic, data, roll=False, shape=None, submatrix_shape=None,
                  overwrite=overwrite)
 
 
-def guess_shape(dic):
+def guess_shape(dic, *, legacy_layout=False):
     """
     Determine data shape and complexity from Bruker dictionary.
+
+    Parameters
+    ----------
+    dic : dict
+        Bruker acquisition metadata and file size.
+    legacy_layout : bool, optional
+        Use the historical indirect block estimate and omit indirect status
+        files when PARMODE identifies a 1D acquisition.
 
     Returns
     -------
@@ -1087,6 +1103,9 @@ def guess_shape(dic):
     except KeyError:
         td3 = int(td1)     # default value
 
+    if legacy_layout and dic.get("acqus", {}).get("PARMODE") == 0:
+        td3 = td2 = td1 = 0
+
     # From the acquisition reference manual (section on parameter NBL):
     #     ---
     #     If TD is not a multiple of 256 (1024 bytes), successive FIDs will
@@ -1124,9 +1143,10 @@ def guess_shape(dic):
 
     # additional dimension given by data size
     if shape[2] != 0 and shape[3] != 0:
-        shape[1] = fsize // (shape[3] * shape[2] * bytesize)
+        indirect_word_bytes = 4 if legacy_layout else bytesize
+        shape[1] = fsize // (shape[3] * shape[2] * indirect_word_bytes)
         if shape[1]:
-            shape[0] = fsize // (shape[3] * shape[2] * shape[1] * bytesize)
+            shape[0] = fsize // (shape[3] * shape[2] * shape[1] * indirect_word_bytes)
 
     # if there in no pulse program parameters in dictionary return current
     # shape after removing zeros
