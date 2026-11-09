@@ -7,6 +7,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Keep integration uncertainty nonnegative after signed normalization and
+  reject a zero reference integral. (#208)
+
 - Fix automatic peak-minima phasing when a scoring window reaches a
   spectrum boundary. (#207)
 
