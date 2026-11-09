@@ -317,6 +317,29 @@ def test_agilent_raw_result_preserves_data_and_normalized_metadata(
         normalized.axes[0].values.setflags(write=True)
 
 
+def test_agilent_legacy_fid_scaling_and_fft_presentation(monkeypatch, tmp_path):
+    dic, data = _dic_data()
+    monkeypatch.setattr(ng.varian, "read", lambda *args, **kwargs: (dic, data.copy()))
+    stored = ng.interop.read_agilent_fid(tmp_path)
+    public = ng.interop.normalize_agilent_fid(stored, legacy_presentation=True)
+    np.testing.assert_array_equal(public.data, data / 8)
+    np.testing.assert_array_equal(stored.data, data)
+    assert public.applied_operations[-1]["divisor"] == 8
+    assert public.applied_operations[-1]["conjugation"] == "none"
+    assert public.acquisition["legacy_presentation"]["fft_input_transform"] == "conjugate-input"
+    assert public.acquisition["scan_counts"] == stored.acquisition["scan_counts"]
+    assert "legacy_presentation" not in ng.interop.normalize_agilent_fid(stored).acquisition
+
+
+def test_agilent_single_trace_preflight_skips_sample_decoding(monkeypatch, tmp_path):
+    import struct
+
+    (tmp_path / "fid").write_bytes(struct.pack(">6i2hi", 2, 1, 8, 4, 32, 60, 0, 201, 1))
+    monkeypatch.setattr(ng.varian, "read", lambda *args, **kwargs: pytest.fail("decoded a multi-block file"))
+    with pytest.raises(ValueError, match="one block and one trace"):
+        ng.interop.read_agilent_fid(tmp_path, single_trace_only=True)
+
+
 def test_agilent_normalization_preserves_unknown_axis_calibration(
     monkeypatch, tmp_path
 ):
