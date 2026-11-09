@@ -37,13 +37,17 @@ Agilent/Varian raw States 2D
     print(states.branch_order, states.axes[0].values)
 
 The States normalizer requires one raw trace per block, a single arrayed
-``phase=[1, 2]``, and exactly ``2*ni`` blocks. It decodes interleaved
+``phase=[1, 2]``, and exactly ``2*ni`` blocks. Imaging layouts with
+``seqcon`` use a different topology. It decodes interleaved
 real/imaginary words and pairs even and odd traces into
 ``(branch, F1, F2)``. It retains the complex samples in acquisition order.
 The two branches are labelled by position. Phase, sign and indirect Fourier
 processing are separate operations.
 
 Physical time axes use ``sw1`` (F1) and ``sw`` (F2) when available.
+Physical observation frequencies come from ``sfrq2`` and ``sfrq``.
+An unavailable transmitter frequency leaves the corresponding reference
+unknown while the calibrated time grid remains usable.
 ``legacy_presentation=True`` preserves the historical public display
 widths (``sw2``, ``sw``) and applies the explicit ``NS*NE`` divisor
 recorded in the operations. This option retains the physical width and

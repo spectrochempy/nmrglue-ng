@@ -508,6 +508,7 @@ def _states_storage_shape(procpar):
     words = _procpar_integer(procpar, "np")
     if (
         _procpar_phase(procpar) != (1, 2)
+        or "seqcon" in procpar
         or procpar.get("array", {}).get("values") not in (["phase"], ("phase",))
         or any(
             key in procpar and _procpar_integer(procpar, key) != 0
@@ -551,11 +552,8 @@ def normalize_agilent_states_2d(result, *, legacy_presentation=False):
     channels = np.stack((traces[::2], traces[1::2]))
     direct_width = _procpar_number(procpar, "sw")
     indirect_width = _procpar_number(procpar, "sw1")
-    decoupler = tuple(_procpar_number(procpar, key) for key in ("dfrq2", "dfrq"))
-    observation = tuple(
-        _procpar_number(procpar, key, default)
-        for key, default in zip(("sfrq2", "sfrq"), decoupler, strict=True)
-    )
+    transmitters = tuple(_procpar_number(procpar, key) for key in ("sfrq2", "sfrq"))
+    observation = tuple(frequency or None for frequency in transmitters)
     reported_nuclei = tuple(
         _procpar_string(procpar, dn) or _procpar_string(procpar, tn)
         for dn, tn in (("dn2", "tn2"), ("dn", "tn"))
@@ -590,11 +588,16 @@ def normalize_agilent_states_2d(result, *, legacy_presentation=False):
         ns = _procpar_number(procpar, "ns")
         ne = _procpar_number(procpar, "ne")
         channels, divisor = _scale_agilent_ns_ne(channels, ns, ne)
+        decoupler = tuple(_procpar_number(procpar, key) for key in ("dfrq2", "dfrq"))
+        displayed_observation = tuple(
+            fallback if transmitter is None else transmitter
+            for transmitter, fallback in zip(transmitters, decoupler, strict=True)
+        )
         widths = (_procpar_number(procpar, "sw2"), direct_width)
         nuclei = reported_nuclei
         acquisition["legacy_presentation"] = {
             "spectral_widths_hz": widths,
-            "observation_frequencies_mhz": observation,
+            "observation_frequencies_mhz": displayed_observation,
             "decoupler_frequencies_mhz": decoupler,
             "reported_nuclei": reported_nuclei,
             "pulse_program": _procpar_string(procpar, "array"),

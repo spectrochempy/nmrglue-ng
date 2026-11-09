@@ -110,6 +110,9 @@ def test_normalize_states_scalar_storage(tmp_path, legacy):
     dic, _ = _states_fixture()
     procpar = dic["procpar"]
     procpar["tn"] = _parameter(["C13"])
+    del procpar["seqcon"]
+    del procpar["sfrq2"]
+    procpar["dfrq2"] = _parameter([0])
     procpar["ns"] = _parameter([3])
     procpar["ne"] = _parameter([2])
     scalar = np.arange(24, dtype=np.float32).reshape(4, 6)
@@ -128,7 +131,10 @@ def test_normalize_states_scalar_storage(tmp_path, legacy):
     np.testing.assert_array_equal(normalized.data[0], expected[::2] / divisor)
     np.testing.assert_array_equal(normalized.data[1], expected[1::2] / divisor)
     np.testing.assert_array_equal(normalized.axes[1].values, [0, 20e-6, 40e-6])
+    assert normalized.axes[0].reference is None
+    assert normalized.acquisition["observation_frequencies_mhz"] == (None, 125.0)
     if legacy:
+        assert normalized.acquisition["legacy_presentation"]["observation_frequencies_mhz"] == (0, 125.0)
         assert normalized.axes[0].values is None
         assert normalized.axes[1].label == "H1"
         assert normalized.applied_operations[-1]["divisor"] == divisor
@@ -140,9 +146,13 @@ def test_normalize_states_scalar_storage(tmp_path, legacy):
     assert normalized.encoding == ("states", "complex")
 
 
-@pytest.mark.parametrize("key, value", [("phase", [2, 1]), ("array", ["phase,pw"]), ("ni2", [2])])
+@pytest.mark.parametrize(
+    "key, value",
+    [("phase", [2, 1]), ("array", ["phase,pw"]), ("ni2", [2]), ("seqcon", ["nnnnn"])],
+)
 def test_states_storage_preflight_rejects_unsupported_array(monkeypatch, tmp_path, key, value):
     dic, _ = _states_fixture()
+    del dic["procpar"]["seqcon"]
     dic["procpar"][key] = _parameter(value)
     monkeypatch.setattr(ng.varian, "read_procpar", lambda _: dic["procpar"])
     with pytest.raises(ValueError, match="States storage requires"):
