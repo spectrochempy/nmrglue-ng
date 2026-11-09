@@ -8,7 +8,7 @@ original nmrglue project and are preserved for attribution and continuity.
 ## Unreleased
 
 - Normalize verified flat Agilent/Varian FID series in block and trace order
-  while retaining an uncalibrated trace index.
+  while retaining an uncalibrated trace index. (#217)
 
 - Link to PyPI and Conda releases from the documentation toolbar, remove
   page downloads, and improve dark-mode visibility in mobile navigation. (#215)
