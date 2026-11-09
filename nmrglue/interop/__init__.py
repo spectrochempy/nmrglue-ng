@@ -54,6 +54,7 @@ from .nmrpipe_read import (
 from .normalize import normalize_agilent_fid, normalize_bruker_fid, normalize_bruker_pdata
 from .varian import (
     _normalize_agilent_fid_storage,
+    normalize_agilent_fid_series,
     normalize_agilent_states_2d,
     normalize_agilent_tppi_2d,
     read_agilent_fid,
@@ -155,6 +156,7 @@ __all__ = [
     "read_agilent_fid",
     "read_agilent_states_2d",
     "normalize_agilent_fid",
+    "normalize_agilent_fid_series",
     "normalize_agilent_states_2d",
     "normalize_agilent_tppi_2d",
     "normalize_bruker_fid",

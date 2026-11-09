@@ -80,7 +80,7 @@ when no normalizer is registered.
    * - ``agilent-fid-storage``
      - Automatic
      - :ref:`Stored scalar FID traces <interop-bruker-agilent-storage>`
-     - Qualified two-branch States or single-trace TPPI 2D
+     - Qualified States, TPPI or flat FID series
    * - ``agilent-states-2d``
      - Explicit
      - Descriptive 2D States traces

@@ -73,6 +73,18 @@ bandwidth belongs to the processing convention. An undeclared F1
 transmitter nucleus remains unknown, while the compatibility
 presentation retains the historical decoupler label.
 
+Agilent/Varian flat FID series
+------------------------------
+
+Use ``read_agilent_fid_storage(directory, series_only=True)`` to check
+a flat series with explicit acquired-data and complex flags before
+decoding samples. ``normalize()`` returns one
+complex FID per row, in block and trace order, and records the binary
+block and trace counts. The leading axis is a trace index. The direct
+axis uses the acquired dwell time when available. No indirect time
+calibration or interpretation of receiver channels is inferred.
+The historical public presentation is opt-in.
+
 JCAMP-DX real 1D spectra
 ------------------------
 
