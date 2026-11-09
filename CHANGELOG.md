@@ -8,7 +8,7 @@ original nmrglue project and are preserved for attribution and continuity.
 ## Unreleased
 
 - Normalize verified Agilent/Varian States 2D storage into two complex
-  acquisition branches with time axes and explicit operations.
+  acquisition branches with time axes and explicit operations. (#213)
 
 - Keep integration uncertainty nonnegative after signed normalization and
   reject a zero reference integral. (#208)
