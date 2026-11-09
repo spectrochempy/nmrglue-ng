@@ -8,7 +8,7 @@ original nmrglue project and are preserved for attribution and continuity.
 ## Unreleased
 
 - Offer explicit per-trace DC removal, digital-filter correction and scan/gain
-  normalization for complete Bruker QF SER data.
+  normalization for complete Bruker QF SER data. (#200)
 
 - Normalize complete uncorrected Bruker QF SER grids for interop while
   preserving the stored complex convention and calibrated time axes. (#199)
