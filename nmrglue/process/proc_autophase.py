@@ -29,7 +29,10 @@ def autops(data, fn, p0=0.0, p1=0.0, return_phases=False, peak_width=100, **kwar
     p1 : float
         Initial first order phase in degrees.
     peak_width : int
-        Width of the ROI for peak_minima optimization (number of surrounding indexes)
+        Positive window width for peak_minima optimization. Windows are
+        truncated at the spectrum boundaries. This algorithm needs a 1D
+        spectrum with at least three points and an initial maximum away
+        from the endpoints.
     return_phases : Bool
         returns a list of optimized values of phases [p0, p1] in addition
         to the phased data
@@ -55,7 +58,13 @@ def autops(data, fn, p0=0.0, p1=0.0, return_phases=False, peak_width=100, **kwar
 
     if not callable(fn):
         if fn == 'peak_minima':
+            if peak_width < 1:
+                raise ValueError("peak_width must be positive")
+            if np.ndim(data) != 1 or len(data) < 3:
+                raise ValueError("peak_minima requires a 1D spectrum with at least three points")
             arguments.append(peak_width)
+            if np.isinf(_ps_peak_minima_score((p0, p1), *arguments)):
+                raise ValueError("peak_minima initial peak is at a spectrum endpoint")
 
         try:
             fn = {
@@ -155,8 +164,10 @@ def _ps_peak_minima_score(ph, data, peak_width):
     data = np.real(s0)
 
     i = np.argmax(data)
-    mina = np.min(data[i-peak_width:i])
-    minb = np.min(data[i:i+peak_width])
+    if i == 0 or i == data.size - 1:
+        return np.inf
+    mina = np.min(data[max(0, i - peak_width):i])
+    minb = np.min(data[i:i + peak_width])
 
     return np.abs(mina - minb)
 

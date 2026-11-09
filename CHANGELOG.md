@@ -7,6 +7,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Fix automatic peak-minima phasing when a scoring window reaches a
+  spectrum boundary.
+
 - Fix Cadzow enhancement for 2D arrays by processing each row independently. (#205)
 
 - Allow Bruker raw readers to retain flat samples after a declared shape
