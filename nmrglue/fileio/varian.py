@@ -196,7 +196,7 @@ def create_pdic_param(name, values):
 
 
 def read(dir=".", fid_file="fid", procpar_file="procpar", read_blockhead=False,
-         shape=None, torder=None, as_2d=False):
+         shape=None, torder=None, as_2d=False, *, legacy_layout=False):
     """
     Read Agilent/Varian files in a directory.
 
@@ -223,6 +223,11 @@ def read(dir=".", fid_file="fid", procpar_file="procpar", read_blockhead=False,
     as_2d : bool, optional
         True to return data as a 2D array ignoring the shape and torder
         parameters.
+
+    legacy_layout : bool, optional
+        For a single stored trace, remove the storage row axis before applying
+        the declared shape. This preserves the historical plugin presentation.
+        Multi-trace data and explicit ``as_2d`` reads are unaffected.
 
     Returns
     -------
@@ -275,7 +280,8 @@ def read(dir=".", fid_file="fid", procpar_file="procpar", read_blockhead=False,
 
     # read in the fid file
     fname = os.path.join(dir, fid_file)
-    dic, data = read_fid(fname, shape, torder, as_2d, read_blockhead)
+    dic, data = read_fid(fname, shape, torder, as_2d, read_blockhead,
+                         legacy_layout=legacy_layout)
 
     # add the procpar dictionary to the main dictionary
     dic["procpar"] = pdic
@@ -633,8 +639,23 @@ def order_data(data, torder):
 #######################
 
 
+def _reorder_fid_or_keep_traces(data, shape, torder):
+    try:
+        if torder in ("flat", "f") and -1 in shape:
+            inferred = data.reshape(shape)
+            if inferred.shape[-1] == data.shape[-1]:
+                return inferred
+        elif data.shape == (reduce(operator.mul, shape[:-1], 1), shape[-1]):
+            return reorder_data(data, shape, torder)
+    except Exception:
+        pass
+    warn(f"data cannot be re-ordered, returning raw 2D data\n"
+         f"Provided shape: {shape} torder: {torder}")
+    return data
+
+
 def read_fid(filename, shape=None, torder='flat', as_2d=False,
-             read_blockhead=False):
+             read_blockhead=False, *, legacy_layout=False):
     """
     Read a Agilent/Varian binary (fid) file.
 
@@ -654,6 +675,10 @@ def read_fid(filename, shape=None, torder='flat', as_2d=False,
     read_blockhead : bool, optional
         True to read the Agilent/Varian blockheaders(s) into the returned
         dictionary. False ignores them.
+
+    legacy_layout : bool, optional
+        Apply the historical single-trace presentation described by
+        :py:func:`read`.
 
     Returns
     -------
@@ -701,6 +726,15 @@ def read_fid(filename, shape=None, torder='flat', as_2d=False,
     if as_2d:
         return dic, data
 
+    if legacy_layout and data.shape[0] == 1:
+        trace = data[0]
+        if shape is not None:
+            try:
+                trace = trace.reshape(shape)
+            except ValueError:
+                pass
+        return dic, trace
+
     # return raw data if no shape provided.
     if shape is None:
         warn("unknown shape, returning unshaped data")
@@ -713,12 +747,7 @@ def read_fid(filename, shape=None, torder='flat', as_2d=False,
     # try to reshape
     # reorder 3D/4D data
     if len(shape) >= 3:
-        try:
-            return dic, reorder_data(data, shape, torder)
-        except:
-            warn(f"data cannot be re-ordered, returning raw 2D data\n" +
-                 f"Provided shape: {shape} torder: {torder}")
-            return dic, data
+        return dic, _reorder_fid_or_keep_traces(data, shape, torder)
 
     try:
         data = data.reshape(shape)
@@ -853,7 +882,7 @@ def read_fid_ntraces(filename, shape=None, torder='flat', as_2d=False,
 
     # reorder 3D/4D data
     if len(shape) >= 3:
-        return dic, reorder_data(data, shape, torder)
+        return dic, _reorder_fid_or_keep_traces(data, shape, torder)
 
     try:
         data = data.reshape(shape)
@@ -1804,7 +1833,7 @@ def find_shape(pdic):
     if "ni3" in pdic:
         multi = 2
         if "phase3" in pdic:
-            multi = len(pdic["phase"]["values"])
+            multi = len(pdic["phase3"]["values"])
         s = max(int(pdic["ni3"]["values"][0]), 1)
         shape.insert(0, s * multi)
 
