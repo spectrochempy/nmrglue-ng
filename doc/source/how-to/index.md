@@ -3,8 +3,9 @@
 Use these task-oriented entry points when you want a concrete recipe for a
 specific format, operation, or workflow.
 
-For a progressive introduction to the modern notebook workflow, follow the
-{doc}`tutorial sequence <../tutorials/index>`.
+These recipes extend the {doc}`tutorial sequence <../tutorials/index>`.
+The {doc}`JBNMR examples <../jbnmr_examples/index>` combine several of these
+operations in complete workflows.
 
 ```{toctree}
 :maxdepth: 2

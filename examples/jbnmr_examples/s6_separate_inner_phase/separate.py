@@ -12,7 +12,7 @@ dic['nblocks'] = out_shape[0]
 # loop over the redor multiples, separating and saving each 2D
 for i, nredor in enumerate(dic['procpar']['nredor']['values']):
     dir_name = 'nredor_' + nredor + '.fid'
-    print "Creating directory:", dir_name
+    print("Creating directory:", dir_name)
     sdata = np.empty(out_shape, dtype=data.dtype)
     sdata[::2] = data[2 * i::2 * array_size]
     sdata[1::2] = data[2 * i + 1::2 * array_size]

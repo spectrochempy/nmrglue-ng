@@ -164,3 +164,8 @@ plt.show()
 For data with a different intensity scale or noise level, adjust the contour
 levels and the displayed ppm window. The plot is intended to inspect the
 spectrum, not to establish quantitative peak intensities.
+
+For plotting recipes, see {doc}`../how-to/plotting`. The JBNMR examples on
+{doc}`1D visualization <../jbnmr_examples/s2_s3_1d_plotting>` and
+{doc}`2D visualization <../jbnmr_examples/s4_2d_plotting>` show complete plots
+from published datasets.

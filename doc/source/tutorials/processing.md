@@ -273,3 +273,7 @@ for dim in range(processed_udic["ndim"]):
 For larger 3D or 4D datasets, a full in-memory copy may be impractical. The
 [Low-memory guide](low-memory.md) introduces on-demand slicing, and the
 [processing examples](../how-to/processing) show plane-by-plane `iter3D` processing.
+
+For a complete experimental workflow, the JBNMR
+{doc}`S3E example <../jbnmr_examples/s7-s9_s3e_processing>` separates,
+converts, processes, and recombines a 2D acquisition.

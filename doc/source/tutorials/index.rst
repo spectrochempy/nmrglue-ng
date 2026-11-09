@@ -32,3 +32,16 @@ Guide
     processing
     low-memory
     additional-resources
+
+Apply what you learned
+----------------------
+
+Use the workflow guides when you need to complete a specific task. The JBNMR
+examples show how the same operations fit together on published experimental
+datasets, from format conversion and visualization to processing and analysis.
+
+.. toctree::
+    :maxdepth: 2
+
+    Workflow guides <../how-to/index>
+    Worked examples from the JBNMR article <../jbnmr_examples/index>
