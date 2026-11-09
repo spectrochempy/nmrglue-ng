@@ -229,6 +229,8 @@ def read_bruker_ser(
     isfloat=None,
     read_pulseprogram=True,
     read_acqus=True,
+    acqus_files=None,
+    procs_files=None,
 ):
     """Read a raw Bruker 2D QF or States-TPPI SER as a ReadResult.
 
@@ -241,6 +243,7 @@ def read_bruker_ser(
 
     No RG/NS normalization, FFT, apodization, phasing, or linear prediction is
     applied. Digital-filter removal is explicit and recorded when requested.
+    Explicit acquisition and processing file lists are forwarded to the reader.
     """
     if not os.path.isdir(dir):
         raise OSError("directory %s does not exist" % (dir,))
@@ -254,7 +257,9 @@ def read_bruker_ser(
         isfloat=isfloat,
         read_pulseprogram=read_pulseprogram,
         read_acqus=read_acqus,
-        read_procs=False,
+        acqus_files=None if acqus_files is None else list(acqus_files),
+        procs_files=None if procs_files is None else list(procs_files),
+        read_procs=procs_files is not None,
     )
     data = np.asarray(data)
     if data.ndim != 2 or not np.issubdtype(data.dtype, np.number):

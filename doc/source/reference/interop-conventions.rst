@@ -374,8 +374,23 @@ The normalized data contain real and imaginary F2 planes, in the stored
 complex convention, with shape ``(2, F1, F2)``. F1 is real and both time
 axes retain their physical order and calibrated sampling. This profile
 requires a complete, uniformly sampled grid and excludes prefiltered or
-otherwise corrected input. Filter correction, DC removal and scan/gain
-normalization remain separate processing operations.
+otherwise corrected input. By default the output samples are uncorrected.
+To match the public reader's requested acquisition corrections, pass
+``remove_dc_offset=True``, ``remove_digital_filter=True``, or
+``normalize_scan_gain=True`` explicitly. They subtract the complex mean
+of each F2 trace, remove the time-domain filter on decimated acquisitions,
+and divide by NS times RG, in that order. The F2 axis is shortened when
+filtering truncates the samples, and the applied operations are recorded.
+A fractional decimation rate requires a positive explicit group delay.
+The corrected planes retain the stored complex convention.
+
+With explicit processing files, ``fft_presentation=True`` also describes
+the historical public FFT presentation for F1 and F2. Each stage uses a
+negative-exponent FFT on conjugated input and an optional initial phase.
+When calibrated, the display spans inclusive decreasing endpoints about
+``(SFO1 - SF) * 10**6`` Hz with width ``SW * SFO1`` Hz and BF1 for ppm.
+The descriptor leaves the stored samples and physical QF FFT grid unchanged.
+
 
 Normalized Bruker processed 1D spectra (experimental)
 -----------------------------------------------------

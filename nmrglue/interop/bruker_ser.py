@@ -1,20 +1,70 @@
 """Normalize a complete, uncorrected Bruker QF SER for interop."""
 
 from collections.abc import Mapping
+from dataclasses import replace
 
 import numpy as np
 
+from ..fileio import bruker
+from .bruker import _raw_number
 from .result import NormalizedAcquisition, ReadResult
 
 
-def normalize_bruker_ser_qf(result: ReadResult) -> NormalizedAcquisition:
+def _fft_presentation(metadata):
+    presentation = {}
+    for role, acqu, proc in (("F1", "acqu2", "proc2"), ("F2", "acqu", "proc")):
+        acquisition = {**metadata.get(acqu, {}), **metadata.get(acqu + "s", {})}
+        processing = {**metadata.get(proc, {}), **metadata.get(proc + "s", {})}
+        acquisition = {"acqus": acquisition}
+        processing = {"procs": processing}
+        observation = _raw_number(acquisition, "acqus", "SFO1")
+        reference = _raw_number(acquisition, "acqus", "BF1")
+        ppm_width = _raw_number(acquisition, "acqus", "SW")
+        sf = _raw_number(processing, "procs", "SF")
+        entry: dict[str, object] = {"transform": "conjugate-input"}
+        if (
+            observation is not None and reference is not None
+            and ppm_width is not None and sf is not None
+        ):
+            width = observation * ppm_width
+            center = (observation - sf) * 1e6
+            if min(observation, reference, ppm_width, sf) <= 0 or not np.isfinite([center, width]).all():
+                raise ValueError("invalid Bruker QF FFT display calibration")
+            entry["display_axis"] = {
+                "grid": "inclusive-endpoints",
+                "direction": "decreasing",
+                "center_hz": center,
+                "spectral_width_hz": width,
+                "reference_frequency_mhz": reference,
+            }
+        phase_zero = _raw_number(processing, "procs", "PHC0")
+        phase_first = _raw_number(processing, "procs", "PHC1")
+        entry["initial_phase"] = {
+            "zero_order_deg": phase_zero or 0.0,
+            "first_order_deg": phase_first or 0.0,
+            "pivot_index": 0,
+        }
+        presentation[role] = entry
+    return presentation
+
+
+def normalize_bruker_ser_qf(
+    result: ReadResult, *, remove_dc_offset=False, remove_digital_filter=False,
+    normalize_scan_gain=False, fft_presentation=False,
+) -> NormalizedAcquisition:
     """Expose a complete uniformly sampled QF SER as real and imaginary planes.
 
     The planes preserve the stored direct complex convention. Axes remain
-    in F1/F2 order and no filter correction, scaling or FFT is applied.
+    in F1/F2 order. Optional corrections apply per-trace DC removal, the
+    time-domain filter for decimated data, and scan/gain scaling in that
+    order. No corrections are applied by default.
     """
     if not isinstance(result, ReadResult) or result.format != "bruker-ser-qf-2d":
         raise ValueError("normalize_bruker_ser_qf requires a Bruker QF SER ReadResult")
+    if not all(isinstance(value, bool) for value in (
+        remove_dc_offset, remove_digital_filter, normalize_scan_gain, fft_presentation,
+    )):
+        raise ValueError("Bruker QF correction options must be booleans")
     if result.metadata.get("acqus", {}).get("FnTYPE", 0) != 0:
         raise ValueError("Bruker QF normalization requires uniform sampling")
     corrections = result.applied_corrections
@@ -78,6 +128,55 @@ def normalize_bruker_ser_qf(result: ReadResult) -> NormalizedAcquisition:
             raise ValueError("Bruker QF time grid is inconsistent with spectral width")
         widths.append(width)
 
+    corrected = data
+    if remove_dc_offset:
+        corrected = corrected - corrected.mean(axis=-1, keepdims=True)
+    filter_trace = {"requested": remove_digital_filter, "applied": False}
+    if remove_digital_filter:
+        parameters = {"acqus": digital_filter["parameters"]}
+        decimation = _raw_number(parameters, "acqus", "DECIM")
+        if decimation is None or decimation < 1:
+            raise ValueError("Bruker QF filter requires valid decimation evidence")
+        if decimation > 1:
+            firmware = _raw_number(parameters, "acqus", "DSPFVS")
+            delay = _raw_number(parameters, "acqus", "GRPDLY")
+            if firmware is None or not firmware.is_integer():
+                raise ValueError("Bruker QF filter requires valid firmware evidence")
+            if (delay is None or delay <= 0) and not decimation.is_integer():
+                raise ValueError("Bruker QF fractional decimation requires explicit group delay")
+            corrected = bruker.remove_digital_filter(parameters, corrected, truncate=True)
+            if corrected.shape[1] < 2:
+                raise ValueError("Bruker QF filter leaves fewer than two direct points")
+            filter_trace = {
+                "requested": True, "applied": True,
+                "removed_points": data.shape[1] - corrected.shape[1],
+            }
+    gain_trace = {"applied": normalize_scan_gain}
+    scale = None
+    if normalize_scan_gain:
+        acqus = {**result.metadata.get("acqu", {}), **result.metadata.get("acqus", {})}
+        scans = _raw_number({"acqus": acqus}, "acqus", "NS")
+        gain = _raw_number({"acqus": acqus}, "acqus", "RG")
+        divisor = (1.0 if scans is None else scans) * (1.0 if gain is None else gain)
+        if (scans is not None and scans <= 0) or (gain is not None and gain <= 0):
+            raise ValueError("Bruker QF scan count and gain must be positive")
+        if not np.isfinite(divisor) or divisor <= 0 or not np.isfinite(1.0 / divisor):
+            raise ValueError("invalid Bruker QF scan/gain divisor")
+        scale = 1.0 / divisor
+        corrected = corrected / divisor
+        gain_trace = {"applied": True, "scans": scans, "receiver_gain": gain, "divisor": divisor}
+    if corrected is not data and not np.isfinite(corrected).all():
+        raise ValueError("Bruker QF correction produced nonfinite samples")
+    axes = result.axes
+    if corrected.shape[1] != data.shape[1]:
+        direct_values = axes[1].values
+        assert direct_values is not None
+        axes = (axes[0], replace(axes[1], values=direct_values[:corrected.shape[1]]))
+        descriptions = (
+            descriptions[0],
+            {**descriptions[1], "returned_points": corrected.shape[1]},
+        )
+
     dimensions = ("channels", *order)
     operation = {
         "name": "split-bruker-qf-direct-component",
@@ -85,15 +184,22 @@ def normalize_bruker_ser_qf(result: ReadResult) -> NormalizedAcquisition:
         "input_dimensions": order,
         "output_dimensions": dimensions,
         "axis": "F2",
-        "scale": None,
+        "scale": scale,
         "conjugation": "none",
         "sign": "none",
         "permutation": None,
         "evidence": "nmrglue.interop.read_bruker_ser",
+        "dc_offset": {"applied": remove_dc_offset},
+        "digital_filter": filter_trace,
+        "scan_gain": gain_trace,
     }
+    presentation = (
+        {"fft_presentation": _fft_presentation(result.metadata)}
+        if fft_presentation else {}
+    )
     return NormalizedAcquisition(
-        data=np.stack((data.real, data.imag)),
-        axes=result.axes,
+        data=np.stack((corrected.real, corrected.imag)),
+        axes=axes,
         dimensions=dimensions,
         physical_dimensions=order,
         domains=("time", "time"),
@@ -106,8 +212,14 @@ def normalize_bruker_ser_qf(result: ReadResult) -> NormalizedAcquisition:
         provenance={"source": result.source, "format": result.format},
         acquisition={
             **result.acquisition,
+            **presentation,
+            "axes": descriptions,
             "spectral_width_hz": tuple(widths),
             "indirect_sampling": "qf",
+            "dc_offset": operation["dc_offset"],
+            "digital_filter": filter_trace,
+            "scan_gain": gain_trace,
+            "returned_shape": corrected.shape,
         },
         metadata=result.metadata,
         encoding=("real", "complex"),
