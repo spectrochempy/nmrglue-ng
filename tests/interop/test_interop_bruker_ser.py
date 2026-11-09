@@ -155,3 +155,26 @@ def test_bruker_qf_ser_rejects_qsim_direct_mode(monkeypatch, tmp_path):
 
     with pytest.raises(ValueError, match="AQ_mod=3"):
         ng.interop.read_bruker_ser(str(tmp_path))
+
+
+def test_normalize_qf_ser_preserves_direct_components(monkeypatch, tmp_path):
+    data = _ser_data()
+    monkeypatch.setattr(ng.bruker, "read", lambda *args, **kwargs: (_ser_dictionary(), data))
+    source = ng.interop.read_bruker_ser(tmp_path)
+    normalized = ng.interop.normalize(source)
+    assert normalized.dimensions == ("channels", "F1", "F2")
+    assert normalized.encoding == ("real", "complex")
+    assert normalized.branch_order == ("rr", "ri")
+    assert normalized.acquisition["spectral_width_hz"] == (1000.0, 1000.0)
+    np.testing.assert_array_equal(normalized.data, np.stack((data.real, data.imag)))
+    np.testing.assert_array_equal(normalized.axes[0].values, np.arange(3) / 1000)
+    np.testing.assert_array_equal(normalized.axes[1].values, np.arange(4) / 1000)
+
+
+def test_normalize_qf_ser_refuses_nonuniform_sampling(monkeypatch, tmp_path):
+    metadata = _ser_dictionary()
+    metadata["acqus"]["FnTYPE"] = 2
+    monkeypatch.setattr(ng.bruker, "read", lambda *args, **kwargs: (metadata, _ser_data()))
+    source = ng.interop.read_bruker_ser(tmp_path)
+    with pytest.raises(ValueError, match="uniform sampling"):
+        ng.interop.normalize(source)

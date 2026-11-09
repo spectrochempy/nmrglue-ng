@@ -7,6 +7,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Normalize complete uncorrected Bruker QF SER grids for interop while
+  preserving the stored complex convention and calibrated time axes.
+
 - Describe deferred DC, digital-filter and scan/gain preparation for
   normalized Bruker 1D FIDs without applying the corrections at import. (#198)
 

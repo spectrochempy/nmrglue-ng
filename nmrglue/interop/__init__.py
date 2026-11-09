@@ -22,6 +22,7 @@ from typing import Any
 
 from .bruker import read_bruker_fid, read_bruker_pdata, read_bruker_ser
 from .dispatch import read
+from .bruker_ser import normalize_bruker_ser_qf
 from .bruker_pdata_2d import (
     normalize_bruker_pdata_2d,
     read_bruker_pdata_2d,
@@ -62,6 +63,7 @@ from .result import (
 _NORMALIZERS: dict[str, Callable[..., NormalizedAcquisition]] = {
     "agilent-fid": normalize_agilent_fid,
     "bruker-fid": normalize_bruker_fid,
+    "bruker-ser-qf-2d": normalize_bruker_ser_qf,
     "bruker-pdata": normalize_bruker_pdata,
     "bruker-pdata-2d": normalize_bruker_pdata_2d,
     "jcampdx-fid-1d": normalize_jcampdx_fid,
@@ -144,6 +146,7 @@ __all__ = [
     "read_agilent_states_2d",
     "normalize_agilent_fid",
     "normalize_bruker_fid",
+    "normalize_bruker_ser_qf",
     "normalize_bruker_pdata",
     "write_readresult_nmrpipe",
     "read_nmrml_1d",
