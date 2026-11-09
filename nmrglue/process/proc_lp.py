@@ -474,7 +474,8 @@ def cadzow(data, M, K, niter, min_var=False):
     of singular values using the minimum variance method as described in:
     Chen, VanHuffel, Decanniere, VanHecke, JMR, 1994, 109A, 46-55.
 
-    For 2D data performs independent enhancement on each row of data array.
+    For 2D data, each row is enhanced independently using the 1D algorithm.
+    The input array is not modified.
 
     Parameters
     ----------
@@ -503,10 +504,14 @@ def cadzow(data, M, K, niter, min_var=False):
             data = cadzow_single(data, M, K, min_var)
         return data
     elif data.ndim == 2:
-        for trace in data:
-            for i in range(niter):
-                trace = cadzow_single(trace, M, K, min_var)
-        return data
+        if data.shape[0] == 0 or not range(niter):
+            return data
+        result = np.empty_like(data)
+        for index, trace in enumerate(data):
+            if trace.ndim != 1:
+                trace = np.asarray(trace).reshape(-1)
+            result[index] = cadzow(trace, M, K, niter, min_var)
+        return result
     else:
         raise ValueError("data must be a 1D or 2D array")
 

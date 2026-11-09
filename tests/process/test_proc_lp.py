@@ -58,3 +58,34 @@ def test_lp_qr_complex_signal(mode, append):
     assert result.shape == (trace.size + pred,)
     assert result.dtype == np.dtype("complex128")
     np.testing.assert_allclose(result, expected, rtol=1e-12, atol=1e-12)
+
+
+@pytest.mark.parametrize("min_var", [False, True])
+def test_cadzow_2d_matches_independent_1d_rows(min_var):
+    rng = np.random.default_rng(945)
+    data = (rng.normal(size=(3, 32)) + 1j * rng.normal(size=(3, 32)))[:, ::2]
+    original = data.copy()
+    expected = np.stack([
+        ng.proc_lp.cadzow(row, M=6, K=2, niter=2, min_var=min_var)
+        for row in original
+    ])
+
+    result = ng.proc_lp.cadzow(data, M=6, K=2, niter=2, min_var=min_var)
+
+    np.testing.assert_array_equal(data, original)
+    assert result.dtype == original.dtype
+    assert not np.allclose(result, original)
+    np.testing.assert_allclose(result, expected, rtol=1e-12, atol=1e-12)
+
+
+def test_cadzow_2d_matrix_rows_are_processed_as_1d():
+    data = np.asmatrix([[1., 2., 3.], [4., 5., 6.]])
+    expected = np.stack([
+        ng.proc_lp.cadzow(row, M=2, K=1, niter=1)
+        for row in np.asarray(data)
+    ])
+
+    result = ng.proc_lp.cadzow(data, M=2, K=1, niter=1)
+
+    assert isinstance(result, type(data))
+    np.testing.assert_allclose(result, expected)

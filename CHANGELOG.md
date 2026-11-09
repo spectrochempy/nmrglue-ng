@@ -7,6 +7,8 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Fix Cadzow enhancement for 2D arrays by processing each row independently.
+
 - Add opt-in Bruker 2D pdata normalization for calibrated complex channel pairs,
   with acquisition or processing axes and explicit receiver gain.
 
