@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import hashlib
 import math
 import os
 import struct
 from collections.abc import Mapping
 from decimal import Decimal, InvalidOperation
+from pathlib import Path
 
 import numpy as np
 
@@ -550,15 +552,67 @@ def _agilent_series_shape(procpar, blocks, traces):
     return blocks * traces, words
 
 
-def normalize_agilent_states_2d(result, *, legacy_presentation=False):
+_STATES_PROGRAMS = {
+    ("NOESY", "94af3b927aa56a1c2891f4dff344eb360454564c63e1173a781d00ceecd94140"): (
+        "states-tppi",
+        "https://github.com/OpenVnmrJ/OpenVnmrJ/blob/0f6b0a4664def0cdf2ee9eb37cb2df7369f38ca3/src/psglib/NOESY.c",
+    ),
+}
+
+
+def _select_states_quadrature(result, quadrature, pulse_program_source):
+    if quadrature not in ("auto", "states", "states-tppi"):
+        raise ValueError("Agilent quadrature must be auto, states or states-tppi")
+    procpar = result.metadata.get("procpar", {})
+    sequence = _procpar_string(procpar, "seqfil")
+    selection = {"mode": None, "source": "undetermined", "sequence": sequence}
+    if quadrature != "auto":
+        if pulse_program_source is not None:
+            raise ValueError("pulse_program_source requires automatic quadrature")
+        selection.update(mode=quadrature, source="manual")
+        return selection
+
+    if pulse_program_source is None:
+        if not any(name == sequence for name, _ in _STATES_PROGRAMS):
+            return selection
+        candidate = Path(result.source).parent / f"{sequence}.c"
+        if candidate.is_symlink() or not candidate.is_file():
+            return selection
+        pulse_program_source = candidate
+    with Path(pulse_program_source).open("rb") as stream:
+        source = stream.read(256 * 1024 + 1)
+    if len(source) > 256 * 1024:
+        raise ValueError("Agilent pulse program source exceeds 256 KiB")
+    fingerprint = hashlib.sha256(source).hexdigest()
+    selection["sha256"] = fingerprint
+    known = _STATES_PROGRAMS.get((sequence, fingerprint))
+    if known is not None and _procpar_number(procpar, "d2") == 0:
+        mode, reference = known
+        selection.update(mode=mode, source="pulse-program", reference=reference)
+    return selection
+
+
+def normalize_agilent_states_2d(
+    result, *, legacy_presentation=False, quadrature=None, pulse_program_source=None,
+):
     """Pair verified Varian storage as two complex States branches in file order.
 
     Accept the scalar result of :func:`read_agilent_fid_storage`. The default
     uses physical time coordinates when known. The compatibility presentation
     preserves the historical public axes and explicit NS/NE divisor. Neither
     presentation applies phase, alternation, conjugation or an FFT.
+
+    With quadrature="states" or "states-tppi", record the caller's choice.
+    With quadrature="auto", recognize a supplied or adjacent pulse program
+    source by sequence name and SHA-256. An unmatched source leaves F1
+    quadrature undetermined.
+    Samples remain in storage order. A selected mode describes the transport
+    needed for NMRPipe-convention FFT processing.
     """
-    return _normalize_agilent_2d(result, legacy_presentation, mode="states")
+    return _normalize_agilent_2d(
+        result, legacy_presentation, mode="states", quadrature=quadrature,
+        pulse_program_source=pulse_program_source,
+    )
 
 
 def normalize_agilent_tppi_2d(result, *, legacy_presentation=False):
@@ -579,17 +633,19 @@ def normalize_agilent_fid_series(result, *, legacy_presentation=False):
     return _normalize_agilent_2d(result, legacy_presentation, mode="series")
 
 
-def _normalize_agilent_fid_storage(result, *, legacy_presentation=False):
+def _normalize_agilent_fid_storage(result, *, legacy_presentation=False, **options):
     procpar = result.metadata.get("procpar", {})
     phase = _procpar_phase(procpar)
     normalizer = {
         (): normalize_agilent_fid_series,
         (3,): normalize_agilent_tppi_2d,
     }.get(phase, normalize_agilent_states_2d)
-    return normalizer(result, legacy_presentation=legacy_presentation)
+    return normalizer(result, legacy_presentation=legacy_presentation, **options)
 
 
-def _normalize_agilent_2d(result, legacy_presentation, *, mode):
+def _normalize_agilent_2d(
+    result, legacy_presentation, *, mode, quadrature=None, pulse_program_source=None,
+):
     series = mode == "series"
     states = mode == "states"
     tppi = mode == "tppi"
@@ -631,6 +687,18 @@ def _normalize_agilent_2d(result, legacy_presentation, *, mode):
         for dn, tn in (("dn2", "tn2"), ("dn", "tn"))
     )
     widths = (indirect_width, direct_width)
+    selection = None
+    if quadrature is not None or pulse_program_source is not None:
+        selection = _select_states_quadrature(
+            result, "auto" if quadrature is None else quadrature, pulse_program_source
+        )
+    selected = selection is not None and selection["mode"] is not None
+    if selected and (
+        result.metadata.get("sampling_schedule_present")
+        or any(width is None or width <= 0 for width in widths)
+        or min(data.shape[-2:]) < 2
+    ):
+        raise ValueError("Agilent States processing requires complete calibrated F1/F2 grids")
     nuclei = (reported_nuclei[0], _procpar_string(procpar, "tn"))
     if tppi:
         nuclei = (_procpar_string(procpar, "tn2") or None, nuclei[1])
@@ -645,6 +713,11 @@ def _normalize_agilent_2d(result, legacy_presentation, *, mode):
         "physical_indirect_increments": None if series else rows // 2 if states else rows,
         "storage_shape": (rows, words),
     }
+    if selection is not None:
+        acquisition["quadrature_selection"] = selection
+    if selected:
+        acquisition["spectral_width_hz"] = widths
+        acquisition["states_fft_input_transform"] = "conjugate-and-negate-second-branch"
     physical = ("trace", "F2") if series else ("F1", "F2")
     dimensions = ("channels", *physical) if states else physical
     if series:
@@ -677,10 +750,12 @@ def _normalize_agilent_2d(result, legacy_presentation, *, mode):
             fallback if transmitter is None else transmitter
             for transmitter, fallback in zip(transmitters, decoupler, strict=True)
         )
-        widths = (_procpar_number(procpar, "sw2"), direct_width)
-        nuclei = reported_nuclei
+        display_widths = (_procpar_number(procpar, "sw2"), direct_width)
+        if not selected:
+            widths = display_widths
+            nuclei = reported_nuclei
         acquisition["legacy_presentation"] = {
-            "spectral_widths_hz": widths,
+            "spectral_widths_hz": display_widths,
             "observation_frequencies_mhz": displayed_observation,
             "decoupler_frequencies_mhz": decoupler,
             "reported_nuclei": reported_nuclei,

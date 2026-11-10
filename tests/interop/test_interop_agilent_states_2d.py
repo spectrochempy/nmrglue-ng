@@ -1,5 +1,7 @@
 """Self-contained tests for the descriptive Agilent 2D States profile."""
 
+import hashlib
+
 import numpy as np
 import pytest
 
@@ -144,6 +146,55 @@ def test_normalize_states_scalar_storage(tmp_path, legacy):
         assert len(normalized.applied_operations) == 1
     assert normalized.quadrature_mode == "states-stored-2d"
     assert normalized.encoding == ("states", "complex")
+
+
+def test_states_quadrature_selection_keeps_storage(tmp_path, monkeypatch):
+    from nmrglue.interop import varian as adapter
+    from nmrglue.interop.storage import _trace_result
+
+    dic, _ = _states_fixture()
+    procpar = dic["procpar"]
+    del procpar["seqcon"]
+    procpar["seqfil"] = _parameter(["NOESY"])
+    procpar["d2"] = _parameter([0])
+    scalar = np.arange(24, dtype=np.float32).reshape(4, 6)
+    result = _trace_result(
+        tmp_path / "fid", scalar,
+        dict(dic, nblocks=4, S_SPEC=0, S_HYPERCOMPLEX=0),
+        "agilent-fid-storage", blocks=4, traces_per_block=1,
+    )
+    baseline = ng.interop.normalize(result, legacy_presentation=True)
+    unknown = ng.interop.normalize(result, legacy_presentation=True, quadrature="auto")
+    assert unknown.acquisition["quadrature_selection"]["mode"] is None
+    np.testing.assert_array_equal(unknown.data, baseline.data)
+
+    manual = ng.interop.normalize(result, legacy_presentation=True, quadrature="states")
+    assert manual.acquisition["quadrature_selection"]["source"] == "manual"
+    assert manual.acquisition["states_fft_input_transform"] == "conjugate-and-negate-second-branch"
+    np.testing.assert_array_equal(manual.data, baseline.data)
+    np.testing.assert_allclose(manual.axes[0].values, [0, 0.00018])
+
+    source = tmp_path / "NOESY.c"
+    source.write_bytes(b"test pulse source")
+    fingerprint = hashlib.sha256(source.read_bytes()).hexdigest()
+    monkeypatch.setattr(adapter, "_STATES_PROGRAMS", {
+        ("NOESY", fingerprint): ("states-tppi", "reference"),
+    })
+    automatic = ng.interop.normalize(result, quadrature="auto")
+    assert automatic.acquisition["quadrature_selection"] == {
+        "mode": "states-tppi", "source": "pulse-program", "sequence": "NOESY",
+        "sha256": fingerprint, "reference": "reference",
+    }
+    from dataclasses import replace
+
+    delayed_procpar = {**procpar, "d2": _parameter([0.001])}
+    delayed = replace(result, metadata={**result.metadata, "procpar": delayed_procpar})
+    assert ng.interop.normalize(delayed, quadrature="auto").acquisition[
+        "quadrature_selection"
+    ]["mode"] is None
+    source.write_bytes(b"local variant with the same name")
+    unmatched = ng.interop.normalize(result, quadrature="auto")
+    assert unmatched.acquisition["quadrature_selection"]["mode"] is None
 
 
 @pytest.mark.parametrize(
