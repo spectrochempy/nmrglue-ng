@@ -482,6 +482,17 @@ When calibrated, the display spans inclusive decreasing endpoints about
 The descriptor leaves the stored samples and physical QF FFT grid unchanged.
 
 
+Normalized Bruker States SER
+----------------------------
+
+Use ``normalize_bruker_ser_states()`` on a complete uniform Bruker SER
+storage result with ``FnMODE=4`` and direct DQD. The storage reader accepts
+``states_only=True`` to check the mode before decoding the binary. The
+normalizer preserves the two adjacent traces of each F1 increment as RR,
+RI, IR and II in F1/F2 order. The resulting States FFT uses no sign
+alternation. The storage-length, correction and FFT presentation options
+are shared with the States-TPPI profile below.
+
 Normalized Bruker States-TPPI SER
 ---------------------------------
 

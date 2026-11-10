@@ -233,6 +233,7 @@ to access the submodule, import the specific functions you need from
     normalize_agilent_fid
     normalize_bruker_fid
     normalize_bruker_ser_qf
+    normalize_bruker_ser_states
     normalize_bruker_ser_states_tppi
     normalize_bruker_ser_echo_antiecho
     normalize_jeol_fid

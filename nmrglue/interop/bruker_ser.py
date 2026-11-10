@@ -258,6 +258,18 @@ def normalize_bruker_ser_qf(
     )
 
 
+def normalize_bruker_ser_states(
+    result: ReadResult, *, preserve_storage=False, remove_dc_offset=False,
+    remove_digital_filter=False, normalize_scan_gain=False, fft_presentation=False,
+) -> NormalizedAcquisition:
+    """Pair complete uniform States traces in storage order, without alternation."""
+    return _normalize_paired_ser(
+        result, fnmode=4, preserve_storage=preserve_storage,
+        remove_dc_offset=remove_dc_offset, remove_digital_filter=remove_digital_filter,
+        normalize_scan_gain=normalize_scan_gain, fft_presentation=fft_presentation,
+    )
+
+
 def normalize_bruker_ser_states_tppi(
     result: ReadResult, *, preserve_storage=False, remove_dc_offset=False,
     remove_digital_filter=False, normalize_scan_gain=False, fft_presentation=False,
@@ -268,7 +280,7 @@ def normalize_bruker_ser_states_tppi(
     Preserve the aligned length explicitly for public reader parity.
     """
     return _normalize_paired_ser(
-        result, echo_antiecho=False, preserve_storage=preserve_storage,
+        result, fnmode=5, preserve_storage=preserve_storage,
         remove_dc_offset=remove_dc_offset, remove_digital_filter=remove_digital_filter,
         normalize_scan_gain=normalize_scan_gain, fft_presentation=fft_presentation,
     )
@@ -280,19 +292,22 @@ def normalize_bruker_ser_echo_antiecho(
 ) -> NormalizedAcquisition:
     """Pair complete uniform echo/anti-echo traces in their stored order."""
     return _normalize_paired_ser(
-        result, echo_antiecho=True, preserve_storage=preserve_storage,
+        result, fnmode=6, preserve_storage=preserve_storage,
         remove_dc_offset=remove_dc_offset, remove_digital_filter=remove_digital_filter,
         normalize_scan_gain=normalize_scan_gain, fft_presentation=fft_presentation,
     )
 
 
 def _normalize_paired_ser(
-    result, *, echo_antiecho, preserve_storage, remove_dc_offset,
+    result, *, fnmode, preserve_storage, remove_dc_offset,
     remove_digital_filter, normalize_scan_gain, fft_presentation,
 ):
-    mode = "echo-antiecho" if echo_antiecho else "states-tppi"
-    label = "echo/anti-echo" if echo_antiecho else "States-TPPI"
-    fnmode = 6 if echo_antiecho else 5
+    mode, label = {
+        4: ("states", "States"),
+        5: ("states-tppi", "States-TPPI"),
+        6: ("echo-antiecho", "echo/anti-echo"),
+    }[fnmode]
+    echo_antiecho = fnmode == 6
     if not isinstance(result, ReadResult) or result.format != "bruker-ser-storage":
         raise ValueError(f"{label} normalization requires a Bruker SER storage result")
     if not all(isinstance(value, bool) for value in (
@@ -301,7 +316,9 @@ def _normalize_paired_ser(
     )):
         raise ValueError(f"{label} correction and storage options must be booleans")
     metadata = result.metadata
-    if echo_antiecho:
+    if fnmode == 4 and result.dimensions.get("higher_dimension_files"):
+        raise ValueError("Bruker SER requires a two-dimensional acquisition")
+    if fnmode in (4, 6):
         _require_bruker_2d(metadata)
     direct = metadata.get("acqus", {})
     indirect = metadata.get("acqu2s", {})
@@ -394,7 +411,7 @@ def _normalize_paired_ser(
         branch_order = ("rr", "ri", "ir", "ii")
         encoding = ("complex", "complex")
         quadrature_mode = "stored-components-2d"
-        indirect_state = {"tppi_alternation": "declared_not_applied"}
+        indirect_state = {"tppi_alternation": "declared_not_applied"} if fnmode == 5 else {}
     operation = {
         "name": f"pair-bruker-{mode}-traces",
         "stage": "acquisition",
@@ -415,7 +432,7 @@ def _normalize_paired_ser(
     presentation = (
         {"fft_presentation": _fft_presentation(
             metadata, components.shape[1:], indirect_transform=(
-                "echo-antiecho-branch-fft" if echo_antiecho else "states-tppi-cross-pairs"
+                "echo-antiecho-branch-fft" if echo_antiecho else f"{mode}-cross-pairs"
             ),
         )}
         if fft_presentation else {}

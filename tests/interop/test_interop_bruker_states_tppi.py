@@ -150,7 +150,15 @@ def test_states_tppi_rejects_non_states_encoding(monkeypatch, tmp_path):
         ng.interop.read_bruker_ser(str(tmp_path))
 
 
-def test_normalize_states_tppi_storage_preserves_asymmetric_pairs_and_padding(tmp_path):
+@pytest.mark.parametrize("mode", [4, 5])
+def test_normalize_states_storage_preserves_asymmetric_pairs_and_padding(tmp_path, mode):
+    pure = mode == 4
+    normalize = (
+        ng.interop.normalize_bruker_ser_states
+        if pure else ng.interop.normalize_bruker_ser_states_tppi
+    )
+    preflight = {"states_only" if pure else "states_tppi_only": True}
+    alternation = None if pure else "declared_not_applied"
     (tmp_path / "acqus").write_text(
         "##TITLE= Synthetic direct\n"
         "##$TD= 8\n##$BYTORDA= 1\n##$DTYPA= 0\n##$AQ_mod= 3\n"
@@ -160,28 +168,28 @@ def test_normalize_states_tppi_storage_preserves_asymmetric_pairs_and_padding(tm
     )
     (tmp_path / "acqu2s").write_text(
         "##TITLE= Synthetic indirect\n"
-        "##$TD= 4\n##$FnMODE= 5\n##$SW= 10\n##$SFO1= 100\n##END=\n"
+        f"##$TD= 4\n##$FnMODE= {mode}\n##$SW= 10\n##$SFO1= 100\n##END=\n"
     )
     words = np.arange(4 * 256, dtype=np.int32).reshape(4, 256)
     (tmp_path / "ser").write_bytes(words.astype(">i4").tobytes())
     (tmp_path / "pulseprogram").write_bytes(b"lo to\n")
     with pytest.warns(UserWarning, match="Error reading the pulse program"):
         stored = ng.interop.read_bruker_ser_storage(
-            tmp_path, states_tppi_only=True, read_pulseprogram=True,
+            tmp_path, read_pulseprogram=True, **preflight,
         )
     assert stored.metadata["pulseprogram_raw"] == b"lo to\n"
     assert "pprog" not in stored.metadata
     np.testing.assert_array_equal(stored.data, words)
-    result = ng.interop.normalize_bruker_ser_states_tppi(stored)
+    result = normalize(stored)
     assert result.branch_order == ("rr", "ri", "ir", "ii")
-    assert result.acquisition["tppi_alternation"] == "declared_not_applied"
+    assert result.acquisition.get("tppi_alternation") == alternation
     assert result.applied_operations[0]["padding_words_per_trace"] == 248
     for plane, (row, word) in zip(result.data, ((0, 0), (0, 1), (1, 0), (1, 1)), strict=True):
         np.testing.assert_array_equal(plane, words[row::2, word:8:2])
     np.testing.assert_array_equal(result.axes[0].values, np.arange(2) / 1000)
     np.testing.assert_array_equal(result.axes[1].values, np.arange(4) / 2000)
 
-    corrected = ng.interop.normalize_bruker_ser_states_tppi(
+    corrected = normalize(
         stored, preserve_storage=True, remove_dc_offset=True,
         remove_digital_filter=True, normalize_scan_gain=True,
     )
@@ -197,16 +205,26 @@ def test_normalize_states_tppi_storage_preserves_asymmetric_pairs_and_padding(tm
     assert corrected.applied_operations[0]["retained_padding_words_per_trace"] == 248
     assert corrected.acquisition["digital_filter"]["removed_points"] == 4
     assert corrected.acquisition["scan_gain"]["divisor"] == 32
-    assert corrected.acquisition["tppi_alternation"] == "declared_not_applied"
+    assert corrected.acquisition.get("tppi_alternation") == alternation
 
 
     (tmp_path / "ser").write_bytes(words[:-1].astype(">i4").tobytes())
     with pytest.raises(ValueError, match="complete TD geometry"):
-        ng.interop.normalize_bruker_ser_states_tppi(ng.interop.read_bruker_ser_storage(tmp_path))
+        normalize(ng.interop.read_bruker_ser_storage(tmp_path))
     (tmp_path / "ser").write_bytes(words.astype(">i4").tobytes())
     (tmp_path / "nuslist").write_text("0\n1\n")
-    with pytest.raises(ValueError, match="uniform States-TPPI"):
-        ng.interop.normalize_bruker_ser_states_tppi(ng.interop.read_bruker_ser_storage(tmp_path))
+    with pytest.raises(ValueError, match="uniform States"):
+        normalize(ng.interop.read_bruker_ser_storage(tmp_path))
+
+    if pure:
+        (tmp_path / "nuslist").unlink()
+        (tmp_path / "acqu3s").write_text("##TITLE= Third axis\n##$TD= 8\n##END=\n")
+        selected = {"acqus_files": ["acqus", "acqu2s"]}
+        with pytest.raises(ValueError, match="two-dimensional acquisition"):
+            ng.interop.read_bruker_ser_storage(tmp_path, states_only=True, **selected)
+        stored = ng.interop.read_bruker_ser_storage(tmp_path, **selected)
+        with pytest.raises(ValueError, match="two-dimensional acquisition"):
+            normalize(stored)
 
 
 @pytest.mark.parametrize("extra_dimension", [None, "PARMODE", "acqu3s"])
