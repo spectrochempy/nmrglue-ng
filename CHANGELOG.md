@@ -7,6 +7,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Record manual or source-verified Agilent 2D States quadrature in interop
+  while preserving the stored complex branches.
+
 ## 1.2.4 - 2026-11-10
 
 - Read short indexed SIMPSON XREIM files, padded headers, and complete

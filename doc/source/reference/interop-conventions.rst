@@ -53,6 +53,26 @@ widths (``sw2``, ``sw``) and applies the explicit ``NS*NE`` divisor
 recorded in the operations. This option retains the physical width and
 observed-nucleus evidence in the acquisition metadata.
 
+For a confirmed acquisition, use ``normalize(stored, quadrature="states")``
+or ``quadrature="states-tppi"``. The normalized object preserves the stored
+branches and uses physical time axes. Its ``quadrature_selection`` acquisition
+entry records the mode and whether it came from the caller or a program
+source. The NMRPipe FFT input convention is recorded separately. It
+conjugates both branches and negates the second branch during processing.
+Selection requires the raw complex status or the legacy float status
+``0xC9`` in the file and all block headers, as verified on the historical
+Agilent States acquisitions.
+
+With ``quadrature="auto"``, the normalizer checks an explicit
+``pulse_program_source`` or a known ``<seqfil>.c`` beside the FID. The
+catalogue matches the sequence name and source SHA-256. It currently
+recognizes the audited OpenVnmrJ `NOESY source
+<https://github.com/OpenVnmrJ/OpenVnmrJ/blob/0f6b0a4664def0cdf2ee9eb37cb2df7369f38ca3/src/psglib/NOESY.c>`_
+as States-TPPI for a complete uniform grid starting with ``d2=0``.
+Use the exact source associated with the acquisition. A missing or
+unrecognized adjacent source leaves the selection undetermined. An
+explicit ``pulse_program_source`` must be readable.
+
 Agilent/Varian raw TPPI 2D
 --------------------------
 
