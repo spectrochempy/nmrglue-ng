@@ -187,7 +187,7 @@ def test_states_quadrature_selection_keeps_storage(tmp_path, monkeypatch):
         "sha256": fingerprint, "reference": "reference",
     }
     for key, values in (
-        ("d2", [0.001]), ("d2", [0, 0.125]),
+        ("d2", [0.001]), ("d2", [0, 0.125]), ("d2", ["nan"]), ("d2", ["invalid"]),
         ("seqfil", ["NOESY", "different"]), ("sampling", ["sparse"]),
     ):
         modified = replace(result, metadata={

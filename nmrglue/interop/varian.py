@@ -596,7 +596,13 @@ def _select_states_quadrature(result, quadrature, pulse_program_source):
     selection["sha256"] = fingerprint
     known = _STATES_PROGRAMS.get((sequence, fingerprint))
     d2 = procpar.get("d2", {}).get("values", ())
-    if known is not None and len(d2) == 1 and _procpar_number(procpar, "d2") == 0:
+    if known is None or len(d2) != 1:
+        return selection
+    try:
+        initial_delay = _procpar_number(procpar, "d2")
+    except ValueError:
+        return selection
+    if initial_delay == 0:
         mode, reference = known
         selection.update(mode=mode, source="pulse-program", reference=reference)
     return selection
