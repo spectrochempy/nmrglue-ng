@@ -7,6 +7,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Normalize complete uniform Bruker States SER acquisitions with direct DQD,
+  preserving the stored branches without applying TPPI alternation.
+
 - Record manual or source-verified Agilent 2D States quadrature in interop
   while preserving the stored complex branches.
 

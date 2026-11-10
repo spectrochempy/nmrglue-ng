@@ -33,7 +33,7 @@ def _trace_result(path, data, metadata, format_name, **dimensions):
 
 def read_bruker_ser_storage(
     directory, *, acqus_files=None, procs_files=None, states_tppi_only=False,
-    echo_antiecho_only=False, read_pulseprogram=False,
+    echo_antiecho_only=False, states_only=False, read_pulseprogram=False,
 ):
     """Read a standard Bruker SER as scalar traces, including row padding.
 
@@ -41,24 +41,37 @@ def read_bruker_ser_storage(
     acquisition mode, indirect sizes and referencing parameters. Trace count
     comes from the binary file and its 1024-byte-aligned trace stride.
     Explicit parameter file lists may be supplied. Set
-    ``states_tppi_only=True`` or ``echo_antiecho_only=True`` to preflight
+    ``states_only=True``, ``states_tppi_only=True`` or ``echo_antiecho_only=True`` to preflight
     the requested acquisition mode before decoding the binary.
     """
     directory = Path(directory)
     metadata = bruker.read_acqus_file(directory, acqus_files)
-    if states_tppi_only and echo_antiecho_only:
+    requested = [
+        (mode, label)
+        for enabled, mode, label in (
+            (states_only, 4, "States"),
+            (states_tppi_only, 5, "States-TPPI"),
+            (echo_antiecho_only, 6, "echo/anti-echo"),
+        )
+        if enabled
+    ]
+    if len(requested) > 1:
         raise ValueError("select one Bruker SER mode for preflight")
-    paired_only = states_tppi_only or echo_antiecho_only
-    if echo_antiecho_only:
+    paired_only = bool(requested)
+    mode, label = requested[0] if requested else (None, None)
+    higher_dimension_files = tuple(
+        name for name in ("acqu3s", "acqu4s") if (directory / name).is_file()
+    )
+    if states_only and higher_dimension_files:
+        raise ValueError("Bruker SER requires a two-dimensional acquisition")
+    if states_only or echo_antiecho_only:
         _require_bruker_2d(metadata)
-    mode = 6 if echo_antiecho_only else 5
     if paired_only and (
         metadata.get("acqus", {}).get("FnTYPE", 0) != 0
         or metadata.get("acqus", {}).get("AQ_mod") != 3
         or metadata.get("acqu2s", {}).get("FnMODE") != mode
         or (directory / "nuslist").exists()
     ):
-        label = "echo/anti-echo" if echo_antiecho_only else "States-TPPI"
         raise ValueError(f"Bruker SER requires uniform {label} with direct DQD")
     if procs_files is not None:
         metadata.update(bruker.read_procs_file(directory, list(procs_files)))
@@ -90,7 +103,10 @@ def read_bruker_ser_storage(
             metadata["pprog"] = bruker.read_pprog(directory / "pulseprogram")
         except (OSError, ValueError, IndexError):
             warn("Error reading the pulse program", stacklevel=2)
-    return _trace_result(path, data, metadata, "bruker-ser-storage", declared_td=td)
+    geometry = {"higher_dimension_files": higher_dimension_files} if higher_dimension_files else {}
+    return _trace_result(
+        path, data, metadata, "bruker-ser-storage", declared_td=td, **geometry,
+    )
 
 
 def read_agilent_fid_storage(directory, *, states_only=False, tppi_only=False, series_only=False):

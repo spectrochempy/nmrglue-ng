@@ -24,6 +24,7 @@ from .bruker import read_bruker_fid, read_bruker_pdata, read_bruker_ser
 from .dispatch import read
 from .bruker_ser import (
     normalize_bruker_ser_echo_antiecho, normalize_bruker_ser_qf,
+    normalize_bruker_ser_states,
     normalize_bruker_ser_states_tppi,
 )
 from .bruker_pdata_2d import (
@@ -162,6 +163,7 @@ __all__ = [
     "normalize_bruker_fid",
     "normalize_bruker_ser_echo_antiecho",
     "normalize_bruker_ser_qf",
+    "normalize_bruker_ser_states",
     "normalize_bruker_ser_states_tppi",
     "normalize_bruker_pdata",
     "write_readresult_nmrpipe",
