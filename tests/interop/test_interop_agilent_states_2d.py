@@ -1,6 +1,7 @@
 """Self-contained tests for the descriptive Agilent 2D States profile."""
 
 import hashlib
+from dataclasses import replace
 
 import numpy as np
 import pytest
@@ -160,7 +161,7 @@ def test_states_quadrature_selection_keeps_storage(tmp_path, monkeypatch):
     scalar = np.arange(24, dtype=np.float32).reshape(4, 6)
     result = _trace_result(
         tmp_path / "fid", scalar,
-        dict(dic, nblocks=4, S_SPEC=0, S_HYPERCOMPLEX=0),
+        dict(dic, nblocks=4, S_SPEC=0, S_HYPERCOMPLEX=0, S_DATA=1, S_COMPLEX=1),
         "agilent-fid-storage", blocks=4, traces_per_block=1,
     )
     baseline = ng.interop.normalize(result, legacy_presentation=True)
@@ -185,16 +186,33 @@ def test_states_quadrature_selection_keeps_storage(tmp_path, monkeypatch):
         "mode": "states-tppi", "source": "pulse-program", "sequence": "NOESY",
         "sha256": fingerprint, "reference": "reference",
     }
-    from dataclasses import replace
-
-    delayed_procpar = {**procpar, "d2": _parameter([0.001])}
-    delayed = replace(result, metadata={**result.metadata, "procpar": delayed_procpar})
-    assert ng.interop.normalize(delayed, quadrature="auto").acquisition[
-        "quadrature_selection"
-    ]["mode"] is None
+    for key, values in (
+        ("d2", [0.001]), ("d2", [0, 0.125]),
+        ("seqfil", ["NOESY", "different"]), ("sampling", ["sparse"]),
+    ):
+        modified = replace(result, metadata={
+            **result.metadata, "procpar": {**procpar, key: _parameter(values)},
+        })
+        unresolved = ng.interop.normalize(
+            modified, quadrature="auto", pulse_program_source=source,
+        )
+        assert unresolved.acquisition["quadrature_selection"]["mode"] is None
+        np.testing.assert_array_equal(unresolved.data, baseline.data)
+        if key == "sampling":
+            with pytest.raises(ValueError, match="complete calibrated"):
+                ng.interop.normalize(modified, quadrature="states")
     source.write_bytes(b"local variant with the same name")
     unmatched = ng.interop.normalize(result, quadrature="auto")
     assert unmatched.acquisition["quadrature_selection"]["mode"] is None
+    source.write_bytes(bytes(256 * 1024 + 1))
+    oversized = ng.interop.normalize(result, quadrature="auto")
+    assert oversized.acquisition["quadrature_selection"]["mode"] is None
+    with pytest.raises(FileNotFoundError):
+        ng.interop.normalize(result, quadrature="auto", pulse_program_source=tmp_path / "missing.c")
+    for flag in ("S_DATA", "S_COMPLEX"):
+        unsupported = replace(result, metadata={**result.metadata, flag: 0})
+        with pytest.raises(ValueError, match="raw complex storage"):
+            ng.interop.normalize(unsupported, quadrature="states")
 
 
 @pytest.mark.parametrize(

@@ -564,7 +564,8 @@ def _select_states_quadrature(result, quadrature, pulse_program_source):
     if quadrature not in ("auto", "states", "states-tppi"):
         raise ValueError("Agilent quadrature must be auto, states or states-tppi")
     procpar = result.metadata.get("procpar", {})
-    sequence = _procpar_string(procpar, "seqfil")
+    names = procpar.get("seqfil", {}).get("values", ())
+    sequence = names[0] if len(names) == 1 and isinstance(names[0], str) else None
     selection = {"mode": None, "source": "undetermined", "sequence": sequence}
     if quadrature != "auto":
         if pulse_program_source is not None:
@@ -572,21 +573,30 @@ def _select_states_quadrature(result, quadrature, pulse_program_source):
         selection.update(mode=quadrature, source="manual")
         return selection
 
-    if pulse_program_source is None:
+    explicit = pulse_program_source is not None
+    if not explicit:
         if not any(name == sequence for name, _ in _STATES_PROGRAMS):
             return selection
         candidate = Path(result.source).parent / f"{sequence}.c"
         if candidate.is_symlink() or not candidate.is_file():
             return selection
         pulse_program_source = candidate
-    with Path(pulse_program_source).open("rb") as stream:
-        source = stream.read(256 * 1024 + 1)
+    try:
+        with Path(pulse_program_source).open("rb") as stream:
+            source = stream.read(256 * 1024 + 1)
+    except OSError:
+        if explicit:
+            raise
+        return selection
     if len(source) > 256 * 1024:
-        raise ValueError("Agilent pulse program source exceeds 256 KiB")
+        if explicit:
+            raise ValueError("Agilent pulse program source exceeds 256 KiB")
+        return selection
     fingerprint = hashlib.sha256(source).hexdigest()
     selection["sha256"] = fingerprint
     known = _STATES_PROGRAMS.get((sequence, fingerprint))
-    if known is not None and _procpar_number(procpar, "d2") == 0:
+    d2 = procpar.get("d2", {}).get("values", ())
+    if known is not None and len(d2) == 1 and _procpar_number(procpar, "d2") == 0:
         mode, reference = known
         selection.update(mode=mode, source="pulse-program", reference=reference)
     return selection
@@ -693,12 +703,34 @@ def _normalize_agilent_2d(
             result, "auto" if quadrature is None else quadrature, pulse_program_source
         )
     selected = selection is not None and selection["mode"] is not None
-    if selected and (
-        result.metadata.get("sampling_schedule_present")
-        or any(width is None or width <= 0 for width in widths)
-        or min(data.shape[-2:]) < 2
-    ):
-        raise ValueError("Agilent States processing requires complete calibrated F1/F2 grids")
+    if selected:
+        sampling = procpar.get("sampling", {}).get("values", ())
+        uniform = not sampling or (
+            len(sampling) == 1
+            and isinstance(sampling[0], str)
+            and sampling[0].strip().lower() in ("", "uniform")
+        )
+        legacy_float_status = 0xC9
+        block_headers = metadata.get("blockheader", ())
+        complex_storage = metadata.get("S_COMPLEX") == 1 or (
+            metadata.get("status") == legacy_float_status
+            and len(block_headers) == blocks
+            and all(header.get("status") == legacy_float_status for header in block_headers)
+        )
+        if (
+            not uniform or metadata.get("sampling_schedule_present")
+            or any(width is None or width <= 0 for width in widths)
+            or min(data.shape[-2:]) < 2
+            or metadata.get("S_DATA") != 1 or metadata.get("S_TRANSF")
+            or not complex_storage
+        ):
+            if selection["source"] == "manual":
+                raise ValueError(
+                    "Agilent States processing requires raw complex storage and "
+                    "complete calibrated F1/F2 grids"
+                )
+            selection.update(mode=None, source="undetermined", reason="ineligible-time-grid")
+            selected = False
     nuclei = (reported_nuclei[0], _procpar_string(procpar, "tn"))
     if tppi:
         nuclei = (_procpar_string(procpar, "tn2") or None, nuclei[1])
