@@ -13,6 +13,7 @@ Covers two layers:
 import os
 from pathlib import Path
 import struct
+import warnings
 
 import numpy as np
 from numpy.testing import assert_allclose, assert_array_almost_equal
@@ -131,7 +132,8 @@ def test_tecmag_load_time_domain():
 def test_read_returns_dic_and_data(tmp_path):
     """read() returns a (dict, ndarray) pair with the correct shape and dtype."""
     path = _write_tnt(tmp_path, n_points=16, n_records=4)
-    dic, data = ng.tecmag.read(path)
+    with pytest.warns(UserWarning, match="Tecmag TNT multidimensional axis calibration"):
+        dic, data = ng.tecmag.read(path)
     assert isinstance(dic, dict)
     assert data.shape == (16, 4, 1, 1)
     assert data.dtype == np.dtype('<c8')
@@ -152,7 +154,8 @@ def test_read_rejects_non_tnt_magic(tmp_path):
 def test_guess_udic_basic(tmp_path):
     """guess_udic() returns axis metadata matching the file's TMAG values."""
     path = _write_tnt(tmp_path, n_points=8, n_records=4)
-    dic, data = ng.tecmag.read(path)
+    with pytest.warns(UserWarning, match="Tecmag TNT multidimensional"):
+        dic, data = ng.tecmag.read(path)
     udic = ng.tecmag.guess_udic(dic, data)
     assert udic[0]['size'] == 8
     assert udic[0]['sw']   == 20000.0
@@ -163,7 +166,9 @@ def test_processed_1d_axis_matches_tnmr_export():
     path = (
         Path(__file__).parents[1] / "fixtures/fileio/data/tecmag/LiCl_ref2-ftp.tnt"
     )
-    dic, data = ng.tecmag.read(path)
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        dic, data = ng.tecmag.read(path)
     udic = ng.tecmag.guess_udic(dic, data)
     axis = udic[0]
     assert data.shape == (16384, 1, 1, 1)
@@ -319,7 +324,8 @@ def test_guess_tables_alongside_read(tmp_path):
     """read() and guess_tables() both work correctly on the same file."""
     path = _write_tnt(tmp_path, [('rfamp', '1.0 5.0 10.0 15.0')],
                       n_points=8, n_records=4)
-    dic, data = ng.tecmag.read(path)
+    with pytest.warns(UserWarning, match="Tecmag TNT multidimensional"):
+        dic, data = ng.tecmag.read(path)
     tables    = guess_tables(path)
     assert data.shape == (8, 4, 1, 1)
     assert_allclose(tables['rfamp'], [1.0, 5.0, 10.0, 15.0])

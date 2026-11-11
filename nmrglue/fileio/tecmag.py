@@ -16,6 +16,7 @@ Please inform upstream if you find a bug or to request additional features.
 import os
 import struct
 import re
+from warnings import warn
 
 import numpy as np
 
@@ -248,6 +249,12 @@ def read(filename):
     data : ndarray
         Array of NMR data.
 
+    Notes
+    -----
+    Files with multiple points along an indirect dimension emit a warning.
+    Verify axis calibration and transformation flags against a TNMR
+    reference before processing or interpreting the data.
+
     """
     tnt_sections = dict()
 
@@ -303,6 +310,14 @@ def read(filename):
             dic[name] = tmg2[name]
     for name in TNTGRIDANDAXIS.names:
         dic[name] = tmg2['axis_set'][name]
+
+    if any(points > 1 for points in data.shape[1:]):
+        warn(
+            "Tecmag TNT multidimensional axis calibration and FFT flags have "
+            "not been validated against TNMR. Verify them before processing "
+            "or interpreting the data.",
+            stacklevel=2,
+        )
 
     return dic, data
 
