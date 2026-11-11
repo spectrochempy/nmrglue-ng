@@ -9,7 +9,8 @@ original nmrglue project and are preserved for attribution and continuity.
 
 - Preserve increasing JCAMP-DX frequency coordinates in unit conversion,
   including after a Glue/HDF5 round trip. Report increasing axes as unsupported
-  by the NMRPipe, Sparky, RNMRTK, Agilent/Varian and Bruker exporters. (#231)
+  by the NMRPipe, Sparky, RNMRTK, Agilent/Varian and Bruker exporters,
+  including the direct NMRPipe, Sparky and Bruker axis builders. (#231)
 
 - Accept whitespace around SIMPSON header fields and the DATA delimiter in
   interop detection and reading. (#230)

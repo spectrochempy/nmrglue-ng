@@ -309,6 +309,7 @@ def create_acqus_dic(adic, direct=False):
     Create a Bruker acqus dictionary from an Universal axis dictionary.
     Set direct=True for direct dimension.
     """
+    fileiobase._reject_ascending_axis(adic, "Bruker")
     if adic["complex"]:
         AQ_mod = 3
         if direct:
