@@ -270,6 +270,49 @@ PROFILE = """##TITLE=real 2D spectrum
 """
 
 
+COMPACT_PROFILE = (
+    PROFILE.replace("nD NMR SPECTRUM", "NDNMRSPECTRUM")
+    .replace("FACTOR=1,1,2", "FACTOR=-1,-2,2")
+    .replace("10.00", "10.75").replace("8.00", "8.75")
+    .replace("LAST=3,", "LAST=3.000000000000001,")
+    .replace("PROFILE\n10 ", "PROFILE\n-5 ")
+)
+
+
+def test_jcampdx_2d_compact_signed_factors(tmp_path):
+    path = tmp_path / "compact.jdx"
+    path.write_text(COMPACT_PROFILE)
+    result = interop.normalize_jcampdx_2d(interop.read_jcampdx_2d(path))
+    np.testing.assert_array_equal(result.axes[0].values, [1, 1.25, 3])
+    np.testing.assert_array_equal(result.axes[1].values, [10.75, 9.75, 8.75])
+    np.testing.assert_array_equal(result.data, np.arange(2, 19, 2).reshape(3, 3))
+
+
+@pytest.mark.parametrize(
+    "old,new,message",
+    [
+        ("-5 4 5 6", "-5 4\n-5 5 6", "line abscissa"),
+        ("LAST=3.000000000000001,", "LAST=3.01,", "PAGE endpoints"),
+    ],
+)
+def test_jcampdx_2d_compact_rejects_inconsistent_coordinates(tmp_path, old, new, message):
+    path = tmp_path / "compact.jdx"
+    path.write_text(COMPACT_PROFILE.replace(old, new))
+    with pytest.raises(ValueError, match=message):
+        interop.read_jcampdx_2d(path)
+
+
+def test_jcampdx_2d_compact_checks_f1_endpoints_independently(tmp_path):
+    path = tmp_path / "compact.jdx"
+    path.write_text(
+        COMPACT_PROFILE.replace("FIRST=1,10.75", "FIRST=0,10.75")
+        .replace("LAST=3.000000000000001,", "LAST=10000000000000000,")
+        .replace("PAGE=F1=3", "PAGE=F1=10000000000000000")
+    )
+    with pytest.raises(ValueError, match="PAGE endpoints"):
+        interop.read_jcampdx_2d(path)
+
+
 def test_jcampdx_2d_preserves_explicit_page_coordinates(tmp_path):
     path = tmp_path / "plane.jdx"
     path.write_text(PROFILE)
