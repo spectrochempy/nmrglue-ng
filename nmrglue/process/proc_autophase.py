@@ -56,7 +56,7 @@ def phase_slope_from_delay(spectral_width_hz, acquisition_delay_s, *, hard_90_pu
 
 def estimate_phase(
     data, *, method="acme", order=0, mask=None, initial=(0., 0.),
-    references=(), baseline_mask=None, fixed_p1=None, maxiter=500,
+    references=(), baseline_mask=None, fixed_p1=None, maxiter=None,
 ):
     """Estimate a phase correction for a complex 1D frequency-domain spectrum.
 
@@ -77,6 +77,7 @@ def estimate_phase(
     scores are RMS residuals to the fitted phase ramp in degrees, whereas ACME scores are
     dimensionless. First-order fitting requires distinct peaks spanning at
     least 5% of the grid. ACME searches within 360 degrees of the initial slope.
+    The optional maxiter limits iterations per ACME start (default 500).
     Solver success alone does not establish phase accuracy.
     """
     input_mask = np.ma.getmaskarray(data) if np.ma.isMaskedArray(data) else False
@@ -85,8 +86,13 @@ def estimate_phase(
         raise ValueError("expected a complex 1D spectrum with at least three points")
     if not isinstance(order, Integral) or order not in (0, 1):
         raise ValueError("order must be 0 or 1")
-    if not isinstance(maxiter, Integral) or maxiter < 1:
-        raise ValueError("maxiter must be a positive integer")
+    if maxiter is not None:
+        if method != "acme":
+            raise ValueError("maxiter is only supported for ACME")
+        if not isinstance(maxiter, Integral) or maxiter < 1:
+            raise ValueError("maxiter must be a positive integer")
+    else:
+        maxiter = 500
     initial = np.asarray(initial, dtype=float)
     if initial.shape != (2,) or not np.isfinite(initial).all():
         raise ValueError("initial must contain two finite angles")

@@ -172,3 +172,11 @@ def test_fixed_slope_corrects_a_fractionally_delayed_fid(method):
     assert np.max(np.abs(relative_peak_phase)) < 3.
     with pytest.raises(ValueError, match="fixed_p1 requires order=0"):
         estimate_phase(data, order=1, fixed_p1=slope)
+
+
+def test_dispa_rejects_acme_iteration_budget(synthetic_spectrum):
+    _, first, _, _, rotation = synthetic_spectrum
+    with pytest.raises(ValueError, match="maxiter is only supported for ACME"):
+        estimate_phase(
+            first * rotation, method="dispa", references=[(880, 921, 1)], maxiter=1
+        )
