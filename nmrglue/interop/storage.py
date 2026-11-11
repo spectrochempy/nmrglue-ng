@@ -62,10 +62,8 @@ def read_bruker_ser_storage(
     higher_dimension_files = tuple(
         name for name in ("acqu3s", "acqu4s") if (directory / name).is_file()
     )
-    if states_only and higher_dimension_files:
-        raise ValueError("Bruker SER requires a two-dimensional acquisition")
-    if states_only or echo_antiecho_only:
-        _require_bruker_2d(metadata)
+    if paired_only:
+        _require_bruker_2d(metadata, higher_dimension_files=higher_dimension_files)
     if paired_only and (
         metadata.get("acqus", {}).get("FnTYPE", 0) != 0
         or metadata.get("acqus", {}).get("AQ_mod") != 3
