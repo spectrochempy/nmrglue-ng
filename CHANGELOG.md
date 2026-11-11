@@ -26,7 +26,7 @@ original nmrglue project and are preserved for attribution and continuity.
   while preserving the stored complex branches.
 
 - Demonstrate automatic phasing of a synthetic spectrum in the processing
-  tutorial.
+  tutorial. (#233)
 
 ## 1.2.4 - 2026-11-10
 
