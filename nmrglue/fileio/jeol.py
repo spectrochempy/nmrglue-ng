@@ -48,7 +48,7 @@ def guess_udic(dic, data):
     Parameters
     ----------
     dic : dict
-        Dictionary of Bruker parameters.
+        Dictionary of JEOL parameters.
     data : ndarray
         Array of NMR data.
 

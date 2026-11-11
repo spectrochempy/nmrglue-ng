@@ -44,3 +44,42 @@ components and record the operations they applied.
 Use the :ref:`interop-profile-table` to see what interop can read, when
 to specify ``profile=``, and which results can be normalized. A storage
 result remains usable when no normalizer is available.
+
+Select a region in a Bruker spectrum
+------------------------------------
+
+This example passes a processed Bruker 1D sucrose spectrum to the
+SpectroChemPy NMR plugin. Install the plugin in the same Python environment
+as nmrglue-ng.
+
+.. code-block:: console
+
+    python -m pip install spectrochempy-nmr
+
+Download the :download:`1r spectrum
+<../../../tests/fixtures/fileio/data/bruker_pdata/exp1/pdata/1/1r>` and
+:download:`procs parameters
+<../../../tests/fixtures/fileio/data/bruker_pdata/exp1/pdata/1/procs>`.
+Save both files under their original names in a folder named
+``sucrose-pdata`` in your working directory.
+
+.. code-block:: python
+
+    from nmrglue import interop
+    from spectrochempy_nmr import from_interop
+
+    stored = interop.read_bruker_pdata("sucrose-pdata", read_acqus=False)
+    spectrum = interop.normalize(stored)
+    dataset = from_interop(spectrum)
+
+    dataset.x = dataset.x.to("ppm")
+    region = dataset[5.6:5.2]
+    region.plot()
+
+The processed parameters supply the frequency axis. The plugin converts
+the normalized result into an ``NDDataset``. After converting its x
+coordinate to ppm, the slice uses chemical shifts in the order of the
+descending axis. The plot shows only the selected region.
+
+The sample is from the CC0 sucrose dataset in
+`nmrXiv project P52 <https://doi.org/10.57992/nmrxiv.p52>`_.

@@ -7,6 +7,8 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Document reading, writing, and format limits for JEOL JDF, RS2D, and Glue/HDF5.
+
 - Update the README links for tutorials, migration, and contributions. (#244)
 
 - Use the current stable release in the Google Colab installation example. (#243)

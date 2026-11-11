@@ -14,10 +14,13 @@ fileio modules
     bruker
     convert
     fileiobase
+    glue
     jcampdx
+    jeol
     nmrml
     pipe
     rnmrtk
+    rs2d
     simpson
     spinsolve
     sparky
