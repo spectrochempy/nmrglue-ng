@@ -160,7 +160,7 @@ def _parsejcampdx(filename, read_err=None, _opened=None, *, _record_order=False)
                     warn(f"JCAMP-DX data line without associated key: {line}")
                     continue
 
-                currentvaluestrings.append(commentsplit[0])
+                currentvaluestrings.append(commentsplit[0].rstrip("\n") + "\n")
 
     # push possible non-closed blocks
     while blockstack:
@@ -591,11 +591,14 @@ def _parse_xy_xy(datalines):
 
 def _parse_coordinate_table(value):
     header, _, rows = value.partition("\n")
-    kind = header.strip().upper()
-    if kind not in ("(XYW..XYW)", "(XYM..XYM)"):
+    variables = re.fullmatch(
+        r"\(\s*(XY[WM])\s*\.\.\s*\1\s*\)", header.strip().upper()
+    )
+    if variables is None:
         parsed = _parse_data(value)
         return None if parsed is None else parsed[0]
 
+    kind = variables[1]
     points = []
     invalid = 0
     groups = re.sub(r"[ \t]*,[ \t]*", ",", rows)
@@ -608,9 +611,9 @@ def _parse_coordinate_table(value):
             if not third:
                 raise ValueError("missing third value")
             try:
-                third = float(third)
+                third = np.nan if third == "?" else float(third)
             except ValueError:
-                if kind == "(XYW..XYW)":
+                if kind == "XYW":
                     raise
             points.append((float(x), float(y), third))
         except ValueError:
@@ -761,6 +764,7 @@ def getdataarray(dic, show_all_data=False, *, _check_xydata_x=None, _xydata_max_
 
     Coordinate tables declared as XYW or XYM return three columns.
     XYM tables containing text multiplicities use an object array.
+    A missing third value marked with '?' is returned as NaN.
     '''
 
     data = None
@@ -921,12 +925,11 @@ def read(filename, show_all_data=False, read_err=None, as_complex=False):
 
     # select the relevant data section, taking the first section of the most
     # preferred DATATYPE that yields data. Non-typed sections are tried
-    # because the DATATYPE label is sometimes missing, and multidimensional
-    # spectra come last so that a file offering both a 1D and an nD spectrum
-    # keeps returning the 1D one.
+    # because the DATATYPE label is sometimes missing. Prefer a 1D spectrum
+    # to an nD spectrum, and either spectrum to a peak table.
     data = None
     correctdic = None
-    for datatype in ("NMRSPECTRUM", "NMRFID", "NA", "NDNMRSPECTRUM"):
+    for datatype in ("NMRSPECTRUM", "NMRFID", "NA", "NDNMRSPECTRUM", "NMRPEAKTABLE"):
         for subdic in dic.get("_datatype_" + datatype, []):
             data = getdataarray(subdic, show_all_data)
             if data is not None:
