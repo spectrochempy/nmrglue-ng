@@ -1,0 +1,35 @@
+name: Start nmrglue-ng 1.3.0 publication
+
+on:
+  push:
+    branches: [release/publish-1.3.0]
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Create the release tag and dispatch the existing publication workflow
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_COMMIT: d61daaeaebf733377e08c87a07b53e1e8ee33dae
+          RELEASE_TAG: v1.3.0
+        run: |
+          set -euo pipefail
+          master=$(gh api "repos/$GH_REPO/git/ref/heads/master" --jq .object.sha)
+          test "$master" = "$RELEASE_COMMIT"
+          if gh api "repos/$GH_REPO/git/ref/tags/$RELEASE_TAG" > existing-tag.json 2> tag-error.txt; then
+            test "$(jq -r .object.sha existing-tag.json)" = "$RELEASE_COMMIT"
+          elif grep -q 'HTTP 404' tag-error.txt; then
+            gh api --method POST "repos/$GH_REPO/git/refs" \
+              -f "ref=refs/tags/$RELEASE_TAG" -f "sha=$RELEASE_COMMIT" --silent
+          else
+            cat tag-error.txt >&2
+            exit 1
+          fi
+          gh workflow run publish-pypi.yml --repo "$GH_REPO" --ref master -f "tag=$RELEASE_TAG"
