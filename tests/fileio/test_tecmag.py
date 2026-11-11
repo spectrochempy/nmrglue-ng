@@ -11,6 +11,7 @@ Covers two layers:
    and _convert_si() without requiring external test data.
 """
 import os
+from pathlib import Path
 import struct
 
 import numpy as np
@@ -156,6 +157,30 @@ def test_guess_udic_basic(tmp_path):
     assert udic[0]['size'] == 8
     assert udic[0]['sw']   == 20000.0
     assert_allclose(udic[0]['obs'], 21.31 * 1e6)
+
+
+def test_processed_1d_axis_matches_tnmr_export():
+    path = (
+        Path(__file__).parents[1] / "fixtures/fileio/data/tecmag/LiCl_ref2-ftp.tnt"
+    )
+    dic, data = ng.tecmag.read(path)
+    udic = ng.tecmag.guess_udic(dic, data)
+    axis = udic[0]
+    assert data.shape == (16384, 1, 1, 1)
+    assert axis["size"] == 16384
+    assert axis["freq"] is True and axis["time"] is False
+    assert axis["obs"] == pytest.approx(117.21124993637204, rel=1e-12)
+    # TNMR's 0.001 Hz precision bounds the comparison to the ASCII export.
+    assert axis["car"] == pytest.approx(-25.940, abs=0.0005)
+    assert axis["sw"] == pytest.approx(100000, abs=0.001)
+    uc = ng.fileiobase.uc_from_udic(udic, dim=0)
+    points = np.array([0, 1, 8192, 16383])
+    expected_hz = np.array([49974.060, 49967.957, -25.940, -50019.836])
+    expected_data = [8.466 + 8.007j, 12.383 + 2.367j, 9559.594 - 3656.480j, 4.348 + 6.692j]
+    assert_allclose(data[points, 0, 0, 0].real, np.real(expected_data), atol=0.0005, rtol=0)
+    assert_allclose(data[points, 0, 0, 0].imag, np.imag(expected_data), atol=0.0005, rtol=0)
+    assert_allclose(uc.hz(points), expected_hz, atol=0.0005, rtol=0)
+    assert_allclose(uc.ppm(points), expected_hz / 117.21124993637204, atol=5e-6, rtol=0)
 
 
 # =============================================================================

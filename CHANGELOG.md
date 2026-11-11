@@ -30,6 +30,9 @@ original nmrglue project and are preserved for attribution and continuity.
 - Accept whitespace around SIMPSON header fields and the DATA delimiter in
   interop detection and reading. (#230)
 
+- Recover the referenced frequency axis of even-length processed 1D Tecmag
+  TNT spectra in the descending TNMR presentation. (#235)
+
 - Reject higher-dimensional acquisitions in the Bruker SER 2D States,
   States-TPPI and echo/anti-echo profiles, including with explicit acquisition
   file lists. (#229)
