@@ -280,3 +280,40 @@ def test_normalize_echo_antiecho_storage_keeps_branch_order_and_delay(
     np.testing.assert_array_equal(result.axes[1].values, np.arange(8) / 2000)
     with pytest.raises(ValueError, match="uniform States-TPPI"):
         ng.interop.normalize_bruker_ser_states_tppi(stored)
+
+
+@pytest.mark.parametrize(
+    "mode, preflight, normalize",
+    [
+        (4, "states_only", ng.interop.normalize_bruker_ser_states),
+        (5, "states_tppi_only", ng.interop.normalize_bruker_ser_states_tppi),
+        (6, "echo_antiecho_only", ng.interop.normalize_bruker_ser_echo_antiecho),
+    ],
+)
+@pytest.mark.parametrize("evidence", ["PARMODE", "acqu3s", "acqu4s"])
+@pytest.mark.parametrize("explicit_files", [False, True])
+def test_paired_ser_rejects_higher_dimensional_acquisition(
+    tmp_path, mode, preflight, normalize, evidence, explicit_files,
+):
+    parmode = 2 if evidence == "PARMODE" else 1
+    (tmp_path / "acqus").write_text(
+        "##TITLE= Synthetic direct\n"
+        "##$TD= 8\n##$BYTORDA= 0\n##$DTYPA= 0\n##$AQ_mod= 3\n"
+        f"##$PARMODE= {parmode}\n##$SW_h= 2000\n##$SFO1= 125\n##END=\n"
+    )
+    (tmp_path / "acqu2s").write_text(
+        "##TITLE= Synthetic indirect\n"
+        f"##$TD= 4\n##$FnMODE= {mode}\n##$SW= 10\n##$SFO1= 100\n##END=\n"
+    )
+    if evidence != "PARMODE":
+        (tmp_path / evidence).write_text("##TITLE= Extra axis\n##$TD= 8\n##END=\n")
+    words = np.arange(4 * 256, dtype="<i4").reshape(4, 256)
+    (tmp_path / "ser").write_bytes(words.tobytes())
+    files = {"acqus_files": ["acqus", "acqu2s"]} if explicit_files else {}
+
+    stored = ng.interop.read_bruker_ser_storage(tmp_path, **files)
+    np.testing.assert_array_equal(stored.data, words)
+    with pytest.raises(ValueError, match="two-dimensional acquisition"):
+        ng.interop.read_bruker_ser_storage(tmp_path, **files, **{preflight: True})
+    with pytest.raises(ValueError, match="two-dimensional acquisition"):
+        normalize(stored)

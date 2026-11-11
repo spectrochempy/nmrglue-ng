@@ -316,10 +316,9 @@ def _normalize_paired_ser(
     )):
         raise ValueError(f"{label} correction and storage options must be booleans")
     metadata = result.metadata
-    if fnmode == 4 and result.dimensions.get("higher_dimension_files"):
-        raise ValueError("Bruker SER requires a two-dimensional acquisition")
-    if fnmode in (4, 6):
-        _require_bruker_2d(metadata)
+    _require_bruker_2d(
+        metadata, higher_dimension_files=result.dimensions.get("higher_dimension_files", ()),
+    )
     direct = metadata.get("acqus", {})
     indirect = metadata.get("acqu2s", {})
     if (

@@ -50,12 +50,13 @@ def _raw_number(dic, section, key):
     return float(value)
 
 
-def _require_bruker_2d(metadata):
+def _require_bruker_2d(metadata, *, higher_dimension_files=()):
     """Reject explicit evidence that the acquisition is not two-dimensional."""
     if (
         metadata.get("acqus", {}).get("PARMODE", 1) != 1
         or "acqu3s" in metadata
         or "acqu4s" in metadata
+        or higher_dimension_files
     ):
         raise ValueError("Bruker SER requires a two-dimensional acquisition")
 
