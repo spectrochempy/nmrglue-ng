@@ -339,6 +339,22 @@ class TestBrukerProcessedAxes:
         assert np.isfinite(last)
 
 
+@pytest.mark.parametrize("pdata", [None, False, True])
+@pytest.mark.parametrize("with_acquisition", [False, True])
+def test_extracted_axis_applies_strip_once(pdata, with_acquisition):
+    # TopSpin's processed OFFSET and SW_p describe the stored strip.
+    dic = {"procs": {"SF": 100.0, "OFFSET": 12.0, "SW_p": 200.0,
+                     "FTSIZE": 8, "STSR": 2, "STSI": 4, "SI": 4,
+                     "AXNUC": "1H"}}
+    if with_acquisition:
+        dic["acqus"] = {"SW_h": 400.0, "SFO1": 100.0011,
+                        "NUC1": "1H", "AQ_mod": 0}
+
+    udic = ng.bruker.guess_udic(dic, np.zeros(4), strip_fake=True, pdata=pdata)
+    axis = fileiobase.uc_from_udic(udic, 0).ppm_scale()
+    np.testing.assert_allclose(axis, [12.0, 11.5, 11.0, 10.5], rtol=0, atol=1e-10)
+
+
 class TestBrukerProcessedSubmatrix:
     """Submatrix organization of the fixture processed data.
 

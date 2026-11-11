@@ -63,11 +63,9 @@ def guess_udic(dic, data, strip_fake=False, pdata=None):
     data : ndarray
         Array of NMR data.
     strip_fake: bool
-        If data is proceed (i.e. read using `bruker.read_pdata`) and the Bruker
-        processing parameters STSI and/or STSR are set, the returned sweep
-        width and carrier frequencies is changed to values that are incorrect
-        but instead can are intended to trick the normal unit_conversion object
-        into producing the correct result.
+        Apply STSR and STSI when deriving an extracted spectrum's axis
+        from acquisition parameters. Processing parameters already
+        describe the stored region.
     pdata : bool or None, optional
         Explicit selection of the parameter set used to build the axis.
         True uses the processing parameters (`procs`/`procNs`: `OFFSET`,
@@ -146,25 +144,15 @@ def add_axis_to_udic(udic, dic, udim, strip_fake, pdata=None):
     # p. 83), gives the processed spectral width as SW_p (p. 36) and the
     # processed size as SI (p. 31), and computes TopSpin's own tiltfactor as
     # (SW_p1/SI1)/(SW_p2/SI2) (p. 121).
-    use_proc_axis = False
-    if pdata is True:
-        use_proc_axis = True
-    elif pdata is None:
-        # auto: use procs only when acqus is absent
-        use_proc_axis = (acq_file not in dic)
+    use_proc_axis = pro_file in dic and (pdata is True or acq_file not in dic)
 
-    if use_proc_axis and pro_file in dic:
+    if use_proc_axis:
         sw = dic[pro_file]["SW_p"]
     elif acq_file in dic:
         if b_dim == 0:
             sw = dic[acq_file]["SW_h"]
         else:
             sw = dic[acq_file]["SW"] * dic[acq_file]["SFO1"]
-    elif pro_file in dic:
-        sw = dic[pro_file]["SW_p"]
-        # procNs files store sw (in Hz) with the 'SW_p' key instead of 'SW_h'.
-        # this is a bug in TopSpin (TopSpin3.5pl7)
-
     if acq_file in dic:
         udic[udim]["label"] = dic[acq_file]["NUC1"]
     elif pro_file in dic:
@@ -172,7 +160,7 @@ def add_axis_to_udic(udic, dic, udim, strip_fake, pdata=None):
 
     try:
         obs = dic[pro_file]["SF"]
-        if use_proc_axis and pro_file in dic:
+        if use_proc_axis:
             car = dic[pro_file]["OFFSET"] * obs - sw / 2
         elif acq_file in dic:
             car = (dic[acq_file]["SFO1"] - obs) * 1e6
@@ -184,7 +172,7 @@ def add_axis_to_udic(udic, dic, udim, strip_fake, pdata=None):
         obs = dic[acq_file]["SFO1"]
         car = dic[acq_file]["O1"]
 
-    if strip_fake:
+    if strip_fake and not use_proc_axis:
         try:
             # Temporary parameters
             w = sw/float(dic[pro_file]["FTSIZE"])
