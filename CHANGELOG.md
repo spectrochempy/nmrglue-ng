@@ -8,7 +8,7 @@ original nmrglue project and are preserved for attribution and continuity.
 ## Unreleased
 
 - Match JEOL 2D universal-dictionary metadata to the NumPy array order,
-  with indirect F1 on rows and direct F2 on columns.
+  with indirect F1 on rows and direct F2 on columns. (#234)
 
 - Preserve increasing JCAMP-DX frequency coordinates in unit conversion,
   including after a Glue/HDF5 round trip. Report increasing axes as unsupported
