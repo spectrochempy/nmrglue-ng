@@ -311,6 +311,10 @@ def guess_udic(dic, data):
     """
     Guess parameters of universal dictionary from dic, data pair.
 
+    For an even-length processed 1D spectrum in the descending TNMR
+    presentation, the direct axis uses the stored dwell time and the
+    TNMR reference in Hz.
+
     Parameters
     ----------
     dic : dict
@@ -339,6 +343,25 @@ def guess_udic(dic, data):
         udic[i]["car"] = dic['ob_freq'][i] * 1e6
         udic[i]["time"] = not bool(dic['fft_flag'][i])
         udic[i]["freq"] = bool(dic['fft_flag'][i])
+
+    direct = udic[0]
+    size = direct["size"]
+    if (
+        direct["freq"]
+        and size > 1
+        and size % 2 == 0
+        and all(points == 1 for points in dic["actual_npts"][1:])
+        and dic.get("spectrum_direction") == 1
+        and "dwell" in dic
+        and "ref_freq" in dic
+    ):
+        dwell = dic["dwell"][0]
+        observation = dic["ob_freq"][0]
+        reference = dic["ref_freq"]
+        if np.isfinite([dwell, observation, reference]).all() and dwell > 0 and observation > 0:
+            width = 1 / dwell
+            if np.isfinite(width):
+                direct.update(sw=width, obs=observation, car=-reference)
 
     return udic
 
