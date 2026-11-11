@@ -7,6 +7,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Preserve the calibrated Bruker strip axis when `strip_fake=True` is used
+  with processed axis parameters. (#108)
+
 ## 1.3.0 - 2026-11-11
 
 - Reject multidimensional inputs to the built-in ACME score in `autops()`.
