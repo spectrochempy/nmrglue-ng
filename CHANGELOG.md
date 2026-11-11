@@ -10,6 +10,8 @@ original nmrglue project and are preserved for attribution and continuity.
 - Warn when reading multidimensional Tecmag TNT files that axis calibration
   and FFT flags still need verification against TNMR. (#240)
 
+- Preserve widths and multiplicities in JCAMP-DX XYW and XYM coordinate tables.
+
 - Read compact JCAMP-DX 2D NTUPLES exports with signed axis factors
   and truncated F2 line anchors.
 
