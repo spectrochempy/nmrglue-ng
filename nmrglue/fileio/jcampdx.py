@@ -160,7 +160,7 @@ def _parsejcampdx(filename, read_err=None, _opened=None, *, _record_order=False)
                     warn(f"JCAMP-DX data line without associated key: {line}")
                     continue
 
-                currentvaluestrings.append(commentsplit[0])
+                currentvaluestrings.append(commentsplit[0].rstrip("\n") + "\n")
 
     # push possible non-closed blocks
     while blockstack:
@@ -589,6 +589,44 @@ def _parse_xy_xy(datalines):
     return [pts]
 
 
+def _parse_coordinate_table(value):
+    header, _, rows = value.partition("\n")
+    variables = re.fullmatch(
+        r"\(\s*(XY[WM])\s*\.\.\s*\1\s*\)", header.strip().upper()
+    )
+    if variables is None:
+        parsed = _parse_data(value)
+        return None if parsed is None else parsed[0]
+
+    kind = variables[1]
+    points = []
+    invalid = 0
+    groups = re.sub(r"[ \t]*,[ \t]*", ",", rows)
+    for group in re.split(r"[;\s]+", groups):
+        if not group:
+            continue
+        columns = group.split(",")
+        try:
+            x, y, third = columns
+            if not third:
+                raise ValueError("missing third value")
+            try:
+                third = np.nan if third == "?" else float(third)
+            except ValueError:
+                if kind == "XYW":
+                    raise
+            points.append((float(x), float(y), third))
+        except ValueError:
+            invalid += 1
+
+    if invalid:
+        warn(f"JCAMP-DX {kind}: ignored {invalid} malformed coordinate tuple(s)")
+    if not points:
+        return None
+    dtype = object if any(isinstance(point[2], str) for point in points) else np.float64
+    return np.asarray([points], dtype=dtype)
+
+
 def _parse_data(datastring, check_x=None, max_points=None):
     '''
     Creates numpy array from datalines
@@ -723,6 +761,10 @@ def getdataarray(dic, show_all_data=False, *, _check_xydata_x=None, _xydata_max_
     show_all_data : bool
         If True and data is NTUPLES, return all data arrays as a dict
         with keys 'real' and 'imaginary', each containing a list of arrays.
+
+    Coordinate tables declared as XYW or XYM return three columns.
+    XYM tables containing text multiplicities use an object array.
+    A missing third value marked with '?' is returned as NaN.
     '''
 
     data = None
@@ -795,9 +837,7 @@ def getdataarray(dic, show_all_data=False, *, _check_xydata_x=None, _xydata_max_
             if len(valuelist) > 1:
                 warn("Multiple PEAKTABLE arrays in JCAMP-DX file, "
                      "returning first one only")
-            parseret = _parse_data(valuelist[0])
-            if parseret is not None:
-                data, datatype = parseret
+            data = _parse_coordinate_table(valuelist[0])
         except KeyError:
             pass
 
@@ -807,9 +847,7 @@ def getdataarray(dic, show_all_data=False, *, _check_xydata_x=None, _xydata_max_
             if len(valuelist) > 1:
                 warn("Multiple XYPOINTS arrays in JCAMP-DX file, "
                      "returning first one only")
-            parseret = _parse_data(valuelist[0])
-            if parseret is not None:
-                data, datatype = parseret
+            data = _parse_coordinate_table(valuelist[0])
         except KeyError:
             pass
 
@@ -819,9 +857,7 @@ def getdataarray(dic, show_all_data=False, *, _check_xydata_x=None, _xydata_max_
     # apply YFACTOR to data if available
     # (NTUPLES data was already scaled per-table above)
     if not is_ntuples:
-        if data.ndim == 3 and data.shape[-1] == 2:
-            # (XY..XY) pairs carry their own X values, which XFACTOR scales;
-            # YFACTOR scales only the Y column
+        if data.ndim == 3 and data.shape[-1] in (2, 3):
             for column, factorkey in ((0, "XFACTOR"), (1, "YFACTOR")):
                 try:
                     factor = float(dic[factorkey][0])
@@ -889,12 +925,11 @@ def read(filename, show_all_data=False, read_err=None, as_complex=False):
 
     # select the relevant data section, taking the first section of the most
     # preferred DATATYPE that yields data. Non-typed sections are tried
-    # because the DATATYPE label is sometimes missing, and multidimensional
-    # spectra come last so that a file offering both a 1D and an nD spectrum
-    # keeps returning the 1D one.
+    # because the DATATYPE label is sometimes missing. Prefer a 1D spectrum
+    # to an nD spectrum, and either spectrum to a peak table.
     data = None
     correctdic = None
-    for datatype in ("NMRSPECTRUM", "NMRFID", "NA", "NDNMRSPECTRUM"):
+    for datatype in ("NMRSPECTRUM", "NMRFID", "NA", "NDNMRSPECTRUM", "NMRPEAKTABLE"):
         for subdic in dic.get("_datatype_" + datatype, []):
             data = getdataarray(subdic, show_all_data)
             if data is not None:

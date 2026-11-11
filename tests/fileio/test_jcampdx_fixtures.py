@@ -14,6 +14,46 @@ import nmrglue as ng
 from nmrglue.fileio import fileiobase
 
 
+@pytest.mark.parametrize(
+    "label,kind,rows,expected,dtype",
+    [
+        ("PEAK TABLE", "XYW", "-1e1, 2, .25$$ first peak\n+4, -5, 3e-1",
+         [[-1, 4, .25], [.4, -10, .3]], np.float64),
+        ("PEAK TABLE", "XYM", "1,2,dd; 3,4,2",
+         [[.1, 4, "dd"], [.3, 8, 2.0]], object),
+        ("XYPOINTS", "XYW", "1,2,3\n4,5,6",
+         [[.1, 4, 3], [.4, 10, 6]], np.float64),
+    ],
+)
+def test_read_preserves_coordinate_triplets(tmp_path, label, kind, rows, expected, dtype):
+    path = tmp_path / "triplets.jdx"
+    data_type = "NMR PEAK TABLE" if label == "PEAK TABLE" else "NMR SPECTRUM"
+    path.write_text(
+        f"##TITLE= Triplets\n##DATA TYPE= {data_type}\n"
+        f"##XFACTOR= 0.1\n##YFACTOR= 2\n"
+        f"##{label}= ({kind} .. {kind})\n{rows}\n##END=\n"
+    )
+    _, data = ng.jcampdx.read(path)
+    assert data.shape == (1, 2, 3)
+    assert data.dtype == dtype
+    for col in (0, 1):
+        np.testing.assert_allclose(data[0, :, col].astype(float), [row[col] for row in expected])
+    assert data[0, :, 2].tolist() == [row[2] for row in expected]
+
+
+def test_coordinate_triplets_warn_on_malformed_groups():
+    block = {"PEAKTABLE": ["(XYW..XYW)\n1,2; 3,4,broad; 5,6,.25"]}
+    with pytest.warns(UserWarning, match="ignored 2 malformed coordinate tuple"):
+        data = ng.jcampdx.getdataarray(block)
+    np.testing.assert_array_equal(data, [[[5, 6, .25]]])
+
+
+def test_coordinate_triplets_keep_peaks_with_missing_width():
+    block = {"PEAKTABLE": ["(XYW..XYW)\n1,2,?; 3,4,.25"]}
+    data = ng.jcampdx.getdataarray(block)
+    np.testing.assert_array_equal(data, [[[1, 2, np.nan], [3, 4, .25]]])
+
+
 @pytest.mark.optional_dependency
 def test_glue_roundtrip_preserves_ascending_axis(tmp_path):
     pytest.importorskip("h5py")
