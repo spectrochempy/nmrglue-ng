@@ -26,6 +26,9 @@ from `nmrglue`. The currently supported formats include:
 | `simpson` | SIMPSON | [SIMPSON](https://inano.au.dk/about/research-centers-and-projects/nmr/software-and-tools/downloads/) |
 | `spinsolve` | Magritek or JCAMP-DX | [Magritek](https://magritek.com/products/spinsolve/) |
 | `tecmag` | Tecmag | [Tecmag](https://www.tecmag.com/) |
+| `jeol` | JEOL JDF | {doc}`Read 1D and standard 2D JDF <../reference/jeol>` |
+| `rs2d` | RS2D | {doc}`Read raw and processed RS2D data <../reference/rs2d>` |
+| `nmrglue.fileio.glue` | Glue/HDF5 | {doc}`Read and write Glue datasets <../reference/glue>` |
 
 **{nb-download}`Download notebook (.ipynb) <reading.ipynb>`** ·
 {download}`Download 1D JCAMP-DX spectrum <../../../tests/fixtures/fileio/data/jcampdx/epicatechin_1h.jdx>` ·

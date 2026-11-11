@@ -6,6 +6,10 @@ nmrglue-ng is an independent continuation of nmrglue. Entries in the Historical 
 original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
+- Show how to select and plot a ppm region from a processed Bruker 1D
+  spectrum in the interoperability tutorial. (#245)
+
+- Document reading, writing, and format limits for JEOL JDF, RS2D, and Glue/HDF5. (#245)
 
 - Update the README links for tutorials, migration, and contributions. (#244)
 
