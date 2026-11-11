@@ -1,6 +1,7 @@
 """Interoperability for JCAMP-DX NMR data."""
 
 from decimal import Decimal
+import math
 import os
 import re
 
@@ -362,10 +363,11 @@ def _profile_endpoints(block, key, first_page):
 
 
 def _profile_2d_geometry(block):
+    datatype = _label(block, "DATATYPE").upper()
     if (
-        _label(block, "DATATYPE").upper() != "ND NMR SPECTRUM"
+        "".join(datatype.split()) != "NDNMRSPECTRUM"
         or _label(block, "DATACLASS") != "NTUPLES"
-        or _label(block, "NTUPLES").upper() != "ND NMR SPECTRUM"
+        or "".join(_label(block, "NTUPLES").upper().split()) != "NDNMRSPECTRUM"
         or _number(block, "NUMDIM") != 2
         or _profile_columns(_label(block, "SYMBOL"), "SYMBOL") != ("F1", "F2", "Y")
     ):
@@ -379,7 +381,8 @@ def _profile_2d_geometry(block):
     if min(nx, ny) < 2 or not nx.is_integer() or not ny.is_integer() or total != ny * nx:
         raise ValueError("JCAMP-DX 2D VAR_DIM must describe a complete real plane")
     factors = _profile_numbers(_profile_columns(_label(block, "FACTOR"), "FACTOR"), "FACTOR")
-    if factors[0] != 1 or factors[1] <= 0 or factors[2] == 0:
+    truncated = datatype == "NDNMRSPECTRUM" and factors[0] < 0 and factors[1] < 0
+    if factors[2] == 0 or (not truncated and (factors[0] != 1 or factors[1] <= 0)):
         raise ValueError("JCAMP-DX 2D requires unity F1 FACTOR and valid F2/Y factors")
     units = tuple({"HZ": "Hz", "PPM": "ppm"}.get(value.upper())
                   for value in _profile_columns(_label(block, "UNITS"), "UNITS")[:2])
@@ -412,7 +415,8 @@ def _profile_2d_geometry(block):
             raise ValueError("JCAMP-DX 2D requires an F1 coordinate on every PAGE")
         coordinates.append(match[1])
     f1 = np.array(_profile_numbers(coordinates, "PAGE"))
-    if f1[0] != first[0] or f1[-1] != last[0]:
+    f1_tolerance = 2e-11 if truncated else 0
+    if max(abs(f1[0] - first[0]), abs(f1[-1] - last[0])) > f1_tolerance:
         raise ValueError("JCAMP-DX 2D PAGE endpoints disagree with FIRST/LAST")
     # Endpoints can themselves be rounded before line anchors are quantized.
     tolerances = tuple(float(f"5e{precision - 1}") for precision in (first_f2, last_f2))
@@ -464,10 +468,17 @@ def _check_shared_f2_grid(endpoints, tolerances, intervals, anchor_ranges):
 
 
 def read_jcampdx_2d(filename):
-    """Read a real 2D NTUPLES spectrum in F1 page and F2 sample order."""
+    """Read a real 2D NTUPLES spectrum in F1 page and F2 sample order.
+
+    Compact NDNMRSPECTRUM exports with negative F1 and F2 factors use
+    physical F1 PAGE coordinates and F2 line anchors truncated toward zero.
+    A 2e-11 tolerance in the declared F1 unit covers endpoint serialization
+    differences observed in these exports.
+    """
     blocks = jcampdx.read_blocks(filename, _record_order=True)
     spectra = [block for block in blocks
-               if any(value.upper() == "ND NMR SPECTRUM" for value in block.get("DATATYPE", ()))]
+               if any("".join(value.upper().split()) == "NDNMRSPECTRUM"
+                      for value in block.get("DATATYPE", ()))]
     if len(spectra) != 1:
         raise ValueError("JCAMP-DX requires exactly one nD NMR SPECTRUM block")
     block = spectra[0]
@@ -489,11 +500,20 @@ def read_jcampdx_2d(filename):
         return (1 - fraction) * tolerances[0] + fraction * tolerances[1]
 
     xfactor = factors[1]
-    check_grid = _check_line_grid(first, (last - first) / intervals, xfactor,
+    step = (last - first) / intervals
+    check_grid = _check_line_grid(first, step, xfactor,
                                   endpoint_tolerance=endpoint_tolerance)
     anchor_ranges = {}
 
     def check(raw, index):
+        if xfactor < 0:
+            if not 0 <= index <= intervals:
+                raise ValueError("JCAMP-DX 2D line index exceeds VAR_DIM")
+            coordinate = last if index == intervals else first + index * step
+            scaled = coordinate / xfactor
+            if not math.isfinite(scaled) or raw != math.trunc(scaled):
+                raise ValueError("JCAMP-DX 2D line abscissa disagrees with its truncated grid")
+            return
         check_grid(raw, index)
         # Intersect the possible coordinates at each repeated sample index.
         center = raw * xfactor
@@ -511,7 +531,8 @@ def read_jcampdx_2d(filename):
         or any(row.shape != (shape[1],) or not np.isfinite(row).all() for row in parts["real"])
     ):
         raise ValueError("JCAMP-DX 2D PROFILE intensities disagree with VAR_DIM")
-    _check_shared_f2_grid(f2_endpoints, tolerances, intervals, anchor_ranges)
+    if xfactor > 0:
+        _check_shared_f2_grid(f2_endpoints, tolerances, intervals, anchor_ranges)
     data = np.stack(parts["real"])
     axes = _profile_axes(f1, f2_endpoints, units, shape[1])
     return ReadResult(

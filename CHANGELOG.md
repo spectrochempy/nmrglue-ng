@@ -7,6 +7,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Read compact JCAMP-DX 2D NTUPLES exports with signed axis factors
+  and truncated F2 line anchors.
+
 - Preserve the calibrated Bruker strip axis when `strip_fake=True` is used
   with processed axis parameters. (#108)
 
