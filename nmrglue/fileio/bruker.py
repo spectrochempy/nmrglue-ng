@@ -268,6 +268,7 @@ def create_dic(udic):
         Dictionary of Bruker parameters.
 
     """
+    fileiobase._reject_ascending_axes(udic, "Bruker")
     ndim = udic['ndim']
 
     # determine the size in bytes

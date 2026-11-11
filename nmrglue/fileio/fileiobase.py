@@ -66,9 +66,11 @@ class unit_conversion():
         Observation frequency in MHz.
     car : float
         Carrier frequency in Hz.
+    ascending : bool, optional
+        Use increasing frequency coordinates. The default is decreasing.
 
     """
-    def __init__(self, size, cplx, sw, obs, car):
+    def __init__(self, size, cplx, sw, obs, car, *, ascending=False):
         """
         create and set up a unit_conversion object
         """
@@ -78,9 +80,10 @@ class unit_conversion():
         self._sw = float(sw)
         self._obs = float(obs)
         self._car = float(car)
+        self._ascending = ascending
 
         # derived units (these are in ppm)
-        self._delta = -self._sw / (self._size * self._obs)
+        self._delta = (self._sw if ascending else -self._sw) / (self._size * self._obs)
         self._first = self._car / self._obs - self._delta * self._size / 2.
 
     # individual unit conversion functions
@@ -361,15 +364,16 @@ def update_uc(uc, **kwargs):
 
     params = ('size', 'cplx', 'sw', 'obs', 'car')
     new_params = {p: uc.__getattribute__(f'_{p}') for p in params}
+    new_params['ascending'] = getattr(uc, '_ascending', False)
 
     for k, v in kwargs.items():
-        if k in params:
+        if k in new_params:
             new_params[k] = v
         else:
             raise TypeError(
-                f'{k} cannot be used to construct a unit conversion object. Acceptable keywords are {(params)}.')
+                f'{k} cannot be used to construct a unit conversion object. Acceptable keywords are {tuple(new_params)}.')
 
-    return unit_conversion(*new_params.values())
+    return unit_conversion(**new_params)
 
 
 def uc_from_udic(udic, dim=-1):
@@ -380,6 +384,7 @@ def uc_from_udic(udic, dim=-1):
     ----------
     udic : dic
         Universal dictionary of spectral parameters.
+        A dimension may set ``ascending=True`` for increasing frequency coordinates.
     dim : int. optional
         Dimension number to create unit conversion object for.  Default is for
         last dimension.
@@ -393,7 +398,16 @@ def uc_from_udic(udic, dim=-1):
         dim = udic['ndim'] - 1  # last dimension
     adic = udic[dim]
     return unit_conversion(adic['size'], adic['complex'], adic['sw'],
-                           adic['obs'], adic['car'])
+                           adic['obs'], adic['car'], ascending=adic.get('ascending', False))
+
+
+def _reject_ascending_axes(udic, format_name):
+    for dim in range(udic["ndim"]):
+        if udic[dim].get("ascending", False):
+            raise ValueError(
+                f"{format_name} export cannot encode increasing frequency coordinates "
+                f"on dimension {dim}"
+            )
 
 
 def uc_from_freqscale(scale, obs, unit='ppm'):

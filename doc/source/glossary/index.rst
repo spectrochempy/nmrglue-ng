@@ -45,6 +45,8 @@ Axes and universal dictionary
       spectral parameters. ``udic[dim]`` describes the corresponding NumPy
       axis; dimension 0 is the first array axis and the final dimension is
       normally the direct dimension.
+      The optional dimension key ``ascending=True`` describes increasing
+      frequency coordinates for ``uc_from_udic()``.
 
    size
       Number of values along one array axis. In nmrglue this is taken from the

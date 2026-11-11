@@ -145,6 +145,7 @@ def create_dic(udic, dim_order=None):
 
     """
 
+    fileiobase._reject_ascending_axes(udic, "RNMRTK")
     # create the RNMRTK dictionary and fill with some default values
     dic = {}
     dic['comment'] = ''

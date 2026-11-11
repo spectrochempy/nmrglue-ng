@@ -971,14 +971,12 @@ def _find_abscissa_symbol(dic, symbols):
 def _find_firstx_lastx(dic):
     '''
     Helper for guess_udic: seeks firstx and lastx for
-    sweep calculation. Also returns True/False if the
-    data was in ppm.
+    sweep calculation. Also returns the abscissa unit when available.
     '''
 
     firstx = None
     lastx = None
     unitx = None
-    isppm = False  # default to Hz
 
     # determine data class:
     is_ntuples = get_is_ntuples(dic)
@@ -1032,11 +1030,7 @@ def _find_firstx_lastx(dic):
         except KeyError:
             warn('No "XUNITS" in file')
 
-    # flag ppm data
-    if unitx is not None:
-        isppm = unitx.upper() == "PPM"
-
-    return firstx, lastx, isppm
+    return firstx, lastx, unitx.upper() if unitx is not None else None
 
 
 def get_complex_array(data):
@@ -1164,12 +1158,12 @@ def guess_udic(dic, data):
         is_processed = True
 
     # "sw" and "car"
-    firstx, lastx, isppm = _find_firstx_lastx(dic)
+    firstx, lastx, unitx = _find_firstx_lastx(dic)
 
     if firstx is not None and lastx is not None:
         if is_processed:
             # ppm data: convert to Hz
-            if isppm:
+            if unitx == "PPM":
                 if obs_freq:
                     firstx = firstx * obs_freq
                     lastx = lastx * obs_freq
@@ -1180,9 +1174,14 @@ def guess_udic(dic, data):
             if firstx is not None and lastx is not None:
                 sw = abs(lastx - firstx)
                 car = (lastx + firstx) / 2
-                if npoints and npoints > 1 and firstx > lastx:
+                ascending = unitx in ("HZ", "PPM") and firstx < lastx
+                if npoints and npoints > 1 and (firstx > lastx or ascending):
                     sw = sw * npoints / (npoints - 1)
-                    car = firstx - sw / 2
+                    if ascending:
+                        udic[0]["ascending"] = True
+                        car = firstx + sw / 2
+                    else:
+                        car = firstx - sw / 2
                 udic[0]["sw"] = sw
                 udic[0]["car"] = car
         else:

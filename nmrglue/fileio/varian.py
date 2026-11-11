@@ -86,6 +86,7 @@ def create_dic(udic):
     dic : dict
         Dictionary of Agilent/Varian parameters
     """
+    fileiobase._reject_ascending_axes(udic, "Agilent/Varian")
     ddic = udic[udic["ndim"] - 1]   # direct dimension dictionary
 
     # number of points in direct dimension is R+I
