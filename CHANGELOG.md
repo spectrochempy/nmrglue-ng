@@ -7,6 +7,8 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Use the current stable release in the Google Colab installation example. (#243)
+
 - Organize the contributor guide by task, document the local documentation
   builds, and repair the JCAMP-DX reference page. (#242)
 

@@ -16,9 +16,8 @@ apply a Fourier transformation, construct a chemical-shift axis, detect the
 peaks, and plot the resulting spectrum.
 
 Install nmrglue-ng using one of the {doc}`installation procedures <../install>`,
-then return here with that environment active. If you want to reproduce the
-original notebook environment in Colab, the installation guide shows how to
-pin the package to version 1.0.0.
+then return here with that environment active. If you use Colab, follow the
+{ref}`Google Colab installation instructions <colab-install>`.
 
 The example signal is stored in the **NMRPipe** file format. NMRPipe is one of
 the formats supported by nmrglue-ng; it is used here as a compact way to keep
