@@ -9,7 +9,7 @@ original nmrglue project and are preserved for attribution and continuity.
 
 - Reject higher-dimensional acquisitions in the Bruker SER 2D States,
   States-TPPI and echo/anti-echo profiles, including with explicit acquisition
-  file lists.
+  file lists. (#229)
 
 - Normalize complete uniform Bruker States SER acquisitions with direct DQD,
   preserving the stored branches without applying TPPI alternation.
