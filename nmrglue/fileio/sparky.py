@@ -180,6 +180,7 @@ def create_axisdic(adic, tlen, dlen):
         Sparky axis dictionary
 
     """
+    fileiobase._reject_ascending_axis(adic, "Sparky")
     dic = dict()
     dic["nucleus"] = adic["label"]
     dic["spectral_shift"] = 0

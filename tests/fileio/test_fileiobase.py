@@ -80,6 +80,30 @@ def test_update_uc():
     assert abs(uc2._obs - 3.0) < 1e-5
 
 
+def test_legacy_axis_builders_reject_ascending_coordinates():
+    axis = ng.fileiobase.create_blank_udic(1)[0]
+    axis.update(
+        size=5, sw=5000, obs=400, car=1700,
+        ascending=True, complex=False, time=False, freq=True,
+    )
+    pipe_dic = ng.pipe.create_empty_dic()
+    original = pipe_dic.copy()
+
+    with pytest.raises(ValueError, match="NMRPipe.*increasing frequency"):
+        ng.pipe.add_axis_to_dic(pipe_dic, axis, 0)
+    assert pipe_dic == original
+    with pytest.raises(ValueError, match="Sparky.*increasing frequency"):
+        ng.sparky.create_axisdic(axis, 5, 5)
+    with pytest.raises(ValueError, match="Bruker.*increasing frequency"):
+        ng.bruker.create_acqus_dic(axis, direct=True)
+
+    axis["ascending"] = False
+    ng.pipe.add_axis_to_dic(pipe_dic, axis, 0)
+    assert pipe_dic["FDF2SW"] == 5000
+    assert ng.sparky.create_axisdic(axis, 5, 5)["spectral_width"] == 5000
+    assert ng.bruker.create_acqus_dic(axis, direct=True)["TD"] == 256
+
+
 def test_data_nd_copy():
     data = DummyDataND()
 

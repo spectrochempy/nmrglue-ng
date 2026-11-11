@@ -401,13 +401,18 @@ def uc_from_udic(udic, dim=-1):
                            adic['obs'], adic['car'], ascending=adic.get('ascending', False))
 
 
+def _reject_ascending_axis(adic, format_name, dim=None):
+    if adic.get("ascending", False):
+        dimension = "" if dim is None else f" on dimension {dim}"
+        raise ValueError(
+            f"{format_name} export cannot encode increasing frequency coordinates"
+            f"{dimension}"
+        )
+
+
 def _reject_ascending_axes(udic, format_name):
     for dim in range(udic["ndim"]):
-        if udic[dim].get("ascending", False):
-            raise ValueError(
-                f"{format_name} export cannot encode increasing frequency coordinates "
-                f"on dimension {dim}"
-            )
+        _reject_ascending_axis(udic[dim], format_name, dim)
 
 
 def uc_from_freqscale(scale, obs, unit='ppm'):

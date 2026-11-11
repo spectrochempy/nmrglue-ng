@@ -331,6 +331,7 @@ def add_axis_to_dic(dic, adic, n):
     """
     Add an axis dictionary (adic) to a NMRPipe dictionary (dic) as axis n.
     """
+    fileiobase._reject_ascending_axis(adic, "NMRPipe", n)
     # determine F1,F2,F3,...
     fn = ["FDF2", "FDF1", "FDF3", "FDF4"][n]
 
