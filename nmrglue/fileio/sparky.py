@@ -121,6 +121,7 @@ def create_dic(udic, datetimeobj=datetime.datetime.now(), user='user'):
         Dictionary of Sparky parameters.
 
     """
+    fileiobase._reject_ascending_axes(udic, "Sparky")
     dic = dict()
 
     # determine shape of array

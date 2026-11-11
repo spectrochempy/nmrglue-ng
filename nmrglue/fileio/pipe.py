@@ -294,6 +294,7 @@ def create_dic(udic, datetimeobj=datetime.datetime.now()):
         Dictionary NMRPipe parameters.
 
     """
+    fileiobase._reject_ascending_axes(udic, "NMRPipe")
     # create the blank dictionary
     dic = create_empty_dic()    # create the empty dictionary
     dic = datetime2dic(datetimeobj, dic)  # add the datetime to the dictionary

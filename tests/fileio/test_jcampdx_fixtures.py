@@ -14,6 +14,48 @@ import nmrglue as ng
 from nmrglue.fileio import fileiobase
 
 
+@pytest.mark.optional_dependency
+def test_glue_roundtrip_preserves_ascending_axis(tmp_path):
+    pytest.importorskip("h5py")
+    from nmrglue.fileio import glue
+
+    metadata = {
+        "DATATYPE": ["NMR SPECTRUM"], "FIRSTX": ["-2"], "LASTX": ["8"],
+        "XUNITS": ["PPM"], ".OBSERVEFREQUENCY": ["400"],
+    }
+    samples = np.arange(1, 6)
+    udic = ng.jcampdx.guess_udic(metadata, samples)
+    path = tmp_path / "spectrum.glue"
+    glue.write(path, udic, samples)
+    restored, data = glue.read(path)
+
+    np.testing.assert_array_equal(data, samples)
+    assert restored[0]["ascending"]
+    np.testing.assert_allclose(glue.make_uc(restored, data).ppm_scale(), [-2, 0.5, 3, 5.5, 8])
+
+
+@pytest.mark.parametrize(
+    "module, exporter",
+    [
+        (ng.pipe, "to_pipe"),
+        (ng.sparky, "to_sparky"),
+        (ng.rnmrtk, "to_rnmrtk"),
+        (ng.varian, "to_varian"),
+        (ng.bruker, "to_bruker"),
+    ],
+)
+def test_legacy_exports_reject_ascending_axis(module, exporter):
+    udic = fileiobase.create_blank_udic(1)
+    udic[0].update(size=5, sw=5000, obs=400, car=1700, ascending=True, time=False, freq=True)
+    converter = ng.convert.converter()
+    converter.from_universal(udic, np.arange(1, 6))
+
+    with pytest.raises(ValueError, match="increasing frequency"):
+        module.create_dic(udic)
+    with pytest.raises(ValueError, match="increasing frequency"):
+        getattr(converter, exporter)()
+
+
 DATA_DIR = os.path.join(
     os.path.dirname(__file__), "..", "fixtures", "fileio", "data",
     "jcampdx"
@@ -950,6 +992,36 @@ class TestJCAMPDXGuessUdic:
         assert udic[0]["sw"] == pytest.approx(8.0)
         assert uc.hz(0) == pytest.approx(100.0)
         assert uc.hz(udic[0]["size"] - 1) == pytest.approx(93.0)
+
+    @pytest.mark.parametrize("unit, hz_per_unit", [("HZ", 1), ("PPM", 400)])
+    @pytest.mark.parametrize("first, last", [(0, 10), (10, 0)])
+    def test_guess_udic_preserves_sample_coordinates(
+        self, tmp_path, unit, hz_per_unit, first, last,
+    ):
+        path = tmp_path / "endpoint_spectrum.jdx"
+        path.write_text(
+            "##TITLE=Endpoint Spectrum\n"
+            "##JCAMP-DX=5.00\n"
+            "##DATA TYPE=NMR SPECTRUM\n"
+            "##DATA CLASS=XYDATA\n"
+            "##.OBSERVE FREQUENCY=400\n"
+            f"##XUNITS={unit}\n##FIRSTX={first}\n##LASTX={last}\n"
+            "##NPOINTS=5\n##XFACTOR=1\n##YFACTOR=1\n"
+            f"##XYDATA=(X++(Y..Y))\n{first} 1 2 3 4 5\n##END=\n"
+        )
+        dic, data = ng.jcampdx.read(path)
+        udic = ng.jcampdx.guess_udic(dic, data)
+        uc = fileiobase.uc_from_udic(udic)
+        expected_hz = np.linspace(first, last, 5) * hz_per_unit
+
+        np.testing.assert_array_equal(data, [1, 2, 3, 4, 5])
+        assert udic[0]["sw"] == pytest.approx(12.5 * hz_per_unit)
+        np.testing.assert_allclose(uc.hz_scale(), expected_hz, atol=1e-12)
+        np.testing.assert_allclose(uc.ppm_scale(), expected_hz / 400, atol=1e-12)
+        assert uc.i(expected_hz[1], "Hz") == 1
+        assert uc.sec(1) == pytest.approx(1 / udic[0]["sw"])
+        updated = fileiobase.update_uc(uc, obs=200)
+        np.testing.assert_allclose(updated.hz_scale(), expected_hz, atol=1e-12)
 
     def test_guess_udic_complex_array(self, tmp_path):
         """guess_udic detects complex data from get_complex_array()."""

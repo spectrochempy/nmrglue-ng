@@ -36,13 +36,7 @@ def make_uc(dic, data, dim=-1):
     if dim == -1:
         dim = data.ndim - 1  # last dimension
 
-    size = dic[dim]["size"]
-    cplex = dic[dim]["complex"]
-    sw = dic[dim]["sw"]
-    obs = dic[dim]["obs"]
-    car = dic[dim]["car"]
-
-    return fileiobase.unit_conversion(size, cplex, sw, obs, car)
+    return fileiobase.uc_from_udic(dic, dim)
 
 
 # dictionary/data creation functions (null functions)

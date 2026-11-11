@@ -2,6 +2,7 @@
 
 import os
 import numpy as np
+import pytest
 import nmrglue as ng
 from _dataset_paths import DATA_DIR
 
@@ -122,7 +123,14 @@ def test_jcampdx1():
         # check udic:
         udic = ng.jcampdx.guess_udic(dic, data)
         assert np.abs(udic[0]["obs"]-100.4) < epsilon_e
-        assert np.abs(udic[0]["sw"]-24038.5) < epsilon_e
+        # The fixture declares 0 to 24038.5 Hz over N - 1 intervals.
+        # Unit conversion uses sw / N for the sample spacing.
+        step = 24038.5 / (npoints_target - 1)
+        assert udic[0]["sw"] == pytest.approx(step * npoints_target)
+        uc = ng.fileiobase.uc_from_udic(udic)
+        assert uc.hz(0) == pytest.approx(0)
+        assert uc.hz(1) == pytest.approx(step)
+        assert uc.hz(npoints_target - 1) == pytest.approx(24038.5)
         assert udic[0]["size"] == npoints_target
         assert udic[0]["label"] == "13C"
 

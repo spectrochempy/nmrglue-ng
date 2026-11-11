@@ -51,6 +51,18 @@ upstream reference, see the
 `nmrglue source at cd0c2c9 (8 October 2026)
 <https://github.com/jjhelmus/nmrglue/tree/cd0c2c9d1cac4f1125a89dbe6ecdcd8ca194b59d>`_.
 
+Increasing JCAMP-DX frequency axes
+----------------------------------
+
+For processed JCAMP-DX spectra with increasing Hz or ppm coordinates,
+``guess_udic()`` sets ``ascending=True`` on the dimension. In Hz,
+``sw`` is the sample spacing multiplied by the number of points and
+``car`` is ``FIRSTX + sw / 2`` after converting ``FIRSTX`` to Hz.
+Use ``uc_from_udic()`` or ``glue.make_uc()`` to reconstruct the
+coordinates in sample order. Glue/HDF5 and the CSDM converter support
+increasing frequency axes. The NMRPipe, Sparky, RNMRTK, Agilent/Varian
+and Bruker exporters raise ``ValueError`` for these axes.
+
 When to use interop
 -------------------
 
