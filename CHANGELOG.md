@@ -7,6 +7,14 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+## 1.3.0 - 2026-11-11
+
+- Reject multidimensional inputs to the built-in ACME score in `autops()`.
+  Pass a single trace or an explicit custom score for multidimensional data.
+
+- Publish the Conda package automatically after the GitHub release, with
+  manual publication available for historical tags.
+
 - Estimate zero- and first-order phase corrections with masked ACME or local
   DISPA references. Both can account for a provisional linear background and
   fit zero-order phase with a fixed slope derived from acquisition timing. (#236)

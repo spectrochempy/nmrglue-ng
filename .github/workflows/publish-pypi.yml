@@ -87,6 +87,8 @@ jobs:
   release:
     name: Create GitHub Release
     needs: publish
+    outputs:
+      tag: ${{ steps.release.outputs.tag }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -150,3 +152,14 @@ jobs:
           gh release create "$TAG" dist/* --verify-tag \
             --title "nmrglue-ng $VERSION" --notes-file release-notes.md
         fi
+
+  conda:
+    name: Publish to Conda
+    needs: release
+    permissions:
+      contents: read
+    uses: ./.github/workflows/publish-conda.yml
+    with:
+      tag: ${{ needs.release.outputs.tag }}
+    secrets:
+      NMRGLUE_NG_ANACONDA_API_TOKEN: ${{ secrets.NMRGLUE_NG_ANACONDA_API_TOKEN }}
