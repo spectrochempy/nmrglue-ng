@@ -14,6 +14,9 @@ User Functions
     :toctree: generated/
 
     autops
+    estimate_phase
+    phase_slope_from_delay
+    PhaseEstimate
     manual_ps
 
 Developer Functions
