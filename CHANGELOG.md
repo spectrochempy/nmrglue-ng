@@ -7,6 +7,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Organize the contributor guide by task, document the local documentation
+  builds, and repair the JCAMP-DX reference page. (#242)
+
 - Warn when reading multidimensional Tecmag TNT files that axis calibration
   and FFT flags still need verification against TNMR. (#240)
 

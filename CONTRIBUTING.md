@@ -34,11 +34,14 @@ python -m pip install -e '.[test]'
 On Windows, activate the environment with the appropriate script under
 `.venv\Scripts`.
 
-Documentation dependencies can currently be installed with:
+Install the documentation extra in the same environment to build the docs:
 
 ```bash
 python -m pip install -e '.[docs]'
 ```
+
+The [documentation build guide](https://nmrglue-ng.readthedocs.io/latest/contribute/documentation.html)
+shows the HTML preview and the full Read the Docs build.
 
 Avoid adding a mandatory dependency unless it is necessary and justified.
 Features based on optional libraries should remain optional when reasonably
