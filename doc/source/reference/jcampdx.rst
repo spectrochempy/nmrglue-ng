@@ -23,9 +23,10 @@ User Functions
 Format notes
 ------------
 
-The reader supports JCAMP-DX NMR data. Multidimensional NTUPLES spectra
-can be read as a series of pages. ``guess_udic()`` describes only the
-direct dimension. Writing JCAMP-DX is unsupported.
+For a multidimensional NTUPLES spectrum, pass ``show_all_data=True`` to
+``read()`` to retrieve all one-dimensional pages. The default returns
+only the first array for each available component. ``guess_udic()``
+describes only the direct dimension. Writing JCAMP-DX is unsupported.
 
 See :doc:`../contribute/readers` for format specifications and validation
 guidance.
