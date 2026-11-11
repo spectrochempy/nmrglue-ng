@@ -1,12 +1,14 @@
 Contribute
 ==========
 
-Help improve ``nmrglue-ng`` by reporting issues, improving documentation,
-adding tests, or contributing code. Current contribution procedures live in the
-project repository; the pages below point to the active nmrglue-ng workflow.
+Report a problem, improve an example, or contribute a change to nmrglue-ng.
+
+- :doc:`issues` explains what to include in a bug report.
+- :doc:`guide` takes you from a source checkout to a tested pull request.
 
 .. toctree::
-    :maxdepth: 2
+   :hidden:
+   :maxdepth: 2
 
-    guide
-    issues
+   issues
+   guide

@@ -18,9 +18,14 @@ User Functions
     guess_udic
 
 
-Developer Information
----------------------
+.. _developer-information:
 
-.. include:: ../../../nmrglue/fileio/jcampdx.py
-    :start-line: 13
-    :end-line: 23
+Format notes
+------------
+
+The reader supports JCAMP-DX NMR data. Multidimensional NTUPLES spectra
+can be read as a series of pages. ``guess_udic()`` describes only the
+direct dimension. Writing JCAMP-DX is unsupported.
+
+See :doc:`../contribute/readers` for format specifications and validation
+guidance.
