@@ -74,14 +74,15 @@ def _file_profile(path: Path) -> str | None:
     if prefix.startswith(b"JEOL.NMR") and len(prefix) > 12:
         # JDF stores the dimension count as one byte at offset 12.
         return {1: "jeol-fid-1d", 2: "jeol-2d-storage"}.get(prefix[12])
-    if prefix.startswith((b"SIMP\n", b"SIMP\r\n", b"SIMP\r")):
-        lines = prefix.splitlines()
-        if b"DATA" in lines:
-            records = lines[1:lines.index(b"DATA")]
-            kinds = [line[5:] for line in records if line.startswith(b"TYPE=")]
+    if prefix.lstrip(b" \t\v\f").startswith(b"SIMP"):
+        lines = [line.strip() for line in prefix.splitlines()]
+        if lines[0] == b"SIMP" and b"DATA" in lines:
+            records = [line.partition(b"=") for line in lines[1:lines.index(b"DATA")]]
+            fields = [(key.strip(), value.strip()) for key, sep, value in records if sep]
+            kinds = [value for key, value in fields if key == b"TYPE"]
             if kinds in ([b"FID"], [b"SPE"]):
                 kind = "fid" if kinds == [b"FID"] else "spectrum"
-                ndim = 2 if any(line.startswith(b"NI=") for line in records) else 1
+                ndim = 2 if any(key == b"NI" for key, _ in fields) else 1
                 return f"simpson-{kind}-{ndim}d"
     if len(prefix) == 2048:
         marker = int(pipe.fdata_nums["FDFLTORDER"]) * 4

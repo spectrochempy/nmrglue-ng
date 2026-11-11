@@ -31,6 +31,20 @@ def test_simpson_fid_axis_and_sign(tmp_path, contents):
     assert normalized.acquisition == {"spectral_width_hz": 8000, "dwell_time_s": 0.000125}
 
 
+@pytest.mark.parametrize("reader", [interop.read_simpson_fid, interop.read])
+@pytest.mark.parametrize(
+    "token, padded",
+    [("TYPE=FID", "TYPE = FID"), ("DATA", " DATA "), ("SIMP", "\fSIMP\v")],
+)
+def test_simpson_text_accepts_header_whitespace(tmp_path, reader, token, padded):
+    path = tmp_path / "signal.fid"
+    path.write_text(TEXT.replace(token, padded))
+    result = reader(path)
+    np.testing.assert_array_equal(result.data, [1 - 2j, 3 + 4j])
+    np.testing.assert_array_equal(result.axes[0].values, [0, 0.000125])
+    assert result.axes[0].unit == "s"
+
+
 def test_generic_normalize_selects_profile_and_forwards_options(tmp_path):
     path = tmp_path / "signal.fid"
     path.write_text(TEXT)
@@ -52,6 +66,8 @@ def test_generic_normalize_selects_profile_and_forwards_options(tmp_path):
     "contents, message",
     [
         (TEXT.replace("3 4\n", ""), "TEXT block disagrees with NP"),
+        (TEXT.replace("NP=2", "NP=2\n NP = 2"), "duplicate header"),
+        (TEXT.replace("3 4", "nan 4"), "finite complex samples"),
         (TEXT.replace("3 4", "END 0"), "two ordinates"),
         (TEXT.replace("TYPE=FID", "TYPE=SPE"), "single-element 1D FID"),
         (TEXT.replace("SW=8000", "SW=0"), "positive SW"),

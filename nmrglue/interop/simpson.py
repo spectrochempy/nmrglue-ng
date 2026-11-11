@@ -40,14 +40,15 @@ def _geometry(header, kind, ndim):
 def _preflight(stream, kind, ndim):
     # The historical TEXT decoder preallocates NP points. Check the block
     # length first so that truncation cannot expose uninitialized samples.
-    if stream.readline().rstrip("\n") != "SIMP":
+    if stream.readline().strip() != "SIMP":
         raise ValueError("SIMPSON requires a SIMP header")
     header = {}
     for line in stream:
-        line = line.rstrip("\n")
+        line = line.strip()
         if line == "DATA":
             break
         key, sep, value = line.partition("=")
+        key, value = key.strip(), value.strip()
         if not sep or not key or not value or key in header or "=" in value:
             raise ValueError("SIMPSON has an invalid or duplicate header record")
         header[key] = value
