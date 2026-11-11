@@ -170,15 +170,19 @@ Run commands through that environment, for example:
 See the :doc:`contributor guide <contribute/guide>` for the current contributor
 workflow and documentation-specific dependencies.
 
+.. _colab-install:
+
 Use in Google Colab
 -------------------
 
-To reproduce the package version used by the original getting-started
-notebook, pin version 1.0.0 in a Colab code cell:
+Install the latest stable release from PyPI in a Colab code cell:
 
 .. code-block:: ipython3
 
-    %pip install nmrglue-ng==1.0.0
+    %pip install nmrglue-ng
+
+To reproduce a previous run, pin the package to the version recorded for
+that run.
 
 To use the latest development version, install directly from the repository's
 ``master`` branch in a Colab cell:
