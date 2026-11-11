@@ -46,6 +46,11 @@ versions and check the :doc:`release notes <whats-new>`. For example:
   the ascending axes of historical SpectroChemPy imports. Incomplete grids
   and truncated TEXT data raise an error.
 
+* Since nmrglue-ng 1.3.0, ``autops(data, "acme")`` rejects multidimensional
+  arrays. Earlier versions scored differences along the first axis while
+  applying phase along the last. Recompute affected results on individual
+  traces or use a custom score with an explicit multidimensional convention.
+
 These versions describe when the fixes landed in nmrglue-ng. For a dated
 upstream reference, see the
 `nmrglue source at cd0c2c9 (8 October 2026)

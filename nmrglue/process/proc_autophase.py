@@ -263,7 +263,8 @@ def autops(data, fn, p0=0.0, p1=0.0, return_phases=False, peak_width=100, **kwar
         Array of NMR data.
     fn : str or function
         Algorithm to use for phase scoring. Built in functions can be
-        specified by one of the following strings: "acme", "peak_minima"
+        specified by one of the following strings: "acme", "peak_minima".
+        Both built-in algorithms require a 1D spectrum.
     p0 : float
         Initial zero order phase in degrees.
     p1 : float
@@ -297,6 +298,8 @@ def autops(data, fn, p0=0.0, p1=0.0, return_phases=False, peak_width=100, **kwar
     arguments = [data,]
 
     if not callable(fn):
+        if fn == 'acme' and np.ndim(data) != 1:
+            raise ValueError("acme requires a 1D spectrum")
         if fn == 'peak_minima':
             if peak_width < 1:
                 raise ValueError("peak_width must be positive")

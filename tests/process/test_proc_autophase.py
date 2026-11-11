@@ -180,3 +180,15 @@ def test_dispa_rejects_acme_iteration_budget(synthetic_spectrum):
         estimate_phase(
             first * rotation, method="dispa", references=[(880, 921, 1)], maxiter=1
         )
+
+
+@pytest.mark.parametrize("rows", [1, 2])
+def test_autops_acme_rejects_a_matrix(rows):
+    points = np.arange(128)
+    spectrum = 1 / (1 + 1j * (points - 52) / 6)
+    data = np.repeat(spectrum[None, :], rows, axis=0)
+    with pytest.raises(ValueError, match="acme requires a 1D spectrum"):
+        autops(data, "acme", disp=False)
+
+    result = autops(data, lambda angles, spectrum: np.sum(angles**2), disp=False)
+    np.testing.assert_array_equal(result, data)
