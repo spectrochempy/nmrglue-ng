@@ -2,6 +2,24 @@
 nmrglue-ng
 ==========
 
+|CI| |PyPI| |Conda| |Docs| |License|
+
+.. |CI| image:: https://github.com/spectrochempy/nmrglue-ng/actions/workflows/ci.yml/badge.svg?branch=master
+   :alt: Test status on master
+   :target: https://github.com/spectrochempy/nmrglue-ng/actions/workflows/ci.yml?query=branch%3Amaster
+.. |PyPI| image:: https://img.shields.io/pypi/v/nmrglue-ng
+   :alt: PyPI version
+   :target: https://pypi.org/project/nmrglue-ng/
+.. |Conda| image:: https://img.shields.io/conda/v/spectrocat/nmrglue-ng
+   :alt: Conda version on spectrocat
+   :target: https://anaconda.org/spectrocat/nmrglue-ng
+.. |Docs| image:: https://readthedocs.org/projects/nmrglue-ng/badge/?version=stable
+   :alt: Stable documentation build status
+   :target: https://nmrglue-ng.readthedocs.io/stable/
+.. |License| image:: https://img.shields.io/pypi/l/nmrglue-ng
+   :alt: BSD 3-Clause License
+   :target: https://github.com/spectrochempy/nmrglue-ng/blob/master/LICENSE.txt
+
 Read, write, convert, process, and analyse NMR data in Python. nmrglue-ng is
 an independent continuation of `nmrglue <https://github.com/jjhelmus/nmrglue>`_,
 originally developed by Jonathan J. Helmus and contributors.
@@ -31,36 +49,34 @@ Use separate environments for the historical ``nmrglue`` distribution and
 The `installation guide <https://nmrglue-ng.readthedocs.io/stable/install.html>`_
 covers uv, pip, and Conda.
 
-What nmrglue-ng adds
-====================
-
-* **Structured results for interoperability.** The optional
-  ``nmrglue.interop`` API exposes data, calibrated axes, metadata, and
-  diagnostics for supported profiles. The first published profile reads
-  processed Bruker/TopSpin 1D spectra. Existing format readers continue
-  to return ``(dic, data)``. Interop is still in development, and coverage
-  varies by format and profile. To help prioritize the remaining profiles,
-  `open a GitHub issue <https://github.com/spectrochempy/nmrglue-ng/issues>`_
-  describing your format, data type, and workflow.
-* **Corrections to scientific workflows.** Releases include fixes for the
-  endpoints of descending processed JCAMP-DX axes and for scaling noise
-  estimates in 1D and multidimensional integration.
-* **Runnable examples and maintained distributions.** Follow downloadable
-  notebooks with reproducible example data and install releases from PyPI
-  or the ``spectrocat`` Conda channel.
+For new integrations, ``nmrglue.interop`` provides structured results with
+samples, axes, metadata, and diagnostics. Check the
+`supported profiles <https://nmrglue-ng.readthedocs.io/stable/reference/interop.html#interop-profile-table>`_
+for format coverage and limitations.
 
 Documentation
 =============
 
 * `Getting started <https://nmrglue-ng.readthedocs.io/stable/getting-started/index.html>`_
-  walks through reading, processing, and plotting a first spectrum.
+  walks through reading, processing, and plotting a first spectrum in a
+  downloadable notebook.
+* `Tutorials <https://nmrglue-ng.readthedocs.io/stable/tutorials/index.html>`_
+  cover reading, processing, conversion, and analysis with worked examples.
+* `Coming from nmrglue? <https://nmrglue-ng.readthedocs.io/stable/migration.html>`_
+  explains how to set up a separate environment and which changes can
+  affect existing workflows.
 * `API reference <https://nmrglue-ng.readthedocs.io/stable/reference/index.html>`_
   covers the format readers, processing, analysis, and interop interfaces.
 * `Release notes <https://nmrglue-ng.readthedocs.io/stable/whats-new.html>`_
   describe changes by release. See the `development documentation
   <https://nmrglue-ng.readthedocs.io/latest/>`_ for unreleased features.
-* `Contributor guide <https://github.com/spectrochempy/nmrglue-ng/blob/master/CONTRIBUTING.md>`_
-  covers reporting issues, running tests, and contributing fixes.
+
+Contributing
+============
+
+Use the `Contribute section <https://nmrglue-ng.readthedocs.io/latest/contribute/index.html>`_
+for issue reports, development setup, tests, documentation builds, and
+pull requests.
 
 Citation and license
 ====================

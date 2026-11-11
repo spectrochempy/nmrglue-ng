@@ -7,6 +7,8 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Update the README links for tutorials, migration, and contributions.
+
 - Use the current stable release in the Google Colab installation example. (#243)
 
 - Organize the contributor guide by task, document the local documentation
