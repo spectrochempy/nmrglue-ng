@@ -7,6 +7,10 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Estimate zero- and first-order phase corrections with masked ACME or local
+  DISPA references. Both can account for a provisional linear background and
+  fit zero-order phase with a fixed slope derived from acquisition timing.
+
 - Match JEOL 2D universal-dictionary metadata to the NumPy array order,
   with indirect F1 on rows and direct F2 on columns. (#234)
 
