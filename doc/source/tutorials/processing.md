@@ -215,6 +215,46 @@ fig.tight_layout()
 plt.show()
 ```
 
+## Phase a synthetic spectrum automatically
+
+This example applies a known 35° zero-order phase offset to two complex
+Lorentzian peaks, both away from the spectrum edges. Use `autops()` with the
+ACME score and `return_phases=True` to obtain the corrected spectrum and the
+estimated zero- and first-order phase corrections in degrees.
+
+```{code-cell} ipython3
+import matplotlib.pyplot as plt
+import numpy as np
+from nmrglue.process.proc_autophase import autops
+
+x = np.arange(1024) / 1024
+reference = (
+    1 / (1 + 1j * (x - 0.32) / 0.018)
+    + 0.65 / (1 + 1j * (x - 0.68) / 0.025)
+)
+unphased = reference * np.exp(1j * np.deg2rad(35))
+corrected, (p0, p1) = autops(unphased, "acme", return_phases=True, disp=False)
+
+error_before = np.linalg.norm(unphased - reference)
+error_after = np.linalg.norm(corrected - reference)
+assert error_after < 0.35 * error_before
+print(f"Estimated corrections: p0={p0:.2f}°, p1={p1:.2f}°")
+print(f"Remaining relative error: {error_after / error_before:.1%}")
+
+fig, ax = plt.subplots()
+ax.plot(x, unphased.real, label="Before phasing")
+ax.plot(x, corrected.real, label="After phasing")
+ax.plot(x, reference.real, "--", label="Reference")
+ax.set(xlabel="Fractional spectral position", ylabel="Real intensity")
+ax.legend()
+plt.show()
+```
+
+The assertion compares the **complex** spectra against the known synthetic
+reference. The fitted phases depend on the signal and the scoring method.
+For experimental data, inspect the corrected peak shapes and baseline before
+using the spectrum for quantitative analysis.
+
 ## Process NMRPipe data with array-only functions
 
 The small NMRPipe time-domain example is 2D and synthetic. Apply an apodization
