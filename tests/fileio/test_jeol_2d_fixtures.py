@@ -95,3 +95,49 @@ def test_experiments_distinct():
     assert not np.array_equal(hsqc, cosy)
     assert not np.array_equal(hsqc, hmbc)
     assert not np.array_equal(cosy, hmbc)
+
+
+def test_cosy_universal_axes_follow_numpy_dimensions():
+    dic, data = ng.jeol.read(COSY_JDF)
+    udic = ng.jeol.guess_udic(dic, data)
+
+    # Independent JDF parameter records (OpenReadout JEOL JDF format notes).
+    # https://openreadout.github.io/openreadout/formats/jeol-jdf.html
+    # Y is F1 and X is F2. X_FREQ/Y_FREQ are Hz, X_SWEEP/Y_SWEEP
+    # are Hz and X_OFFSET/Y_OFFSET are ppm.
+    # The raw axes are in seconds. The ppm values below are the nominal
+    # unpadded DFT bins from those parameters, not a processed Delta axis.
+    expected = (
+        (256, 5997.36116108912, 12.50078565956403, -2.4421857715986874, 0.05859988796534399),
+        (1280, 7512.0192307692305, 14.395139730136016, -4.380459824307678, 0.014679905828337525),
+    )
+    for dim, (size, width, first, last, step) in enumerate(expected):
+        axis = udic[dim]
+        assert axis["size"] == size
+        assert axis["time"] is True and axis["freq"] is False
+        assert axis["obs"] == pytest.approx(399.78219837825, rel=1e-12)
+        assert axis["car"] == pytest.approx(1998.91099189125, rel=1e-12)
+        assert axis["sw"] == pytest.approx(width, rel=1e-12)
+        uc = ng.fileiobase.uc_from_udic(udic, dim)
+        np.testing.assert_allclose(uc.ppm_limits(), (first, last), atol=1e-10, rtol=0)
+        assert uc.ppm(0) - uc.ppm(1) == pytest.approx(step, abs=1e-12)
+        assert uc.sec(1) == pytest.approx(1 / width, rel=1e-12)
+
+
+def test_hsqc_universal_metadata_distinguishes_carbon_f1_from_proton_f2():
+    dic, data = ng.jeol.read(HSQC_JDF)
+    udic = ng.jeol.guess_udic(dic, data)
+
+    # F1 is a listed NUS axis with interleaved quadrature rows. The UDic
+    # describes the array and acquisition parameters, not that time list.
+    for dim, (label, obs, width, carrier) in enumerate((
+        ("Carbon13", 100.5253033251654, 17099.86320109439, 8544.650782639059),
+        ("Proton", 399.78219837825, 7494.00479616307, 1998.91099189125),
+    )):
+        axis = udic[dim]
+        assert axis["size"] == data.shape[dim]
+        assert axis["label"] == label
+        assert axis["time"] is True and axis["freq"] is False
+        assert axis["obs"] == pytest.approx(obs, rel=1e-12)
+        assert axis["sw"] == pytest.approx(width, rel=1e-12)
+        assert axis["car"] == pytest.approx(carrier, rel=1e-12)

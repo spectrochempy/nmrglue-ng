@@ -7,6 +7,21 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+## 1.3.0 - 2026-11-11
+
+- Reject multidimensional inputs to the built-in ACME score in `autops()`.
+  Pass a single trace or an explicit custom score for multidimensional data.
+
+- Publish the Conda package automatically after the GitHub release, with
+  manual publication available for historical tags.
+
+- Estimate zero- and first-order phase corrections with masked ACME or local
+  DISPA references. Both can account for a provisional linear background and
+  fit zero-order phase with a fixed slope derived from acquisition timing. (#236)
+
+- Match JEOL 2D universal-dictionary metadata to the NumPy array order,
+  with indirect F1 on rows and direct F2 on columns. (#234)
+
 - Preserve increasing JCAMP-DX frequency coordinates in unit conversion,
   including after a Glue/HDF5 round trip. Report increasing axes as unsupported
   by the NMRPipe, Sparky, RNMRTK, Agilent/Varian and Bruker exporters,
@@ -27,6 +42,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 - Record manual or source-verified Agilent 2D States quadrature in interop
   while preserving the stored complex branches.
+
+- Demonstrate automatic phasing of a synthetic spectrum in the processing
+  tutorial. (#233)
 
 ## 1.2.4 - 2026-11-10
 

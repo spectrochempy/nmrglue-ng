@@ -95,12 +95,14 @@ def add_axis_to_udic(udic, dic, udim):
     udic : dict
         the updated universal dictionary
     """
-    axis_prefix = dimension_names(dic)[udim]
+    # The JDF header lists X (direct) first, while NumPy puts it last.
+    axis_prefix = dimension_names(dic)[::-1][udim]
+    header_axis = "xyzabcde".index(axis_prefix)
     udic[udim]["sw"] = dic["parameters"][f"{axis_prefix}_sweep"]
     udic[udim]["obs"] =  dic['parameters'][f'{axis_prefix}_freq'] / 1e6
     udic[udim]["car"] = dic["parameters"][f"{axis_prefix}_offset"] * udic[udim]["obs"]
     udic[udim]["label"] = dic["parameters"][f"{axis_prefix}_domain"]
-    udic[udim]["encoding"] = dic["header"]["data_axis_type"][udim]
+    udic[udim]["encoding"] = dic["header"]["data_axis_type"][header_axis]
 
     return udic
 
