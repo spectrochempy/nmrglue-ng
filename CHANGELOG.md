@@ -7,6 +7,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Accept whitespace around SIMPSON header fields and the DATA delimiter in
+  interop detection and reading.
+
 - Reject higher-dimensional acquisitions in the Bruker SER 2D States,
   States-TPPI and echo/anti-echo profiles, including with explicit acquisition
   file lists. (#229)
