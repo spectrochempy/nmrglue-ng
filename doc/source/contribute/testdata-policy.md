@@ -3,8 +3,8 @@
 Maintainer decisions: **2026-10-08**, initially recorded against `805c6f2`;
 consolidated for delivery on **2026-10-09** against `d9ba184`.
 Local-use acceptance is separate from redistribution permission. The separately
-approved first-release scope reductions are recorded below; their translation
-into the manifest and generator is still pending.
+approved first-release scope reductions are recorded below and tracked in
+`tests/testdata-manifest.toml`.
 
 ## Accepted historical source
 
@@ -137,8 +137,8 @@ does not automatically authorize publishing its outputs.
 
 ## Next work
 
-1. Integrate the decisions into the generator/manifest through a separately
-   reviewed change. Keep missing files visible, not passing or silently waived.
+1. Keep missing files visible in the manifest and review any change to the
+   validation scope separately.
 2. NMRPipe generation and the SIMPSON encoding sets have passed targeted
    validation on disposable copies after #65/#66. Define reproducible local
    corpus integration with source/tool receipts and checksums; the generated

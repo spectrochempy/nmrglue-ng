@@ -149,7 +149,7 @@ Then audit the report against reality:
 
 ### 6. Verify maintainer documents
 
-* Does the change touch `maintainer/roadmap.md` or `CHANGELOG.md` `Unreleased`?
+* Does the change touch `doc/source/contribute/roadmap.rst` or `CHANGELOG.md` `Unreleased`?
 * Is a `CHANGELOG.md` entry required? For user- or developer-visible changes:
   yes. If the PR claims `Changelog: not required`, judge whether the reason
   holds.
@@ -197,7 +197,7 @@ expected versus actual behavior.
 
 Produce a review report with this structure. Persist it and warranted
 maintainer summaries under the reporting rules in `AGENTS.md` and
-`maintainer/README.md`; report-only edits do not authorize fixing the reviewed
+`CONTRIBUTING.md`; report-only edits do not authorize fixing the reviewed
 change or altering its tests.
 
 ### Summary

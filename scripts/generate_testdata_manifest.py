@@ -1,7 +1,7 @@
 """Generate a TOML manifest of the local release-critical test-data corpus.
 
 Scans the data/ directory, computes SHA-256 checksums and sizes for every
-file, and writes maintainer/testdata-manifest.toml. The manifest documents
+file, and writes tests/testdata-manifest.toml. The manifest documents
 each logical group with provenance, license, redistribution status, and
 availability.
 
@@ -33,7 +33,7 @@ except ModuleNotFoundError:
 
 
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
-MANIFEST_PATH = Path(__file__).resolve().parents[1] / "maintainer" / "testdata-manifest.toml"
+MANIFEST_PATH = Path(__file__).resolve().parents[1] / "tests" / "testdata-manifest.toml"
 TESTS_DIR = Path(__file__).resolve().parents[1] / "tests"
 FIXTURES_DIR = TESTS_DIR / "fixtures"
 
@@ -229,7 +229,7 @@ GROUP_META = {
 # the historical 42-test contract (PR #26 assessment,
 # fdee69f:maintainer/audits/2026-10-release-critical-dataset.md) minus the
 # RNMRTK/Sparky and JEOL historical reference tests deferred by the maintainer
-# decisions of 2026-10-08 (maintainer/testdata-policy.md, PR #67). The four
+# decisions of 2026-10-08 (doc/source/contribute/testdata-policy.md, PR #67). The four
 # historical Bruker pdata read/write ids now name their equivalent autonomous
 # fixture tests in tests/fileio/test_bruker_pdata.py: the two external
 # processed datasets are replaced by the versioned CC0 fixtures declared in
@@ -271,8 +271,7 @@ CRITICAL_TESTS = frozenset({
 })
 
 # The historical release-critical tests deferred from the first-release
-# contract by the maintainer decisions of 2026-10-08 (maintainer/testdata-
-# policy.md, PR #67): nine RNMRTK/Sparky and four JEOL tests whose real
+# contract by the maintainer decisions of 2026-10-08 (doc/source/contribute/testdata-policy.md, PR #67): nine RNMRTK/Sparky and four JEOL tests whose real
 # reference profiles remain unavailable. Their tests, component declarations
 # and format support are retained; only the release-critical status of the
 # reference requirements is deferred. The scope of a required component is
@@ -297,7 +296,7 @@ DEFERRED_TESTS = frozenset({
 # Dataset-dependent test modules whose data references the manifest accounts
 # for. The historical NMRPipe file-I/O module (test_pipe_with_test_data.py)
 # and the RS2D/Spinsolve vendor profiles stay outside the manifest scope; see
-# maintainer/reports/2026-10-critical-corpus.md.
+# 2026-10-critical-corpus.md in the canonical maintainer audit repository.
 SCANNED_TEST_MODULES = (
     "fileio/test_agilent.py",
     "fileio/test_bruker_with_test_data.py",

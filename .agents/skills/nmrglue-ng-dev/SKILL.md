@@ -61,7 +61,7 @@ Read, in this order:
 
 1. `AGENTS.md`
 2. `CONTRIBUTING.md`
-3. `maintainer/roadmap.md`
+3. `doc/source/contribute/roadmap.rst`
 4. `.agents/skills/` — only the sections you need
 
 ---
@@ -301,7 +301,7 @@ that specific contribution.** The automatic pause tied to PRs #279–#282 no
 longer applies by default, but no general lifting has been granted: each
 upstream contribution remains an individually authorized decision. Any future
 portage must restart from the then-current `jjhelmus/nmrglue:master`. See
-`maintainer/roadmap.md`.
+`doc/source/contribute/roadmap.rst`.
 
 ---
 

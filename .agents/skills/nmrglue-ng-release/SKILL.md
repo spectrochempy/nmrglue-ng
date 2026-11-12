@@ -39,8 +39,8 @@ against the repository, not against this document.
 
 | # | Gate | Evidence to look for |
 |---|---|---|
-| G1 | **Provenance and accepted validation use**, plus redistribution rights for data actually distributed | `maintainer/testdata-policy.md`, per-source acceptance and per-file/group redistribution evidence; do not require redistribution rights for accepted local-only inputs |
-| G2 | **Versioned manifest** with sizes and SHA-256 checksums | a tracked manifest file; roadmap P0 item |
+| G1 | **Provenance and accepted validation use**, plus redistribution rights for data actually distributed | `doc/source/contribute/testdata-policy.md`, per-source acceptance and per-file/group redistribution evidence; do not require redistribution rights for accepted local-only inputs |
+| G2 | **Versioned manifest** with sizes and SHA-256 checksums | `tests/testdata-manifest.toml` |
 | G3 | **Reproducible, checksum-verified acquisition** in the authorized validation environment | a fetcher or documented retrieval/verification commands; public mirroring or unrestricted downloads are not required |
 | G4 | **Dataset validation** run and recorded | critical-profile results on an immutable corpus; documented local/manual or authorized private runs are acceptable, public dataset CI is not required |
 | G5 | **Independent documentation** and a working documentation build | `doc/`, `.readthedocs.yml`, and an actual build/deployment record |
@@ -75,7 +75,7 @@ explicit validated outcome, provenance is acceptable for every distributed
 group, and the extended and NMRPipe differential profiles have recorded
 outcomes.
 
-Apply the maintainer's 2026-10-08 decision in `maintainer/testdata-policy.md`:
+Apply the maintainer's 2026-10-08 decision in `doc/source/contribute/testdata-policy.md`:
 the identified historical archive is accepted for local tests, without claiming
 an explicit data license for every file. `redistribution_status=UNRESOLVED`
 alone is not a blocker for those local-only inputs. Files/groups whose public-
@@ -107,7 +107,7 @@ Read `CHANGELOG.md`:
 * every entry since the last release is present under `Unreleased`;
 * entries explain what changed and why it matters to a user or contributor;
 * no implementation-journal entries (local implementation notes belong in
-  ignored `maintainer/audits/`);
+  private maintainer notes);
 * no duplicate or near-duplicate entries for the same work;
 * pull-request references `(#NNN)` identify pull requests, not issues.
 
@@ -163,7 +163,7 @@ Check CI status once for the exact commit; do not poll in a loop.
 Then list open blockers:
 
 * failing tests on the target branch;
-* open issues or pull requests that the roadmap marks as release blockers;
+* open issues or pull requests explicitly designated as release blockers;
 * inherited defects not yet reviewed;
 * any uncommitted change in the working tree.
 
@@ -228,7 +228,7 @@ Exact commands, exact counts, skips with reasons, corpus integrity
 Ordered, concrete, and naming who must decide what
 ```
 
-Then review `maintainer/roadmap.md`. Update it if the audit establishes durable
+Then review `doc/source/contribute/roadmap.rst`. Update it if the audit establishes durable
 facts, changes the known status of a gate, or identifies follow-up work that
 must be shared. Keep evidence and conclusions understandable without access
 to the ignored report. Consolidate durable evidence into the versioned

@@ -6,7 +6,7 @@ This document defines the permanent rules and authorization limits for
 AI-assisted development in `nmrglue-ng`.
 
 Procedural details live in the project's shared skills at `.agents/skills/`,
-in `CONTRIBUTING.md`, and in `maintainer/`. This is the common location for
+in `CONTRIBUTING.md`, and in the developer guide. This is the common location for
 OpenCode and Codex; load the relevant skill before starting work.
 `opencode.json` configures OpenCode to load this shared directory. Discovery,
 available tools, permissions, and runtime behavior remain tool-specific.
@@ -108,7 +108,7 @@ Additional rules:
 * Never version or republish data whose provenance and redistribution rights
   are not established. Document provenance, accepted use basis, redistribution
   assessment and checksum for external datasets (see `CONTRIBUTING.md`).
-* Follow `maintainer/testdata-policy.md`: the identified historical nmrglue
+* Follow `doc/source/contribute/testdata-policy.md`: the identified historical nmrglue
   archive is accepted for local validation. Local use and redistribution are
   separate decisions. Public-domain or otherwise licensed files from that
   archive may be redistributed when their individual/group rights are recorded.
@@ -150,7 +150,7 @@ validation performed and omitted, conclusions, and next steps. Product PRs
 must link the canonical report in `spectrochempy_maintainer`; no local report
 copy is maintained here.
 
-Review `maintainer/roadmap.md` after every audit and update it when findings
+Review `doc/source/contribute/roadmap.rst` after every audit and update it when findings
 add or change durable knowledge, priorities, or a shared decision. Keep the
 shared summary self-contained: an ignored report is not its sole evidence.
 Use links to curated reports for detailed shared evidence instead of growing
@@ -184,9 +184,8 @@ work summary.
 general lifting of the earlier restriction has been granted.** The automatic
 pause tied to feedback on PRs #279–#282 no longer applies by default: the
 maintainer authorizes individual upstream contributions case by case, under the
-authorization limits above, one coherent subject per pull request. See
-`maintainer/roadmap.md` for the current state and for the obligation to restart
-any future portage from the then-current `jjhelmus/nmrglue:master`.
+authorization limits above, one coherent subject per pull request. Start any future port from the then-current
+`jjhelmus/nmrglue:master`.
 
 Branding, packaging, governance, and roadmap choices specific to
 `nmrglue-ng` are never proposed upstream. Do not withhold a generally useful
@@ -249,7 +248,7 @@ Load the relevant skill before starting work:
 
 This project uses **bd (beads)** for maintainer task tracking. Run `bd prime`
 for workflow context and `bd ready` to find unblocked work before starting a
-new task. Keep release-readiness conclusions grounded in `maintainer/roadmap.md`
+new task. Keep release-readiness conclusions grounded in `doc/source/contribute/roadmap.rst`
 and the curated reports; beads organize the work but do not replace the
 release gates or audit reports.
 
@@ -267,8 +266,6 @@ Quick reference:
 
 * `CONTRIBUTING.md` — contribution, testing, and test-data requirements
 * `CHANGELOG.md` — user- and developer-visible change log (`Unreleased`)
-* `maintainer/README.md` — maintainer material scope
-* `maintainer/roadmap.md` — living roadmap, upstream contribution policy
-* `maintainer/audits/` — ignored local assessment notes
+* `doc/source/contribute/roadmap.rst` — public development priorities
 * `spectrochempy_maintainer/notes/audits/nmrglue-ng/` — canonical private
   versioned audit and report evidence
