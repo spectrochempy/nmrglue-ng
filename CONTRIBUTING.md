@@ -437,10 +437,9 @@ The archive reference for the upstream v0.5 test data is:
 - URL: `https://github.com/jjhelmus/nmrglue/releases/download/v0.5/test_data_v0.5-dev.zip`
 - SHA-256: `dbff258fe08a19f1cd08f44b731d3d19e20e54fbb1415d904cd6d03f25209dae`
 
-Several release-critical groups are not present in the local corpus or are
-only partially available. See the `[missing.*]` sections and the
-`availability` / `missing_components` fields in the
-[test-data manifest](tests/testdata-manifest.toml).
+To identify missing or partially available corpus groups, see the
+`[missing.*]` sections and the `availability` / `missing_components`
+fields in the [test-data manifest](tests/testdata-manifest.toml).
 
 ## Bug Fixes
 
