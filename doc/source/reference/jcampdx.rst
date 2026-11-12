@@ -30,3 +30,19 @@ describes only the direct dimension. Writing JCAMP-DX is unsupported.
 
 See :doc:`../contribute/readers` for format specifications and validation
 guidance.
+
+.. _jcampdx-increasing-frequency-axes:
+
+Increasing frequency axes
+-------------------------
+
+For processed spectra with increasing Hz or ppm coordinates,
+``guess_udic()`` sets ``ascending=True`` on the dimension. In Hz,
+``sw`` is the sample spacing multiplied by the number of points and
+``car`` is ``FIRSTX + sw / 2`` after converting ``FIRSTX`` to Hz.
+Use ``uc_from_udic()`` or ``glue.make_uc()`` to reconstruct the
+coordinates in sample order.
+
+Glue/HDF5 and the CSDM converter support increasing frequency axes.
+The NMRPipe, Sparky, RNMRTK, Agilent/Varian and Bruker exporters raise
+``ValueError`` for these axes.

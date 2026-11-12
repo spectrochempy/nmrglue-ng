@@ -7,6 +7,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Document the JEOL 2D and Tecmag 1D axis checks in the migration guide and
+  describe increasing JCAMP-DX axes in the format reference.
+
 - Display the selected Bruker spectrum region in the interoperability tutorial (#246).
 - Show how to select and plot a ppm region from a processed Bruker 1D
   spectrum in the interoperability tutorial. (#245)

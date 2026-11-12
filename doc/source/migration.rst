@@ -16,8 +16,9 @@ FID and notebook in :doc:`getting-started/index`.
 Check results affected by fixes
 -------------------------------
 
-When comparing results with an older environment, record the package
-versions and check the :doc:`release notes <whats-new>`. For example:
+When comparing results with an older environment, record both package
+versions. Use the checks below for workflows you rely on, and consult the
+:doc:`release notes <whats-new>` for all changes between those versions.
 
 * Since nmrglue-ng 1.0.0, axes reconstructed from descending processed
   JCAMP-DX spectra preserve the declared first and last coordinates.
@@ -50,6 +51,14 @@ versions and check the :doc:`release notes <whats-new>`. For example:
   arrays. Earlier versions scored differences along the first axis while
   applying phase along the last. Recompute affected results on individual
   traces or use a custom score with an explicit multidimensional convention.
+* Since nmrglue-ng 1.3.0, the universal dictionary for JEOL 2D data follows
+  the array order, with indirect F1 on rows and direct F2 on columns.
+  Rebuild the axes and check any peak coordinates or exports based on the
+  earlier metadata order.
+* Since nmrglue-ng 1.3.0, unit conversion recovers the referenced frequency
+  axis for even-length processed Tecmag 1D TNT spectra stored in
+  descending TNMR order with valid reference metadata. Rebuild the axis
+  and compare peak positions with the referenced TNMR spectrum.
 
 These versions describe when the fixes landed in nmrglue-ng. For a dated
 upstream reference, see the
@@ -60,13 +69,11 @@ Increasing JCAMP-DX frequency axes
 ----------------------------------
 
 For processed JCAMP-DX spectra with increasing Hz or ppm coordinates,
-``guess_udic()`` sets ``ascending=True`` on the dimension. In Hz,
-``sw`` is the sample spacing multiplied by the number of points and
-``car`` is ``FIRSTX + sw / 2`` after converting ``FIRSTX`` to Hz.
-Use ``uc_from_udic()`` or ``glue.make_uc()`` to reconstruct the
-coordinates in sample order. Glue/HDF5 and the CSDM converter support
-increasing frequency axes. The NMRPipe, Sparky, RNMRTK, Agilent/Varian
-and Bruker exporters raise ``ValueError`` for these axes.
+use ``uc_from_udic()`` or ``glue.make_uc()`` to reconstruct coordinates
+in sample order. Check that the first and last coordinates agree with
+the source before comparing peaks or exporting the spectrum.
+See :ref:`jcampdx-increasing-frequency-axes` for compatible exports and
+details of the axis reconstruction.
 
 When to use interop
 -------------------
