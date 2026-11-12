@@ -3,15 +3,23 @@ nmrglue.spinsolve
 
 .. automodule:: nmrglue.fileio.spinsolve
 
-This modules is imported as nmrglue.spinsolve and can be called as such.
+Pass a Magritek Spinsolve experiment directory to ``ng.spinsolve.read()``
+to read a 1D FID or spectrum as ``(dic, data)``. Set ``specfile`` to select
+a specific file, for example ``specfile="spectrum_processed.1d"``.
+Otherwise the reader selects the first available file in this order:
+``nmr_fid.dx``, ``data.1d``, ``fid.1d``, ``spectrum.1d``,
+``spectrum_processed.1d``.
+
+The two ``spectrum*.1d`` files contain frequency-domain data. Use the
+coordinates stored in ``dic["spectrum"]["xaxis"]`` when plotting either
+spectrum. The reader accepts ``.1d`` and complex JCAMP-DX ``.dx`` data;
+CSV and ``.pt1`` exports, writing, and low-memory reading are unsupported.
 
 User Information
 ----------------
 
 User Functions
 ^^^^^^^^^^^^^^
-
-These are functions which are targeted for users of nmrglue.
 
 .. autosummary::
     :toctree: generated/
@@ -24,9 +32,7 @@ These are functions which are targeted for users of nmrglue.
 Developer Information
 ---------------------
 
-.. include:: ../../../nmrglue/fileio/spinsolve.py
-    :start-line: 14
-    :end-line: 37
+See :ref:`developer-spinsolve-format-notes` for storage and parser details.
 
 Developer Functions
 ^^^^^^^^^^^^^^^^^^^

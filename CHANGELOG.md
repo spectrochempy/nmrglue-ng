@@ -7,6 +7,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Clarify the Spinsolve, Bruker, and Agilent/Varian format references and
+  move storage and parser notes into the developer guide. (#248)
+
 - Recover the referenced frequency axis of even-length processed 1D Tecmag
   TNT spectra in the descending TNMR presentation. (#235)
 

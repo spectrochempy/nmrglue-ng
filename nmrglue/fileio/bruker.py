@@ -1264,8 +1264,8 @@ def read_pdata(dir=".", bin_files=None, procs_files=None, read_procs=True,
         Shape of submatrix for 2D+ data.  None will guess the shape from
         the metadata in the procs file(s).
     all_components : bool
-        True to return a list of all components, False returns just the
-        all real component (1r, 2rr, 3rrr, etc).
+        If bin_files is omitted, True selects all available components.
+        False selects only the all-real component (1r, 2rr, 3rrr, etc).
     big : bool or None, optional
         Endianness of binary file. True for big-endian, False for
         little-endian, None to determine endianness from procs file(s).
@@ -1278,13 +1278,13 @@ def read_pdata(dir=".", bin_files=None, procs_files=None, read_procs=True,
     dic : dict
         Dictionary of Bruker parameters.
     data : ndarray or list
-        Array of NMR data.  If all_components is True this is a list of array
-        with each quadrature component.
+        A single array when exactly one component is read. Otherwise a list
+        containing one array per component read.
 
     Notes
     -----
-    There is currently no support for writing Bruker processed files or
-    reading processed files using minimal memory.
+    Use `write_pdata()` to write the real part of a processed array.
+    Low-memory reading is available only for raw data.
 
     The axis parameters of the returned data are stored in the processing
     files (`procs`/`procNs`: `OFFSET`, `SF`, `SW_p`) and are read together
@@ -1298,17 +1298,10 @@ def read_pdata(dir=".", bin_files=None, procs_files=None, read_procs=True,
     acquisition files on disk were produced by different runs; when the two
     sets agree, both give the same axis.
 
-    TopSpin stores processed parameters in two file families under
-    `pdata/<n>`: the status files (`procs`, `proc2s`, ...) and the singular
-    files (`proc`, `proc2`, ...). This reader reads the status files by default;
-    they carry the parameters that produced the stored data, including the
-    ones used here for scaling and shape (`NC_proc`, `XDIM`, `STSI`) and for
-    the axis (`OFFSET`, `SF`, `SW_p`). The singular files may hold editor-only
-    parameters such as `ABSF1`/`ABSF2` (which this reader does not use) and
-    stale `NC_proc`/`XDIM` values. To expose them too, pass
-    `procs_files=["proc", "procs", "proc2", "proc2s"]`; the extra files are
-    returned under their own keys (`dic["proc"]`, `dic["proc2"]`) without
-    changing the default scaling, shape or axis.
+    The default reads status files (`procs`, `proc2s`, ...). To also
+    inspect the editor files (`proc`, `proc2`, ...), pass both families
+    in `procs_files`. See :ref:`developer-bruker-format-notes` for the
+    roles of the individual metadata fields.
 
     """
     # TODO read_pdata_lowmem, write_pdata

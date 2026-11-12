@@ -5,8 +5,23 @@ nmrglue.varian
 
 .. automodule:: nmrglue.fileio.varian
 
-This modules is imported as nmrglue.varian and can be called as such.  These
-functions and classes can also be access from nmrglue.agilent.
+Use ``ng.varian.read()`` on an Agilent/Varian acquisition directory
+containing the binary ``fid`` and text ``procpar`` files. Use
+``write()`` to create these files from an acquisition dictionary and
+array. Existing files are protected unless you pass ``overwrite=True``.
+The same functions are available under ``ng.agilent``.
+
+The reader infers the array shape and, for 3D and 4D data, the mapping
+from stored traces to indirect dimensions. Supply ``shape`` or
+``torder`` when this metadata does not describe your acquisition.
+Set ``as_2d=True`` to read the stored traces as rows. If reordering
+fails, the reader warns and returns the flat trace matrix. Verify
+the layout before assigning indirect axes.
+
+Use ``read_lowmem()`` to slice acquisitions with one trace per block
+and ``write_lowmem()`` to write data trace by trace. Both writers use
+one trace per block. Use the regular reader for FIDs with multiple
+traces per block.
 
 User Information
 ----------------
@@ -35,9 +50,9 @@ User Functions
 Developer Information
 ---------------------
 
-.. include:: ../../../nmrglue/fileio/varian.py
-    :start-line: 7
-    :end-line: 18
+.. _agilent-varian-file-format-information:
+
+See :ref:`developer-varian-format-notes` for storage and parser details.
 
 Developer Functions
 ^^^^^^^^^^^^^^^^^^^
