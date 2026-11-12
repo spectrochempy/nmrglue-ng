@@ -48,9 +48,10 @@ result remains usable when no normalizer is available.
 Select a region in a Bruker spectrum
 ------------------------------------
 
-This example passes a processed Bruker 1D sucrose spectrum to the
-SpectroChemPy NMR plugin. Install the plugin in the same Python environment
-as nmrglue-ng.
+This example passes a processed Bruker 1D sucrose spectrum to
+``spectrochempy_nmr``. Install it in the same Python environment as
+nmrglue-ng. See the
+`spectrochempy_nmr interop reference <https://spectrochempy-nmr.readthedocs.io/latest/reference/interop.html>`_.
 
 .. code-block:: console
 
@@ -76,10 +77,16 @@ Save both files under their original names in a folder named
     region = dataset[5.6:5.2]
     region.plot()
 
-The processed parameters supply the frequency axis. The plugin converts
-the normalized result into an ``NDDataset``. After converting its x
+.. figure:: interop-bruker-region.png
+   :alt: Sucrose spectrum between 5.6 and 5.2 ppm, with two peaks near 5.35 ppm on a rising baseline.
+
+   The selected region as plotted by ``region.plot()``.
+
+The processed parameters supply the frequency axis. The
+``from_interop()`` function converts the normalized result into an
+``NDDataset``. After converting its x
 coordinate to ppm, the slice uses chemical shifts in the order of the
-descending axis. The plot shows only the selected region.
+descending axis.
 
 The sample is from the CC0 sucrose dataset in
 `nmrXiv project P52 <https://doi.org/10.57992/nmrxiv.p52>`_.
