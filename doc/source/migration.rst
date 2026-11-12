@@ -55,10 +55,11 @@ versions. Use the checks below for workflows you rely on, and consult the
   the array order, with indirect F1 on rows and direct F2 on columns.
   Rebuild the axes and check any peak coordinates or exports based on the
   earlier metadata order.
-* Since nmrglue-ng 1.3.0, unit conversion recovers the referenced frequency
-  axis for even-length processed Tecmag 1D TNT spectra stored in
-  descending TNMR order with valid reference metadata. Rebuild the axis
-  and compare peak positions with the referenced TNMR spectrum.
+* In development versions containing the Tecmag 1D axis fix, unit conversion
+  recovers the referenced frequency axis for even-length processed TNT
+  spectra stored in descending TNMR order with valid reference metadata.
+  Rebuild the axis and compare peak positions with the referenced TNMR
+  spectrum. See :doc:`release notes <whats-new>` for release availability.
 
 These versions describe when the fixes landed in nmrglue-ng. For a dated
 upstream reference, see the
