@@ -439,8 +439,8 @@ The archive reference for the upstream v0.5 test data is:
 
 Several release-critical groups are not present in the local corpus or are
 only partially available. See the `[missing.*]` sections and the
-`availability` / `missing_components` fields in the manifest, and
-the [developer roadmap](doc/source/contribute/roadmap.rst).
+`availability` / `missing_components` fields in the
+[test-data manifest](tests/testdata-manifest.toml).
 
 ## Bug Fixes
 
