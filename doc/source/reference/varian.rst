@@ -5,10 +5,11 @@ nmrglue.varian
 
 .. automodule:: nmrglue.fileio.varian
 
-Use ``ng.varian.read()`` and ``write()`` on an Agilent/Varian
-acquisition directory containing the binary ``fid`` and text
-``procpar`` files. The same functions are available under
-``ng.agilent``. These functions handle acquisition data.
+Use ``ng.varian.read()`` on an Agilent/Varian acquisition directory
+containing the binary ``fid`` and text ``procpar`` files. Use
+``write()`` to create these files from an acquisition dictionary and
+array. Existing files are protected unless you pass ``overwrite=True``.
+The same functions are available under ``ng.agilent``.
 
 The reader infers the array shape and, for 3D and 4D data, the mapping
 from stored traces to indirect dimensions. Supply ``shape`` or
@@ -18,8 +19,9 @@ fails, the reader warns and returns the flat trace matrix. Verify
 the layout before assigning indirect axes.
 
 Use ``read_lowmem()`` to slice acquisitions with one trace per block
-and ``write_lowmem()`` to write data trace by trace. Use the regular
-reader for FIDs with multiple traces per block.
+and ``write_lowmem()`` to write data trace by trace. Both writers use
+one trace per block. Use the regular reader for FIDs with multiple
+traces per block.
 
 User Information
 ----------------

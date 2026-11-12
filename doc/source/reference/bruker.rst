@@ -13,8 +13,10 @@ direct dimension when the acquisition used a digital filter.
 For processed spectra, point ``read_pdata()`` at the ``pdata/<n>``
 directory. It detects standard 1D, 2D, and 3D files and applies the stored
 intensity scaling by default. It returns the all-real component by
-default. Set ``all_components=True`` to load the component files as a
-list of arrays. Use ``guess_udic(dic, data, pdata=True)`` to use the
+default. Set ``all_components=True`` to load the available component
+files. The reader returns one array if it finds a single component and
+a list of arrays if it finds several. Use
+``guess_udic(dic, data, pdata=True)`` on a component array to use the
 processed axis calibration when both acquisition and processing
 metadata are available.
 

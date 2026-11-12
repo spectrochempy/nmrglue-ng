@@ -1264,8 +1264,8 @@ def read_pdata(dir=".", bin_files=None, procs_files=None, read_procs=True,
         Shape of submatrix for 2D+ data.  None will guess the shape from
         the metadata in the procs file(s).
     all_components : bool
-        True to return a list of all components, False returns just the
-        all real component (1r, 2rr, 3rrr, etc).
+        If bin_files is omitted, True selects all available components.
+        False selects only the all-real component (1r, 2rr, 3rrr, etc).
     big : bool or None, optional
         Endianness of binary file. True for big-endian, False for
         little-endian, None to determine endianness from procs file(s).
@@ -1278,8 +1278,8 @@ def read_pdata(dir=".", bin_files=None, procs_files=None, read_procs=True,
     dic : dict
         Dictionary of Bruker parameters.
     data : ndarray or list
-        Array of NMR data.  If all_components is True this is a list of array
-        with each quadrature component.
+        A single array when exactly one component is read. Otherwise a list
+        containing one array per component read.
 
     Notes
     -----
