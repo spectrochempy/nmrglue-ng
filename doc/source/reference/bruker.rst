@@ -3,15 +3,30 @@ nmrglue.bruker
 
 .. automodule:: nmrglue.fileio.bruker
 
-This modules is imported as nmrglue.bruker and can be called as such.
+Use ``ng.bruker.read()`` on an acquisition directory containing a
+``fid`` or ``ser`` file. Use ``write()`` to write raw data and
+``read_lowmem()`` or ``write_lowmem()`` to work with raw data in
+limited memory. Inspect shape warnings before processing indirect axes.
+Use ``remove_digital_filter()`` for an approximate correction of the
+direct dimension when the acquisition used a digital filter.
+
+For processed spectra, point ``read_pdata()`` at the ``pdata/<n>``
+directory. It detects standard 1D, 2D, and 3D files and applies the stored
+intensity scaling by default. It returns the all-real component by
+default. Set ``all_components=True`` to load the component files as a
+list of arrays. Use ``guess_udic(dic, data, pdata=True)`` to use the
+processed axis calibration when both acquisition and processing
+metadata are available.
+
+``write_pdata()`` writes the real part of the supplied array and can
+write processing parameter files. Low-memory reading applies to raw
+data only.
 
 User Information
 ----------------
 
 User Functions
 ^^^^^^^^^^^^^^
-
-These are functions which are targeted for users of nmrglue.
 
 .. autosummary::
     :toctree: generated/
@@ -36,14 +51,12 @@ These are functions which are targeted for users of nmrglue.
     guess_udic
     create_dic
     read_nuslist
-    
+
 
 Developer Information
 ---------------------
 
-.. include:: ../../../nmrglue/fileio/bruker.py
-    :start-line: 11
-    :end-line: 29
+See :ref:`developer-bruker-format-notes` for storage and parser details.
 
 Developer Functions
 ^^^^^^^^^^^^^^^^^^^
