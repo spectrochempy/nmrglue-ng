@@ -8,7 +8,7 @@ original nmrglue project and are preserved for attribution and continuity.
 ## Unreleased
 
 - Replace line-number source inclusions in the Tecmag, Sparky, NMRPipe, and
-  linear prediction references with links to developer notes.
+  linear prediction references with links to developer notes. (#251)
 
 - Add a pull request template with a migration-note check and require checking
   cited release versions against their published Git tags. (#250)
