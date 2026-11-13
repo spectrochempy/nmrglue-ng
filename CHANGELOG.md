@@ -7,6 +7,8 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Clarify the source and compressed sizes of the JBNMR example downloads.
+
 - Replace line-number source inclusions in the Tecmag, Sparky, NMRPipe, and
   linear prediction references with links to developer notes. (#251)
 
