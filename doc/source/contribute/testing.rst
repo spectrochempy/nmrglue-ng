@@ -28,3 +28,20 @@ the expected result from the format specification or an independent
 reference. State the reason for any numerical tolerance. Compare axis
 values and sample order as well as array shape when those are part of
 the behavior being changed.
+
+.. _developer-linear-prediction-notes:
+
+Linear prediction
+-----------------
+
+The notation for linear prediction coefficients and roots follows
+Jeffrey C. Hoch and Alan S. Stern's *NMR Data Processing*. The
+implementations prioritize simplicity, and source comments marked
+``SPEED`` and ``STABILITY`` identify possible improvements. The module
+does not implement reduced-order LP-SVD or LP-TLS. The HSVD root solver
+is an example of a reduced-order method.
+
+When changing a solver, compare against signals with known parameters.
+For routines that apply the same operation to each row, compare the 2D
+result with processing the same rows individually. See
+:doc:`../reference/proc_lp` for the available functions.

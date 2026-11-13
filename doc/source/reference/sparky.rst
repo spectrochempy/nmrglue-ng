@@ -3,7 +3,10 @@ nmrglue.sparky
 
 .. automodule:: nmrglue.fileio.sparky
 
-This modules is imported as nmrglue.sparky and can be called as such.
+Use ``ng.sparky.read()`` and ``write()`` for 2D and 3D UCSF spectra.
+Use ``read_lowmem()`` to access slices on demand and ``write_lowmem()``
+to write from an array-like object. Use ``make_uc()`` to obtain the unit
+conversion for a spectrum dimension.
 
 User Information
 ----------------
@@ -28,9 +31,9 @@ User Functions
 Developer Information
 ---------------------
 
-.. include:: ../../../nmrglue/fileio/sparky.py
-    :start-line: 6
-    :end-line: 13
+.. _sparky-file-format-information:
+
+See :ref:`developer-sparky-format-notes` for storage and reader details.
 
 Developer Functions
 ^^^^^^^^^^^^^^^^^^^

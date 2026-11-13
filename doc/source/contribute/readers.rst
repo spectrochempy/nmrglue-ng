@@ -94,3 +94,38 @@ with the data. See :doc:`../reference/varian` for the reader options.
 For the binary layout and parameter definitions, see the historical
 *VnmrJ / VNMR FID Data Format* note in Varian MR News (18 April 2005)
 and chapter 5, “Parameters and Data,” in *VnmrJ User Programming*.
+
+.. _developer-tecmag-format-notes:
+
+Tecmag format notes
+-------------------
+
+The vendor describes the TNT binary format in *A1 - TNMR File Format.doc*,
+distributed with TNMR. The reader was based on
+`pytnt <https://github.com/chatcannon/pytnt>`_. When checking a new file
+variant, compare the stored samples, axis calibration, and transformation
+flags with a TNMR reference. See :doc:`../reference/tecmag` for user-facing
+limits.
+
+.. _developer-sparky-format-notes:
+
+Sparky format notes
+-------------------
+
+The UCSF reader uses the header to determine the number of axes and
+the tile geometry. Samples are stored in tiles. For a new fixture,
+check both a full read and a low-memory slice that crosses a tile
+boundary. The Sparky source file ``ucsffile.cc`` describes the file
+layout. See :doc:`../reference/sparky` for the reader and writer options.
+
+.. _developer-nmrpipe-format-notes:
+
+NMRPipe format notes
+--------------------
+
+The NMRPipe manual pages and the header definition in ``fdatap.h``
+describe the format. The binary header occupies 512 four-byte words.
+When changing shape inference, check both single-file streams and
+numbered plane sets. When changing axis reconstruction, compare the
+coordinates with NMRPipe for the same data, including extraction
+metadata if present. See :doc:`../reference/pipe` for reader options.
