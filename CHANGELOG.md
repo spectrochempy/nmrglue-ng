@@ -7,6 +7,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Consolidate the development roadmap and test-data policy in the contributor
+  guide, and move the external test-data manifest to `tests/`. (#249)
+
 - Clarify the Spinsolve, Bruker, and Agilent/Varian format references and
   move storage and parser notes into the developer guide. (#248)
 

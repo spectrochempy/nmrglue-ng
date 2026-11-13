@@ -1,4 +1,4 @@
-"""Verify the local test-data corpus against maintainer/testdata-manifest.toml.
+"""Verify the local test-data corpus against tests/testdata-manifest.toml.
 
 Two result axes are reported separately:
 
@@ -40,7 +40,7 @@ from generate_testdata_manifest import resolve_matches
 
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 FIXTURES_DIR = Path(__file__).resolve().parents[1] / "tests" / "fixtures"
-MANIFEST_PATH = Path(__file__).resolve().parents[1] / "maintainer" / "testdata-manifest.toml"
+MANIFEST_PATH = Path(__file__).resolve().parents[1] / "tests" / "testdata-manifest.toml"
 
 EXCLUDE_NAMES = {"README", "conversion_scripts"}
 EXCLUDE_SUFFIXES = {".com"}

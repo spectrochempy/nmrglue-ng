@@ -19,6 +19,7 @@ dist
 data
 !tests/fixtures/fileio/data/
 sandbox
+# Protect local audit notes from older checkouts.
 maintainer/audits/
 
 # example data

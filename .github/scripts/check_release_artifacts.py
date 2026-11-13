@@ -61,7 +61,7 @@ def check_source(source_root: Path, expected_version: str | None) -> str:
     return version
 
 
-def check_sdist(sdist: Path, version: str) -> None:
+def check_sdist(sdist: Path, version: str, manifest_path: str) -> None:
     expected_name = f"nmrglue_ng-{version}.tar.gz"
     if sdist.name != expected_name:
         raise RuntimeError(f"unexpected sdist name {sdist.name!r}, expected {expected_name!r}")
@@ -72,7 +72,7 @@ def check_sdist(sdist: Path, version: str) -> None:
         pkg_info_name = f"{prefix}PKG-INFO"
         metadata = archive.extractfile(pkg_info_name).read().decode()
         for required in (
-            "maintainer/testdata-manifest.toml",
+            manifest_path,
             "tests/infrastructure/test_ci_validation.py",
             "tests/infrastructure/test_testdata_manifest.py",
             ".github/scripts/check_installed_wheel.py",
@@ -114,14 +114,18 @@ def check_distribution_metadata(metadata: str, version: str) -> None:
         raise RuntimeError("distribution metadata Requires-Python changed")
 
 
-def check_dist(dist: Path, version: str) -> None:
+def check_dist(dist: Path, version: str, source_root: Path) -> None:
     sdists = sorted(dist.glob("*.tar.gz"))
     wheels = sorted(dist.glob("*.whl"))
     if len(sdists) != 1:
         raise RuntimeError(f"expected one sdist, found {len(sdists)}")
     if len(wheels) != 1:
         raise RuntimeError(f"expected one wheel, found {len(wheels)}")
-    check_sdist(sdists[0], version)
+    manifest_path = "tests/testdata-manifest.toml"
+    legacy_path = "maintainer/testdata-manifest.toml"
+    if not (source_root / manifest_path).is_file() and (source_root / legacy_path).is_file():
+        manifest_path = legacy_path
+    check_sdist(sdists[0], version, manifest_path)
     check_wheel(wheels[0], version)
 
 
@@ -136,7 +140,7 @@ def main() -> None:
     source_root = args.source_root.resolve()
     version = check_source(source_root, expected_version)
     if args.dist is not None:
-        check_dist(args.dist.resolve(), version)
+        check_dist(args.dist.resolve(), version, source_root)
 
 
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
 include *.txt
 include *.rst
 include pytest.ini
-include maintainer/testdata-manifest.toml
+include tests/testdata-manifest.toml
 include .github/scripts/check_test_report.py
 include .github/scripts/check_installed_wheel.py
 include scripts/generate_testdata_manifest.py

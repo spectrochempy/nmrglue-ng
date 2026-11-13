@@ -266,11 +266,10 @@ and scientific fixtures protected from rewriting hooks.
 
 ## Maintainer records
 
-Current maintainer priorities are indexed in
-[`maintainer/README.md`](maintainer/README.md). The canonical private audit and
-report repository is
+Current development priorities are summarized in the [developer roadmap](doc/source/contribute/roadmap.rst).
+The canonical private audit and report repository is
 [`spectrochempy_maintainer/notes/audits/nmrglue-ng/`](https://github.com/spectrochempy/spectrochempy_maintainer/tree/master/notes/audits/nmrglue-ng/).
-`maintainer/audits/` remains ignored local working material. Reports must
+Reports must
 distinguish historical checks from new validation and must not depend on
 local-only notes to support shared conclusions.
 
@@ -294,7 +293,7 @@ external, document how contributors can obtain and verify it.
 
 The maintainer accepts the identified nmrglue v0.5 test archive for local
 validation even where its data redistribution status remains unresolved.
-See [`maintainer/testdata-policy.md`](maintainer/testdata-policy.md) for the
+See [`doc/source/contribute/testdata-policy.md`](doc/source/contribute/testdata-policy.md) for the
 2026-10-08 decision, source/checksum and validation-evidence requirements.
 This acceptance does not claim an explicit license for all archive contents.
 
@@ -315,7 +314,7 @@ in the machine-readable contract requires its own reviewed change.
 ### Test-data manifest and verification
 
 The release-critical external corpus is documented in
-`maintainer/testdata-manifest.toml`, which is tracked in Git. Both scripts
+`tests/testdata-manifest.toml`, which is tracked in Git. Both scripts
 require Python >= 3.11 (for `tomllib`); on Python 3.10, install `tomli`.
 
 The data comes from the upstream nmrglue v0.5 release archive. The repository
@@ -388,7 +387,7 @@ first-release critical contract, `deferred` when it has no critical consumer
 but at least one consumer whose test is deferred from that contract by the
 maintainer decisions of 2026-10-08 (RNMRTK/Sparky and JEOL historical
 references; see
-[`maintainer/testdata-policy.md`](maintainer/testdata-policy.md)), and
+[`doc/source/contribute/testdata-policy.md`](doc/source/contribute/testdata-policy.md)), and
 `extended` otherwise. The two contract sets are recorded as
 `critical_tests` and `deferred_tests` in the manifest; deferred tests,
 their component declarations and the format support remain in the tree.
@@ -438,10 +437,9 @@ The archive reference for the upstream v0.5 test data is:
 - URL: `https://github.com/jjhelmus/nmrglue/releases/download/v0.5/test_data_v0.5-dev.zip`
 - SHA-256: `dbff258fe08a19f1cd08f44b731d3d19e20e54fbb1415d904cd6d03f25209dae`
 
-Several release-critical groups are not present in the local corpus or are
-only partially available. See the `[missing.*]` sections and the
-`availability` / `missing_components` fields in the manifest, and
-`maintainer/roadmap.md`.
+To identify missing or partially available corpus groups, see the
+`[missing.*]` sections and the `availability` / `missing_components`
+fields in the [test-data manifest](tests/testdata-manifest.toml).
 
 ## Bug Fixes
 

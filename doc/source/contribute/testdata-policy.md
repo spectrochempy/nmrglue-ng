@@ -3,8 +3,8 @@
 Maintainer decisions: **2026-10-08**, initially recorded against `805c6f2`;
 consolidated for delivery on **2026-10-09** against `d9ba184`.
 Local-use acceptance is separate from redistribution permission. The separately
-approved first-release scope reductions are recorded below; their translation
-into the manifest and generator is still pending.
+approved first-release scope reductions are recorded below and tracked in
+`tests/testdata-manifest.toml`.
 
 ## Accepted historical source
 
@@ -76,13 +76,9 @@ require redistribution rights for a corpus that is only used locally under
 an accepted use basis. Conversely, local acceptance does not establish that
 the critical files are present or the tests pass.
 
-Accepting local data does not by itself change scientific coverage. The
-first-release scope decisions below are separate, explicit maintainer choices.
-Until those decisions are translated into the manifest and its generator, the
-verifier still evaluates the historical 16-group / 42-test contract; exit 2
-and the 19 missing critical components describe that recorded contract, not
-an already updated one. Do not silently suppress missing files or reinterpret
-the verifier's result.
+The verifier uses the test lists and component declarations in
+`tests/testdata-manifest.toml`. Use that manifest for current coverage and
+availability. Report missing files and the verifier's result together.
 
 ## First-release scope decisions — 2026-10-08
 
@@ -95,22 +91,12 @@ the verifier's result.
 | JEOL historical 1D/2D reference pairs | Defer from the first-release critical contract unless user demand or suitable contributed data justifies revisiting it. | Retain the reader and existing licensed fixtures/autonomous tests. Record that the historical independent NMRPipe comparison remains unvalidated; additional evidence is welcome but no longer required for this release. |
 | JCAMP-DX encoding/NTUPLES sets | No new scope decision. | Existing equivalence requirements and proposed test split remain open. |
 
-The RNMRTK/Sparky deferral concerns six currently absent components (RNMRTK
-time/frequency and associated references, plus the UCSF/Pipe pair); the JEOL
-deferral adds two historical reference-pair components. The historical
-42-test table associates thirteen tests with these capabilities (nine for
-RNMRTK/Sparky, four for JEOL). Do not declare a new total of critical tests
-solely by subtraction: replacement
-coverage and component/test mappings must be reconciled in the implementation.
-
-Implement these choices in a separate reviewed manifest/test-contract change,
-including `CRITICAL_TESTS`, component scope, consumer references and reports.
-This decision does not delete tests, add skips, remove format support, or
-alter scientific expected values. Existing autonomous RNMRTK tests remain
-useful evidence even though the unavailable real-reference profile is deferred.
-The same distinction applies to the existing JEOL autonomous tests. A possible
-request to the JEOL reader's author for data/reference results is follow-up
-work, not a release prerequisite or authorization to contact them.
+The original first-release assessment counted 42 tests. The RNMRTK/Sparky
+and JEOL decisions deferred 13 of those test cases. The manifest and its
+generator now record the resulting critical and deferred sets, including
+the replacement fixtures for processed Bruker data. Deferral applies to the
+historical reference requirement. The existing autonomous tests and reader
+support remain available.
 
 ## Replaced components and versioned fixtures
 
@@ -137,16 +123,13 @@ does not automatically authorize publishing its outputs.
 
 ## Next work
 
-1. Integrate the decisions into the generator/manifest through a separately
-   reviewed change. Keep missing files visible, not passing or silently waived.
-2. NMRPipe generation and the SIMPSON encoding sets have passed targeted
-   validation on disposable copies after #65/#66. Define reproducible local
-   corpus integration with source/tool receipts and checksums; the generated
-   references are not yet part of the canonical corpus or manifest.
-3. Establish per-file/group redistribution evidence where available; eligible
-   data may then become public fixtures through a separate reviewed change.
-4. Track historical-project data updates without making progress dependent on
-   an anticipated archive or license clarification.
+- Keep missing files visible in the manifest and review any change to the
+  validation scope separately.
+- Consult the manifest for tracked NMRPipe conversion and SIMPSON reference
+  components and their provenance. Check the verifier's output for the
+  availability of those files in a particular local corpus.
+- Establish per-file or per-group redistribution evidence before promoting
+  external data to public fixtures.
 
 ## External interop qualification
 

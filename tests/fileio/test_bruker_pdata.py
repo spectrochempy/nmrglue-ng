@@ -387,7 +387,7 @@ class TestBrukerProcessingFileFamilies:
     `NC_proc`/`XDIM`. Only the status files drive the default
     scaling, shape and axis; the singular files are available through explicit
     `procs_files` selection. See
-    maintainer/reports/2026-10-bruker-processing-file-selection.md. These tests
+    the 2026-10 Bruker processing-file selection audit. These tests
     verify the current behavior and do not change default discovery.
     """
 

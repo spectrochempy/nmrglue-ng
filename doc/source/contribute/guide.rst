@@ -21,6 +21,10 @@ want to report a problem, start with :doc:`issues`.
 
 :doc:`readers` describes where to document format support and conventions.
 
+:doc:`testdata-policy` describes the test-data sources and redistribution rules.
+
+:doc:`roadmap` summarizes development priorities and links to open issues.
+
 .. _pull-requests:
 
 :doc:`pull-requests` explains what to include when submitting a change.
@@ -33,6 +37,8 @@ want to report a problem, start with :doc:`issues`.
    testing
    documentation
    readers
+   testdata-policy
+   roadmap
    pull-requests
 
 The repository's `CONTRIBUTING.md
