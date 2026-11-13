@@ -7,6 +7,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Reject active NumPy masks on interop axes, reader data, components, and
+  normalized acquisition data before ndarray conversion.
+
 - Clarify the source and compressed sizes of the JBNMR example downloads. (#252)
 
 - Replace line-number source inclusions in the Tecmag, Sparky, NMRPipe, and
