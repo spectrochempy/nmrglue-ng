@@ -115,8 +115,10 @@ Sparky format notes
 The UCSF reader uses the header to determine the number of axes and
 the tile geometry. Samples are stored in tiles. For a new fixture,
 check both a full read and a low-memory slice that crosses a tile
-boundary. The Sparky source file ``ucsffile.cc`` describes the file
-layout. See :doc:`../reference/sparky` for the reader and writer options.
+boundary. The `UCSF Sparky manual
+<https://www.cgl.ucsf.edu/home/sparky/manual/files.html#UCSFFormat>`_
+and the Sparky source file ``ucsffile.cc`` describe the file layout.
+See :doc:`../reference/sparky` for the reader and writer options.
 
 .. _developer-nmrpipe-format-notes:
 
