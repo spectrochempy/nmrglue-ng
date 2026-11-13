@@ -3,7 +3,12 @@ nmrglue.pipe
 
 .. automodule:: nmrglue.fileio.pipe
 
-This modules is imported as nmrglue.pipe and can be called as such.
+Use ``ng.pipe.read()`` and ``write()`` for NMRPipe data and
+``read_table()`` and ``write_table()`` for table files. For a numbered
+3D or 4D series, pass a file pattern such as ``spectrum%03d.ft3`` to
+read the volume. Passing one plane from the series reads only that
+plane. For a single-file NMRPipe stream, pass its filename. Use
+``read_lowmem()`` to slice large datasets on disk.
 
 User Information
 ----------------
@@ -39,9 +44,7 @@ User Classes
 Developer Information
 ---------------------
 
-.. include:: ../../../nmrglue/fileio/pipe.py
-    :start-line: 7
-    :end-line: 8
+See :ref:`developer-nmrpipe-format-notes` for storage and reader details.
 
 Developer Functions
 ^^^^^^^^^^^^^^^^^^^

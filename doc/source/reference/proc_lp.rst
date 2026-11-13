@@ -5,7 +5,10 @@ nmrglue.proc_lp
 
 .. automodule:: nmrglue.process.proc_lp
 
-This module is imported as nmrglue.proc_lp and can be called as such.
+Use ``ng.proc_lp.lp()`` to extrapolate a trace or each row of a 2D
+array, ``lp2d()`` for two-dimensional extrapolation, and
+``lp_model()`` to estimate signal parameters from a trace.
+``cadzow()`` denoises a trace or each row of a 2D array.
 
 User Functions
 --------------
@@ -27,13 +30,10 @@ User Functions
 Developer Functions
 -------------------
 
-.. include:: ../../../nmrglue/process/proc_lp.py
-    :start-line: 5
-    :end-line: 20
+.. _notes:
 
-
-These functions are called by high-level function are and most users will not
-use them in common processing scripts.  Developers may be interested in them.
+See :ref:`developer-linear-prediction-notes` for algorithm references and
+validation guidance for the helpers below.
 
 .. autosummary::
     :toctree: generated/

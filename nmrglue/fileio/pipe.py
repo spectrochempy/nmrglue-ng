@@ -1600,7 +1600,7 @@ def dic2fdata(dic):
 
 def get_fdata(filename):
     """
-    Get an array of length 512-bytes holding NMRPipe header.
+    Get the NMRPipe header as an array of 512 four-byte values.
     """
     if type(filename) is bytes:
         fdata = np.frombuffer(filename, dtype=np.float32, count=512)

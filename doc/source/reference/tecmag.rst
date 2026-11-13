@@ -3,7 +3,11 @@ nmrglue.tecmag
 
 .. automodule:: nmrglue.fileio.tecmag
 
-This modules is imported as nmrglue.tecmag and can be called as such.
+Use ``ng.tecmag.read()`` to load a TNMR ``.tnt`` file as a metadata
+dictionary and a NumPy array. The module provides reading only. Files
+with multiple points along an indirect dimension emit a warning. Verify
+the axis calibration and transformation flags against a TNMR reference
+before interpreting multidimensional data.
 
 User Information
 ----------------
@@ -21,6 +25,6 @@ User Functions
 Developer Information
 ---------------------
 
-.. include:: ../../../nmrglue/fileio/tecmag.py
-    :start-line: 4
-    :end-line: 13
+.. _tecmag-tnt-file-format-information:
+
+See :ref:`developer-tecmag-format-notes` for storage and reader details.
