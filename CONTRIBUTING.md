@@ -201,9 +201,13 @@ complete repository test suite runs from the sdist.
 Before tagging a release, review **Check results affected by fixes** in
 [`doc/source/migration.rst`](doc/source/migration.rst) against the release's
 changelog entries. Add a short entry for fixes that can change scientific
-results or reproducibility. State the first released version, what changes,
-and which results users may need to recompute. If no entry is warranted,
-record that the section was reviewed in the release preparation PR.
+results or reproducibility. Explain what changes and which results users may
+need to recompute. Leave the version unspecified for changes that have yet
+to be released. If no entry is warranted, record that the section was
+reviewed in the release preparation PR.
+
+After publication, verify that the tagged source contains the change before
+adding its first released version to the migration note.
 
 ### Release artifact dry run
 
