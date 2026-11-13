@@ -3,10 +3,10 @@ nmrglue.sparky
 
 .. automodule:: nmrglue.fileio.sparky
 
-Use ``ng.sparky.read()`` and ``write()`` for 2D and 3D UCSF spectra.
-Use ``read_lowmem()`` to access slices on demand and ``write_lowmem()``
-to write from an array-like object. Use ``make_uc()`` to obtain the unit
-conversion for a spectrum dimension.
+Use ``ng.sparky.read()`` to load 2D, 3D, or 4D UCSF spectra into memory.
+For 2D and 3D spectra, use ``read_lowmem()`` to access slices on demand.
+Both ``write()`` and ``write_lowmem()`` support 2D and 3D output. Use
+``make_uc()`` to obtain the unit conversion for a spectrum dimension.
 
 User Information
 ----------------
