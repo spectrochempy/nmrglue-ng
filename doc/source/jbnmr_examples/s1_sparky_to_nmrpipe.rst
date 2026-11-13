@@ -1,7 +1,7 @@
 .. include:: ../../../examples/jbnmr_examples/s1_sparky_to_nmrpipe/README.rst
 
 The data used in this example is available for
-`download. <https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/nmrglue/jbnmr_s1_sparky_to_nmrpipe.zip>`_ [29.6 MB]
+`download. <https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/nmrglue/jbnmr_s1_sparky_to_nmrpipe.zip>`_ [29.64 MiB]
 
 Listing S1
 

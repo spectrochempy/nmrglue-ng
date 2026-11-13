@@ -1,7 +1,7 @@
 .. include:: ../../../examples/jbnmr_examples/s2_s3_1d_plotting/README.rst
 
 The data used in this example is available for
-`download. <https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/nmrglue/jbnmr_s2_s3_1d_plotting.zip>`_ [28.18 KB]
+`download. <https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/nmrglue/jbnmr_s2_s3_1d_plotting.zip>`_ [28.18 KiB]
 
 Listing S2
 

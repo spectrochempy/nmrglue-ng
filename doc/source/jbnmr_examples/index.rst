@@ -1,8 +1,5 @@
 :orphan:
 
-
-:orphan:
-
 .. _jbnmr_examples-index:
 
 ###########################
@@ -26,6 +23,8 @@ J. Biomol. NMR,
 These listings are used throughout the :doc:`tutorial <../tutorials/index>`.
 This index retains their publication order for readers following the article.
 Each example links to the original data and shows a result where available.
+Downloads are hosted by the Google Code Archive. The displayed sizes
+refer to the compressed ZIP files.
 
 Convert and visualize
 =====================

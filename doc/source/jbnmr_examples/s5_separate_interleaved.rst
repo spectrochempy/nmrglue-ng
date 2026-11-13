@@ -1,7 +1,7 @@
 .. include:: ../../../examples/jbnmr_examples/s5_separate_interleaved/README.rst
 
 The data used in this example is available for
-`download. <https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/nmrglue/jbnmr_s5_seperate_interleaved.zip>`_ [78.42 MB]
+`download. <https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/nmrglue/jbnmr_s5_seperate_interleaved.zip>`_ [78.42 MiB]
 
 Extract the archive and run the current script linked below from the
 extracted directory containing the input data.
