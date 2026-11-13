@@ -8,7 +8,7 @@ original nmrglue project and are preserved for attribution and continuity.
 ## Unreleased
 
 - Add a pull request template with a migration-note check and require checking
-  cited release versions against their published Git tags.
+  cited release versions against their published Git tags. (#250)
 
 - Consolidate the development roadmap and test-data policy in the contributor
   guide, and move the external test-data manifest to `tests/`. (#249)
