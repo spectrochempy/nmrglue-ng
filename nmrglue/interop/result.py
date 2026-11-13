@@ -11,6 +11,9 @@ Immutability is part of the contract:
 * mappings are exposed as read-only :class:`~types.MappingProxyType` views at
   the top level.  Deep immutability of nested values is not promised.
 
+Interop array fields reject active NumPy masks before converting to ndarrays.
+Masked arrays without excluded points are accepted.
+
 Diagnostic codes and their ``context`` schemas are declared normatively in
 :data:`DIAGNOSTIC_CONTEXT_SCHEMA`, which fixes the keys and the container
 types.  The elements of those containers are validated too: processing
@@ -99,15 +102,25 @@ def _validate_context_elements(code, context):
             )
 
 
-def _freeze_array(values: Any) -> np.ndarray:
+def _require_unmasked(values: Any, field_name: str) -> None:
+    mask = np.ma.getmask(values)
+    if mask.dtype.names is not None:
+        mask = np.ma.flatten_mask(mask)
+    if mask.any():
+        raise ValueError(f"{field_name} must be unmasked")
+
+
+def _freeze_array(values: Any, field_name: str) -> np.ndarray:
     """Return ``values`` as a read-only ndarray, without copying when possible."""
+    _require_unmasked(values, field_name)
     array = np.asarray(values)
     array.setflags(write=False)
     return array
 
 
-def _freeze_owned_array(values: Any) -> np.ndarray:
+def _freeze_owned_array(values: Any, field_name: str) -> np.ndarray:
     """Copy numeric data onto an immutable bytes buffer."""
+    _require_unmasked(values, field_name)
     array = np.array(values, copy=True, order="C")
     frozen = np.frombuffer(array.tobytes(order="C"), dtype=array.dtype).reshape(
         array.shape
@@ -147,7 +160,7 @@ class Axis:
 
     def __post_init__(self):
         if self.values is not None:
-            object.__setattr__(self, "values", _freeze_array(self.values))
+            object.__setattr__(self, "values", _freeze_array(self.values, "Interop axis values"))
 
 
 def _same_axis_grid(observed: Axis, expected: Axis) -> bool:
@@ -166,7 +179,7 @@ class Component:
     data: np.ndarray
 
     def __post_init__(self):
-        object.__setattr__(self, "data", _freeze_array(self.data))
+        object.__setattr__(self, "data", _freeze_array(self.data, "Interop component data"))
 
 
 def _same_component(observed: Component, name: str, data: np.ndarray) -> bool:
@@ -221,7 +234,7 @@ class ReadResult:
     acquisition: Mapping[str, Any] = field(default_factory=dict)
 
     def __post_init__(self):
-        object.__setattr__(self, "data", _freeze_array(self.data))
+        object.__setattr__(self, "data", _freeze_array(self.data, "Interop reader data"))
         object.__setattr__(self, "axes", tuple(self.axes))
         object.__setattr__(self, "metadata", _readonly(self.metadata))
         object.__setattr__(self, "components", tuple(self.components))
@@ -286,14 +299,14 @@ class NormalizedAcquisition:
     channel_axis: int | None = None
 
     def __post_init__(self):
-        data = _freeze_owned_array(self.data)
+        data = _freeze_owned_array(self.data, "Normalized acquisition data")
         object.__setattr__(self, "data", data)
         axes = []
         for axis in self.axes:
             values = (
                 None
                 if axis.values is None
-                else _freeze_owned_array(axis.values)
+                else _freeze_owned_array(axis.values, "Normalized axis values")
             )
             axes.append(
                 Axis(
