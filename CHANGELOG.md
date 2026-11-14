@@ -13,7 +13,7 @@ original nmrglue project and are preserved for attribution and continuity.
   TNT spectra in descending TNMR order. Warn when multidimensional TNT
   axis calibration and FFT flags still need TNMR verification. (#235, #240)
 - Preserve the calibrated axis and strip width of processed Bruker strips
-  with `strip_fake=True`. (#238)
+  when using `strip_fake=True` with processing parameters. (#238)
 - Read compact JCAMP-DX 2D NTUPLES exports with signed axis factors and
   truncated F2 line anchors. Preserve widths and multiplicities in XYW and
   XYM coordinate tables. (#239, #241)

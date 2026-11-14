@@ -62,8 +62,10 @@ versions. Use the checks below for workflows you rely on, and consult the
   spectrum. See :doc:`release notes <whats-new>` for release availability.
 
 * In development builds with the Bruker strip fix, processed strips read with
-  ``strip_fake=True`` retain their calibrated axis. Rebuild the axis and
-  check previously reported peak positions and spectral widths.
+  ``strip_fake=True`` retain their calibrated axis when it is derived from
+  processing parameters. Pass ``pdata=True`` when both acquisition and
+  processing parameters are present. Rebuild the axis and check previously
+  reported peak positions and spectral widths.
 * Development builds with the compact JCAMP-DX fix can read 2D NTUPLES
   with signed axis factors and truncated F2 line anchors. Re-import affected
   exports and check peak positions against the source. Re-read XYW and XYM
