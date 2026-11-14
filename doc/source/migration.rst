@@ -55,11 +55,21 @@ versions. Use the checks below for workflows you rely on, and consult the
   the array order, with indirect F1 on rows and direct F2 on columns.
   Rebuild the axes and check any peak coordinates or exports based on the
   earlier metadata order.
-* In development versions containing the Tecmag 1D axis fix, unit conversion
-  recovers the referenced frequency axis for even-length processed TNT
+* Since nmrglue-ng 1.3.1, unit conversion recovers the referenced frequency axis for even-length processed TNT
   spectra stored in descending TNMR order with valid reference metadata.
   Rebuild the axis and compare peak positions with the referenced TNMR
   spectrum. See :doc:`release notes <whats-new>` for release availability.
+
+* Since nmrglue-ng 1.3.1, processed Bruker strips read with
+  ``strip_fake=True`` retain their calibrated axis. Rebuild the axis and
+  check previously reported peak positions and spectral widths.
+* Since nmrglue-ng 1.3.1, compact 2D JCAMP-DX NTUPLES with signed axis
+  factors and truncated F2 line anchors can be read. Re-import affected
+  exports and check peak positions against the source. Re-read XYW and XYM
+  tables if downstream results depend on peak widths or multiplicities.
+* Since nmrglue-ng 1.3.1, interop rejects arrays with active NumPy masks.
+  Check earlier results if an input mask might have been discarded. Resolve
+  the missing values explicitly before passing data to interop.
 
 These versions describe when the fixes landed in nmrglue-ng. For a dated
 upstream reference, see the
