@@ -56,7 +56,7 @@ versions. Use the checks below for workflows you rely on, and consult the
   Rebuild the axes and check any peak coordinates or exports based on the
   earlier metadata order.
 * In development builds with the Tecmag axis fix, unit conversion recovers
-  the referenced frequency axis for even-length processed TNT
+  the referenced frequency axis for even-length processed 1D TNT
   spectra stored in descending TNMR order with valid reference metadata.
   Rebuild the axis and compare peak positions with the referenced TNMR
   spectrum. See :doc:`release notes <whats-new>` for release availability.
