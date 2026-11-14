@@ -7,52 +7,22 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+## 1.3.1 - 2026-11-14
+
+- Recover the referenced frequency axis for even-length processed 1D Tecmag
+  TNT spectra in descending TNMR order. Warn when multidimensional TNT
+  axis calibration and FFT flags still need TNMR verification. (#235, #240)
+- Preserve the calibrated axis and strip width of processed Bruker strips
+  with `strip_fake=True`. (#238)
+- Read compact JCAMP-DX 2D NTUPLES exports with signed axis factors and
+  truncated F2 line anchors. Preserve widths and multiplicities in XYW and
+  XYM coordinate tables. (#239, #241)
 - Reject active NumPy masks on interop axes, reader data, components, and
-  normalized acquisition data before ndarray conversion.
-
-- Clarify the source and compressed sizes of the JBNMR example downloads. (#252)
-
-- Replace line-number source inclusions in the Tecmag, Sparky, NMRPipe, and
-  linear prediction references with links to developer notes. (#251)
-
-- Add a pull request template with a migration-note check and require checking
-  cited release versions against their published Git tags. (#250)
-
-- Consolidate the development roadmap and test-data policy in the contributor
-  guide, and move the external test-data manifest to `tests/`. (#249)
-
-- Clarify the Spinsolve, Bruker, and Agilent/Varian format references and
-  move storage and parser notes into the developer guide. (#248)
-
-- Recover the referenced frequency axis of even-length processed 1D Tecmag
-  TNT spectra in the descending TNMR presentation. (#235)
-
-- Document the JEOL 2D and Tecmag 1D axis checks in the migration guide and
-  describe increasing JCAMP-DX axes in the format reference. (#247)
-
-- Display the selected Bruker spectrum region in the interoperability tutorial (#246).
-- Show how to select and plot a ppm region from a processed Bruker 1D
-  spectrum in the interoperability tutorial. (#245)
-
-- Document reading, writing, and format limits for JEOL JDF, RS2D, and Glue/HDF5. (#245)
-
-- Update the README links for tutorials, migration, and contributions. (#244)
-
-- Use the current stable release in the Google Colab installation example. (#243)
-
-- Organize the contributor guide by task, document the local documentation
-  builds, and repair the JCAMP-DX reference page. (#242)
-
-- Warn when reading multidimensional Tecmag TNT files that axis calibration
-  and FFT flags still need verification against TNMR. (#240)
-
-- Preserve widths and multiplicities in JCAMP-DX XYW and XYM coordinate tables. (#241)
-
-- Read compact JCAMP-DX 2D NTUPLES exports with signed axis factors
-  and truncated F2 line anchors.
-
-- Preserve the calibrated Bruker strip axis when `strip_fake=True` is used
-  with processed axis parameters. (#108)
+  normalized acquisition data before ndarray conversion. (#253)
+- Expand the format references and Bruker interoperability tutorial.
+  Clarify Colab installation, example downloads, and contributor validation
+  and migration guidance. (#242, #243, #244, #245, #246, #247, #248, #249,
+  #250, #251, #252)
 
 ## 1.3.0 - 2026-11-11
 
