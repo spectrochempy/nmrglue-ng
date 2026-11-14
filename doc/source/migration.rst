@@ -55,11 +55,26 @@ versions. Use the checks below for workflows you rely on, and consult the
   the array order, with indirect F1 on rows and direct F2 on columns.
   Rebuild the axes and check any peak coordinates or exports based on the
   earlier metadata order.
-* In development versions containing the Tecmag 1D axis fix, unit conversion
-  recovers the referenced frequency axis for even-length processed TNT
+* In development builds with the Tecmag axis fix, unit conversion recovers
+  the referenced frequency axis for even-length processed 1D TNT
   spectra stored in descending TNMR order with valid reference metadata.
   Rebuild the axis and compare peak positions with the referenced TNMR
   spectrum. See :doc:`release notes <whats-new>` for release availability.
+
+* In development builds with the Bruker strip fix,
+  ``bruker.guess_udic(..., strip_fake=True, pdata=True)`` retains the
+  calibrated axis derived from processing parameters. Use ``pdata=True``
+  to select those parameters when acquisition parameters are also present.
+  Rebuild the axis and check previously reported peak positions and spectral
+  widths.
+* Development builds with the compact JCAMP-DX fix can read 2D NTUPLES
+  with signed axis factors and truncated F2 line anchors. Re-import affected
+  exports and check peak positions against the source. Re-read XYW and XYM
+  tables if downstream results depend on peak widths or multiplicities.
+* Development builds with the interop mask fix reject arrays with active
+  NumPy masks.
+  Check earlier results if an input mask might have been discarded. Resolve
+  the missing values explicitly before passing data to interop.
 
 These versions describe when the fixes landed in nmrglue-ng. For a dated
 upstream reference, see the
