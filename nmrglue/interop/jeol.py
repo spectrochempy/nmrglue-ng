@@ -363,7 +363,7 @@ def normalize_jeol_2d(result, *, conjugation, legacy_presentation=False):
 
     The optional public presentation preserves the historical complex matrix
     with conjugated samples. It permits direct FFT and leaves F1 unqualified.
-    For listed sampling, consecutive rows share an acquired F1 time.
+    For four-section data, consecutive rows share an acquired F1 time.
     """
     if type(legacy_presentation) is not bool:
         raise ValueError("JEOL legacy_presentation must be a bool")
@@ -377,6 +377,7 @@ def normalize_jeol_2d(result, *, conjugation, legacy_presentation=False):
     axis_modes = tuple(header["data_axis_ranged"][:2])
     if (types, axis_modes) not in (
         (("real_complex", "real_complex"), ("ranged", "ranged")),
+        (("complex", "complex"), ("ranged", "ranged")),
         (("complex", "complex"), ("ranged", "listed")),
     ):
         raise ValueError("JEOL 2D requires a qualified regular or listed raw layout")
@@ -431,10 +432,11 @@ def normalize_jeol_2d(result, *, conjugation, legacy_presentation=False):
         "axis": "F2", "scale": None, "conjugation": conjugation, "sign": "none",
         "permutation": None, "evidence": "JDF tile order and section pairs; caller-selected conjugation",
     }
+    indirect_sampling = "listed" if axis_modes[1] == "listed" else "regular"
     acquisition = {
         "dwell_time_s": (1 / y_width, 1 / x_width),
         "spectral_width_hz": (y_width, x_width),
-        "sampling": ("listed" if channel_axis is not None else "regular", "regular"),
+        "sampling": (indirect_sampling, "regular"),
         "nominal_shape": (nominal_y, nx),
     }
     operations = (operation,)
@@ -444,7 +446,7 @@ def normalize_jeol_2d(result, *, conjugation, legacy_presentation=False):
         data[1::2] = -branches[1]
         channel_axis = None
         y_axis = replace(y_axis, values=np.repeat(y_axis.values, 2), direction="unknown")
-        acquisition["sampling"] = ("listed-paired", "regular")
+        acquisition["sampling"] = (f"{indirect_sampling}-paired", "regular")
         acquisition["trace_branch_order"] = branch_order
         operations += ({
             "name": "interleave-jeol-section-pairs", "stage": "acquisition",

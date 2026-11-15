@@ -27,6 +27,21 @@ are inconsistent, it can warn and return a list of sections. Check the
 result before passing it to array-based processing or ``guess_udic()``.
 The module provides neither a JDF writer nor a low-memory reader.
 
+Uniform complex/complex acquisitions
+------------------------------------
+
+Use ``nmrglue.interop.normalize(nmrglue.interop.read(path),
+conjugation="none")`` to expose the two stored section pairs on a
+leading branch axis, followed by the F1 and F2 time axes in seconds.
+The qualified uniform profile requires a zero-based valid window and
+regular time axes consistent with the acquisition parameters.
+The physical F1 quadrature mode remains undetermined.
+
+Use ``conjugation="conjugate", legacy_presentation=True`` for the
+historical signed and interleaved rows. For uniform sampling, interop
+reports F1 sampling as ``regular-paired`` and repeats each F1 time
+for the two rows acquired at that time.
+
 Axis metadata
 -------------
 

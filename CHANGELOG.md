@@ -7,6 +7,10 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Normalize uniform complex/complex JEOL 2D acquisitions as two stored
+  branches with calibrated F1 and F2 times. The optional legacy presentation
+  preserves the historical signs and repeats each F1 time for its two rows. (#256)
+
 - Respect both ends of the JEOL 2D valid window. Keep complete indirect
   quadrature pairs when selecting a window in complex/complex data, and
   retain valid rows in real/real data. (#255)
