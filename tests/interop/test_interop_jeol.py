@@ -437,3 +437,57 @@ def test_normalize_jeol_rutin_uniform_hsqc():
     legacy = _assert_uniform_jeol_2d(interop.read(source), sections, (256, 4096),
                                     (58.48e-6, 181.76e-6))
     np.testing.assert_array_equal(legacy.data, jeol.read(source)[1])
+
+
+@pytest.mark.parametrize("endian", ["<", ">"])
+def test_legacy_parse_jeol_reads_last_parameter(endian):
+    payload = _synthetic_jdf(endian)
+    params = jeol.parse_jeol(payload)["parameters"]
+    assert list(params["info"]) == ["x_points", "x_sweep", "x_scale", "x_freq"]
+    assert params["x_freq"] == 400e6
+    assert params["info"]["x_freq"]["units"][0] == ("none", 1, "hertz")
+
+    buffer = jeol.IOBuffer(payload, conversion_table=jeol.ConversionTable)
+    _, direct = jeol.read_parameters(buffer, 1360, "little_endian" if endian == "<" else "big_endian")
+    assert list(direct["info"]) == ["x_points", "x_sweep", "x_scale"]
+
+
+@pytest.mark.parametrize("variant", ["exclusive", "short-length", "overlaps-data", "short-buffer"])
+def test_legacy_parse_jeol_preserves_previous_parameter_bound(variant):
+    payload = _synthetic_jdf(">")
+    if variant == "exclusive":
+        struct.pack_into(">I", payload, 1372, 3 * 64)
+    elif variant == "short-length":
+        struct.pack_into(">I", payload, 1216, 16 + 3 * 64)
+    elif variant == "overlaps-data":
+        struct.pack_into(">I", payload, 1284, 1360 + 16 + 3 * 64)
+    else:
+        payload = payload[:1360 + 16 + 3 * 64]
+
+    parsed = jeol.parse_jeol(payload)["parameters"]
+    assert list(parsed["info"]) == ["x_points", "x_sweep", "x_scale"]
+    assert "x_freq" not in parsed
+
+
+@pytest.mark.parametrize("path", sorted(_JDF_FIXTURES.glob("*.jdf")), ids=lambda path: path.stem)
+def test_legacy_parse_jeol_last_parameter_in_packaged_files(path):
+    raw = path.read_bytes()
+    start, length = struct.unpack_from(">II", raw, 1212)
+    data_start, = struct.unpack_from(">I", raw, 1284)
+    endian = "<" if raw[8] else ">"
+    size, low, high, total = struct.unpack_from(endian + "IIII", raw, start)
+    assert size == 64 and low == 0
+    assert total == size * (high + 1)
+    assert length == 16 + total
+    assert start + length <= data_start
+    last = start + 16 + size * high
+    value, = struct.unpack_from(endian + "i", raw, last + 16)
+    value_type, = struct.unpack_from(endian + "i", raw, last + 32)
+    name = raw[last + 36:last + size].decode().strip().lower()
+    assert name == ("x_scale" if raw[12] == 1 else "y_scale")
+    assert value_type == 1 and value == 1
+
+    params = jeol.parse_jeol(raw)["parameters"]
+    assert params[name] == value
+    assert params["info"][name]["value_type"] == "integer"
+    assert params["info"][name]["value"] == value

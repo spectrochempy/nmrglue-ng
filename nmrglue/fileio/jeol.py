@@ -234,7 +234,11 @@ def get_data_types(dic):
 def parse_jeol(buffer):
     buffer = IOBuffer(buffer, conversion_table=ConversionTable)
     buffer, header = read_header(buffer)
-    buffer, params = read_parameters(buffer, header["param_start"], header["endian"])
+    param_start = header["param_start"]
+    parameter_end = min(param_start + header["param_length"], header["data_start"])
+    buffer, params = _read_parameters(
+        buffer, param_start, header["endian"], parameter_end=parameter_end,
+    )
 
     return {"header": header, "parameters": params}
 
@@ -331,6 +335,10 @@ def read_header(buffer):
 
 
 def read_parameters(buffer, param_start, endianness, *, inclusive=False):
+    return _read_parameters(buffer, param_start, endianness, inclusive=inclusive)
+
+
+def _read_parameters(buffer, param_start, endianness, *, inclusive=False, parameter_end=None):
     t = buffer.conversion_table
 
     if endianness == "little_endian":
@@ -346,15 +354,18 @@ def read_parameters(buffer, param_start, endianness, *, inclusive=False):
     }
 
     count = params["high_index"]
-    if inclusive:
-        count += 1
-        if (
-            params["parameter_size"] != 64
-            or params["low_index"] != 0
-            or params["total_size"] != 64 * count
-            or buffer.position + 64 * count > len(buffer.buffer)
-        ):
+    if inclusive or parameter_end is not None:
+        last_end = buffer.position + 64 * (count + 1)
+        complete = (
+            params["parameter_size"] == 64
+            and params["low_index"] == 0
+            and params["total_size"] == 64 * (count + 1)
+            and last_end <= len(buffer.buffer)
+        )
+        if inclusive and not complete:
             raise ValueError("Invalid JDF parameter section dimensions")
+        if complete and (inclusive or last_end <= parameter_end):
+            count += 1
 
     param_array = {}
     for p in range(count):
