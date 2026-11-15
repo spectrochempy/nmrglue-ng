@@ -7,6 +7,10 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Respect both ends of the JEOL 2D valid window. Keep complete indirect
+  quadrature pairs when selecting a window in complex/complex data, and
+  retain valid rows in real/real data. (#255)
+
 ## 1.3.1 - 2026-11-14
 
 - Recover the referenced frequency axis for even-length processed 1D Tecmag

@@ -202,23 +202,17 @@ def reorganize_2d(dic, bin_data):
 
 
 def truncate_data(dic, data):
+    """Apply the inclusive JDF window to the reorganized array."""
     header = dic["header"]
-    slices = []
-    for i, (start, end) in enumerate(
-        zip(header["data_offset_start"], header["data_offset_stop"])
-    ):
-        if i > 0:
-            end = (end + 1) * (nsections(dic) // 2)
-            slices.append(slice(start, end))
-        else:
-            slices.append(slice(start, end + 1))
+    dims = ndims(dic)
+    starts = header["data_offset_start"][:dims]
+    stops = header["data_offset_stop"][:dims]
+    slices = [slice(start, stop + 1) for start, stop in zip(starts, stops)]
 
-        if i == (ndims(dic) - 1):
-            break
+    if dims == 2 and header["data_axis_type"][:2] == ["complex", "complex"]:
+        slices[1] = slice(2 * starts[1], 2 * (stops[1] + 1))
 
-    slices = slices[::-1]
-
-    return data[tuple(slices)]
+    return data[tuple(reversed(slices))]
 
 
 def get_data_shape(dic):
