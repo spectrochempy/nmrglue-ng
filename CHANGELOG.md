@@ -7,6 +7,10 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Recover the final JEOL JDF acquisition parameter in the legacy reader
+  when the declared block confirms an inclusive last index and the record
+  can be decoded. (#257)
+
 - Normalize uniform complex/complex JEOL 2D acquisitions as two stored
   branches with calibrated F1 and F2 times. The optional legacy presentation
   preserves the historical signs and repeats each F1 time for its two rows. (#256)

@@ -234,7 +234,11 @@ def get_data_types(dic):
 def parse_jeol(buffer):
     buffer = IOBuffer(buffer, conversion_table=ConversionTable)
     buffer, header = read_header(buffer)
-    buffer, params = read_parameters(buffer, header["param_start"], header["endian"])
+    param_start = header["param_start"]
+    parameter_end = min(param_start + header["param_length"], header["data_start"])
+    buffer, params = _read_parameters(
+        buffer, param_start, header["endian"], parameter_end=parameter_end,
+    )
 
     return {"header": header, "parameters": params}
 
@@ -331,8 +335,10 @@ def read_header(buffer):
 
 
 def read_parameters(buffer, param_start, endianness, *, inclusive=False):
-    t = buffer.conversion_table
+    return _read_parameters(buffer, param_start, endianness, inclusive=inclusive)
 
+
+def _read_parameters(buffer, param_start, endianness, *, inclusive=False, parameter_end=None):
     if endianness == "little_endian":
         buffer.set_little_endian()
 
@@ -346,73 +352,83 @@ def read_parameters(buffer, param_start, endianness, *, inclusive=False):
     }
 
     count = params["high_index"]
-    if inclusive:
-        count += 1
-        if (
-            params["parameter_size"] != 64
-            or params["low_index"] != 0
-            or params["total_size"] != 64 * count
-            or buffer.position + 64 * count > len(buffer.buffer)
-        ):
-            raise ValueError("Invalid JDF parameter section dimensions")
+    optional_last = False
+    if inclusive or parameter_end is not None:
+        last_end = buffer.position + 64 * (count + 1)
+        complete = (
+            params["parameter_size"] == 64
+            and params["low_index"] == 0
+            and params["total_size"] == 64 * (count + 1)
+            and last_end <= len(buffer.buffer)
+        )
+        if inclusive:
+            if not complete:
+                raise ValueError("Invalid JDF parameter section dimensions")
+            count += 1
+        else:
+            optional_last = complete and last_end <= parameter_end
 
     param_array = {}
-    for p in range(count):
-        _class = buffer.get_array("read_byte", 4)
-        unit_scaler = buffer.read_int16()
-        unit = buffer.get_unit(5)
-        buffer.skip(16)
-        value_type = t.value_type[buffer.read_int32()]
-        buffer.position -= 20
+    for _ in range(count):
+        name, record, value = _read_parameter(buffer, strict=inclusive)
+        param_array[name] = record
+        params[name] = value
 
-        value = None
-        if value_type == "string":
-            value = buffer.get_string(16).replace(" ", "")
-
-        elif value_type == "integer":
-            value = buffer.read_int32()
-            buffer.skip(12)
-
-        elif value_type == "float":
-            value = buffer.read_float64()
-            buffer.skip(8)
-
-        elif value_type == "complex":
-            value = buffer.read_float64() + 1j * buffer.read_float64()
-
-        elif value_type == "infinity":
-            value = buffer.read_int32()
-            buffer.skip(12)
-
+    if optional_last:
+        last_start = buffer.position
+        try:
+            name, record, value = _read_parameter(buffer, strict=True)
+        except (KeyError, ValueError, OverflowError, struct.error):
+            buffer.position = last_start
         else:
-            buffer.skip(16)
-
-        buffer.skip(4)
-
-        name = buffer.get_string(28)
-        bname = name.lower().replace(" ", "")
-
-        param_array[bname] = {
-                "_class": _class,
-                "name": name,
-                "unit_scaler": unit_scaler,
-                "units": unit,
-                "value": value,
-                "value_type": value_type,
-            }
-
-        if inclusive:
-            # Keep powers of ten within the float64 range used by JDF quantities.
-            if not -308 <= unit_scaler <= 308:
-                raise ValueError("JDF parameter unit scaler is out of range")
-            if value_type == "string" and unit_scaler != 0:
-                raise ValueError("JDF text parameter has a nonzero unit scaler")
-        params[bname] = value * (10 ** unit_scaler)
+            param_array[name] = record
+            params[name] = value
 
     params["info"] = param_array
-
-
     return buffer, params
+
+
+def _read_parameter(buffer, *, strict):
+    record_class = buffer.get_array("read_byte", 4)
+    unit_scaler = buffer.read_int16()
+    unit = buffer.get_unit(5)
+    buffer.skip(16)
+    value_type = buffer.conversion_table.value_type[buffer.read_int32()]
+    buffer.position -= 20
+
+    value = None
+    if value_type == "string":
+        value = buffer.get_string(16).replace(" ", "")
+    elif value_type in ("integer", "infinity"):
+        value = buffer.read_int32()
+        buffer.skip(12)
+    elif value_type == "float":
+        value = buffer.read_float64()
+        buffer.skip(8)
+    elif value_type == "complex":
+        value = buffer.read_float64() + 1j * buffer.read_float64()
+    else:
+        buffer.skip(16)
+
+    buffer.skip(4)
+    name = buffer.get_string(28)
+    normalized_name = name.lower().replace(" ", "")
+    record = {
+        "_class": record_class,
+        "name": name,
+        "unit_scaler": unit_scaler,
+        "units": unit,
+        "value": value,
+        "value_type": value_type,
+    }
+
+    if strict:
+        # Keep powers of ten within the float64 range used by JDF quantities.
+        if not -308 <= unit_scaler <= 308:
+            raise ValueError("JDF parameter unit scaler is out of range")
+        if value_type == "string" and unit_scaler != 0:
+            raise ValueError("JDF text parameter has a nonzero unit scaler")
+    return normalized_name, record, value * (10 ** unit_scaler)
 
 
 def read_bin_data(dic, buffer):
