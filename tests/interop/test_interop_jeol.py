@@ -491,3 +491,24 @@ def test_legacy_parse_jeol_last_parameter_in_packaged_files(path):
     assert params[name] == value
     assert params["info"][name]["value_type"] == "integer"
     assert params["info"][name]["value"] == value
+
+
+@pytest.mark.parametrize("endian", ["<", ">"])
+@pytest.mark.parametrize("invalid", ["type", "scaler"])
+def test_legacy_read_jeol_ignores_undecodable_final_parameter(tmp_path, endian, invalid):
+    payload = _synthetic_jdf(endian)
+    last = 1360 + 16 + 3 * 64
+    if invalid == "type":
+        struct.pack_into(endian + "i", payload, last + 32, 5)
+    else:
+        struct.pack_into(endian + "h", payload, last + 4, 309)
+
+    path = tmp_path / "fid.jdf"
+    path.write_bytes(payload)
+    metadata, data = jeol.read(path)
+    assert list(metadata["parameters"]["info"]) == ["x_points", "x_sweep", "x_scale"]
+    assert "x_freq" not in metadata["parameters"]
+    np.testing.assert_array_equal(data, [1+1j, 2-4j, 3+6j, 4-8j, 5+10j])
+
+    with pytest.raises(ValueError, match="parameter section could not be decoded"):
+        interop.read_jeol_fid(path)
