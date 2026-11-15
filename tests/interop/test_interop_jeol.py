@@ -354,3 +354,86 @@ def test_normalize_jeol_rejects_invalid_nus_schedule(index, time_ms):
     metadata = {**stored.metadata, "axis_lists_raw": {"y": bytes(raw)}}
     with pytest.raises(ValueError, match="nominal NUS grid"):
         interop.normalize_jeol_2d(replace(stored, metadata=metadata), conjugation="none")
+
+
+def _assert_uniform_jeol_2d(stored, sections, shape, dwell):
+    ny, nx = shape
+    # JDF gives the tiles in row-major order and the samples in row-major
+    # order within each tile. Address scalar words without the reader helper.
+    y, x = np.ogrid[:ny, :nx]
+    index = ((y // 32 * (nx // 32) + x // 32) * 32 + y % 32) * 32 + x % 32
+
+    original = interop.normalize(stored, conjugation="none")
+    conjugated = interop.normalize(stored, conjugation="conjugate")
+    assert original.quadrature_mode == "jeol-stored-section-pairs"
+    assert original.channel_axis == 0
+    assert original.branch_order == ("section-0/1", "section-2/3")
+    assert original.dimensions == ("channels", "F1", "F2")
+    assert original.domains == ("time", "time")
+    assert original.data.shape == (2, ny, nx)
+    assert original.acquisition["sampling"] == ("regular", "regular")
+    assert original.acquisition["nominal_shape"] == (ny, nx)
+    for k in range(2):
+        np.testing.assert_array_equal(original.data[k].real, sections[2 * k, index])
+        np.testing.assert_array_equal(original.data[k].imag, sections[2 * k + 1, index])
+    np.testing.assert_array_equal(conjugated.data, original.data.conj())
+
+    # Allow floating-point rounding when taking the reciprocal of a sweep.
+    for axis, name, size, step in zip(original.axes, ("F1", "F2"), shape, dwell):
+        assert axis.domain == "time" and axis.unit == "s"
+        np.testing.assert_allclose(axis.values, np.arange(size) * step, rtol=0, atol=1e-15,
+                                   err_msg=name)
+
+    legacy = interop.normalize(stored, conjugation="conjugate", legacy_presentation=True)
+    assert legacy.channel_axis is None
+    assert legacy.encoding == ("unknown", "complex")
+    assert legacy.quadrature_mode == "f2-traces-stored-2d"
+    assert legacy.acquisition["sampling"] == ("regular-paired", "regular")
+    assert legacy.acquisition["nominal_shape"] == (ny, nx)
+    assert legacy.acquisition["trace_branch_order"] == original.branch_order
+    np.testing.assert_array_equal(legacy.axes[0].values, np.repeat(original.axes[0].values, 2))
+    np.testing.assert_array_equal(legacy.axes[1].values, original.axes[1].values)
+    np.testing.assert_array_equal(legacy.data[::2], conjugated.data[0])
+    np.testing.assert_array_equal(legacy.data[1::2], -conjugated.data[1])
+    return legacy
+
+
+def test_normalize_jeol_uniform_2d():
+    path = _JDF_FIXTURES / "epicatechin_hsqc.jdf"
+    stored = interop.read(path)
+    metadata = stored.metadata
+    header = metadata["header"]
+    # Replace the listed axis with a synthetic contiguous 32-increment axis.
+    regular = replace(stored, metadata={
+        **metadata,
+        "header": {
+            **header,
+            "units": [header["units"][0], ("none", 1, "second"), *header["units"][2:]],
+            "data_axis_ranged": ["ranged", "ranged", *header["data_axis_ranged"][2:]],
+            "data_axis_start": [0.0, 0.0, *header["data_axis_start"][2:]],
+            "data_axis_stop": [
+                header["data_axis_stop"][0], 31 * 58.48e-6, *header["data_axis_stop"][2:],
+            ],
+            "list_length": [0, 0, *header["list_length"][2:]],
+            "list_start": [0, 0, *header["list_start"][2:]],
+        },
+        "axis_lists_raw": {},
+    })
+    sections = np.frombuffer(path.read_bytes(), "<f8", count=4 * 32 * 1024,
+                             offset=20480).reshape(4, -1)
+    _assert_uniform_jeol_2d(regular, sections, (32, 1024), (58.48e-6, 133.44e-6))
+
+
+@pytest.mark.dataset
+def test_normalize_jeol_rutin_uniform_hsqc():
+    source = os.environ.get("JEOL_RUTIN_HSQC_JDF")
+    if not source:
+        pytest.skip("set JEOL_RUTIN_HSQC_JDF to the Rutin uniform HSQC reference")
+    raw = Path(source).read_bytes()
+    assert hashlib.sha256(raw).hexdigest() == (
+        "6918f30526488f2657f627af880ca62770d834b0939b2b8f9c00c83005889342"
+    )
+    sections = np.frombuffer(raw, "<f8", count=4 * 256 * 4096, offset=16384).reshape(4, -1)
+    legacy = _assert_uniform_jeol_2d(interop.read(source), sections, (256, 4096),
+                                    (58.48e-6, 181.76e-6))
+    np.testing.assert_array_equal(legacy.data, jeol.read(source)[1])
