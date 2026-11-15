@@ -9,7 +9,7 @@ original nmrglue project and are preserved for attribution and continuity.
 
 - Respect both ends of the JEOL 2D valid window. Keep complete indirect
   quadrature pairs when selecting a window in complex/complex data, and
-  retain valid rows in real/real data.
+  retain valid rows in real/real data. (#255)
 
 ## 1.3.1 - 2026-11-14
 
