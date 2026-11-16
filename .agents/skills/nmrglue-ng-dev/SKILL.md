@@ -39,7 +39,12 @@ Always requires a **separate, explicit** authorization, never implied by
 * install or upgrade dependencies in the user's primary environment.
 
 Analyze permits only the audit-reporting edits described above. Fix modifies
-and validates. Commit, push, and PR creation happen only when asked.
+and validates. Commit only on explicit request.
+
+Keep PR preparation local. Push a branch only when the maintainer explicitly
+asks to push it or to open a PR that needs it. Open a GitHub PR, including a
+draft PR, only when the maintainer explicitly asks to open it. Write and
+submit the title and description as part of opening the authorized PR.
 
 ---
 
@@ -359,19 +364,40 @@ Never claim a check passed that was not run. Never report a skip as a pass.
 
 ---
 
-## Handoff to separate review
+## Handoff to independent review
 
-When a separate review is required (see `AGENTS.md`), do **not** launch
-another independent session or agent. Produce a short prompt usable as-is by
-an independent reviewer, containing:
+Every PR requires independent review before merge, regardless of its scope.
+Start an independent review in a fresh temporary subagent session when the
+maintainer requests review, delegates a merge, or the work includes
+sensitive changes outside a PR that require review under `AGENTS.md`. Give it
+repository access and a prompt with:
 
-1. **Need** — the original problem statement.
-2. **Branch / commit** — branch name and commit to examine.
-3. **Base** — the exact base commit, so the reviewer can run
-   `git diff <base>..<commit>`.
-4. **Sensitive points** — the specific areas you flag for attention.
+1. The original requirement and applicable repository instructions.
+2. The branch or PR, exact base commit, and exact head commit.
+3. Specific areas that warrant scrutiny, if any.
 
-The implementer's report is information to verify, not authority.
+Keep the implementation conversation and earlier reviews out of the
+reviewer context. The implementer's report is information to verify.
+
+For uncommitted work, provide the exact base commit and a snapshot of the
+diff under review. Record which snapshot the verdict covers. The review
+request authorizes the local review loop and corrections within task scope.
+Git commits and publication follow the applicable authorization rules.
+
+After each review, verify the findings, fix actionable issues, and run
+targeted validation. Start a fresh independent subagent session for each
+updated diff without asking again. Give each reviewer the exact revision
+and keep the implementation conversation and earlier reviews out of their
+context. Repeat until the current revision receives an explicit `APPROVE`.
+If a finding needs a maintainer decision, surface it and resume the review
+loop once it is resolved.
+
+Record the verdict and reviewed commit for a PR. Immediately before merging,
+verify that GitHub still reports the approved head and that required checks
+passed. Make the merge request conditional on that exact head. If the head
+has changed, review the new head. If a guarded merge is unavailable,
+leave the PR open. If an isolated reviewer is unavailable, report the
+limitation, provide the handoff prompt, and leave any pending PR open.
 
 ---
 

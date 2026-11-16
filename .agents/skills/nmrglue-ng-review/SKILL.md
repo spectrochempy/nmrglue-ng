@@ -8,16 +8,14 @@ metadata:
 
 ## Trigger
 
-Use this skill when asked to perform a **separate review** of an nmrglue-ng
-implementation.
+Use this skill for the independent review before every PR merge, including
+documentation, mechanical and test-only changes, and whenever the maintainer
+requests a separate review or `AGENTS.md` requires review of sensitive
+changes outside a PR.
 
-This review runs in a **new independent session or by another agent**, without
-the implementation history. If you participated in writing the code, you are
-the implementer, not the reviewer — say so and decline.
-
-Do not use this skill for trivial changes (typos, formatting, mechanical
-refactoring with no behavior change). Those are covered by the implementer's
-self-verification.
+Run in a fresh temporary subagent session with repository access and without
+the implementation history. Return the findings and verdict to the parent
+agent.
 
 ---
 
@@ -44,8 +42,8 @@ not verifiable from the repository is an open question, not a fact.
 Expected from the implementer:
 
 * need / requirement;
-* branch name or PR number;
-* base commit and commit to examine;
+* branch name or PR number, if applicable;
+* exact base and head commits, or exact base commit and local diff snapshot;
 * sensitive points flagged by the implementer.
 
 **Do not ask for missing elements.** Find them first:
@@ -65,6 +63,10 @@ yourself and state it in the report.
 ## Procedure
 
 ### 1. Establish the diff
+
+For uncommitted work, verify the supplied base commit and review the exact
+diff snapshot from the handoff. Report which snapshot the verdict covers.
+For committed work, use the base and head commits as follows.
 
 ```bash
 git diff <base>..<commit>
@@ -232,15 +234,16 @@ key concern.
 
 ### Verdict
 
-Exactly one of:
+Record the exact reviewed head commit or local diff snapshot, then return one verdict:
 
-* **Ready to merge** — no introduced defect; scientific claims verified
-  independently; tests genuinely run and reported honestly; corpus untouched.
-* **Changes requested** — at least one introduced defect must be fixed.
-  List them.
-* **Blocker / maintainer decision required** — the change needs a maintainer
-  judgment (scientific convention, compatibility trade-off, release-critical
-  data, upstream strategy) that a reviewer must not decide alone.
+* `APPROVE` — no unresolved actionable findings for this head, and relevant
+  scientific claims and validation have been verified independently.
+* `REQUEST_CHANGES` — list the defects that require correction.
+* `NEEDS_DISCUSSION` — identify the outstanding uncertainty or maintainer
+  decision.
+
+Only `APPROVE` for the current PR head satisfies the review requirement.
+A changed head requires a fresh review.
 
 ---
 
