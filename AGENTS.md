@@ -215,19 +215,24 @@ confirmation on ordinary technical choices.
 
 ---
 
-## Review
+## Independent Review Before Merge
 
-The implementer's self-verification is **not** an independent review.
+Every PR requires independent review in a fresh temporary subagent session,
+including documentation, mechanical and test-only changes. Give the reviewer
+the original requirement, applicable instructions, and exact base and head
+commits. Keep the implementation history out of the review session.
 
-A separate review in a fresh session is required for any change affecting
-scientific computation, file-format reading or writing, the public API, test
-infrastructure, packaging, CI, or release process. It is also required for
-any modification to an existing assertion, tolerance, scientific expected
-value, fixture, marker or skip, or corpus-management behavior.
+Record the verdict and reviewed commit. Resolve actionable findings, run
+targeted validation, and start a fresh review of the updated head. Merge only
+with an explicit `APPROVE` for the current PR head and passing required checks.
+Any head change invalidates the approval. Follow the `nmrglue-ng-dev` and
+`nmrglue-ng-review` skills for the handoff and review loop.
 
-A separate review is not required for pure documentation edits or for a
-test-only addition that verifies existing behavior without changing any of
-those validation semantics. See the `nmrglue-ng-review` skill.
+Outside PRs, separate review is still required for changes to scientific
+computation, file formats, public APIs, validation semantics, test
+infrastructure, packaging, CI, or releases. Validation semantics include
+assertions, tolerances, scientific expected values, fixtures, markers, skips,
+and corpus management.
 
 ---
 
