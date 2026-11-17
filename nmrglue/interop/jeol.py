@@ -74,8 +74,9 @@ def _read_jdf(filename, geometry):
 
     metadata = {"header": header, "parameters": parameters}
     endian = {"little_endian": "<", "big_endian": ">"}[header["endian"]]
+    dtype = np.dtype(header["data_type"]).newbyteorder(endian)
     sections = np.frombuffer(
-        buffer, dtype=endian + "f8", count=header["data_length"] // 8, offset=start,
+        buffer, dtype=dtype, count=header["data_length"] // dtype.itemsize, offset=start,
     ).reshape(shape)
     return sections, metadata, layout, buffer
 
@@ -104,12 +105,12 @@ def _2d_storage_geometry(header):
         header["data_dimension_number"] != 2
         or jeol.dimension_names(metadata) != ["x", "y"]
         or header["data_format"] != "two_d"
-        or header["data_type"] != "float64"
+        or header["data_type"] not in ("float32", "float64")
         or None in axis_types[:2]
         or any(axis_types[2:])
         or any(size != 1 for size in header["data_points"][2:])
     ):
-        raise ValueError("JEOL storage requires a two_d float64 JDF with X and Y axes")
+        raise ValueError("JEOL storage requires a two_d float32 or float64 JDF with X and Y axes")
 
     # Restrict section counting to encodings with an established JDF layout.
     if tuple(axis_types[:2]) not in (
@@ -129,7 +130,7 @@ def _2d_storage_geometry(header):
         raise ValueError("JEOL 2D data offsets are outside the stored grid")
 
     count = jeol.nsections(metadata)
-    if header["data_length"] != 8 * count * nx * ny:
+    if header["data_length"] != np.dtype(header["data_type"]).itemsize * count * nx * ny:
         raise ValueError("JEOL 2D data length disagrees with the stored sections")
     return (count, nx * ny), {
         "axis_order": ("section", "word"),
@@ -141,7 +142,7 @@ def _2d_storage_geometry(header):
 
 
 def read_jeol_2d_storage(filename):
-    """Read float64 JDF sections as scalar words in on-disk tile order."""
+    """Read JDF sections in their stored floating-point width and tile order."""
     sections, metadata, dimensions, buffer = _read_jdf(filename, _2d_storage_geometry)
     header = metadata["header"]
     parameter_end = header["param_start"] + header["param_length"]
@@ -381,13 +382,18 @@ def normalize_jeol_2d(result, *, conjugation, legacy_presentation=False):
         (("complex", "complex"), ("ranged", "listed")),
     ):
         raise ValueError("JEOL 2D requires a qualified regular or listed raw layout")
+    if header["data_type"] == "float32" and (types, axis_modes) != (
+        ("real_complex", "real_complex"), ("ranged", "ranged")
+    ):
+        raise ValueError("JEOL float32 2D normalization requires regular real_complex axes")
     if legacy_presentation and (
         header["reversed"][0] or conjugation != "conjugate"
     ):
         raise ValueError("JEOL public 2D presentation requires conjugated traces on an unreversed direct axis")
     if (
         result.data.shape != shape or result.data.dtype.kind != "f"
-        or result.data.dtype.itemsize != 8 or result.dimensions != layout
+        or result.data.dtype.itemsize != np.dtype(header["data_type"]).itemsize
+        or result.dimensions != layout
         or result.applied_corrections or len(result.components) != shape[0]
         or any(
             component.name != f"section-{index}"
