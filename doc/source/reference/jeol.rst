@@ -27,6 +27,14 @@ are inconsistent, it can warn and return a list of sections. Check the
 result before passing it to array-based processing or ``guess_udic()``.
 The module provides neither a JDF writer nor a low-memory reader.
 
+Float32 2D acquisitions
+-----------------------
+
+The interop storage reader preserves float32 or float64 section words.
+Float32 normalization supports the regular real_complex/real_complex
+layout and gives the same complex128 presentation as the legacy reader
+when historical signs are requested.
+
 Uniform complex/complex acquisitions
 ------------------------------------
 

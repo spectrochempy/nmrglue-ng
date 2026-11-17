@@ -7,6 +7,10 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Read JEOL 2D float32 storage without widening its raw sections. Normalize
+  regular real_complex/real_complex acquisitions with the historical signs
+  available through the legacy presentation. (#259)
+
 - Recover the final JEOL JDF acquisition parameter in the legacy reader
   when the declared block confirms an inclusive last index and the record
   can be decoded. (#257)

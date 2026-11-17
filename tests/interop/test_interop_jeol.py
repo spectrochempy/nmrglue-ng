@@ -512,3 +512,62 @@ def test_legacy_read_jeol_ignores_undecodable_final_parameter(tmp_path, endian, 
 
     with pytest.raises(ValueError, match="parameter section could not be decoded"):
         interop.read_jeol_fid(path)
+
+
+def test_jeol_float32_regular_storage_and_normalization(tmp_path):
+    source = _JDF_FIXTURES / "epicatechin_cosy.jdf"
+    raw = source.read_bytes()
+    offset, length = struct.unpack_from(">IQ", raw, 1284)
+    words = np.frombuffer(raw, "<f8", count=length // 8, offset=offset).astype("<f4")
+    payload = bytearray(raw[:offset])
+    payload[14] |= 0x40
+    struct.pack_into(">Q", payload, 1288, words.nbytes)
+    payload.extend(words.tobytes())
+    path = tmp_path / "cosy-float32.jdf"
+    path.write_bytes(payload)
+    stored = interop.read(path)
+    assert stored.data.dtype == np.dtype("<f4")
+    np.testing.assert_array_equal(stored.data, words.reshape(2, -1))
+    result = interop.normalize(stored, conjugation="conjugate", legacy_presentation=True)
+    np.testing.assert_array_equal(result.data, jeol.read(path)[1])
+    assert result.data.dtype == np.dtype("complex128")
+    np.testing.assert_allclose(result.axes[0].values, np.arange(256) * 166.74e-6,
+                               rtol=0, atol=1e-15)
+    np.testing.assert_allclose(result.axes[1].values, np.arange(1280) * 133.12e-6,
+                               rtol=0, atol=1e-15)
+    with pytest.raises(ValueError, match="storage description"):
+        interop.normalize(replace(stored, data=stored.data.astype("float64")), conjugation="none")
+    struct.pack_into(">Q", payload, 1288, words.nbytes + 4)
+    path.write_bytes(payload)
+    with pytest.raises(ValueError, match="data length"):
+        interop.read(path)
+
+
+@pytest.mark.dataset
+def test_jeol_luteolin_float32_cosy():
+    source = os.environ.get("JEOL_LUTEOLIN_COSY_JDF")
+    if not source:
+        pytest.skip("set JEOL_LUTEOLIN_COSY_JDF to nmrXiv D1155")
+    raw = Path(source).read_bytes()
+    assert hashlib.sha256(raw).hexdigest() == (
+        "2cceb9c5e19ef6569c113cd6b24ca913b628ccd8dc6eb582b69dee084b6d7dfa"
+    )
+    y, x = np.ogrid[:512, :5120]
+    index = ((y // 32 * (5120 // 32) + x // 32) * 32 + y % 32) * 32 + x % 32
+    words = np.frombuffer(raw, "<f4", offset=16384, count=2 * index.size).reshape(2, -1)
+    stored = interop.read(source)
+    assert stored.data.dtype == np.dtype("<f4")
+    np.testing.assert_array_equal(stored.data, words)
+    normalized = interop.normalize(stored, conjugation="none")
+    assert normalized.quadrature_mode == "jeol-stored-section-pairs"
+    assert normalized.branch_order == ("section-0/1",)
+    assert normalized.channel_axis is None
+    np.testing.assert_array_equal(normalized.data.real, words[0, index])
+    np.testing.assert_array_equal(normalized.data.imag, words[1, index])
+    np.testing.assert_allclose(normalized.axes[0].values, np.arange(512) * 227.38e-6,
+                               rtol=0, atol=1e-15)
+    np.testing.assert_allclose(normalized.axes[1].values, np.arange(5120) * 181.76e-6,
+                               rtol=0, atol=1e-15)
+    legacy = interop.normalize(stored, conjugation="conjugate", legacy_presentation=True)
+    assert legacy.encoding == ("unknown", "complex")
+    np.testing.assert_array_equal(legacy.data, jeol.read(source)[1])
