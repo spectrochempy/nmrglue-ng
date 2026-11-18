@@ -155,12 +155,13 @@ Then audit the report against reality:
 * Is a `CHANGELOG.md` entry required? For user- or developer-visible changes:
   yes. If the PR claims `Changelog: not required`, judge whether the reason
   holds.
-* Is the canonical report in
-  `spectrochempy_maintainer/notes/audits/nmrglue-ng/` self-contained, dated and
-  appropriate for reviewers?
-* Does the product PR link to that canonical report rather than introduce a
-  second evolving report copy? Apply the central maintainer repository's
-  publication policy rather than treating reports as ignored working notes.
+* Does the task establish a durable decision, important scientific qualification,
+  or reusable campaign conclusion that needs a shared document? If so, is the
+  existing topic document updated with the revision, evidence and limits?
+  A routine PR does not require a report file.
+* Are public changes and validation understandable without private evidence?
+  When a curated shared report is relevant, link its canonical version rather
+  than introducing a second evolving copy.
 * Is the change free of several independent defects in one PR?
 
 ### 7. Search for counter-examples
@@ -197,10 +198,12 @@ expected versus actual behavior.
 
 ## Deliverable
 
-Produce a review report with this structure. Persist it and warranted
-maintainer summaries under the reporting rules in `AGENTS.md` and
-`CONTRIBUTING.md`; report-only edits do not authorize fixing the reviewed
-change or altering its tests.
+Produce a review report with this structure and return it to the parent
+session for the task record, including the verdict and exact reviewed revision.
+A review round does not require a separate maintainer file. Promote reusable
+conclusions into the existing shared document only when warranted under
+`AGENTS.md` and `CONTRIBUTING.md`; reporting does not authorize fixing the
+reviewed change or altering its tests.
 
 ### Summary
 

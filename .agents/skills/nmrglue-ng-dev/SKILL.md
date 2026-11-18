@@ -25,7 +25,7 @@ Identify which level applies before acting, and never exceed it.
 
 | Level | Allows |
 |---|---|
-| **Analyze** | Read, search, audit, report. Persist audit reports and warranted roadmap updates as required by `AGENTS.md`; no other file modification. |
+| **Analyze** | Read, search, audit, record results in the task record. Make shared-report or roadmap edits only when warranted under `AGENTS.md`; no other file modification. |
 | **Fix** | Modify source, tests, and docs, then validate them. No Git write operations. |
 | **Deliver** | *Only on explicit request:* create a branch, commit, push, open a PR. |
 
@@ -263,24 +263,28 @@ structure: heading levels, table syntax, list indentation, code fences closed.
 
 ---
 
-## Step 7 — Maintainer notes and changelog
+## Step 7 — Task records, shared documents and changelog
 
-Update the relevant maintainer document when the task produces a decision or
-durable knowledge that must outlive it:
+Keep investigation, commands, validation results and limits, review reports,
+and delivery outcome in the task's working record under the workspace workflow.
+For a standalone checkout, use the local handoff or PR. A routine PR, review
+round, or repeated check does not require a maintainer Markdown file.
 
-* `spectrochempy_maintainer/notes/audits/nmrglue-ng/` is the canonical private
-  location for curated, versioned technical evidence. Link to it from product
-  PRs and the roadmap rather than creating a second evolving copy here.
-  Preserve the distinction between new execution, historical results and
-  independent review.
+Update the existing RFC, architecture reference, or topic audit for a durable
+decision, important scientific qualification, or reusable campaign conclusion.
+The private `spectrochempy_maintainer` repository holds curated shared reports;
+include the audited revision, evidence and limits needed to assess them without
+local task tracking. Preserve the distinction between new execution, historical
+results and independent review. Public PRs must remain understandable without
+private evidence. Update the roadmap only for changed shared priorities or
+release gates. Preserve previous reports and prefer a topic synthesis over a
+new report per PR. Publication still requires the applicable authorization.
 
-After every audit, persist a self-contained report in the canonical private
-`spectrochempy_maintainer/notes/audits/nmrglue-ng/` directory when appropriate
-and review the nmrglue-ng roadmap as required by `AGENTS.md`, even when the
-task ends with a blocked verdict. Include the canonical report path and any
-roadmap update (or why none was needed) in the final reply. If suitability for
-reviewer publication is uncertain because of local paths, private data,
-corpus rights or correspondence, ask the maintainer before publishing.
+After an authorized push, verify the remote PR head and update the task record.
+After a merge, verify it on GitHub and record the delivered result and explicit
+follow-ups before closing the task. Reconcile shared documents and indexes only
+when their content changes; record required updates awaiting publication.
+Inspect task-owned worktrees before removing clean merged ones.
 
 `CHANGELOG.md` `Unreleased` must be updated for every user- or
 developer-visible change, referencing the pull request number as `(#NNN)`.
@@ -346,8 +350,8 @@ Files changed, one line each, and why
 Exact commands, exact counts, exit status, skips with reasons,
 which profile was run, corpus integrity result
 
-## Maintainer notes
-Documents updated
+## Task record and shared documents
+Where the execution record is kept; shared documents updated when warranted
 
 ## Upstream
 Portable / not portable + one-line justification, or "no upstream candidate"

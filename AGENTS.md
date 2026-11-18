@@ -141,25 +141,28 @@ scientific correctness. Any incompatible change must be explicitly
 identified, justified, tested, documented, and accompanied by migration
 guidance when needed.
 
-After an audit, write a dated, self-contained report in the canonical private
-maintainer repository under
-`notes/audits/nmrglue-ng/YYYY-MM-<topic>.md` when the result is suitable for
-reviewers. Preserve previous reports; use a distinct suffix for another audit
-of the same topic on the same day. Record the audited commit, evidence,
-validation performed and omitted, conclusions, and next steps. Product PRs
-must link the canonical report in `spectrochempy_maintainer`; no local report
-copy is maintained here.
+Keep audit execution, commands, validation performed and omitted, review
+findings and verdicts with the exact reviewed revision, and delivery outcome
+in the task's working record under the workspace workflow. For a standalone
+checkout, use the local handoff or PR. Routine PRs, review rounds, and repeated
+checks do not require separate maintainer files.
 
-Review `doc/source/contribute/roadmap.rst` after every audit and update it when findings
-add or change durable knowledge, priorities, or a shared decision. Keep the
-shared summary self-contained: an ignored report is not its sole evidence.
-Use links to curated reports for detailed shared evidence instead of growing
-the roadmap into a chronological audit log.
-Distinguish recommendations awaiting a maintainer decision from agreed policy.
-If no roadmap change is warranted, explain why in the report. Audit requests
-authorize local reports, warranted shared-report and roadmap updates, not
-changes to product code or release gates. Creating or updating a report does
-not authorize committing, pushing or publishing it.
+Update the existing RFC, architecture reference, or topic synthesis when the
+result establishes a durable decision, important scientific qualification, or
+reusable campaign conclusion. Curated shared audits belong in the private
+`spectrochempy_maintainer/notes/audits/nmrglue-ng/` directory. They must identify
+the audited revision, evidence, validation and limits so another maintainer
+can assess the conclusions without local task tracking. Preserve existing
+reports; update a topic synthesis rather than creating a report per PR.
+Link relevant shared evidence when it exists. Public PRs must explain their
+changes and validation without requiring access to private reports.
+
+Update `doc/source/contribute/roadmap.rst` when findings change shared
+priorities or a release gate. Keep it self-contained and distinguish pending
+recommendations from agreed policy. Routine task progress does not require a
+roadmap or index update. Audit requests authorize task records and warranted
+shared-report or roadmap edits, not changes to product code or release gates.
+Creating or updating a report does not authorize committing or publication.
 
 ---
 
@@ -249,21 +252,12 @@ Load the relevant skill before starting work:
 **For other agents:** skills are in `.agents/skills/` — read the relevant
 `SKILL.md` directly.
 
-## Issue Tracking
+## Task Tracking
 
-This project uses **bd (beads)** for maintainer task tracking. Run `bd prime`
-for workflow context and `bd ready` to find unblocked work before starting a
-new task. Keep release-readiness conclusions grounded in `doc/source/contribute/roadmap.rst`
-and the curated reports; beads organize the work but do not replace the
-release gates or audit reports.
-
-Quick reference:
-
-- `bd ready` — find unblocked work.
-- `bd create "Title" --type task --priority 2` — create a task.
-- `bd show <id>` — inspect task context and dependencies.
-- `bd close <id>` — mark completed work.
-- `bd sync` — synchronize the beads database when a remote is configured.
+Follow the enclosing workspace's maintainer coordination rules when available.
+Local task tracking is not a contributor prerequisite. Keep release-readiness
+conclusions grounded in the documented release gates and accessible evidence;
+a task status alone does not establish readiness.
 
 ---
 

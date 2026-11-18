@@ -196,11 +196,14 @@ Rules:
 
 ## Step 7 — Report
 
-Save a self-contained release-readiness report under
-`spectrochempy_maintainer/notes/audits/nmrglue-ng/YYYY-MM-<topic>.md`, including when the verdict is
-**BLOCKED**. Preserve previous reports; add a distinct suffix if the path
-already exists. The report must identify the exact audited commit, date,
-branch and initial working-tree state. Use the structure below:
+Keep each check and its verdict in the task's working record under the
+workspace workflow, or the local handoff for a standalone checkout, including
+when **BLOCKED**. For a release decision shared with other maintainers, update
+the existing release-readiness synthesis in `spectrochempy_maintainer`, or
+create one when absent. Repeated dry runs do not require separate files.
+Preserve the provenance of previous results when updating a synthesis. The
+report must identify the exact audited commit, date, branch and initial
+working-tree state. Use the structure below:
 
 ```text
 ## Verdict
@@ -228,22 +231,17 @@ Exact commands, exact counts, skips with reasons, corpus integrity
 Ordered, concrete, and naming who must decide what
 ```
 
-Then review `doc/source/contribute/roadmap.rst`. Update it if the audit establishes durable
-facts, changes the known status of a gate, or identifies follow-up work that
-must be shared. Keep evidence and conclusions understandable without access
-to the ignored report. Consolidate durable evidence into the versioned
-canonical `spectrochempy_maintainer/notes/audits/nmrglue-ng/` directory when
-warranted, and link to that report from the roadmap. This is evidence preservation, not a fresh
-validation. Do not turn a recommendation into an agreed policy or
-change the release-critical contract without a maintainer decision. If no
-roadmap update is warranted, record the reason in the report.
+Update `doc/source/contribute/roadmap.rst` if the audit changes the known status
+of a gate, shared priorities, or a release decision. Shared conclusions must
+include evidence and limits understandable without local task tracking.
+Consolidating historical evidence is not fresh validation. Do not turn a
+recommendation into agreed policy or change the release-critical contract
+without a maintainer decision. Repeated checks alone require no roadmap edit.
 
-Curated public reports and warranted roadmap updates are the only default file
-edits authorized by this audit. Keep local working notes out of PRs; shared
-reports may be versioned through the normal
-authorized delivery workflow. Finish with a
-concise verdict, the saved report path, roadmap changes (or their absence),
-and the next actions. A chat-only report is not completion of the audit.
+Task records and warranted shared-report or roadmap edits are the reporting
+scope of this audit; they do not authorize commits or publication. Keep local
+execution logs out of PRs. Finish with the verdict, where the results were
+recorded, any shared-document changes, and next actions.
 
 State the verdict from the gates. If any P0 gate is open, the verdict is
 **BLOCKED** even after the later audit steps finish. Never soften "blocked"

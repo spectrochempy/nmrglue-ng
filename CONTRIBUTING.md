@@ -271,11 +271,16 @@ and scientific fixtures protected from rewriting hooks.
 ## Maintainer records
 
 Current development priorities are summarized in the [developer roadmap](doc/source/contribute/roadmap.rst).
-The canonical private audit and report repository is
-[`spectrochempy_maintainer/notes/audits/nmrglue-ng/`](https://github.com/spectrochempy/spectrochempy_maintainer/tree/master/notes/audits/nmrglue-ng/).
-Reports must
-distinguish historical checks from new validation and must not depend on
-local-only notes to support shared conclusions.
+Keep execution details in task records and PR discussions. A routine PR or
+review does not require a separate audit file. Durable decisions, important
+scientific qualifications and reusable campaign conclusions belong in a
+maintained shared document, preferably an existing topic synthesis. The
+canonical private source for curated reports is
+[`spectrochempy_maintainer`](https://github.com/spectrochempy/spectrochempy_maintainer).
+Shared reports must distinguish historical checks from new validation and
+include the evidence needed to assess their conclusions without local-only
+notes. Public PRs must explain their changes and validation without requiring
+access to private reports or local task tracking.
 
 ## Test Data
 
