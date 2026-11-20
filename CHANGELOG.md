@@ -7,6 +7,8 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+## 1.3.2 - 2026-11-20
+
 - Read JEOL 2D float32 storage without widening its raw sections. Normalize
   regular real_complex/real_complex acquisitions with the historical signs
   available through the legacy presentation. (#259)

@@ -76,6 +76,16 @@ versions. Use the checks below for workflows you rely on, and consult the
   Check earlier results if an input mask might have been discarded. Resolve
   the missing values explicitly before passing data to interop.
 
+* Development builds with the JEOL 2D fixes retain both ends of the valid
+  acquisition window, preserve complete indirect quadrature pairs, and read
+  regular float32 storage. Uniform complex/complex acquisitions can be
+  normalized as two branches with calibrated time coordinates. Re-import
+  affected JDF files and check array shapes, time axes and downstream
+  transforms. The legacy presentation retains its historical signs.
+* Development builds with the JEOL parameter fix recover the final acquisition
+  parameter when the declared block confirms an inclusive last index. Re-read
+  affected JDF files before using previously missing acquisition metadata.
+
 These versions describe when the fixes landed in nmrglue-ng. For a dated
 upstream reference, see the
 `nmrglue source at cd0c2c9 (8 October 2026)
