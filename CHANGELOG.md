@@ -7,6 +7,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Preserve `autops` return values when SciPy solver diagnostic options
+  `full_output` or `retall` are requested. (#273)
+
 - Restore multidimensional window iteration on Python 3 and use integer slice
   bounds for partial windows while retaining even-window centering. (#270)
 
