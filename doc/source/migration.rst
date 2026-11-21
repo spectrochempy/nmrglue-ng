@@ -30,6 +30,12 @@ versions. Use the checks below for workflows you rely on, and consult the
   implicitly, matching NMRPipe 13. Recompute affected Hilbert transforms of
   non-power-of-two arrays; pass ``zf=True`` to request the former padding.
 
+* Development builds with the real-input TP nohyper fix represent the new
+  complex last axis as adjacent real/imaginary pairs and record its true size.
+  The returned array can therefore become complex and have half as many last
+  axis elements. Re-run affected transposes and exports; earlier files could
+  mix quadrature components or carry an incorrect real-axis size.
+
 * Development builds with the slow positive-threshold segment fix return one
   segment per detected peak, including an empty list when no peak is present.
   Calls with ``find_segs=True`` previously failed or returned an empty tuple;
