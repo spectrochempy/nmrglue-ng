@@ -10,7 +10,7 @@ original nmrglue project and are preserved for attribution and continuity.
 - Reject inconsistent NUS expansion geometry before allocating the full grid,
   preventing silent trace loss, branch overwrites and negative-index placement. (#262)
 - Normalize Bruker integer conversion safely across the float64 dynamic range,
-  without mutating the input or silently overflowing large signals.
+  without mutating the input or silently overflowing large signals. (#263)
 
 ## 1.3.2 - 2026-11-20
 
