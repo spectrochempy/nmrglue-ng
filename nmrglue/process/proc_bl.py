@@ -7,7 +7,6 @@ import numpy as np
 import scipy
 import scipy.ndimage
 import scipy.signal
-from scipy.interpolate import InterpolatedUnivariateSpline
 from itertools import groupby
 from operator import itemgetter
 from numbers import Real
@@ -223,16 +222,18 @@ def calc_bl_med(x, mw, sf, sigma):
 # in 1D spectra
 def baseline_corrector(data, wd=20):
     """
-    Calculate a baseline using a distribution based classification method.
+    Subtract a distribution-classified baseline from a real 1D spectrum.
 
-    Algorithm described in: Wang et al. Anal. Chem. 2013, 85, 1231-1239
+    Based on the main routine in Wang et al., Anal. Chem. 2013, 85,
+    1231-1239, DOI: 10.1021/ac303233c, Supporting Information S5-S7.
 
     Parameters
     ----------
     data : 1D ndarray
         One dimensional NMR data with real values
-    wd : float
-        Median window size in pts.
+    wd : int
+        Positive half-width of the centered standard-deviation window in points.
+        Windows contain up to ``2 * wd + 1`` available samples.
 
     Returns
     -------
@@ -240,10 +241,41 @@ def baseline_corrector(data, wd=20):
         Baseline corrected spectrum  calculated using distribution based
         classification
 
+    Raises
+    ------
+    ValueError
+        If the input is not a nonempty finite unmasked real vector, wd is not
+        a positive integer, or every sample is classified as signal.
+
+    Notes
+    -----
+    Uses centered clipped standard-deviation windows, local interpolation
+    across signal segments and a centered clipped mean filter. The published
+    pseudocode averages segment endpoints but writes the interpolation formula
+    with the original intensities; here the averaged endpoints define the line.
+    Historical NumPy population standard deviations and the noise-rejection
+    helper are retained. The diffusion-edited extension and resampling described
+    in the paper are not implemented.
+
+    Broad low-contrast signals may be classified as baseline and removed.
+    Check the estimated baseline (input minus output) and peak areas before
+    quantitative use; this is not a universal automatic baseline estimator.
+
     """
+    if np.ma.isMaskedArray(data):
+        raise ValueError("data must be a nonempty finite real one-dimensional array without a mask")
+    data = np.asarray(data)
+    if (data.ndim != 1 or data.size == 0 or np.iscomplexobj(data)
+            or data.dtype.kind not in "buif" or not np.isfinite(data).all()):
+        raise ValueError("data must be a nonempty finite real one-dimensional array")
+    if isinstance(wd, (bool, np.bool_)) or not isinstance(wd, (int, np.integer)) or wd < 1:
+        raise ValueError("wd must be a positive integer half-width")
+    data = data.astype(np.float64, copy=False)
     sd_set = _get_sd(data, wd)
     sigma = _find_noise_sd(sd_set, 0.999)
     sn_vector = _is_signal(sigma, sd_set, 3)
+    if np.all(sn_vector):
+        raise ValueError("classification provides no noise-only support for baseline estimation")
     s_start = _get_signal_start(sn_vector)
     s_end = np.sort(len(data) - 1 - _get_signal_start(sn_vector[::-1]))
     r = _get_temp_baseline(data, s_start, s_end, 7)
@@ -258,7 +290,19 @@ def _rolling_window(a, window):
 
 
 def _get_sd(data, k):
-    return np.std(_rolling_window(data, k), -1)
+    size = len(data)
+    radius = min(k, size - 1)
+    result = np.empty(size, dtype=float)
+    width = 2 * radius + 1
+    if width <= size:
+        windows = np.lib.stride_tricks.sliding_window_view(data, width)
+        result[radius:size-radius] = np.std(windows, axis=-1)
+        edges = list(range(radius)) + list(range(size-radius, size))
+    else:
+        edges = range(size)
+    for i in edges:
+        result[i] = np.std(data[max(0, i-radius):min(size, i+radius+1)])
+    return result
 
 
 def _find_noise_sd(sd_set, ratio):
@@ -297,7 +341,7 @@ def _is_signal(sigma, sd_set, w):
     sn_vector = sd_set * 0
     for i in np.arange(len(sn_vector)):
         if sd_set[i] > sigma * 1.1:
-            sn_vector[np.maximum(0, i-w):np.minimum(i + w, len(sn_vector))] = 1
+            sn_vector[np.maximum(0, i-w):np.minimum(i + w + 1, len(sn_vector))] = 1
     return sn_vector
 
 
@@ -307,20 +351,25 @@ def _get_signal_start(sn_vector):
         if k:
             v = list(v)
             s_start.append(v[0][0])
-    return np.array(s_start)
+    return np.array(s_start, dtype=np.intp)
 
 
 def _get_temp_baseline(data, s_start, s_end, w):
-    xi = np.arange(len(data))
-    x = np.vstack((s_start, s_end))[0]
-    y = np.convolve(data[x], np.ones((7,)) / 7, mode='same')
-    r = InterpolatedUnivariateSpline(x, y, k=1)
-    tmp = r(xi)
-    return tmp
+    result = np.array(data, dtype=float, copy=True)
+    size = len(data)
+    for start, end in zip(s_start, s_end):
+        left = np.mean(data[max(0, start-w):min(size, start+w+1)])
+        right = np.mean(data[max(0, end-w):min(size, end+w+1)])
+        result[start:end+1] = np.linspace(left, right, end-start+1)
+    return result
 
 
 def _smooth(r, w):
-    return scipy.signal.medfilt(r, (2 * w + 1))
+    radius = min(w, len(r) - 1)
+    weights = np.full(2 * radius + 1, 1. / (2 * radius + 1))
+    numerator = scipy.signal.convolve(r, weights, mode='same')
+    denominator = scipy.signal.convolve(np.ones(len(r)), weights, mode='same')
+    return numerator / denominator
 
 
 # Solvent Filter
