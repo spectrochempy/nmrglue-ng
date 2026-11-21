@@ -16,6 +16,9 @@ original nmrglue project and are preserved for attribution and continuity.
 - Compare metadata dictionary keys symmetrically, excluding only the explicit
   NMRPipe display fields when requested. (#278)
 
+- Isolate NMRPipe comparison writes in temporary copies, restore their working
+  directory on failure and reject failed external commands before comparison.
+
 - Preserve `autops` return values when SciPy solver diagnostic options
   `full_output` or `retall` are requested. (#273)
 
