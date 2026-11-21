@@ -14,7 +14,7 @@ original nmrglue project and are preserved for attribution and continuity.
   against a reproducible analytic synthetic signal. (#277)
 
 - Compare metadata dictionary keys symmetrically, excluding only the explicit
-  NMRPipe display fields when requested.
+  NMRPipe display fields when requested. (#278)
 
 - Preserve `autops` return values when SciPy solver diagnostic options
   `full_output` or `retall` are requested. (#273)
