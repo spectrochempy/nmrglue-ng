@@ -358,7 +358,7 @@ def sol_boxcar(data, w=16, mode='same'):
     """
     Solvent filter with boxcar filter.  See :py:func:`sol_general`.
     """
-    filter = scipy.signal.boxcar(w)
+    filter = scipy.signal.windows.boxcar(w)
     return sol_general(data, filter, w=w, mode=mode)
 
 
