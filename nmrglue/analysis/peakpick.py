@@ -448,7 +448,7 @@ def find_all_thres(data, thres, msep, find_segs=False):
         if max == data[idx] and max > thres:
             locations.append(idx)
     if find_segs:
-        seg_slices = find_pseg_slice(data, locations, thres)
+        seg_slices = [find_pseg_slice(data, location, thres) for location in locations]
         return locations, seg_slices
     else:
         return locations

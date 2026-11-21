@@ -20,6 +20,11 @@ When comparing results with an older environment, record both package
 versions. Use the checks below for workflows you rely on, and consult the
 :doc:`release notes <whats-new>` for all changes between those versions.
 
+* Development builds with the slow positive-threshold segment fix return one
+  segment per detected peak, including an empty list when no peak is present.
+  Calls with ``find_segs=True`` previously failed or returned an empty tuple;
+  re-run workflows that could not complete this segmentation.
+
 * Development builds with the integration-window fix clip converted bounds
   to the available data instead of interpreting negative indices from the
   end of the spectrum. Uncertainty counts the actual selected bins. Recompute
