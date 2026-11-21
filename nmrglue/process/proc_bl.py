@@ -261,20 +261,26 @@ def _get_sd(data, k):
 
 
 def _find_noise_sd(sd_set, ratio):
-    '''Calculate the median m1 from SDset. exclude the elements greater
-    than 2m1from SDset and recalculate the median m2. Repeat until
-    m2/m1 converge(sd_set)'''
+    '''Recompute the median after each rejection of estimates above twice it.
+
+    Positive estimates are retained as in the historical filter. Stop when
+    the ratio of consecutive medians reaches ratio; a zero median gives zero.
+    '''
+    sd_set = np.asarray(sd_set, dtype=float)
+    if (sd_set.ndim != 1 or sd_set.size == 0
+            or not np.isfinite(sd_set).all() or np.any(sd_set < 0)):
+        raise ValueError("noise estimates must be a nonempty finite nonnegative vector")
+    if not np.isfinite(ratio) or not 0 < ratio <= 1:
+        raise ValueError("ratio must be finite and in (0, 1]")
     m1 = np.median(sd_set)
-    S = sd_set <= 2.0 * m1
-    tmp = S * sd_set
-    sd_set = tmp[tmp != 0]
-    m2 = np.median(sd_set)
-    while m2/m1 < ratio:
-        m1 = np.median(sd_set)
-        S = sd_set <= 2.0 * m1
-        tmp = S * sd_set
-        sd_set = tmp[tmp != 0]
-    return m2
+    if m1 == 0:
+        return m1
+    while True:
+        sd_set = sd_set[(sd_set > 0) & (sd_set - m1 <= m1)]
+        m2 = np.median(sd_set)
+        if m2 / m1 >= ratio:
+            return m2
+        m1 = m2
 
 
 def _is_signal(sigma, sd_set, w):
