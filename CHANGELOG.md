@@ -8,7 +8,7 @@ original nmrglue project and are preserved for attribution and continuity.
 ## Unreleased
 
 - Remove the complete constant baseline at `cbf(last=100)`, support floating
-  percentages and reject invalid percentages or empty traces.
+  percentages and reject invalid percentages or empty traces. (#264)
 
 - Reject inconsistent NUS expansion geometry before allocating the full grid,
   preventing silent trace loss, branch overwrites and negative-index placement. (#262)
