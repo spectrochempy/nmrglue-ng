@@ -289,6 +289,10 @@ def autops(data, fn, p0=0.0, p1=0.0, return_phases=False, peak_width=100, **kwar
             Absolute error in fn between iterations that is acceptable for
             convergence. The default is 1e-4.
 
+        The solver's full_output and retall flags do not change this
+        function's return structure. Only the fitted phase angles are used;
+        use return_phases=True to return those angles with the spectrum.
+
     Returns
     -------
     ndata : ndarray
@@ -323,6 +327,8 @@ def autops(data, fn, p0=0.0, p1=0.0, return_phases=False, peak_width=100, **kwar
     opt = [p0, p1]
 
     opt = scipy.optimize.fmin(fn, x0=opt, args=tuple(arguments), **kwargs)
+    if isinstance(opt, tuple):
+        opt = opt[0]
 
     phasedspc = ps(data, p0=opt[0], p1=opt[1])
 
