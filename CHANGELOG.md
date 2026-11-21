@@ -14,7 +14,7 @@ original nmrglue project and are preserved for attribution and continuity.
   signed volumes in threshold peak picking. (#268)
 
 - Return an empty peak table with the requested axis, cluster and parameter
-  columns when no peaks exceed the thresholds, instead of raising IndexError.
+  columns when no peaks exceed the thresholds, instead of raising IndexError. (#269)
 
 - Remove the complete constant baseline at `cbf(last=100)`, support floating
   percentages and reject invalid percentages or empty traces. (#264)
