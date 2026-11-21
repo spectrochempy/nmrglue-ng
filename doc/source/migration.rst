@@ -20,6 +20,11 @@ When comparing results with an older environment, record both package
 versions. Use the checks below for workflows you rely on, and consult the
 :doc:`release notes <whats-new>` for all changes between those versions.
 
+* Development builds with the NUS validation fix reject repeated or out-of-grid
+  increments, inconsistent trace counts and invalid acquisition or quadrature
+  permutations. Check earlier expansions for overwritten or misplaced FIDs.
+  Combine repeated acquisitions explicitly before calling ``expand_nus``.
+
 * Since nmrglue-ng 1.0.0, axes reconstructed from descending processed
   JCAMP-DX spectra preserve the declared first and last coordinates.
 * Since nmrglue-ng 1.1.1, integration noise estimates use the same bin width
