@@ -11,7 +11,7 @@ original nmrglue project and are preserved for attribution and continuity.
   phase rotation to complex data, including partial-window exterior samples. (#281)
 
 - Preserve the explicit HT zero-fill choice in ordinary automatic mode,
-  matching NMRPipe instead of always padding non-power-of-two inputs.
+  matching NMRPipe instead of always padding non-power-of-two inputs. (#282)
 
 - Build one positive-threshold segment per peak in the slow detector instead
   of passing the complete peak list to the single-segment helper. (#280)
