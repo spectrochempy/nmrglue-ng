@@ -2697,7 +2697,8 @@ def expand_nus(data, shape, nuslist, aqorder=None, quadrature_order=None, allow_
     shape : tuple
         shape of the fully sampled data
     nuslist : list of n-tuples
-        nuslist
+        Unique nonnegative integer coordinates of acquired increments.
+        Repeated increments must be combined explicitly before expansion.
     aqorder : list | None
         the order in which indirect dimensions are acquired.
         defaults to [1, 0] for 3D and [2, 1, 0] for 4D datasets.
@@ -2736,11 +2737,18 @@ def expand_nus(data, shape, nuslist, aqorder=None, quadrature_order=None, allow_
 
     """
 
+    shape = tuple(shape)
+    nuslist = [tuple(item) for item in nuslist]
+    if not nuslist or not nuslist[0]:
+        raise ValueError("nuslist must contain nonempty coordinate tuples")
     idims = len(nuslist[0])
     ndim = idims + 1
 
     if len(shape) != ndim:
-        raise ValueError(f"expected {ndim}D data but got {ndim}D nuslist")
+        raise ValueError(f"expected {ndim}D shape for the supplied nuslist")
+    if any(isinstance(n, (bool, np.bool_)) or not isinstance(n, numbers.Integral)
+           or n <= 0 for n in shape):
+        raise ValueError("shape must contain positive integers")
 
     if ndim < 2:
         raise ValueError(f"Needs to be be at least a 2D dataset (not {ndim}D)")
@@ -2752,23 +2760,42 @@ def expand_nus(data, shape, nuslist, aqorder=None, quadrature_order=None, allow_
             f"Use the flag 'allow_high_dims=True' if you really want to do this."
         )
 
-    # make sure that nuslist is correctly ordered and typed
     if aqorder is None:
         aqorder = list(range(idims))[::-1]
-
-    reordered_nuslist = []
+    aqorder = tuple(aqorder)
+    if (len(aqorder) != idims
+            or any(isinstance(i, (bool, np.bool_))
+                   or not isinstance(i, numbers.Integral) for i in aqorder)
+            or frozenset(aqorder) != frozenset(range(idims))):
+        raise ValueError("aqorder must be a permutation of the indirect axes")
     for item in nuslist:
-        reordered_item = []
-        for pos in aqorder:
-            reordered_item.append(item[pos])
-        reordered_nuslist.append(tuple(reordered_item))
-
-    # generate a full dataset
-    full_data = np.zeros(shape, dtype=data.dtype)
+        if (len(item) != idims
+                or any(isinstance(p, (bool, np.bool_))
+                       or not isinstance(p, numbers.Integral) or p < 0 for p in item)):
+            raise ValueError("nuslist must contain nonnegative integer coordinate tuples")
+    if len(frozenset(nuslist)) != len(nuslist):
+        raise ValueError("nuslist contains repeated increments; combine them explicitly")
+    reordered_nuslist = [tuple(item[pos] for pos in aqorder) for item in nuslist]
+    if any(2 * int(p) + 1 >= size
+           for item in reordered_nuslist for p, size in zip(item, shape[:-1])):
+        raise ValueError("nuslist coordinates exceed the output shape")
 
     # quadrature points in all dimensions
     if quadrature_order is None:
         quadrature_order = list(product((0, 1), repeat=idims))
+    quadrature_order = [tuple(item) for item in quadrature_order]
+    if (len(quadrature_order) != 2 ** idims
+            or any(len(item) != idims
+                   or any(isinstance(q, (bool, np.bool_))
+                          or not isinstance(q, numbers.Integral) or q not in (0, 1)
+                          for q in item) for item in quadrature_order)
+            or len(frozenset(quadrature_order)) != 2 ** idims):
+        raise ValueError("quadrature_order must contain every binary branch exactly once")
+    if (data.ndim != 2
+            or data.shape != (len(nuslist) * 2 ** idims, shape[-1])):
+        raise ValueError("data shape must match the acquired increments, branches and trace length")
+
+    full_data = np.zeros(shape, dtype=data.dtype)
 
     # add fids at appropriate positions
     for i, nus_pos in enumerate(reordered_nuslist):

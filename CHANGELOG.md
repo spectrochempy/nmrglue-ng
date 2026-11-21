@@ -7,6 +7,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Reject inconsistent NUS expansion geometry before allocating the full grid,
+  preventing silent trace loss, branch overwrites and negative-index placement. (#262)
+
 ## 1.3.2 - 2026-11-20
 
 - Read JEOL 2D float32 storage without widening its raw sections. Normalize
