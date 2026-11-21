@@ -35,6 +35,8 @@ versions. Use the checks below for workflows you rely on, and consult the
   increments, inconsistent trace counts and invalid acquisition or quadrature
   permutations. Check earlier expansions for overwritten or misplaced FIDs.
   Combine repeated acquisitions explicitly before calling ``expand_nus``.
+  Narrow-integer NumPy coordinates are also expanded without scalar overflow;
+  re-expand earlier grids if those coordinate dtypes were used.
 * Development builds with the Bruker integer-conversion fix scale very small
   and large signals into the documented integer range instead of losing them
   to truncation or overflow. Nonfinite inputs are rejected and the conversion

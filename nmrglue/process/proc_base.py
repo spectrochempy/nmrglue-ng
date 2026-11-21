@@ -2801,7 +2801,7 @@ def expand_nus(data, shape, nuslist, aqorder=None, quadrature_order=None, allow_
     for i, nus_pos in enumerate(reordered_nuslist):
         for j, quad_pos in enumerate(quadrature_order):
             fid_pos = i * (2 ** idims) + j
-            final_pos = tuple(p * 2 + q for p, q in zip(nus_pos, quad_pos))
+            final_pos = tuple(int(p) * 2 + int(q) for p, q in zip(nus_pos, quad_pos))
             full_data[final_pos] = data[fid_pos]
 
     return full_data
