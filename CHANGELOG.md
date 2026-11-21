@@ -14,7 +14,7 @@ original nmrglue project and are preserved for attribution and continuity.
 
 - Reject inconsistent NUS expansion geometry before allocating the full grid,
   preventing silent trace loss, branch overwrites and negative-index placement. (#262)
-  Compute valid narrow-integer NumPy coordinates without index overflow.
+  Compute valid narrow-integer NumPy coordinates without index overflow. (#266)
 - Normalize Bruker integer conversion safely across the float64 dynamic range,
   without mutating the input or silently overflowing large signals. (#263)
 
