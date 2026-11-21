@@ -11,7 +11,7 @@ original nmrglue project and are preserved for attribution and continuity.
   baseline estimation, handling zero noise and invalid estimates explicitly. (#267)
 
 - Use negative-threshold segments when estimating negative peak widths and
-  signed volumes in threshold peak picking.
+  signed volumes in threshold peak picking. (#268)
 
 - Remove the complete constant baseline at `cbf(last=100)`, support floating
   percentages and reject invalid percentages or empty traces. (#264)
