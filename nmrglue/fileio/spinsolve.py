@@ -90,6 +90,7 @@ def read(dir='.', specfile=None, acqupar="acqu.par", procpar="proc.par"):
     dic : dict
         All parameters that can be present in the data folder:
         dic["spectrum"] - First bytes of spectrum(_processed).1d
+        and filename of the selected binary file
         dic["acqu"] - Parameters present in acqu.par
         dic["proc"] - Parameters present in proc.par
         dic["dx"] - - Parameters present in the header of nmr_fid.dx
@@ -157,6 +158,7 @@ def read(dir='.', specfile=None, acqupar="acqu.par", procpar="proc.par"):
     elif inputfile.split('.')[-1] == "1d":
         with open(inputfile, "rb") as f:
             raw_data = f.read()
+        dic["spectrum"]["filename"] = os.path.basename(inputfile)
 
         # Write out parameters from the first 32 bytes into dic["spectrum"]
         keys = ["owner", "format", "version", "dataType", "xDim", "yDim", "zDim", "qDim"]
@@ -280,7 +282,9 @@ def guess_udic(dic, data):
     Returns
     -------
     udic : dict
-        Universal dictionary of spectral parameters.
+        Universal dictionary of spectral parameters. Known spectrum filenames
+        recorded by read() are frequency-domain; legacy dictionaries without
+        that source information retain the historical time-domain default.
     """
 
     # Create an empty universal dictionary
@@ -298,9 +302,12 @@ def guess_udic(dic, data):
     else:
         udic[0].update(get_udic_from_jcamp_dict(dic["dx"]))
 
+    filename = dic.get("spectrum", {}).get("filename")
+    frequency = filename in ("spectrum.1d", "spectrum_processed.1d")
+    udic[0]['time'] = not frequency
+    udic[0]['freq'] = frequency
+
     # keys left to default
     # udic[0]['complex']
     # udic[0]['encoding']
-    # udic[0]['time'] = True
-    # udic[0]['freq'] = False
     return udic

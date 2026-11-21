@@ -25,6 +25,11 @@ versions. Use the checks below for workflows you rely on, and consult the
   integrals if the previous residual offset mattered. Intermediate percentages
   retain their historical sample selection, including one trailing sample at
   zero percent. Empty traces and percentages outside 0--100 are rejected.
+* Development builds with the Spinsolve domain fix identify ``spectrum.1d``
+  and ``spectrum_processed.1d`` as frequency-domain in ``guess_udic`` when the
+  dictionary comes from ``read``. Avoid applying another FFT to those spectra.
+  Legacy dictionaries without the selected filename keep their previous
+  time-domain default. Calibration and the stored coordinate array are unchanged.
 
 * Development builds with the NUS validation fix reject repeated or out-of-grid
   increments, inconsistent trace counts and invalid acquisition or quadrature
