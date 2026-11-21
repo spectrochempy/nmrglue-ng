@@ -24,6 +24,11 @@ versions. Use the checks below for workflows you rely on, and consult the
   samples when a node's averaging window reaches a trace boundary. Re-run
   baselines and derived integrals if earlier edge windows produced NaN values.
 
+* Development builds with the ACME input-validation fix reject constant,
+  nonfinite or insufficient spectra before optimization. Earlier calls could
+  return initial phases after invalid score divisions; treat those outputs
+  as unvalidated. Custom scoring functions retain their own input contract.
+
 * Development builds with the iterative-noise fix update the median after
   every rejection step in distribution-based baseline correction. Recompute
   affected noise thresholds and downstream baselines when comparing results.
