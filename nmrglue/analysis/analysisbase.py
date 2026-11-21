@@ -161,6 +161,13 @@ def squish(r, axis):
 
 
 # Windowing classes
+def _window_sizes(wsize):
+    if any(isinstance(n, (bool, np.bool_)) or not isinstance(n, (int, np.integer))
+           or n <= 0 for n in wsize):
+        raise ValueError("window sizes must be positive integers")
+    return tuple(int(n) for n in wsize)
+
+
 class ndwindow:
     """
     An N-dimensional iterator to slice arrays into windows.
@@ -227,9 +234,9 @@ class ndwindow:
         if len(shape) != len(wsize):
             raise ValueError("shape and wsize do match match")
         self.ndindex = np.ndindex(shape)
-        wsize = np.array(wsize)
-        self.sub = np.ceil((wsize - 1.) / 2.)
-        self.add = wsize - 1. - self.sub
+        wsize = _window_sizes(wsize)
+        self.sub = tuple(n // 2 for n in wsize)
+        self.add = tuple(n - 1 - before for n, before in zip(wsize, self.sub))
 
     def __next__(self):
         """ next iterator. """
@@ -237,7 +244,7 @@ class ndwindow:
 
     def next(self):
         """ x.next() -> the next value, or raise StopIteration """
-        center = self.ndindex.next()
+        center = next(self.ndindex)
         start = [max(0, i - j) for i, j in zip(center, self.sub)]
         stop = [i + j + 1 for i, j in zip(center, self.add)]
         return tuple([slice(x, y) for x, y in zip(start, stop)])
@@ -269,9 +276,9 @@ class ndwindow_index:
         if len(shape) != len(wsize):
             raise ValueError("shape and wsize do match match")
         self.ndindex = np.ndindex(shape)
-        wsize = np.array(wsize)
-        self.sub = np.ceil((wsize - 1.) / 2.)
-        self.add = wsize - 1. - self.sub
+        wsize = _window_sizes(wsize)
+        self.sub = tuple(n // 2 for n in wsize)
+        self.add = tuple(n - 1 - before for n, before in zip(wsize, self.sub))
 
     def __next__(self):
         """ next iterator. """
@@ -279,7 +286,7 @@ class ndwindow_index:
 
     def next(self):
         """ x.next() -> the next value, or raise StopIteration """
-        center = self.ndindex.next()
+        center = next(self.ndindex)
         start = [max(0, i - j) for i, j in zip(center, self.sub)]
         stop = [i + j + 1 for i, j in zip(center, self.add)]
         return center, tuple([slice(x, y) for x, y in zip(start, stop)])
@@ -333,6 +340,7 @@ class ndwindow_inside:
         """ Set up the object """
         if len(shape) != len(wsize):
             raise ValueError("shape and wsize do match match")
+        wsize = _window_sizes(wsize)
         self.ndindex = np.ndindex(
             tuple(np.array(shape) - np.array(wsize) + 1))
         self.wsize = wsize
@@ -343,7 +351,7 @@ class ndwindow_inside:
 
     def next(self):
         """ x.next() -> the next value, or raise StopIteration """
-        start = self.ndindex.next()
+        start = next(self.ndindex)
         stop = np.array(start) + np.array(self.wsize)
         return tuple([slice(x, y) for x, y in zip(start, stop)])
 
@@ -368,6 +376,7 @@ class ndwindow_inside_index:
         " Set up the object """
         if len(shape) != len(wsize):
             raise ValueError("shape and wsize do match match")
+        wsize = _window_sizes(wsize)
         self.ndindex = np.ndindex(
             tuple(np.array(shape) - np.array(wsize) + 1))
         self.wsize = wsize
@@ -378,7 +387,7 @@ class ndwindow_inside_index:
 
     def next(self):
         """ x.next() -> the next value, or raiseStopIteration """
-        start = self.ndindex.next()
+        start = next(self.ndindex)
         stop = np.array(start) + np.array(self.wsize)
         return (start, tuple([slice(x, y) for x, y in zip(start, stop)]))
 
