@@ -559,6 +559,11 @@ def jmod(dic, data, off=0.0, j=0.0, lb=0.0, sin=False, cos=False, c=1.0,
         Array of NMR data with a exponentially damped J-modulation apodization
         applied.
 
+    Notes
+    -----
+    Like NMRPipe JMOD, a zero-offset sine profile also rotates complex data
+    by -90 degrees, including samples outside a partial apodization window.
+
     """
     start = start - 1  # arrays should start at 0
     fn = "FDF" + str(int(dic["FDDIMORDER"][0]))  # F1, F2, etc
@@ -609,6 +614,8 @@ def jmod(dic, data, off=0.0, j=0.0, lb=0.0, sin=False, cos=False, c=1.0,
         data[..., 0] = data[..., 0] / c
     else:
         data[..., 0] = data[..., 0] * c
+    if off == 0.0 and np.iscomplexobj(data):
+        data = data * -1.j
     dic = update_minmax(dic, data)
     return dic, data
 
