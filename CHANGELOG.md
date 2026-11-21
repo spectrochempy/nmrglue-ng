@@ -10,6 +10,9 @@ original nmrglue project and are preserved for attribution and continuity.
 - Recompute the noise median after every rejection step in distribution-based
   baseline estimation, handling zero noise and invalid estimates explicitly. (#267)
 
+- Use negative-threshold segments when estimating negative peak widths and
+  signed volumes in threshold peak picking.
+
 - Remove the complete constant baseline at `cbf(last=100)`, support floating
   percentages and reject invalid percentages or empty traces. (#264)
 - Preserve the selected Spinsolve binary filename and mark known processed
