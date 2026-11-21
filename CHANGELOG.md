@@ -11,7 +11,7 @@ original nmrglue project and are preserved for attribution and continuity.
   instead of permissive relative tolerances and independent axis sorting. (#276)
 
 - Validate Gaussian fitting convergence, recovered parameters and residuals
-  against a reproducible analytic synthetic signal.
+  against a reproducible analytic synthetic signal. (#277)
 
 - Preserve `autops` return values when SciPy solver diagnostic options
   `full_output` or `retall` are requested. (#273)
