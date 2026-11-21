@@ -1326,7 +1326,7 @@ def ht(dic, data, mode="ps0-0", zf=False, td=False, auto=False):
     td : bool
         True to set the time-domain parameter to half size.
     auto : bool
-        True to select mode and zf parameters automatically from dic.
+        True to select the mirror mode from dic. Ordinary mode preserves zf.
 
     Returns
     -------
@@ -1344,7 +1344,6 @@ def ht(dic, data, mode="ps0-0", zf=False, td=False, auto=False):
             zf = False
             mode = "ps90-180"
         else:
-            zf = True
             mode = "ps0-0"
     if mode not in ["ps0-0", "ps90-180"]:
         raise ValueError("mode must be ps0-0 or ps90-180")

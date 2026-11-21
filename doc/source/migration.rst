@@ -25,6 +25,11 @@ versions. Use the checks below for workflows you rely on, and consult the
   Re-run affected JMOD processing and downstream spectra; nonzero offsets
   and the lower-level ``proc_base.jmod`` window retain their behavior.
 
+* Development builds with the HT automatic-mode fix preserve the requested
+  ``zf`` value outside mirror mode. ``auto=True`` no longer adds padding
+  implicitly, matching NMRPipe 13. Recompute affected Hilbert transforms of
+  non-power-of-two arrays; pass ``zf=True`` to request the former padding.
+
 * Development builds with the slow positive-threshold segment fix return one
   segment per detected peak, including an empty list when no peak is present.
   Calls with ``find_segs=True`` previously failed or returned an empty tuple;
