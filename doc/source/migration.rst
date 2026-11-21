@@ -26,6 +26,12 @@ versions. Use the checks below for workflows you rely on, and consult the
   integrals and uncertainties whose limits exceeded the data domain; empty
   noise windows now raise an error rather than returning NaN estimates.
 
+* Development builds with the metadata-comparison fix reject missing keys
+  regardless of dictionary argument order. Review earlier validation results
+  that used ``misc.isdicsimilar`` or ``pair_similar``: metadata present only in
+  the second dictionary could previously pass unnoticed. Explicitly ignored
+  NMRPipe display fields remain excluded when requested.
+
 * Development builds with the linear-baseline edge fix use the available
   samples when a node's averaging window reaches a trace boundary. Re-run
   baselines and derived integrals if earlier edge windows produced NaN values.

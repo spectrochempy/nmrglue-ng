@@ -161,15 +161,13 @@ def isdicsimilar(dic1, dic2, verb=False, dtol=DTOL, ignore_pipe_display=False):
     # create sets
     kset1 = set(dic1.keys())
     kset2 = set(dic2.keys())
-    dset = set.difference(kset1, kset2)
+    dset = set.symmetric_difference(kset1, kset2)
     iset = set.intersection(kset1, kset2)
 
     if ignore_pipe_display is True:
-        iset.discard('FDMIN')
-        iset.discard('FDMAX')
-        iset.discard('FDDISPMIN')
-        iset.discard('FDDISPMAX')
-        iset.discard('FDSCALEFLAG')
+        for key in ('FDMIN', 'FDMAX', 'FDDISPMIN', 'FDDISPMAX', 'FDSCALEFLAG'):
+            iset.discard(key)
+            dset.discard(key)
 
     # print out any keys not in both dictionaries
     if len(dset) != 0:
