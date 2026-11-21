@@ -14,7 +14,7 @@ original nmrglue project and are preserved for attribution and continuity.
   matching NMRPipe instead of always padding non-power-of-two inputs. (#282)
 
 - Pack transposed real-input quadrature pairs correctly with TP nohyper and
-  record the actual last-axis size, preserving NMRPipe write/read results.
+  record the actual last-axis size, preserving NMRPipe write/read results. (#283)
 
 - Build one positive-threshold segment per peak in the slow detector instead
   of passing the complete peak list to the single-segment helper. (#280)
