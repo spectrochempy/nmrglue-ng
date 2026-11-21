@@ -20,6 +20,11 @@ When comparing results with an older environment, record both package
 versions. Use the checks below for workflows you rely on, and consult the
 :doc:`release notes <whats-new>` for all changes between those versions.
 
+* Development builds with the JMOD sine-phase fix rotate complex data by
+  -90 degrees when the effective modulation offset is zero, matching NMRPipe.
+  Re-run affected JMOD processing and downstream spectra; nonzero offsets
+  and the lower-level ``proc_base.jmod`` window retain their behavior.
+
 * Development builds with the slow positive-threshold segment fix return one
   segment per detected peak, including an empty list when no peak is present.
   Calls with ``find_segs=True`` previously failed or returned an empty tuple;
