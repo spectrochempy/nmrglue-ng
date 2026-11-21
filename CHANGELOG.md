@@ -17,7 +17,7 @@ original nmrglue project and are preserved for attribution and continuity.
   NMRPipe display fields when requested. (#278)
 
 - Isolate NMRPipe comparison writes in temporary copies, restore their working
-  directory on failure and reject failed external commands before comparison.
+  directory on failure and reject failed external commands before comparison. (#279)
 
 - Preserve `autops` return values when SciPy solver diagnostic options
   `full_output` or `retall` are requested. (#273)
