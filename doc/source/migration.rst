@@ -20,6 +20,10 @@ When comparing results with an older environment, record both package
 versions. Use the checks below for workflows you rely on, and consult the
 :doc:`release notes <whats-new>` for all changes between those versions.
 
+* Development builds with the linear-baseline edge fix use the available
+  samples when a node's averaging window reaches a trace boundary. Re-run
+  baselines and derived integrals if earlier edge windows produced NaN values.
+
 * Development builds with the iterative-noise fix update the median after
   every rejection step in distribution-based baseline correction. Recompute
   affected noise thresholds and downstream baselines when comparing results.
