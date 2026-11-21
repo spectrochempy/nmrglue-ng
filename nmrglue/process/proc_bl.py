@@ -272,12 +272,21 @@ def _find_noise_sd(sd_set, ratio):
         raise ValueError("noise estimates must be a nonempty finite nonnegative vector")
     if not np.isfinite(ratio) or not 0 < ratio <= 1:
         raise ValueError("ratio must be finite and in (0, 1]")
-    m1 = np.median(sd_set)
+
+    def median(values):
+        low, high = (values.size - 1) // 2, values.size // 2
+        ordered = np.partition(values, (low, high))
+        a, b = ordered[low], ordered[high]
+        if b > np.finfo(float).max / 2:
+            return a / 2 + b / 2
+        return (a + b) / 2
+
+    m1 = median(sd_set)
     if m1 == 0:
         return m1
     while True:
         sd_set = sd_set[(sd_set > 0) & (sd_set - m1 <= m1)]
-        m2 = np.median(sd_set)
+        m2 = median(sd_set)
         if m2 / m1 >= ratio:
             return m2
         m1 = m2
