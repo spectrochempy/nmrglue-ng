@@ -7,6 +7,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Check exact peak-position tuples and counts in synthetic regression tests
+  instead of permissive relative tolerances and independent axis sorting. (#276)
+
 - Preserve `autops` return values when SciPy solver diagnostic options
   `full_output` or `retall` are requested. (#273)
 
