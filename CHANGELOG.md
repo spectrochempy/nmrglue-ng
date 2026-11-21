@@ -8,7 +8,7 @@ original nmrglue project and are preserved for attribution and continuity.
 ## Unreleased
 
 - Build one positive-threshold segment per peak in the slow detector instead
-  of passing the complete peak list to the single-segment helper.
+  of passing the complete peak list to the single-segment helper. (#280)
 
 - Check exact peak-position tuples and counts in synthetic regression tests
   instead of permissive relative tolerances and independent axis sorting. (#276)
