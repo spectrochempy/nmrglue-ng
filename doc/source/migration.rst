@@ -24,6 +24,12 @@ versions. Use the checks below for workflows you rely on, and consult the
   increments, inconsistent trace counts and invalid acquisition or quadrature
   permutations. Check earlier expansions for overwritten or misplaced FIDs.
   Combine repeated acquisitions explicitly before calling ``expand_nus``.
+* Development builds with the Bruker integer-conversion fix scale very small
+  and large signals into the documented integer range instead of losing them
+  to truncation or overflow. Nonfinite inputs are rejected and the conversion
+  helper no longer modifies its input. Check earlier ``write_pdata`` exports
+  made with automatic scaling. This normalization sets an arbitrary intensity
+  scale; it does not infer or update ``NC_proc`` for absolute calibration.
 
 * Since nmrglue-ng 1.0.0, axes reconstructed from descending processed
   JCAMP-DX spectra preserve the declared first and last coordinates.

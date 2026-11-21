@@ -1440,25 +1440,28 @@ def array_to_int(data):
     Parameters
     ----------
     data : ndarray
-        Array of NMR data (float64 or int32).
-    reverse : Bool
-        True to reverse the scaling, i.e. multiply by the
-        scaling factor rather than divide
+        Real, finite NMR data. The input is not modified.
 
     Returns
     -------
     intdata : array
         Real valued data scaled to have the maximum intensity between
-        2**28 and 2**29, converted to type int32
+        2**28 and 2**29, converted to type int32. Zero and empty arrays
+        remain zero and empty. Scaling uses powers of two; values already
+        in the target range retain their scale.
     """
 
-    for _ in range(30):
-        if np.max(abs(data)) < 2**28:
-            data *= 2
-        else:
-            break
-    intdata = data.real.astype('int32')
-    return intdata
+    data = np.asarray(data)
+    if data.dtype.kind not in 'iuf':
+        raise ValueError("data must contain real finite numeric values")
+    values = data.astype(np.float64)
+    if not np.isfinite(values).all():
+        raise ValueError("data must contain real finite numeric values")
+    peak = np.max(np.abs(values), initial=0.)
+    if peak and not 2**28 <= peak <= 2**29:
+        _, exponent = np.frexp(peak)
+        values = np.ldexp(values, 29 - int(exponent))
+    return values.astype('int32')
 
 
 def guess_shape_and_submatrix_shape(dic):
