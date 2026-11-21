@@ -3,7 +3,26 @@
 
 
 import os
+from pathlib import Path
+import shutil
+import subprocess
+from tempfile import TemporaryDirectory
+
 import nmrglue as ng
+import pytest
+
+
+FIXTURE_DIR = Path(__file__).resolve().parents[1] / 'fixtures' / 'process' / 'pipe_proc_tests'
+
+
+@pytest.fixture(autouse=True)
+def _comparison_directory(tmp_path, monkeypatch):
+    """Run each comparison in a disposable copy and restore cwd even on failure."""
+    with TemporaryDirectory(prefix='pipe-proc-', dir=tmp_path) as work:
+        shutil.copytree(FIXTURE_DIR, work, dirs_exist_ok=True)
+        with monkeypatch.context() as context:
+            context.chdir(work)
+            yield
 
 # Framework functions
 
@@ -12,15 +31,10 @@ def _perform_test(glue_script, pipe_script, glue_files, pipe_files,
                   ignore_pipe_display=False):
     """
     """
-    cwd_backup = os.getcwd()    # save the current working directory
-
-    # descend into the NMRPipe comparison fixture directory
-    script_dir, script_fname = os.path.split(os.path.realpath(__file__))
-    os.chdir(os.path.join(script_dir, '..', 'fixtures', 'process', 'pipe_proc_tests'))
-
     # execute the scripts and compare the files
-    exec(open(glue_script).read())
-    os.system(pipe_script)
+    with open(glue_script) as source:
+        exec(compile(source.read(), glue_script, 'exec'))
+    subprocess.run([pipe_script], check=True)
 
     for glue_file, pipe_file in zip(glue_files, pipe_files):
 
@@ -35,8 +49,6 @@ def _perform_test(glue_script, pipe_script, glue_files, pipe_files,
         assert r1 is True
         assert r2 is True
 
-    # return to the backup-ed directory.
-    os.chdir(cwd_backup)
     return
 
 
