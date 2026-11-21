@@ -24,7 +24,7 @@ def base(data, nl, nw=0):
         Array of 1D or 2D NMR data.
     nl : list
         List of baseline nodes.
-    nw : float, optional
+    nw : int, optional
         Node half-width in points.
 
     Returns
@@ -53,8 +53,9 @@ def calc_bl_linear(x, nl, nw=0):
         One-dimensional NMR data.
     nl : list
         List of baseline nodes
-    nw : float
-        Node half-width in points
+    nw : int
+        Node half-width in points. Averaging windows are clipped to the
+        available samples at either edge.
 
     Returns
     -------
@@ -65,12 +66,12 @@ def calc_bl_linear(x, nl, nw=0):
     bl = np.zeros_like(x)
     for i in range(len(nl) - 1):
         # minimum and maximum index
-        min = nl[i]
-        max = nl[i + 1]
+        start = nl[i]
+        stop = nl[i + 1]
         # linspace s1 and s2
-        s1 = x[min - nw:min + nw + 1].mean()
-        s2 = x[max - nw:max + nw + 1].mean()
-        bl[min:max + 1] = np.linspace(s1, s2, max - min + 1)
+        s1 = x[max(0, start - nw):min(x.size, start + nw + 1)].mean()
+        s2 = x[max(0, stop - nw):min(x.size, stop + nw + 1)].mean()
+        bl[start:stop + 1] = np.linspace(s1, s2, stop - start + 1)
     return bl
 
 

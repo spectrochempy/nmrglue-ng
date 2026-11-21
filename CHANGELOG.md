@@ -12,6 +12,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 - Restore the boxcar solvent filter using SciPy's window namespace. (#271)
 
+- Clip linear-baseline node averaging windows to available samples at trace
+  boundaries, preventing empty slices and NaN baselines. (#272)
+
 - Recompute the noise median after every rejection step in distribution-based
   baseline estimation, handling zero noise and invalid estimates explicitly. (#267)
 
