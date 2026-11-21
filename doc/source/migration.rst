@@ -20,6 +20,16 @@ When comparing results with an older environment, record both package
 versions. Use the checks below for workflows you rely on, and consult the
 :doc:`release notes <whats-new>` for all changes between those versions.
 
+* Development builds with the distribution-baseline pipeline fix interpret
+  ``wd`` as a positive integer half-width: up to ``2*wd+1`` centered samples.
+  Signal segments use both locally averaged boundaries and the final smoother
+  is a clipped mean, following the non-diffusion-edited published routine.
+  Earlier results used misaligned windows and different interpolation and
+  smoothing; recompute affected corrections and derived integrals. Flat and
+  short spectra now work. Invalid, masked or wholly signal-classified inputs
+  raise ``ValueError``. Broad weak peaks can still be removed as background;
+  inspect the estimated baseline before quantitative use.
+
 * Development builds with the JMOD sine-phase fix rotate complex data by
   -90 degrees when the effective modulation offset is zero, matching NMRPipe.
   Re-run affected JMOD processing and downstream spectra; nonzero offsets

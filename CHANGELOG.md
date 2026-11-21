@@ -7,6 +7,10 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Restore distribution-based baseline correction with point-aligned centered
+  noise windows, interpolation between both segment boundaries and mean
+  smoothing. Handle flat/short traces and reject invalid or unsupported input. (#284)
+
 - Match NMRPipe JMOD zero-offset sine modulation by applying its -90 degree
   phase rotation to complex data, including partial-window exterior samples. (#281)
 
