@@ -20,6 +20,12 @@ When comparing results with an older environment, record both package
 versions. Use the checks below for workflows you rely on, and consult the
 :doc:`release notes <whats-new>` for all changes between those versions.
 
+* Development builds with the integration-window fix clip converted bounds
+  to the available data instead of interpreting negative indices from the
+  end of the spectrum. Uncertainty counts the actual selected bins. Recompute
+  integrals and uncertainties whose limits exceeded the data domain; empty
+  noise windows now raise an error rather than returning NaN estimates.
+
 * Development builds with the linear-baseline edge fix use the available
   samples when a node's averaging window reaches a trace boundary. Re-run
   baselines and derived integrals if earlier edge windows produced NaN values.

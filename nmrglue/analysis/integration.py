@@ -1,6 +1,11 @@
 import numpy as np
 
 
+def _index_limits(unit_conv, bounds, unit, size):
+    low, high = sorted((unit_conv(bounds[0], unit), unit_conv(bounds[1], unit)))
+    return max(0, min(size, low)), max(0, min(size, high))
+
+
 def integrate(data, unit_conv, limits, unit='ppm', noise_limits=None,
               norm_to_range=None, calibrate=1.0):
     r"""
@@ -26,7 +31,7 @@ def integrate(data, unit_conv, limits, unit='ppm', noise_limits=None,
     Where:
 
     .. math::
-        n =  \frac{|b-a|}{dx}+1
+        n = N_{\mathrm{selected}}
 
     sigma is the standard deviation of the baseline noise. n is the number
     of bins in the integration range. The bin width dx is in ppm, so the error
@@ -41,6 +46,7 @@ def integrate(data, unit_conv, limits, unit='ppm', noise_limits=None,
     limits: array like
         With shape (2,) or (P, 2). Array with lower and upper integration
         limit. Or array with P rows of lower and upper integration limits.
+        Converted index windows are half-open and clipped to available data.
     noise_limits: Optional[array like]
         With shape(2, ). Array with lower and upper limits to section of data
         with only noise. A larger range will likely yield a more accurate
@@ -71,8 +77,7 @@ def integrate(data, unit_conv, limits, unit='ppm', noise_limits=None,
     limits = np.array(limits)
     if limits.size == 2:
         limits = np.expand_dims(limits, axis=0)
-    inds = [(unit_conv(x0, unit), unit_conv(x1, unit)) for (x0, x1) in limits]
-    inds = np.array([sorted(ind) for ind in inds])
+    inds = np.array([_index_limits(unit_conv, bounds, unit, len(data)) for bounds in limits])
 
     # sum part of the integral
     sum_slice = np.array([np.sum(data[slice(*ind)]) for ind in inds])
@@ -93,9 +98,9 @@ def integrate(data, unit_conv, limits, unit='ppm', noise_limits=None,
     if noise_limits is not None:
 
         # determine the standard deviation of the noise
-        noise_inds = (unit_conv(noise_limits[0], unit),
-                      unit_conv(noise_limits[1], unit))
-        noise_inds = sorted(noise_inds)
+        noise_inds = _index_limits(unit_conv, noise_limits, unit, len(data))
+        if noise_inds[0] == noise_inds[1]:
+            raise ValueError("noise window is empty after clipping to the data")
 
         # the error (from noise) is  std * dx * limits range
         std = np.std(data[slice(*noise_inds)])
@@ -139,6 +144,7 @@ def ndintegrate(data, unit_conv, limits, unit='ppm', noise_limits=None):
         With shape (2,) or (d, 2). 1D Array with lower and upper integration
         limits for 1D . Or array with d rows of lower and upper integration
         limits for each dimension.
+        Converted index windows are half-open and clipped to available data.
     noise_limits: Optional[array like]
         With shape(2, ). Array with lower and upper limits to section of data
         with only noise. A larger range will likely yield a more accurate
@@ -177,9 +183,8 @@ def ndintegrate(data, unit_conv, limits, unit='ppm', noise_limits=None):
         mesg = 'A lower and upper limit is needed for each dimension.'
         raise ValueError(mesg)
 
-    inds = [(uc(x[0], unit), uc(x[1], unit))
-            for (uc, x) in zip(unit_conv, limits)]
-    inds = [sorted(x) for x in inds]
+    inds = [_index_limits(uc, bounds, unit, size)
+            for uc, bounds, size in zip(unit_conv, limits, data.shape[::-1])]
 
     # the integrate_nd needs to be scaled by the bin width in ppm
     ppm_scales = [x.ppm_scale() for x in unit_conv]
@@ -202,14 +207,16 @@ def ndintegrate(data, unit_conv, limits, unit='ppm', noise_limits=None):
             mesg = 'If given, a noise limit is needed for each dimension.'
             raise ValueError(mesg)
 
-        noise_inds = [(uc(x[0], unit), uc(x[1], unit))
-                      for (uc, x) in zip(unit_conv, noise_limits)]
-        noise_inds = [sorted(x) for x in noise_inds]
+        noise_inds = [_index_limits(uc, bounds, unit, size)
+                      for uc, bounds, size in zip(unit_conv, noise_limits, data.shape[::-1])]
 
         # see docstring of integrate
         nm = signal.size
         noise_slices = tuple(slice(*ind) for ind in np.flipud(noise_inds))
-        std = np.std(data[noise_slices])
+        noise_region = data[noise_slices]
+        if noise_region.size == 0:
+            raise ValueError("noise window is empty after clipping to the data")
+        std = np.std(noise_region)
 
         error = std * np.sqrt(nm) * dx
         return np.hstack((value, error))
