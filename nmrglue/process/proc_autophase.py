@@ -304,6 +304,9 @@ def autops(data, fn, p0=0.0, p1=0.0, return_phases=False, peak_width=100, **kwar
     if not callable(fn):
         if fn == 'acme' and np.ndim(data) != 1:
             raise ValueError("acme requires a 1D spectrum")
+        if fn == 'acme' and (len(data) < 2 or not np.isfinite(data).all()
+                             or not np.any(data[1:] != data[:-1])):
+            raise ValueError("acme requires finite samples with variation")
         if fn == 'peak_minima':
             if peak_width < 1:
                 raise ValueError("peak_width must be positive")
