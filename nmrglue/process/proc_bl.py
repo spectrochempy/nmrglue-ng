@@ -10,6 +10,7 @@ import scipy.signal
 from scipy.interpolate import InterpolatedUnivariateSpline
 from itertools import groupby
 from operator import itemgetter
+from numbers import Real
 
 
 # Linear (First order) baseline correction
@@ -84,7 +85,8 @@ def cbf(data, last=10, apply=slice(None)):
         Array of 1D or 2D NMR data.
     last : float, optional
         Percent (0 - 100) of last axis used to calculate the baseline
-        correction.
+        correction. The historical selection includes one trailing sample
+        beyond the truncated percentage, up to the full trace length.
     apply : slice, optional
         Slice describing first-axis region(s) to which the baseline correction
         should be applied.  Parameter is ignored for 1D data.
@@ -96,8 +98,13 @@ def cbf(data, last=10, apply=slice(None)):
 
     """
     # calculate the correction
-    n = data.shape[-1] * last // 100 + 1
-    corr = data[..., -n:].sum(axis=-1) / n
+    if not isinstance(last, Real) or not np.isfinite(last) or not 0 <= last <= 100:
+        raise ValueError("last must be a finite percentage between 0 and 100")
+    size = data.shape[-1]
+    if size == 0:
+        raise ValueError("cannot estimate baseline from an empty trace")
+    n = min(size, int(size * last // 100) + 1)
+    corr = data[..., -n:].mean(axis=-1)
 
     # apply correction
     if data.ndim == 2:

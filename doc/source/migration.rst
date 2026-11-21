@@ -20,6 +20,12 @@ When comparing results with an older environment, record both package
 versions. Use the checks below for workflows you rely on, and consult the
 :doc:`release notes <whats-new>` for all changes between those versions.
 
+* Development builds with the constant-baseline fix use the actual selected
+  sample count at ``cbf(last=100)``. Recompute affected baselines and derived
+  integrals if the previous residual offset mattered. Intermediate percentages
+  retain their historical sample selection, including one trailing sample at
+  zero percent. Empty traces and percentages outside 0--100 are rejected.
+
 * Development builds with the NUS validation fix reject repeated or out-of-grid
   increments, inconsistent trace counts and invalid acquisition or quadrature
   permutations. Check earlier expansions for overwritten or misplaced FIDs.
