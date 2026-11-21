@@ -151,38 +151,36 @@ def _generate_3d_data(dataset):
     return data
 
 
-def _test_1d(dataset, algorithm, msep=None, rtol=1):
+def _assert_peak_locations(peaks, expected, ndim):
+    names = ['A', 'Z', 'Y', 'X'][-ndim:]
+    observed = sorted(zip(*(peaks[name + '_AXIS'] for name in names)))
+    expected = sorted((position,) for position in expected) if ndim == 1 else sorted(expected)
+    np.testing.assert_array_equal(observed, expected)
+
+
+def _test_1d(dataset, algorithm, msep=None):
     """test 1d peak picking"""
 
     data = _generate_1d_data(**dataset)
     peaks = ng.peakpick.pick(data, pthres=50, algorithm=algorithm, msep=msep)
-    assert np.allclose(peaks.X_AXIS, dataset["positions"], rtol=1)
+    _assert_peak_locations(peaks, dataset["positions"], 1)
 
 
-def _test_2d(dataset, algorithm, msep=None, rtol=1):
+def _test_2d(dataset, algorithm, msep=None):
     """test 2d peak picking"""
 
     data = _generate_2d_data(dataset)
     peaks = ng.peakpick.pick(data, pthres=50, algorithm=algorithm, msep=msep)
-    assert np.allclose(peaks.X_AXIS, [i[1] for i in dataset["positions"]], rtol=1)
-    assert np.allclose(peaks.Y_AXIS, [i[0] for i in dataset["positions"]], rtol=1)
+    _assert_peak_locations(peaks, dataset["positions"], 2)
 
 
-def _test_3d(dataset, algorithm, msep=None, rtol=1):
+def _test_3d(dataset, algorithm, msep=None):
     """test 3d peak picking"""
 
     data = _generate_3d_data(dataset)
     peaks = ng.peakpick.pick(data, pthres=50, algorithm=algorithm, msep=msep)
 
-    assert np.allclose(
-        sorted(peaks.X_AXIS), sorted([i[2] for i in dataset["positions"]]), rtol=rtol
-    )
-    assert np.allclose(
-        sorted(peaks.Y_AXIS), sorted([i[1] for i in dataset["positions"]]), rtol=rtol
-    )
-    assert np.allclose(
-        sorted(peaks.Z_AXIS), sorted([i[0] for i in dataset["positions"]]), rtol=rtol
-    )
+    _assert_peak_locations(peaks, dataset["positions"], 3)
 
 
 @pytest.mark.fast
