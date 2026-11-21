@@ -14,7 +14,7 @@ original nmrglue project and are preserved for attribution and continuity.
   of returning meaningless initial phases after invalid score divisions. (#274)
 
 - Clip integration and noise windows to available data, using the actual
-  selected bins for uncertainty estimates and rejecting empty noise windows.
+  selected bins for uncertainty estimates and rejecting empty noise windows. (#275)
 
 - Restore multidimensional window iteration on Python 3 and use integer slice
   bounds for partial windows while retaining even-window centering. (#270)
