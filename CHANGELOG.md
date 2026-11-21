@@ -10,6 +10,9 @@ original nmrglue project and are preserved for attribution and continuity.
 - Match NMRPipe JMOD zero-offset sine modulation by applying its -90 degree
   phase rotation to complex data, including partial-window exterior samples. (#281)
 
+- Preserve the explicit HT zero-fill choice in ordinary automatic mode,
+  matching NMRPipe instead of always padding non-power-of-two inputs.
+
 - Build one positive-threshold segment per peak in the slow detector instead
   of passing the complete peak list to the single-segment helper. (#280)
 
