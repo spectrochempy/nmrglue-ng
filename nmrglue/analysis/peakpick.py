@@ -463,7 +463,7 @@ def find_all_nthres(data, thres, msep, find_segs=False):
         if min == data[idx] and min < thres:
             locations.append(idx)
     if find_segs:
-        seg_slices = find_pseg_slice(data, locations, thres)
+        seg_slices = [find_nseg_slice(data, location, thres) for location in locations]
         return locations, seg_slices
     else:
         return locations
@@ -509,7 +509,7 @@ def find_all_nthres_fast(data, thres, msep, find_segs=False):
     locations = [tuple(i) for i in locations]
 
     if find_segs:
-        seg_slices = [find_pseg_slice(data, l, thres) for l in locations]
+        seg_slices = [find_nseg_slice(data, l, thres) for l in locations]
         return locations, seg_slices
     else:
         return locations

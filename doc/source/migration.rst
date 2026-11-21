@@ -25,6 +25,12 @@ versions. Use the checks below for workflows you rely on, and consult the
   affected noise thresholds and downstream baselines when comparing results.
   This fix does not qualify the complete baseline interpolation algorithm.
 
+* Development builds with the negative-threshold segmentation fix estimate
+  negative peak widths and signed volumes from samples below the threshold.
+  Re-run affected threshold peak picking; these paths previously selected
+  empty or incorrect segments. This does not qualify the separate legacy
+  slow-window iterator implementation.
+
 * Development builds with the constant-baseline fix use the actual selected
   sample count at ``cbf(last=100)``. Recompute affected baselines and derived
   integrals if the previous residual offset mattered. Intermediate percentages
