@@ -180,6 +180,15 @@ def pick(data, pthres, nthres=None, msep=None, algorithm='connected',
 
     # combine the positive and negative peaks
     locations = ploc + nloc
+    if table and not locations:
+        names = axis_names[-ndim:]
+        dtype = [(f'{name}_AXIS', float) for name in names]
+        if cluster:
+            dtype.append(('cID', int))
+        if est_params:
+            dtype.extend((f'{name}_LW', float) for name in names)
+            dtype.append(('VOL', float))
+        return np.empty(0, dtype=dtype).view(np.recarray)
 
     #########################################################
     # return locations if no parameter estimation requested #
