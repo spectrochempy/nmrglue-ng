@@ -10,6 +10,8 @@ original nmrglue project and are preserved for attribution and continuity.
 - Restore multidimensional window iteration on Python 3 and use integer slice
   bounds for partial windows while retaining even-window centering. (#270)
 
+- Restore the boxcar solvent filter using SciPy's window namespace.
+
 - Recompute the noise median after every rejection step in distribution-based
   baseline estimation, handling zero noise and invalid estimates explicitly. (#267)
 
