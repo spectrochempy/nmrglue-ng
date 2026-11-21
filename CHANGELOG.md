@@ -11,7 +11,7 @@ original nmrglue project and are preserved for attribution and continuity.
   `full_output` or `retall` are requested. (#273)
 
 - Reject nonfinite or constant spectra before ACME automatic phasing instead
-  of returning meaningless initial phases after invalid score divisions.
+  of returning meaningless initial phases after invalid score divisions. (#274)
 
 - Restore multidimensional window iteration on Python 3 and use integer slice
   bounds for partial windows while retaining even-window centering. (#270)
