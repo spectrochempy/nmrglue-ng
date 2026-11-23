@@ -36,6 +36,7 @@ from .jcampdx import (
     normalize_jcampdx_1d, normalize_jcampdx_fid, read_jcampdx_1d, read_jcampdx_fid,
     normalize_jcampdx_2d, read_jcampdx_2d,
 )
+from .jcampdx_fid_2d import normalize_jcampdx_fid_2d, read_jcampdx_fid_2d
 from .jeol import normalize_jeol_2d, normalize_jeol_fid, read_jeol_2d_storage, read_jeol_fid
 from .simpson import (
     normalize_simpson_fid, normalize_simpson_fid_2d, normalize_simpson_spectrum,
@@ -79,6 +80,7 @@ _NORMALIZERS: dict[str, Callable[..., NormalizedAcquisition]] = {
     "bruker-pdata": normalize_bruker_pdata,
     "bruker-pdata-2d": normalize_bruker_pdata_2d,
     "jcampdx-fid-1d": normalize_jcampdx_fid,
+    "jcampdx-fid-2d": normalize_jcampdx_fid_2d,
     "jcampdx-spectrum-1d": normalize_jcampdx_1d,
     "jcampdx-spectrum-2d": normalize_jcampdx_2d,
     "jeol-fid-1d": normalize_jeol_fid,
@@ -149,6 +151,8 @@ __all__ = [
     "normalize_jcampdx_2d",
     "read_jcampdx_fid",
     "normalize_jcampdx_fid",
+    "normalize_jcampdx_fid_2d",
+    "read_jcampdx_fid_2d",
     "normalize_jcampdx_1d",
     "read_jeol_2d_storage",
     "normalize_jeol_fid",

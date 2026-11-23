@@ -113,6 +113,10 @@ when no normalizer is registered.
      - Explicit
      - Complex 1D NTUPLES FID
      - Explicit ``conjugation``
+   * - ``jcampdx-fid-2d``
+     - Explicit
+     - Regular complex T1/T2 NTUPLES pages
+     - Declared non-phase-sensitive scheme, explicit ``quadrature="qf"`` and ``conjugation``
    * - ``jcampdx-spectrum-1d``
      - Explicit
      - Regular real 1D XYDATA spectrum
@@ -199,6 +203,7 @@ Read raw acquisitions
     read_simpson_fid
     read_simpson_fid_2d
     read_jcampdx_fid
+    read_jcampdx_fid_2d
 
 Read processed spectra and exchange files
 -----------------------------------------
@@ -250,6 +255,7 @@ to access the submodule, import the specific functions you need from
     normalize_jcampdx_1d
     normalize_jcampdx_2d
     normalize_jcampdx_fid
+    normalize_jcampdx_fid_2d
     normalize_nmrml_2d
     normalize_nmrml_raw_2d
 

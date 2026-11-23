@@ -11,6 +11,7 @@ from ..fileio import pipe
 from .bruker import read_bruker_fid, read_bruker_pdata, read_bruker_ser
 from .bruker_pdata_2d import _COMPONENTS, read_bruker_pdata_2d, read_bruker_pdata_2d_storage
 from .jcampdx import read_jcampdx_1d, read_jcampdx_2d, read_jcampdx_fid
+from .jcampdx_fid_2d import read_jcampdx_fid_2d
 from .jeol import read_jeol_2d_storage, read_jeol_fid
 from .nmrml import read_nmrml_1d, read_nmrml_2d, read_nmrml_raw_2d
 from .nmrpipe_read import read_nmrpipe_1d, read_nmrpipe_2d, read_nmrpipe_2d_storage
@@ -34,6 +35,7 @@ _READERS: dict[str, Callable[..., ReadResult]] = {
     "bruker-ser": read_bruker_ser,
     "bruker-ser-storage": read_bruker_ser_storage,
     "jcampdx-fid-1d": read_jcampdx_fid,
+    "jcampdx-fid-2d": read_jcampdx_fid_2d,
     "jcampdx-spectrum-1d": read_jcampdx_1d,
     "jcampdx-spectrum-2d": read_jcampdx_2d,
     "jeol-2d-storage": read_jeol_2d_storage,

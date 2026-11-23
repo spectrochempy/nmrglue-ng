@@ -1,6 +1,27 @@
 Coming from nmrglue?
 ====================
 
+What changes beyond installation
+--------------------------------
+
+nmrglue-ng continues the original project and preserves its history and
+attribution. Alongside maintenance and additional readers, it corrects
+defects in the original I/O, processing and analysis code. Keeping the same
+``import nmrglue`` does not mean every numerical result stays unchanged.
+
+For example, fixes address JCAMP endpoint coordinates and nD FID detection,
+JEOL dimension order, Bruker low-memory trace addressing and float64 values,
+integration uncertainty scaling, and several NMRPipe transform conventions.
+Structured interop results additionally expose axes, components, acquisition
+domains and applied normalization explicitly. These profiles have bounded
+coverage; decoding a format does not automatically qualify its complete
+processing workflow.
+
+Use the :doc:`release notes <whats-new>` to check availability in your installed
+version. Items below marked as development changes are not claims about an
+earlier release. Record your previous environment and compare the workflows
+that matter to you against known data before replacing it.
+
 Install in a separate environment
 ---------------------------------
 
@@ -210,3 +231,22 @@ processed Bruker/TopSpin 1D data. The
 the API available in the latest release. The :doc:`interop guide
 <tutorials/interop>` and :ref:`interop-profile-table` on this site describe
 the API for this documentation version.
+
+Raw JCAMP-DX and two-dimensional processing
+-------------------------------------------
+
+The legacy reader's ``show_all_data=True`` returns all decoded R/I pages;
+``guess_udic()`` still describes only the direct dimension. This is useful
+for inspecting storage, but does not establish indirect quadrature.
+
+Development builds provide the explicit ``jcampdx-fid-2d`` interop profile
+for regular ``T1,T2,R,I`` NTUPLES with one real/imaginary pair per increment.
+Normalization requires both a declared non-phase-sensitive acquisition
+scheme and caller confirmation ``quadrature="qf"``, plus an explicit
+complex-sign choice. The output can use the SpectroChemPy NMR plugin's
+existing QF processing path; no experiment-name inference is needed.
+
+This profile retains time-domain samples and axes. It applies no digital
+filter correction, FFT, phasing or chemical-shift reference. Echo/anti-echo,
+States and States-TPPI FID normalization are outside its current scope.
+Changing the JCAMP compression does not change that physical scope.
