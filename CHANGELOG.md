@@ -7,6 +7,10 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Accept an explicit physical indirect dwell for QF JCAMP-DX FID normalization,
+  retaining declared-grid provenance and unchanged sample values. Default QF
+  normalization still uses the declared T1 grid. (#292)
+
 - Calibrate both Hz axes of processed real 2D JCAMP-DX spectra to ppm using
   explicit per-axis MHz frequencies and point anchors. Preserve intensities,
   sample order and reference provenance; leave default declared axes unchanged. (#291)

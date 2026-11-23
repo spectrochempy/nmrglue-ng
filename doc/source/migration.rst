@@ -323,3 +323,14 @@ this option the declared coordinates are preserved. No F1 reference is
 inferred from direct-dimension SHIFT REFERENCE or repeated vendor fields.
 This option concerns already processed real spectra; it does not calibrate
 a Fourier transform of raw 2D FIDs.
+
+Explicit physical dwell for QF JCAMP FIDs
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Development builds optionally accept ``indirect_dwell_s`` for QF
+normalization. Supply it only from known acquisition provenance when the
+declared T1 grid is not the physical evolution step. Without the option,
+QF retains the declared grid. The input read result and sample values are
+unchanged; normalization records both declared and caller-supplied dwell,
+its source, and an unscaled time-coordinate operation. No vendor field is
+selected automatically. Adjacent-pair confirmation remains invalid for QF.
