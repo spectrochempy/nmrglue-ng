@@ -290,3 +290,36 @@ not inferred. Retain native 2ri/2ir/2ii separately when their information is
 needed. These frequency-domain data are not raw FIDs and must not receive
 another Fourier transform. Reimporting a previously rejected file is sufficient;
 existing supported layouts keep their behavior.
+
+Explicit ppm calibration of processed 2D spectra
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Development builds accept ``axis_reference`` in ``normalize`` for
+``jcampdx-spectrum-2d`` when both declared axes are in Hz. Supply both axes:
+
+.. code-block:: python
+
+   referenced = ng.interop.normalize(result, axis_reference={
+       "F1": {"reference_frequency_mhz": 100.0, "point_index": 0,
+              "ppm": 12.0, "source": "processing"},
+       "F2": {"reference_frequency_mhz": 400.0, "point_index": 0,
+              "ppm": 10.0, "source": "processing"},
+   })
+
+Here ``point_index`` is zero-based and identifies a known point in each
+axis. The conversion is ``ppm[j] = ppm_anchor + (Hz[j] - Hz_anchor) / MHz``.
+These illustrative numbers must be replaced with the experiment's references.
+For a full native Bruker processed grid, use ``proc2s`` for F1 and ``procs``
+for F2: ``SF`` supplies MHz and ``OFFSET`` supplies the ppm at index zero.
+The resulting native grid is ``OFFSET - j * SW_p / (SF * SI)``; the bin width
+uses ``SI``, not ``SI - 1``. Acquisition ``SFO1`` can differ from processing
+``SF`` and is not substituted automatically.
+
+Data values and sample order are unchanged. Reference provenance is retained
+in the normalized acquisition and its operations. ``source`` defaults to
+``unknown``; it can also be ``processing`` or ``acquisition``. Missing axes,
+invalid or nonfinite references, and already ppm axes are rejected. Without
+this option the declared coordinates are preserved. No F1 reference is
+inferred from direct-dimension SHIFT REFERENCE or repeated vendor fields.
+This option concerns already processed real spectra; it does not calibrate
+a Fourier transform of raw 2D FIDs.

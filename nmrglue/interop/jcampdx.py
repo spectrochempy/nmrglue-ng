@@ -1,6 +1,8 @@
 """Interoperability for JCAMP-DX NMR data."""
 
+from collections.abc import Mapping
 from decimal import Decimal
+from numbers import Integral, Real
 import math
 import os
 import re
@@ -567,8 +569,69 @@ def read_jcampdx_2d(filename):
     )
 
 
-def normalize_jcampdx_2d(result):
-    """Validate the JCAMP-DX real plane and preserve its axes and intensities."""
+def _reference_2d_axes(axes, references):
+    if not isinstance(references, Mapping) or set(references) != {"F1", "F2"}:
+        raise ValueError("axis_reference requires explicit F1 and F2 mappings")
+    calibrated, records, operations = [], {}, []
+    required = {"reference_frequency_mhz", "point_index", "ppm"}
+    for axis in axes:
+        spec = references[axis.label]
+        if axis.unit != "Hz":
+            raise ValueError("axis_reference requires two Hz axes")
+        if not isinstance(spec, Mapping) or not required <= set(spec) or set(spec) - required - {"source"}:
+            raise ValueError("axis_reference requires frequency, point_index and ppm fields")
+        numbers = []
+        for key in ("reference_frequency_mhz", "ppm"):
+            value = spec[key]
+            if isinstance(value, (bool, np.bool_)) or not isinstance(value, Real):
+                raise ValueError(f"axis_reference {key} must be a finite real number")
+            try:
+                value = float(value)
+            except (OverflowError, ValueError) as exc:
+                raise ValueError(f"axis_reference {key} must be finite") from exc
+            if not math.isfinite(value):
+                raise ValueError(f"axis_reference {key} must be finite")
+            numbers.append(value)
+        frequency, ppm = numbers
+        index, source = spec["point_index"], spec.get("source", "unknown")
+        if frequency <= 0 or isinstance(index, (bool, np.bool_)) or not isinstance(index, Integral):
+            raise ValueError("axis_reference requires positive MHz and an integer point_index")
+        if not 0 <= index < len(axis.values) or source not in ("processing", "acquisition", "unknown"):
+            raise ValueError("axis_reference point_index or source is invalid")
+        anchor = float(axis.values[index])
+        with np.errstate(over="ignore", invalid="ignore", divide="ignore"):
+            values = ppm + (axis.values - anchor) / frequency
+            steps = np.diff(values)
+        if not np.isfinite(values).all() or not (np.all(steps > 0) or np.all(steps < 0)):
+            raise ValueError("axis_reference must produce finite strictly monotonic ppm coordinates")
+        record = dict(reference_frequency_mhz=frequency, point_index=int(index), ppm=ppm,
+                      source=source, input_anchor_hz=anchor)
+        records[axis.label] = record
+        calibrated.append(Axis(
+            label=axis.label, values=values, unit="ppm",
+            domain=axis.domain, direction=axis.direction,
+            reference=Reference(observation_frequency=frequency, observation_frequency_unit="MHz",
+                                offset=float(values[0]), offset_unit="ppm", source=source),
+        ))
+        operation = _unscaled_normalization_operation(
+            name="reference-jcampdx-axis", stage="processing",
+            input_dimensions=("F1", "F2"), output_dimensions=("F1", "F2"),
+            axis=axis.label, conjugation="none", evidence="explicit caller point anchor and MHz reference",
+        )
+        operation["coordinate_reference"] = dict(record)
+        operations.append(operation)
+    return tuple(calibrated), records, tuple(operations)
+
+
+def normalize_jcampdx_2d(result, *, axis_reference=None):
+    """Validate a real plane, optionally calibrating both Hz axes to ppm.
+
+    ``axis_reference`` maps F1 and F2 to ``reference_frequency_mhz``, a
+    zero-based ``point_index``, its ``ppm`` value and optional reference
+    ``source`` (processing, acquisition or unknown). The reference frequency
+    need not equal the acquisition observation frequency. Intensities and
+    sample order are preserved. Without this option, declared axes survive.
+    """
     if not isinstance(result, ReadResult) or result.format != "jcampdx-spectrum-2d":
         raise ValueError("normalize_jcampdx_2d requires a jcampdx-spectrum-2d ReadResult")
     f1, f2_endpoints, units, shape, factors, _ = _profile_2d_geometry(result.metadata)
@@ -597,10 +660,16 @@ def normalize_jcampdx_2d(result):
         axis=None, conjugation="none",
         evidence="JCAMP-DX PAGE coordinates and F2 endpoints",
     )
+    reference_records, reference_operations = {}, ()
+    profile = "jcampdx-spectrum-2d-v1"
+    if axis_reference is not None:
+        axes, reference_records, reference_operations = _reference_2d_axes(axes, axis_reference)
+        profile = "jcampdx-spectrum-2d-ppm-v1"
     return NormalizedAcquisition(
         data=result.data, axes=axes, dimensions=dimensions, physical_dimensions=dimensions,
         domains=domains, quadrature_mode="real-2d", branch_order=("real",),
-        normalization_state="storage-normalized", normalization_profile="jcampdx-spectrum-2d-v1",
-        applied_operations=(operation,), provenance={"source": result.source, "format": result.format},
-        acquisition={}, metadata=result.metadata, encoding=encoding, diagnostics=result.diagnostics,
+        normalization_state="storage-normalized", normalization_profile=profile,
+        applied_operations=(operation,) + reference_operations, provenance={"source": result.source, "format": result.format},
+        acquisition=({"axis_reference": reference_records} if reference_records else {}),
+        metadata=result.metadata, encoding=encoding, diagnostics=result.diagnostics,
     )

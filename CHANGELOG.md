@@ -7,6 +7,10 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Calibrate both Hz axes of processed real 2D JCAMP-DX spectra to ppm using
+  explicit per-axis MHz frequencies and point anchors. Preserve intensities,
+  sample order and reference provenance; leave default declared axes unchanged.
+
 - Normalize declared JCAMP-DX States and States-TPPI DQD FIDs into four
   stored component planes with explicit pair confirmation, physical indirect
   dwell and conjugation. Retain TPPI alternation for separate processing. (#289)
