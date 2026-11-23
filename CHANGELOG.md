@@ -10,7 +10,7 @@ original nmrglue project and are preserved for attribution and continuity.
 - Add the explicit `jcampdx-fid-2d` interop profile for regular T1/T2 R/I
   pages and bounded QF normalization. Require the declared acquisition
   scheme, explicit QF confirmation and complex-sign choice; leave echo/anti-echo
-  and other phase-sensitive normalization outside this profile.
+  and other phase-sensitive normalization outside this profile. (#286)
 
 - Read `nD NMR FID` NTUPLES blocks as real/imaginary pages with
   `show_all_data=True`. Recognize their direct dimension as time-domain in
