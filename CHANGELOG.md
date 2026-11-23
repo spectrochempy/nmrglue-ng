@@ -10,7 +10,7 @@ original nmrglue project and are preserved for attribution and continuity.
 - Document native experimental TPPI JCAMP decoding checks against two public
   CC0 Bruker NOESY acquisitions and TopSpin 4.5.0 exports. Distinguish exact
   raw/stored-spectrum parity from unapplied filtering, phase and native QSEQ
-  qualifications.
+  qualifications. (#295)
 
 - Normalize declared JCAMP-DX TPPI and QSEQ DQD FIDs with an explicit physical
   indirect dwell and conjugation. Record QSEQ sign alternation and retain the
