@@ -169,33 +169,33 @@ def normalize_jcampdx_fid_2d(
     result, *, quadrature, conjugation,
     confirm_adjacent_pairs=False, indirect_dwell_s=None,
 ):
-    """Confirm QF or adjacent echo/anti-echo storage without processing.
+    """Confirm QF or adjacent phase-sensitive pairs without processing.
 
     Parameters
     ----------
     result : ReadResult
         Result from :func:`read_jcampdx_fid_2d`.
-    quadrature : {"qf", "echo-antiecho"}
+    quadrature : {"qf", "echo-antiecho", "states", "states-tppi"}
         Explicit confirmation of one complex direct trace per indirect
         increment. The declared acquisition scheme must also be not phase
-        sensitive. Echo/anti-echo requires the matching declared scheme,
+        sensitive. Paired modes require the matching declared scheme,
         simultaneous DQD acquisition, confirmed adjacent pairs and a caller
         supplied physical indirect dwell.
     conjugation : {"none", "conjugate"}
         Retain or conjugate the stored complex samples. The caller must
         establish the appropriate sign convention for the acquisition.
     confirm_adjacent_pairs : bool, optional
-        Must be True for echo/anti-echo. The first and second stored traces
+        Must be True for phase-sensitive pairs. The first and second stored traces
         of each pair become the two complex channels, without reconstruction.
     indirect_dwell_s : float, optional
-        Physical time between echo/anti-echo pairs, in seconds, established
+        Physical time between phase-sensitive pairs, in seconds, established
         from acquisition provenance. The stored T1 row grid does not establish
         this physical dwell. Neither pair option is accepted for QF.
 
     Returns
     -------
     normalized : NormalizedAcquisition
-        Real/imaginary QF planes or two complex echo/anti-echo channels with
+        QF planes, four States-family planes or two complex echo/anti-echo channels with
         calibrated time grids. No FFT, digital-filter correction,
         phasing, windowing or chemical-shift referencing is applied. A
         nonnegative Bruker GRPDLY, when present, is retained as an unapplied
@@ -209,19 +209,20 @@ def normalize_jcampdx_fid_2d(
             raise ValueError("JCAMP-DX FID 2D normalization requires declared QF (not phase sensitive)")
         if confirm_adjacent_pairs is not False or indirect_dwell_s is not None:
             raise ValueError("JCAMP-DX QF does not accept echo/anti-echo pair options")
-    elif quadrature == "echo-antiecho":
-        if re.sub(r"[-/]", "", scheme) != "ECHOANTIECHO":
-            raise ValueError("JCAMP-DX requires declared echo/anti-echo")
+    elif quadrature in ("echo-antiecho", "states", "states-tppi"):
+        declared = {"echo-antiecho": "ECHOANTIECHO", "states": "STATES", "states-tppi": "STATESTPPI"}
+        if re.sub(r"[-/]", "", scheme) != declared[quadrature]:
+            raise ValueError(f"JCAMP-DX requires declared {quadrature}")
         if "".join(_label(result.metadata, ".ACQUISITIONMODE").upper().split()) != "SIMULTANEOUS(DQD)":
-            raise ValueError("JCAMP-DX echo/anti-echo requires direct simultaneous DQD")
+            raise ValueError("JCAMP-DX paired FID requires direct simultaneous DQD")
         if confirm_adjacent_pairs is not True:
-            raise ValueError("JCAMP-DX echo/anti-echo requires confirm_adjacent_pairs=True")
+            raise ValueError("JCAMP-DX paired FID requires confirm_adjacent_pairs=True")
         if (isinstance(indirect_dwell_s, (bool, np.bool_))
                 or not isinstance(indirect_dwell_s, Real)
                 or not np.isfinite(indirect_dwell_s) or indirect_dwell_s <= 0):
             raise ValueError("JCAMP-DX requires a finite positive indirect_dwell_s")
     else:
-        raise ValueError("JCAMP-DX supports only QF or confirmed echo/anti-echo normalization")
+        raise ValueError("JCAMP-DX supports only QF or confirmed echo/anti-echo, States or States-TPPI normalization")
     if conjugation not in ("none", "conjugate"):
         raise ValueError("JCAMP-DX FID 2D requires explicit conjugation='none' or 'conjugate'")
     shape, last, factors, steps = _geometry(result.metadata)
@@ -236,8 +237,8 @@ def normalize_jcampdx_fid_2d(
             or result.applied_corrections != {"real_factor": factors[2], "imaginary_factor": factors[3]}):
         raise ValueError("JCAMP-DX FID 2D description disagrees with its samples")
     data = data.conj() if conjugation == "conjugate" else data
-    if quadrature == "echo-antiecho":
-        return _normalize_echo_antiecho(result, data, axes, steps, conjugation, indirect_dwell_s)
+    if quadrature != "qf":
+        return _normalize_paired_fid(result, data, axes, steps, conjugation, indirect_dwell_s, quadrature)
     operation = _unscaled_normalization_operation(
         name="normalize-jcampdx-fid-2d", stage="acquisition", input_dimensions=("F1", "F2"),
         output_dimensions=("channels", "F1", "F2"), axis="F2", conjugation=conjugation,
@@ -257,34 +258,39 @@ def normalize_jcampdx_fid_2d(
     )
 
 
-def _normalize_echo_antiecho(result, data, axes, steps, conjugation, dwell):
+def _normalize_paired_fid(result, data, axes, steps, conjugation, dwell, quadrature):
     if data.shape[0] < 4 or data.shape[0] % 2:
-        raise ValueError("JCAMP-DX echo/anti-echo requires at least two complete adjacent pairs")
+        raise ValueError("JCAMP-DX paired FID requires at least two complete adjacent pairs")
     dwell = float(dwell)
     with np.errstate(over="ignore", divide="ignore", invalid="ignore"):
         grid = np.arange(data.shape[0] // 2, dtype=float) * dwell
         width = np.float64(1) / dwell
     if (not np.isfinite(width) or width <= 0 or not np.isfinite(grid).all()
             or not np.all(grid[1:] > grid[:-1])):
-        raise ValueError("JCAMP-DX echo/anti-echo requires representable physical time grids")
+        raise ValueError("JCAMP-DX paired FID requires representable physical time grids")
     axes = (Axis(values=grid, unit="s", label="F1", domain="time", direction="increasing"), axes[1])
     operation = _unscaled_normalization_operation(
-        name="pair-jcampdx-echo-antiecho-traces", stage="acquisition",
+        name=f"pair-jcampdx-{quadrature}-traces", stage="acquisition",
         input_dimensions=("F1", "F2"), output_dimensions=("channels", "F1", "F2"),
         axis="F1", conjugation=conjugation,
-        evidence="declared echo/anti-echo DQD, caller-confirmed adjacent pairs and physical dwell",
+        evidence=f"declared {quadrature} DQD, caller-confirmed adjacent pairs and physical dwell",
     )
+    echo_antiecho = quadrature == "echo-antiecho"
+    components = (np.stack((data[::2], data[1::2])) if echo_antiecho else
+                  np.stack((data[::2].real, data[::2].imag, data[1::2].real, data[1::2].imag)))
     return NormalizedAcquisition(
-        data=np.stack((data[::2], data[1::2])), axes=axes,
+        data=components, axes=axes,
         dimensions=("channels", "F1", "F2"), physical_dimensions=("F1", "F2"),
-        domains=("time", "time"), encoding=("echo-antiecho", "complex"),
-        quadrature_mode="echo-antiecho-stored-2d", branch_order=("first", "second"), channel_axis=0,
-        normalization_state="storage-normalized", normalization_profile="jcampdx-fid-echo-antiecho-2d-v1",
+        domains=("time", "time"), encoding=("echo-antiecho", "complex") if echo_antiecho else ("complex", "complex"),
+        quadrature_mode="echo-antiecho-stored-2d" if echo_antiecho else "stored-components-2d",
+        branch_order=("first", "second") if echo_antiecho else ("rr", "ri", "ir", "ii"), channel_axis=0,
+        normalization_state="storage-normalized", normalization_profile=f"jcampdx-fid-{quadrature}-2d-v1",
         applied_operations=(operation,), provenance={"source": result.source, "format": result.format},
         acquisition={"spectral_width_hz": (float(width), 1 / steps[1]),
-                     "dwell_time_s": (dwell, steps[1]), "indirect_sampling": "echo-antiecho",
+                     "dwell_time_s": (dwell, steps[1]), "indirect_sampling": quadrature,
                      "indirect_dwell_s": dwell, "indirect_dwell_source": "caller",
                      "branch_order": "stored", "reconstruction": "not_applied",
+                     **({"tppi_alternation": "declared_not_applied"} if quadrature == "states-tppi" else {}),
                      "digital_filter": _digital_filter(result.metadata)},
         metadata=result.metadata, diagnostics=result.diagnostics,
     )

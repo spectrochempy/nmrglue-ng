@@ -116,7 +116,7 @@ when no normalizer is registered.
    * - ``jcampdx-fid-2d``
      - Explicit
      - Regular complex T1/T2 NTUPLES pages
-     - Declared QF or echo/anti-echo scheme and explicit ``conjugation``; echo/anti-echo also needs ``confirm_adjacent_pairs=True`` and physical ``indirect_dwell_s``
+     - Declared QF, echo/anti-echo, States or States-TPPI scheme and explicit ``conjugation``; paired modes also need ``confirm_adjacent_pairs=True`` and physical ``indirect_dwell_s``
    * - ``jcampdx-spectrum-1d``
      - Explicit
      - Regular real 1D XYDATA spectrum

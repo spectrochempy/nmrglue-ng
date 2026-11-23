@@ -260,5 +260,13 @@ the plugin's common processor. The EPFL HSQC qualification covers four
 TopSpin compression modes, native Bruker parity and signed NMRPipe planes,
 with and without phase-domain digital-filter correction. This does not
 establish absolute phase or chemical-shift references for every acquisition.
-States and States-TPPI remain outside this profile's normalization scope.
+Development builds also accept declared ``quadrature="states"`` or
+``quadrature="states-tppi"`` under the same explicit pair/dwell/DQD conditions.
+They expose four stored planes (rr, ri, ir, ii). States-TPPI alternation is
+recorded as declared but not applied, so processing applies it once. The
+plugin's explicit ``conversion_profile`` must agree with the declared mode.
+Native acquisitions exported by TopSpin in four compression modes reproduce
+their native channels and common FFT results; matrix DFTs and synthetic
+NMRPipe checkpoints qualify the signed components. Reading does not establish
+an absolute experimental phase or chemical-shift reference.
 Changing the JCAMP compression does not change that physical scope.
