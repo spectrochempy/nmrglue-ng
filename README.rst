@@ -24,6 +24,30 @@ Read, write, convert, process, and analyse NMR data in Python. nmrglue-ng is
 an independent continuation of `nmrglue <https://github.com/jjhelmus/nmrglue>`_,
 originally developed by Jonathan J. Helmus and contributors.
 
+What nmrglue-ng adds
+====================
+
+nmrglue-ng maintains the original interfaces and also corrects reader,
+processing and analysis defects that can affect numerical results. It is
+more than a packaging update. Representative changes include:
+
+* Corrected spectral axes and dimension order for JCAMP-DX and JEOL data.
+* Corrected Bruker low-memory trace offsets and preservation of real float64 data.
+* Corrected integration uncertainties, edge windows and peak segmentation.
+* Corrected NMRPipe-compatible transforms, including Hilbert mirror mode,
+  modulation phase and quadrature packing.
+* Additional JCAMP-DX decoding and explicit interop profiles for exchanging
+  samples, physical axes and component conventions with other libraries.
+
+Regression tests cover these changes, with selected workflows additionally
+compared against external datasets and NMR software. Coverage varies by
+format and operation. The `migration guide
+<https://nmrglue-ng.readthedocs.io/latest/migration.html>`_ explains which
+results to recheck; the `release notes
+<https://nmrglue-ng.readthedocs.io/latest/whats-new.html>`_ distinguish released
+fixes from development changes. Existing scripts may produce different,
+corrected values even when their calls stay the same.
+
 Quick start
 ===========
 
