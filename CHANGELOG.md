@@ -7,6 +7,11 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Read `nD NMR FID` NTUPLES blocks as real/imaginary pages with
+  `show_all_data=True`. Recognize their direct dimension as time-domain in
+  `guess_udic()` and derive its spectral width from the sampling interval.
+  This does not normalize indirect quadrature or provide a 2D processing profile.
+
 - Restore distribution-based baseline correction with point-aligned centered
   noise windows, interpolation between both segment boundaries and mean
   smoothing. Handle flat/short traces and reject invalid or unsupported input. (#284)
