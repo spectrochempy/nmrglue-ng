@@ -362,6 +362,11 @@ def _profile_endpoints(block, key, first_page):
     return endpoints, precision
 
 
+def _fractional_serialization_tolerance(value):
+    exponent = Decimal(value).as_tuple().exponent
+    return float(f"5e{exponent - 1}") if exponent < 0 else 0.0
+
+
 def _profile_2d_geometry(block):
     datatype = _label(block, "DATATYPE").upper()
     if (
@@ -424,8 +429,8 @@ def _profile_2d_geometry(block):
         written_endpoints = (block["FIRST"][0].split(",")[0].strip(),
                              block["LAST"][0].split(",")[0].strip())
         f1_tolerances = tuple(
-            float(f"5e{Decimal(page).as_tuple().exponent - 1}")
-            + float(f"5e{Decimal(endpoint).as_tuple().exponent - 1}")
+            _fractional_serialization_tolerance(page)
+            + _fractional_serialization_tolerance(endpoint)
             for page, endpoint in zip((coordinates[0], coordinates[-1]), written_endpoints)
         )
         if not np.isfinite(f1_tolerances).all():

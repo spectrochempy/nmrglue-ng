@@ -50,7 +50,8 @@ def test_topspin_per_page_profile_keeps_physical_axes_and_yfactor(tmp_path):
 
 
 @pytest.mark.parametrize('old,new', [
-    ('3,4,4','3,4,5'), ('FACTOR=2.5,2,-2','FACTOR=0,2,-2'),
+    ('3,4,4','3,4,5'),
+    ('FIRST=10.123456789,','FIRST=10,'), ('LAST=5.123456789,','LAST=5,'), ('FACTOR=2.5,2,-2','FACTOR=0,2,-2'),
     ('FACTOR=2.5,2,-2','FACTOR=2.5,0,-2'), ('FACTOR=2.5,2,-2','FACTOR=2.5,2,0'),
     ('PAGE=F1=10.12345679','PAGE=F1=10.12345680'),
     ('PAGE=F1=5.12345679','PAGE=F1=5.12345680'),
