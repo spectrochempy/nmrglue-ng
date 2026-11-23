@@ -9,7 +9,7 @@ original nmrglue project and are preserved for attribution and continuity.
 
 - Normalize declared JCAMP-DX States and States-TPPI DQD FIDs into four
   stored component planes with explicit pair confirmation, physical indirect
-  dwell and conjugation. Retain TPPI alternation for separate processing.
+  dwell and conjugation. Retain TPPI alternation for separate processing. (#289)
 
 - Normalize declared JCAMP-DX echo/anti-echo DQD FIDs into two stored complex
   channels, requiring explicit confirmation of adjacent pairs, physical
