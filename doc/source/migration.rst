@@ -334,3 +334,32 @@ QF retains the declared grid. The input read result and sample values are
 unchanged; normalization records both declared and caller-supplied dwell,
 its source, and an unscaled time-coordinate operation. No vendor field is
 selected automatically. Adjacent-pair confirmation remains invalid for QF.
+
+
+Declared TPPI and QSEQ JCAMP FIDs
+---------------------------------
+
+Development builds accept ``quadrature="tppi"`` or ``"qseq"`` for declared
+real-F1 JCAMP 2D FIDs with direct simultaneous DQD acquisition. Supply
+``indirect_dwell_s`` from independent acquisition provenance and choose
+``conjugation`` explicitly. The exported T1 row interval does not establish
+the physical TPPI/QSEQ dwell; no automatic factor-of-two correction is made.
+Adjacent-pair confirmation is not accepted for these modes.
+
+The result preserves one complex F2 trace per F1 sample in the common
+``tppi-stored-2d`` contract. QSEQ applies its ``++--`` sign alternation before
+processing and records both that operation and the original scheme. TPPI
+samples receive only the requested conjugation. The input read result is
+unchanged. No FFT, phasing, digital-filter correction or ppm reference is
+implicit. Filter delay metadata remains unapplied and can be unknown.
+
+The numerical convention is checked with synthetic matrix DFTs and controlled
+TopSpin processing. This does not establish qualification on an experimental
+Bruker TPPI or QSEQ acquisition. Real acquisitions, absolute experimental
+phase and full vendor processing recipes remain separate qualifications.
+
+The acquisition-mode definitions are documented in the Bruker
+`Acquisition Reference <https://nmrcore.chem.kuleuven.be/media/files/guides/bruker_manuals_4.2.0/acquisition-reference.pdf>`_
+under ``FnMODE``. The Bruker
+`Processing Reference <https://nmr.chem.ucsb.edu/docs/Bruker_NMR_Manuals/processing-reference_v007.pdf>`_
+distinguishes the real F1 transforms used by TPPI and QSEQ.

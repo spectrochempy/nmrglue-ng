@@ -175,12 +175,15 @@ def normalize_jcampdx_fid_2d(
     ----------
     result : ReadResult
         Result from :func:`read_jcampdx_fid_2d`.
-    quadrature : {"qf", "echo-antiecho", "states", "states-tppi"}
+    quadrature : {"qf", "echo-antiecho", "states", "states-tppi", "tppi", "qseq"}
         Explicit confirmation of one complex direct trace per indirect
         increment. The declared acquisition scheme must also be not phase
         sensitive. Paired modes require the matching declared scheme,
         simultaneous DQD acquisition, confirmed adjacent pairs and a caller
         supplied physical indirect dwell.
+        TPPI and QSEQ require their matching declaration, direct DQD and an
+        explicit physical dwell between successive traces. QSEQ applies its
+        ++-- sign pattern to produce the common real-F1 TPPI convention.
     conjugation : {"none", "conjugate"}
         Retain or conjugate the stored complex samples. The caller must
         establish the appropriate sign convention for the acquisition.
@@ -193,12 +196,13 @@ def normalize_jcampdx_fid_2d(
         this physical dwell. For QF, optionally replace the declared T1 step
         with a caller-established physical dwell; adjacent-pair confirmation
         remains invalid. Without this option QF keeps the declared grid.
+        TPPI/QSEQ always require this physical dwell between successive traces.
 
     Returns
     -------
     normalized : NormalizedAcquisition
         QF planes, four States-family planes or two complex echo/anti-echo channels with
-        calibrated time grids. No FFT, digital-filter correction,
+        calibrated time grids, or a real-F1 TPPI matrix. No FFT, digital-filter correction,
         phasing, windowing or chemical-shift referencing is applied. A
         nonnegative Bruker GRPDLY, when present, is retained as an unapplied
         delay in complex direct points; a negative sentinel remains unknown.
@@ -223,8 +227,15 @@ def normalize_jcampdx_fid_2d(
                 or not isinstance(indirect_dwell_s, Real)
                 or not np.isfinite(indirect_dwell_s) or indirect_dwell_s <= 0):
             raise ValueError("JCAMP-DX requires a finite positive indirect_dwell_s")
+    elif quadrature in ("tppi", "qseq"):
+        if scheme != quadrature.upper():
+            raise ValueError(f"JCAMP-DX requires declared {quadrature}")
+        if "".join(_label(result.metadata, ".ACQUISITIONMODE").upper().split()) != "SIMULTANEOUS(DQD)":
+            raise ValueError("JCAMP-DX real F1 requires direct simultaneous DQD")
+        if confirm_adjacent_pairs is not False:
+            raise ValueError("JCAMP-DX real F1 does not accept adjacent-pair confirmation")
     else:
-        raise ValueError("JCAMP-DX supports only QF or confirmed echo/anti-echo, States or States-TPPI normalization")
+        raise ValueError("JCAMP-DX supports only QF, TPPI, QSEQ or confirmed echo/anti-echo, States or States-TPPI normalization")
     if conjugation not in ("none", "conjugate"):
         raise ValueError("JCAMP-DX FID 2D requires explicit conjugation='none' or 'conjugate'")
     shape, last, factors, steps = _geometry(result.metadata)
@@ -239,6 +250,8 @@ def normalize_jcampdx_fid_2d(
             or result.applied_corrections != {"real_factor": factors[2], "imaginary_factor": factors[3]}):
         raise ValueError("JCAMP-DX FID 2D description disagrees with its samples")
     data = data.conj() if conjugation == "conjugate" else data
+    if quadrature in ("tppi", "qseq"):
+        return _normalize_real_f1(result, data, axes, steps, conjugation, indirect_dwell_s, quadrature)
     if quadrature != "qf":
         return _normalize_paired_fid(result, data, axes, steps, conjugation, indirect_dwell_s, quadrature)
     operation = _unscaled_normalization_operation(
@@ -282,6 +295,66 @@ def normalize_jcampdx_fid_2d(
         acquisition={"spectral_width_hz": tuple(1 / step for step in steps),
                      "dwell_time_s": steps, "indirect_sampling": "qf",
                      "digital_filter": _digital_filter(result.metadata), **dwell_record},
+        metadata=result.metadata, diagnostics=result.diagnostics,
+    )
+
+
+def _normalize_real_f1(result, data, axes, steps, conjugation, dwell, quadrature):
+    if isinstance(dwell, (bool, np.bool_)) or not isinstance(dwell, Real):
+        raise ValueError("JCAMP-DX real F1 requires a finite positive indirect_dwell_s")
+    try:
+        dwell = float(dwell)
+    except (ValueError, OverflowError) as exc:
+        raise ValueError("JCAMP-DX real F1 indirect dwell is not representable") from exc
+    with np.errstate(over="ignore", divide="ignore", invalid="ignore"):
+        grid = np.arange(data.shape[0], dtype=float) * dwell
+        width = np.float64(1) / dwell
+    if (not np.isfinite(dwell) or dwell <= 0 or not np.isfinite(width) or width <= 0
+            or not np.isfinite(grid).all() or not np.all(grid[1:] > grid[:-1])):
+        raise ValueError("JCAMP-DX real F1 requires representable physical time grids")
+    work = data.copy()
+    if quadrature == "qseq":
+        work[2::4] *= -1
+        work[3::4] *= -1
+    operation = _unscaled_normalization_operation(
+        name=f"normalize-jcampdx-{quadrature}-traces", stage="acquisition",
+        input_dimensions=("F1", "F2"), output_dimensions=("F1", "F2"),
+        axis="F2", conjugation=conjugation,
+        evidence="declared real F1 scheme, direct DQD and caller-established physical dwell",
+    )
+    operation["time_calibration"] = {
+        "declared_indirect_dwell_s": steps[0], "indirect_dwell_s": dwell,
+        "indirect_dwell_source": "caller",
+    }
+    operations = (operation,)
+    if quadrature == "qseq":
+        alternation = _unscaled_normalization_operation(
+            name="alternate-jcampdx-qseq-pairs", stage="acquisition",
+            input_dimensions=("F1", "F2"), output_dimensions=("F1", "F2"),
+            axis="F1", conjugation="none", evidence="declared QSEQ ++-- convention",
+        )
+        alternation["sign"] = "alternate-pairs"
+        operations += (alternation,)
+    return NormalizedAcquisition(
+        data=work,
+        axes=(Axis(values=grid, unit="s", label="F1", domain="time",
+                   direction="increasing", reference=axes[0].reference), axes[1]),
+        dimensions=("F1", "F2"), physical_dimensions=("F1", "F2"),
+        domains=("time", "time"), encoding=("tppi", "complex"),
+        quadrature_mode="tppi-stored-2d", branch_order=("complex",),
+        normalization_state="storage-normalized",
+        normalization_profile=f"jcampdx-fid-{quadrature}-2d-v1",
+        applied_operations=operations,
+        provenance={"source": result.source, "format": result.format},
+        acquisition={"spectral_widths_hz": (float(width), 1 / steps[1]),
+                     "spectral_width_hz": (float(width), 1 / steps[1]),
+                     "dwell_time_s": (dwell, steps[1]),
+                     "physical_indirect_increments": data.shape[0],
+                     "indirect_sampling": quadrature,
+                     "declared_indirect_dwell_s": steps[0],
+                     "indirect_dwell_s": dwell, "indirect_dwell_source": "caller",
+                     "qseq_alternation": "applied" if quadrature == "qseq" else "not_applicable",
+                     "digital_filter": _digital_filter(result.metadata)},
         metadata=result.metadata, diagnostics=result.diagnostics,
     )
 
