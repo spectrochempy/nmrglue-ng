@@ -7,6 +7,8 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+## 1.4.0 - 2026-11-23
+
 - Add the explicit `jcampdx-fid-2d` interop profile for regular T1/T2 R/I
   pages and bounded QF normalization. Require the declared acquisition
   scheme, explicit QF confirmation and complex-sign choice; leave echo/anti-echo
@@ -15,7 +17,7 @@ original nmrglue project and are preserved for attribution and continuity.
 - Read `nD NMR FID` NTUPLES blocks as real/imaginary pages with
   `show_all_data=True`. Recognize their direct dimension as time-domain in
   `guess_udic()` and derive its spectral width from the sampling interval.
-  This does not normalize indirect quadrature or provide a 2D processing profile. (#285)
+  The legacy universal dictionary still describes only the direct dimension. (#285)
 
 - Restore distribution-based baseline correction with point-aligned centered
   noise windows, interpolation between both segment boundaries and mean
