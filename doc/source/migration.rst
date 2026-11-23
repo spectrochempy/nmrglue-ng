@@ -107,6 +107,13 @@ versions. Use the checks below for workflows you rely on, and consult the
   made with automatic scaling. This normalization sets an arbitrary intensity
   scale; it does not infer or update ``NC_proc`` for absolute calibration.
 
+* Development builds with the nD JCAMP-DX FID recognition fix return pages
+  for ``DATA TYPE=nD NMR FID`` instead of reporting no data. For these FIDs,
+  ``guess_udic()`` now identifies the direct dimension as time-domain and
+  computes its spectral width as ``(size - 1) / (LAST - FIRST)`` in seconds.
+  Recompute direct-axis metadata previously inferred as frequency-domain.
+  This does not qualify indirect quadrature or multidimensional processing.
+
 * Since nmrglue-ng 1.0.0, axes reconstructed from descending processed
   JCAMP-DX spectra preserve the declared first and last coordinates.
 * Since nmrglue-ng 1.1.1, integration noise estimates use the same bin width

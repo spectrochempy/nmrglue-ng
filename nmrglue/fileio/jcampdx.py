@@ -1,7 +1,7 @@
 """
 Functions for reading JCAMP-DX files.
 
-The interface is oriented towards 1D data. Multidimensional NTUPLES spectra
+The interface is oriented towards 1D data. Multidimensional NTUPLES spectra and FIDs
 can be read, as the set of 1D pages they are stored as, but guess_udic
 describes their direct dimension only.
 """
@@ -22,7 +22,7 @@ http://www.jcamp-dx.org/protocols.html
 
 Notes:
     * Writing NMR data in JCAMP-DX format is not currently supported.
-    * Multidimensional NTUPLES spectra are read as sets of 1D pages;
+    * Multidimensional NTUPLES spectra and FIDs are read as sets of 1D pages;
       guess_udic describes the direct dimension only.
 """
 
@@ -929,7 +929,7 @@ def read(filename, show_all_data=False, read_err=None, as_complex=False):
     # to an nD spectrum, and either spectrum to a peak table.
     data = None
     correctdic = None
-    for datatype in ("NMRSPECTRUM", "NMRFID", "NA", "NDNMRSPECTRUM", "NMRPEAKTABLE"):
+    for datatype in ("NMRSPECTRUM", "NMRFID", "NA", "NDNMRSPECTRUM", "NDNMRFID", "NMRPEAKTABLE"):
         for subdic in dic.get("_datatype_" + datatype, []):
             data = getdataarray(subdic, show_all_data)
             if data is not None:
@@ -1174,7 +1174,7 @@ def guess_udic(dic, data):
     is_processed = None
     try:
         datatype = dic["DATATYPE"][0]
-        if datatype.strip().upper().replace(" ", "") == "NMRFID":
+        if datatype.strip().upper().replace(" ", "") in ("NMRFID", "NDNMRFID"):
             is_processed = False
         else:
             is_processed = True
@@ -1183,7 +1183,7 @@ def guess_udic(dic, data):
     if is_processed is None:
         try:
             ntuples = dic["NTUPLES"][0]
-            if ntuples.strip().upper().replace(" ", "") == "NMRFID":
+            if ntuples.strip().upper().replace(" ", "") in ("NMRFID", "NDNMRFID"):
                 is_processed = False
             else:
                 is_processed = True

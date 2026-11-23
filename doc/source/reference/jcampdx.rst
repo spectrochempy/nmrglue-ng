@@ -23,10 +23,15 @@ User Functions
 Format notes
 ------------
 
-For a multidimensional NTUPLES spectrum, pass ``show_all_data=True`` to
+For a multidimensional NTUPLES spectrum or FID, pass ``show_all_data=True`` to
 ``read()`` to retrieve all one-dimensional pages. The default returns
 only the first array for each available component. ``guess_udic()``
-describes only the direct dimension. Writing JCAMP-DX is unsupported.
+describes only the direct dimension. For ``nD NMR FID`` data, it marks this
+dimension as time-domain and computes the spectral width from the time
+endpoints and the number of samples in a page. The returned pages preserve
+storage order; decoding does not establish indirect quadrature, reshape
+hypercomplex components, apply digital-filter corrections or reference
+chemical shifts. Writing JCAMP-DX is unsupported.
 
 See :doc:`../contribute/readers` for format specifications and validation
 guidance.
