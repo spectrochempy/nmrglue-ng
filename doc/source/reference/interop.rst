@@ -266,3 +266,6 @@ Export an acquisition
     :toctree: generated/
 
     write_readresult_nmrpipe
+
+For explicit two-axis ppm calibration of processed JCAMP spectra, see
+:doc:`/migration`.
