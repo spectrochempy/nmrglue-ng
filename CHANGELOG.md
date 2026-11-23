@@ -9,7 +9,7 @@ original nmrglue project and are preserved for attribution and continuity.
 
 - Normalize declared JCAMP-DX TPPI and QSEQ DQD FIDs with an explicit physical
   indirect dwell and conjugation. Record QSEQ sign alternation and retain the
-  declared sampling grid and unapplied filter metadata.
+  declared sampling grid and unapplied filter metadata. (#294)
 
 ## 1.5.0 - 2026-11-23
 
