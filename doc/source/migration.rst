@@ -354,9 +354,27 @@ unchanged. No FFT, phasing, digital-filter correction or ppm reference is
 implicit. Filter delay metadata remains unapplied and can be unknown.
 
 The numerical convention is checked with synthetic matrix DFTs and controlled
-TopSpin processing. This does not establish qualification on an experimental
-Bruker TPPI or QSEQ acquisition. Real acquisitions, absolute experimental
-phase and full vendor processing recipes remain separate qualifications.
+TopSpin processing. Experimental TPPI decoding is additionally checked on the
+CC0 `Young lab dataset
+<https://github.com/the-young-lab/2025-indole-azo-sterics/tree/73af741bff1059a2a8491254a5f765644b985952>`_,
+under ``Data for SI/1H and 2D NOESY NMR``: ``OMe-PAI-H cis NOESY`` and
+``OMe-PAI-H trans NOESY/1``. Both declare ``acqu2s.FnMODE=3`` and direct
+``acqus.AQ_mod=3``; neither is States-TPPI. Their complete SER/acqus/acqu2s
+folders are public, with 256 by 1024 complex samples and ``GRPDLY=76``.
+
+TopSpin 4.5.0 exports in FIX, PACKED, SQUEEZED and DIFF/DUP reproduce the
+native complex samples exactly through ``read(..., profile="jcampdx-fid-2d")``.
+Processed real 2D exports reproduce the stored TopSpin RR plane exactly through
+``profile="jcampdx-spectrum-2d"``. This is stored-value parity, not automatic
+``NC_proc`` or NS/RG intensity normalization. On copied acquisitions, an
+uncorrected four-plane FFT is separately qualified in the `plugin workflow
+<https://www.spectrochempy.fr/projects/nmr/latest/reference/interop.html#public-experimental-tppi-qualification>`_.
+Its physical dwell is supplied from native TPPI metadata, not inferred by the
+normalizer. The filter descriptor retains its unapplied 76-point delay.
+
+Native indirect-QSEQ acquisitions, absolute experimental phase, filter
+correction and full TPPI/QSEQ vendor processing recipes remain unqualified.
+The automatic native Bruker TPPI/QSEQ processing guards are unchanged.
 
 The acquisition-mode definitions are documented in the Bruker
 `Acquisition Reference <https://nmrcore.chem.kuleuven.be/media/files/guides/bruker_manuals_4.2.0/acquisition-reference.pdf>`_
