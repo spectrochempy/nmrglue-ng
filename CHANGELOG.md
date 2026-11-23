@@ -11,6 +11,11 @@ original nmrglue project and are preserved for attribution and continuity.
   stored component planes with explicit pair confirmation, physical indirect
   dwell and conjugation. Retain TPPI alternation for separate processing. (#289)
 
+- Read real 2D JCAMP-DX spectra whose dependent VAR_DIM is specified per
+  page, including native TopSpin exports with positive coordinate factors.
+  Preserve physical PAGE coordinates and declared YFACTOR scaling; do not
+  infer vendor intensity normalization or missing imaginary components. (#290)
+
 - Normalize declared JCAMP-DX echo/anti-echo DQD FIDs into two stored complex
   channels, requiring explicit confirmation of adjacent pairs, physical
   indirect dwell and complex-sign choice. Preserve the unapplied digital

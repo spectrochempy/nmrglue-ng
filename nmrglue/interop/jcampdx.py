@@ -362,6 +362,11 @@ def _profile_endpoints(block, key, first_page):
     return endpoints, precision
 
 
+def _fractional_serialization_tolerance(value):
+    exponent = Decimal(value).as_tuple().exponent
+    return float(f"5e{exponent - 1}") if exponent < 0 else 0.0
+
+
 def _profile_2d_geometry(block):
     datatype = _label(block, "DATATYPE").upper()
     if (
@@ -378,12 +383,16 @@ def _profile_2d_geometry(block):
         raise ValueError("JCAMP-DX 2D VAR_TYPE disagrees with F1/F2/Y symbols")
     sizes = _profile_numbers(_profile_columns(_label(block, "VARDIM"), "VAR_DIM"), "VAR_DIM")
     ny, nx, total = sizes
-    if min(nx, ny) < 2 or not nx.is_integer() or not ny.is_integer() or total != ny * nx:
+    per_page = total == nx
+    if min(nx, ny) < 2 or not nx.is_integer() or not ny.is_integer() or total not in (nx, ny * nx):
         raise ValueError("JCAMP-DX 2D VAR_DIM must describe a complete real plane")
     factors = _profile_numbers(_profile_columns(_label(block, "FACTOR"), "FACTOR"), "FACTOR")
     truncated = datatype == "NDNMRSPECTRUM" and factors[0] < 0 and factors[1] < 0
-    if factors[2] == 0 or (not truncated and (factors[0] != 1 or factors[1] <= 0)):
-        raise ValueError("JCAMP-DX 2D requires unity F1 FACTOR and valid F2/Y factors")
+    if factors[2] == 0 or (
+        (per_page and (factors[0] <= 0 or factors[1] <= 0))
+        or (not per_page and not truncated and (factors[0] != 1 or factors[1] <= 0))
+    ):
+        raise ValueError("JCAMP-DX 2D requires valid coordinate and intensity factors")
     units = tuple({"HZ": "Hz", "PPM": "ppm"}.get(value.upper())
                   for value in _profile_columns(_label(block, "UNITS"), "UNITS")[:2])
     if None in units:
@@ -399,7 +408,7 @@ def _profile_2d_geometry(block):
     npoints_positions = [index for index, key in enumerate(records) if key == "NPOINTS"]
     npoints_values = _profile_numbers(block.get("NPOINTS", ()), "NPOINTS")
     if len(npoints_positions) != len(npoints_values) or any(
-        value != (total if index < first_page else nx)
+        value != (ny * nx if index < first_page else nx)
         for index, value in zip(npoints_positions, npoints_values)
     ):
         raise ValueError("JCAMP-DX 2D NPOINTS disagrees with VAR_DIM")
@@ -415,8 +424,19 @@ def _profile_2d_geometry(block):
             raise ValueError("JCAMP-DX 2D requires an F1 coordinate on every PAGE")
         coordinates.append(match[1])
     f1 = np.array(_profile_numbers(coordinates, "PAGE"))
-    f1_tolerance = 2e-11 if truncated else 0
-    if max(abs(f1[0] - first[0]), abs(f1[-1] - last[0])) > f1_tolerance:
+    f1_tolerances = (2e-11 if truncated else 0,) * 2
+    if per_page:
+        written_endpoints = (block["FIRST"][0].split(",")[0].strip(),
+                             block["LAST"][0].split(",")[0].strip())
+        f1_tolerances = tuple(
+            _fractional_serialization_tolerance(page)
+            + _fractional_serialization_tolerance(endpoint)
+            for page, endpoint in zip((coordinates[0], coordinates[-1]), written_endpoints)
+        )
+        if not np.isfinite(f1_tolerances).all():
+            raise ValueError("JCAMP-DX 2D F1 endpoint precision is outside float range")
+    if any(abs(page - endpoint) > tolerance + (max(abs(first[0]), abs(last[0])) * 2e-15 if per_page else 0)
+           for page, endpoint, tolerance in zip((f1[0], f1[-1]), (first[0], last[0]), f1_tolerances)):
         raise ValueError("JCAMP-DX 2D PAGE endpoints disagree with FIRST/LAST")
     # Endpoints can themselves be rounded before line anchors are quantized.
     tolerances = tuple(float(f"5e{precision - 1}") for precision in (first_f2, last_f2))
@@ -473,7 +493,10 @@ def read_jcampdx_2d(filename):
     Compact NDNMRSPECTRUM exports with negative F1 and F2 factors use
     physical F1 PAGE coordinates and F2 line anchors truncated toward zero.
     A 2e-11 tolerance in the declared F1 unit covers endpoint serialization
-    differences observed in these exports.
+    differences observed in these exports. Per-page VAR_DIM=(ny,nx,nx)
+    exports accept positive coordinate factors and physical PAGE coordinates;
+    their F1 endpoint agreement uses the written decimal precision. YFACTOR
+    is applied, but vendor NC_proc or scan/gain scaling is not inferred.
     """
     blocks = jcampdx.read_blocks(filename, _record_order=True)
     spectra = [block for block in blocks
