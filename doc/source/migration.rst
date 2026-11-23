@@ -239,7 +239,7 @@ The legacy reader's ``show_all_data=True`` returns all decoded R/I pages;
 ``guess_udic()`` still describes only the direct dimension. This is useful
 for inspecting storage, but does not establish indirect quadrature.
 
-Development builds provide the explicit ``jcampdx-fid-2d`` interop profile
+nmrglue-ng 1.4.0 introduced the explicit ``jcampdx-fid-2d`` interop profile
 for regular ``T1,T2,R,I`` NTUPLES with one real/imaginary pair per increment.
 Normalization requires both a declared non-phase-sensitive acquisition
 scheme and caller confirmation ``quadrature="qf"``, plus an explicit
@@ -247,6 +247,18 @@ complex-sign choice. The output can use the SpectroChemPy NMR plugin's
 existing QF processing path; no experiment-name inference is needed.
 
 This profile retains time-domain samples and axes. It applies no digital
-filter correction, FFT, phasing or chemical-shift reference. Echo/anti-echo,
-States and States-TPPI FID normalization are outside its current scope.
+filter correction, FFT, phasing or chemical-shift reference.
+
+Development builds additionally normalize declared echo/anti-echo with
+simultaneous DQD acquisition. Choose ``quadrature="echo-antiecho"``, confirm
+``confirm_adjacent_pairs=True`` and supply ``indirect_dwell_s`` from validated
+acquisition provenance. The stored T1 row grid alone does not establish the
+time between physical pairs. Normalization preserves the first and second
+complex traces as two channels; reconstruction belongs to processing.
+Any recorded group delay remains unapplied and can be used explicitly by
+the plugin's common processor. The EPFL HSQC qualification covers four
+TopSpin compression modes, native Bruker parity and signed NMRPipe planes,
+with and without phase-domain digital-filter correction. This does not
+establish absolute phase or chemical-shift references for every acquisition.
+States and States-TPPI remain outside this profile's normalization scope.
 Changing the JCAMP compression does not change that physical scope.
