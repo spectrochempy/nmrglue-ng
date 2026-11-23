@@ -190,7 +190,9 @@ def normalize_jcampdx_fid_2d(
     indirect_dwell_s : float, optional
         Physical time between phase-sensitive pairs, in seconds, established
         from acquisition provenance. The stored T1 row grid does not establish
-        this physical dwell. Neither pair option is accepted for QF.
+        this physical dwell. For QF, optionally replace the declared T1 step
+        with a caller-established physical dwell; adjacent-pair confirmation
+        remains invalid. Without this option QF keeps the declared grid.
 
     Returns
     -------
@@ -207,8 +209,8 @@ def normalize_jcampdx_fid_2d(
     if quadrature == "qf":
         if scheme != "NOTPHASESENSITIVE":
             raise ValueError("JCAMP-DX FID 2D normalization requires declared QF (not phase sensitive)")
-        if confirm_adjacent_pairs is not False or indirect_dwell_s is not None:
-            raise ValueError("JCAMP-DX QF does not accept echo/anti-echo pair options")
+        if confirm_adjacent_pairs is not False:
+            raise ValueError("JCAMP-DX QF does not accept adjacent-pair confirmation")
     elif quadrature in ("echo-antiecho", "states", "states-tppi"):
         declared = {"echo-antiecho": "ECHOANTIECHO", "states": "STATES", "states-tppi": "STATESTPPI"}
         if re.sub(r"[-/]", "", scheme) != declared[quadrature]:
@@ -244,16 +246,42 @@ def normalize_jcampdx_fid_2d(
         output_dimensions=("channels", "F1", "F2"), axis="F2", conjugation=conjugation,
         evidence="NTUPLES T1/T2 grids, declared non-phase-sensitive scheme and explicit QF confirmation",
     )
+    dwell_record, operations = {}, (operation,)
+    if indirect_dwell_s is not None:
+        if isinstance(indirect_dwell_s, (bool, np.bool_)) or not isinstance(indirect_dwell_s, Real):
+            raise ValueError("JCAMP-DX QF requires a finite positive indirect_dwell_s")
+        try:
+            dwell = float(indirect_dwell_s)
+        except (ValueError, OverflowError) as exc:
+            raise ValueError("JCAMP-DX QF indirect dwell is not representable") from exc
+        with np.errstate(over="ignore", divide="ignore", invalid="ignore"):
+            grid = np.arange(shape[0], dtype=float) * dwell
+            width = np.float64(1) / dwell
+        if (not np.isfinite(dwell) or dwell <= 0 or not np.isfinite(width) or width <= 0
+                or not np.isfinite(grid).all() or not np.all(grid[1:] > grid[:-1])):
+            raise ValueError("JCAMP-DX QF requires representable physical time grids")
+        dwell_record = {"declared_indirect_dwell_s": steps[0],
+                        "indirect_dwell_s": dwell, "indirect_dwell_source": "caller"}
+        steps = (dwell, steps[1])
+        axes = (Axis(values=grid, unit="s", label="F1", domain="time",
+                     direction="increasing", reference=axes[0].reference), axes[1])
+        correction = _unscaled_normalization_operation(
+            name="calibrate-jcampdx-qf-dwell", stage="acquisition",
+            input_dimensions=("channels", "F1", "F2"), output_dimensions=("channels", "F1", "F2"),
+            axis="F1", conjugation="none", evidence="caller-established physical indirect dwell",
+        )
+        correction["time_calibration"] = dict(dwell_record)
+        operations += (correction,)
     return NormalizedAcquisition(
         data=np.stack((data.real, data.imag)), axes=axes,
         dimensions=("channels", "F1", "F2"), physical_dimensions=("F1", "F2"),
         domains=("time", "time"), encoding=("real", "complex"),
         quadrature_mode="stored-components-2d", branch_order=("rr", "ri"), channel_axis=0,
         normalization_state="storage-normalized", normalization_profile="jcampdx-fid-qf-2d-v1",
-        applied_operations=(operation,), provenance={"source": result.source, "format": result.format},
+        applied_operations=operations, provenance={"source": result.source, "format": result.format},
         acquisition={"spectral_width_hz": tuple(1 / step for step in steps),
                      "dwell_time_s": steps, "indirect_sampling": "qf",
-                     "digital_filter": _digital_filter(result.metadata)},
+                     "digital_filter": _digital_filter(result.metadata), **dwell_record},
         metadata=result.metadata, diagnostics=result.diagnostics,
     )
 

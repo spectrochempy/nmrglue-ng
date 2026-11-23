@@ -115,3 +115,28 @@ def test_normalization_options_must_be_explicit_and_supported(tmp_path, options)
     read = interop.read(path, profile="jcampdx-fid-2d")
     with pytest.raises(ValueError):
         interop.normalize(read, **options)
+
+
+
+def test_explicit_qf_dwell_preserves_declared_input_and_samples(tmp_path):
+    path = tmp_path / "fid.dx"
+    path.write_text(FID)
+    raw = interop.read(path, profile="jcampdx-fid-2d")
+    default = interop.normalize(raw, quadrature="qf", conjugation="none")
+    result = interop.normalize(raw, quadrature="qf", conjugation="none", indirect_dwell_s=.003)
+    np.testing.assert_array_equal(result.data, default.data)
+    np.testing.assert_array_equal(raw.axes[0].values, [0,.002])
+    np.testing.assert_array_equal(result.axes[0].values, [0,.003])
+    assert result.acquisition["dwell_time_s"] == (.003,.001)
+    assert result.acquisition["indirect_dwell_source"] == "caller"
+    assert result.acquisition["declared_indirect_dwell_s"] == .002
+    assert result.applied_operations[-1]["scale"] is None
+
+
+@pytest.mark.parametrize("dwell", [True, False, "0.003", 0, -1, np.nan, np.inf, 1e-320, 10**1000])
+def test_invalid_qf_dwell_is_rejected(tmp_path, dwell):
+    path = tmp_path / "fid.dx"
+    path.write_text(FID)
+    with pytest.raises(ValueError):
+        interop.normalize(interop.read(path, profile="jcampdx-fid-2d"),
+                          quadrature="qf", conjugation="none", indirect_dwell_s=dwell)
