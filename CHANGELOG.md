@@ -11,6 +11,11 @@ original nmrglue project and are preserved for attribution and continuity.
   stored component planes with explicit pair confirmation, physical indirect
   dwell and conjugation. Retain TPPI alternation for separate processing. (#289)
 
+- Read real 2D JCAMP-DX spectra whose dependent VAR_DIM is specified per
+  page, including native TopSpin exports with positive coordinate factors.
+  Preserve physical PAGE coordinates and declared YFACTOR scaling; do not
+  infer vendor intensity normalization or missing imaginary components.
+
 - Normalize declared JCAMP-DX echo/anti-echo DQD FIDs into two stored complex
   channels, requiring explicit confirmation of adjacent pairs, physical
   indirect dwell and complex-sign choice. Preserve the unapplied digital
@@ -439,7 +444,7 @@ original nmrglue project and are preserved for attribution and continuity.
 ## Historical nmrglue changelog
 
 0.12 (2026-08-16)
-=================
+==========
 * Bruker to csdm conversion returns the correct dimension units (#227)
 * When reading bruker files both utf-8 and cp1252 encodings are tried (#239)
 * Correctly read Bruker data  in floating point format (#249)
@@ -454,7 +459,7 @@ original nmrglue project and are preserved for attribution and continuity.
 
 
 0.11 (2024-10-29)
-=================
+==========
 
 * Add support for Python 3.12, drop support for Python 3.7 (#208)
 * Bruker vd list can be read (#212, #213)
@@ -464,7 +469,7 @@ original nmrglue project and are preserved for attribution and continuity.
 
 
 0.10 (2023-11-14)
-=================
+==========
 
 * Remove use of deprecated np.float compatibility with NumPy 1.24+ (#193)
 * Remove use of deprecated np.prod function (#207)
@@ -479,7 +484,7 @@ original nmrglue project and are preserved for attribution and continuity.
 
 
 0.9 (2022-04-20)
-================
+=========
 
 FileIO
 ------
@@ -514,7 +519,7 @@ Misc
 * Drop Python 2.7 support (#131)
 
 0.8 (2020-10-29)
-================
+=========
 
 File IO
 -------

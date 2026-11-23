@@ -270,3 +270,23 @@ their native channels and common FFT results; matrix DFTs and synthetic
 NMRPipe checkpoints qualify the signed components. Reading does not establish
 an absolute experimental phase or chemical-shift reference.
 Changing the JCAMP compression does not change that physical scope.
+
+
+Real 2D JCAMP-DX spectra exported by TopSpin
+--------------------------------------------
+
+Development builds of ``jcampdx-spectrum-2d`` additionally accept
+``VAR_DIM=(ny,nx,nx)`` exports: the dependent dimension describes one page.
+Positive coordinate factors are accepted for this layout. F1 PAGE values
+are physical coordinates and are not multiplied by F1 FACTOR; endpoint
+agreement accounts for their written decimal precision. F2 remains the
+declared FIRST/LAST grid, checked against all line anchors.
+
+Only the exported real plane is returned. In the qualified TopSpin 4.5.0
+examples, even RSPEC+ISPEC exports contain F1,F2,Y with no imaginary pages.
+The real values reproduce unscaled native ``2rr`` counts. YFACTOR is applied,
+but vendor ``NC_proc``, scan/gain scaling and chemical-shift references are
+not inferred. Retain native 2ri/2ir/2ii separately when their information is
+needed. These frequency-domain data are not raw FIDs and must not receive
+another Fourier transform. Reimporting a previously rejected file is sufficient;
+existing supported layouts keep their behavior.

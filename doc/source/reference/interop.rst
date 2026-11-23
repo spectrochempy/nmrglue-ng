@@ -123,7 +123,7 @@ when no normalizer is registered.
      - Yes
    * - ``jcampdx-spectrum-2d``
      - Explicit
-     - Real 2D NTUPLES spectrum
+     - Real 2D NTUPLES spectrum; complete-plane or per-page dependent VAR_DIM
      - Yes
    * - ``jeol-2d-storage``
      - Automatic
