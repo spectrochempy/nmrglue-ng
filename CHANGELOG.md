@@ -7,6 +7,11 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Normalize declared JCAMP-DX echo/anti-echo DQD FIDs into two stored complex
+  channels, requiring explicit confirmation of adjacent pairs, physical
+  indirect dwell and complex-sign choice. Preserve the unapplied digital
+  filter delay for separate processing; keep QF behavior unchanged.
+
 ## 1.4.0 - 2026-11-23
 
 - Add the explicit `jcampdx-fid-2d` interop profile for regular T1/T2 R/I

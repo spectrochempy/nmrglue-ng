@@ -2,6 +2,7 @@
 
 import os
 import re
+from numbers import Real
 
 import numpy as np
 
@@ -164,34 +165,63 @@ def read_jcampdx_fid_2d(filename):
     )
 
 
-def normalize_jcampdx_fid_2d(result, *, quadrature, conjugation):
-    """Confirm QF and the stored complex convention without applying processing.
+def normalize_jcampdx_fid_2d(
+    result, *, quadrature, conjugation,
+    confirm_adjacent_pairs=False, indirect_dwell_s=None,
+):
+    """Confirm QF or adjacent echo/anti-echo storage without processing.
 
     Parameters
     ----------
     result : ReadResult
         Result from :func:`read_jcampdx_fid_2d`.
-    quadrature : {"qf"}
+    quadrature : {"qf", "echo-antiecho"}
         Explicit confirmation of one complex direct trace per indirect
         increment. The declared acquisition scheme must also be not phase
-        sensitive. Other indirect modes are not normalized by this profile.
+        sensitive. Echo/anti-echo requires the matching declared scheme,
+        simultaneous DQD acquisition, confirmed adjacent pairs and a caller
+        supplied physical indirect dwell.
     conjugation : {"none", "conjugate"}
         Retain or conjugate the stored complex samples. The caller must
         establish the appropriate sign convention for the acquisition.
+    confirm_adjacent_pairs : bool, optional
+        Must be True for echo/anti-echo. The first and second stored traces
+        of each pair become the two complex channels, without reconstruction.
+    indirect_dwell_s : float, optional
+        Physical time between echo/anti-echo pairs, in seconds, established
+        from acquisition provenance. The stored T1 row grid does not establish
+        this physical dwell. Neither pair option is accepted for QF.
 
     Returns
     -------
     normalized : NormalizedAcquisition
-        Real/imaginary component planes and calibrated time grids for the
-        common QF processing contract. No FFT, digital-filter correction,
+        Real/imaginary QF planes or two complex echo/anti-echo channels with
+        calibrated time grids. No FFT, digital-filter correction,
         phasing, windowing or chemical-shift referencing is applied. A
         nonnegative Bruker GRPDLY, when present, is retained as an unapplied
         delay in complex direct points; a negative sentinel remains unknown.
     """
     if not isinstance(result, ReadResult) or result.format != "jcampdx-fid-2d":
         raise ValueError("requires a jcampdx-fid-2d ReadResult")
-    if quadrature != "qf" or "".join(_label(result.metadata, ".ACQUISITIONSCHEME").upper().split()) != "NOTPHASESENSITIVE":
-        raise ValueError("JCAMP-DX FID 2D normalization currently requires declared QF (not phase sensitive)")
+    scheme = "".join(_label(result.metadata, ".ACQUISITIONSCHEME").upper().split())
+    if quadrature == "qf":
+        if scheme != "NOTPHASESENSITIVE":
+            raise ValueError("JCAMP-DX FID 2D normalization requires declared QF (not phase sensitive)")
+        if confirm_adjacent_pairs is not False or indirect_dwell_s is not None:
+            raise ValueError("JCAMP-DX QF does not accept echo/anti-echo pair options")
+    elif quadrature == "echo-antiecho":
+        if re.sub(r"[-/]", "", scheme) != "ECHOANTIECHO":
+            raise ValueError("JCAMP-DX requires declared echo/anti-echo")
+        if "".join(_label(result.metadata, ".ACQUISITIONMODE").upper().split()) != "SIMULTANEOUS(DQD)":
+            raise ValueError("JCAMP-DX echo/anti-echo requires direct simultaneous DQD")
+        if confirm_adjacent_pairs is not True:
+            raise ValueError("JCAMP-DX echo/anti-echo requires confirm_adjacent_pairs=True")
+        if (isinstance(indirect_dwell_s, (bool, np.bool_))
+                or not isinstance(indirect_dwell_s, Real)
+                or not np.isfinite(indirect_dwell_s) or indirect_dwell_s <= 0):
+            raise ValueError("JCAMP-DX requires a finite positive indirect_dwell_s")
+    else:
+        raise ValueError("JCAMP-DX supports only QF or confirmed echo/anti-echo normalization")
     if conjugation not in ("none", "conjugate"):
         raise ValueError("JCAMP-DX FID 2D requires explicit conjugation='none' or 'conjugate'")
     shape, last, factors, steps = _geometry(result.metadata)
@@ -206,6 +236,8 @@ def normalize_jcampdx_fid_2d(result, *, quadrature, conjugation):
             or result.applied_corrections != {"real_factor": factors[2], "imaginary_factor": factors[3]}):
         raise ValueError("JCAMP-DX FID 2D description disagrees with its samples")
     data = data.conj() if conjugation == "conjugate" else data
+    if quadrature == "echo-antiecho":
+        return _normalize_echo_antiecho(result, data, axes, steps, conjugation, indirect_dwell_s)
     operation = _unscaled_normalization_operation(
         name="normalize-jcampdx-fid-2d", stage="acquisition", input_dimensions=("F1", "F2"),
         output_dimensions=("channels", "F1", "F2"), axis="F2", conjugation=conjugation,
@@ -220,6 +252,39 @@ def normalize_jcampdx_fid_2d(result, *, quadrature, conjugation):
         applied_operations=(operation,), provenance={"source": result.source, "format": result.format},
         acquisition={"spectral_width_hz": tuple(1 / step for step in steps),
                      "dwell_time_s": steps, "indirect_sampling": "qf",
+                     "digital_filter": _digital_filter(result.metadata)},
+        metadata=result.metadata, diagnostics=result.diagnostics,
+    )
+
+
+def _normalize_echo_antiecho(result, data, axes, steps, conjugation, dwell):
+    if data.shape[0] < 4 or data.shape[0] % 2:
+        raise ValueError("JCAMP-DX echo/anti-echo requires at least two complete adjacent pairs")
+    dwell = float(dwell)
+    with np.errstate(over="ignore", divide="ignore", invalid="ignore"):
+        grid = np.arange(data.shape[0] // 2, dtype=float) * dwell
+        width = np.float64(1) / dwell
+    if (not np.isfinite(width) or width <= 0 or not np.isfinite(grid).all()
+            or not np.all(grid[1:] > grid[:-1])):
+        raise ValueError("JCAMP-DX echo/anti-echo requires representable physical time grids")
+    axes = (Axis(values=grid, unit="s", label="F1", domain="time", direction="increasing"), axes[1])
+    operation = _unscaled_normalization_operation(
+        name="pair-jcampdx-echo-antiecho-traces", stage="acquisition",
+        input_dimensions=("F1", "F2"), output_dimensions=("channels", "F1", "F2"),
+        axis="F1", conjugation=conjugation,
+        evidence="declared echo/anti-echo DQD, caller-confirmed adjacent pairs and physical dwell",
+    )
+    return NormalizedAcquisition(
+        data=np.stack((data[::2], data[1::2])), axes=axes,
+        dimensions=("channels", "F1", "F2"), physical_dimensions=("F1", "F2"),
+        domains=("time", "time"), encoding=("echo-antiecho", "complex"),
+        quadrature_mode="echo-antiecho-stored-2d", branch_order=("first", "second"), channel_axis=0,
+        normalization_state="storage-normalized", normalization_profile="jcampdx-fid-echo-antiecho-2d-v1",
+        applied_operations=(operation,), provenance={"source": result.source, "format": result.format},
+        acquisition={"spectral_width_hz": (float(width), 1 / steps[1]),
+                     "dwell_time_s": (dwell, steps[1]), "indirect_sampling": "echo-antiecho",
+                     "indirect_dwell_s": dwell, "indirect_dwell_source": "caller",
+                     "branch_order": "stored", "reconstruction": "not_applied",
                      "digital_filter": _digital_filter(result.metadata)},
         metadata=result.metadata, diagnostics=result.diagnostics,
     )
