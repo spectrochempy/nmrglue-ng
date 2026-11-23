@@ -7,6 +7,8 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+## 1.5.0 - 2026-11-23
+
 - Accept an explicit physical indirect dwell for QF JCAMP-DX FID normalization,
   retaining declared-grid provenance and unchanged sample values. Default QF
   normalization still uses the declared T1 grid. (#292)

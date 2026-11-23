@@ -249,7 +249,7 @@ existing QF processing path; no experiment-name inference is needed.
 This profile retains time-domain samples and axes. It applies no digital
 filter correction, FFT, phasing or chemical-shift reference.
 
-Development builds additionally normalize declared echo/anti-echo with
+nmrglue-ng 1.5.0 additionally normalize declared echo/anti-echo with
 simultaneous DQD acquisition. Choose ``quadrature="echo-antiecho"``, confirm
 ``confirm_adjacent_pairs=True`` and supply ``indirect_dwell_s`` from validated
 acquisition provenance. The stored T1 row grid alone does not establish the
@@ -260,7 +260,7 @@ the plugin's common processor. The EPFL HSQC qualification covers four
 TopSpin compression modes, native Bruker parity and signed NMRPipe planes,
 with and without phase-domain digital-filter correction. This does not
 establish absolute phase or chemical-shift references for every acquisition.
-Development builds also accept declared ``quadrature="states"`` or
+nmrglue-ng 1.5.0 also accepts declared ``quadrature="states"`` or
 ``quadrature="states-tppi"`` under the same explicit pair/dwell/DQD conditions.
 They expose four stored planes (rr, ri, ir, ii). States-TPPI alternation is
 recorded as declared but not applied, so processing applies it once. The
@@ -275,7 +275,7 @@ Changing the JCAMP compression does not change that physical scope.
 Real 2D JCAMP-DX spectra exported by TopSpin
 --------------------------------------------
 
-Development builds of ``jcampdx-spectrum-2d`` additionally accept
+nmrglue-ng 1.5.0 builds of ``jcampdx-spectrum-2d`` additionally accept
 ``VAR_DIM=(ny,nx,nx)`` exports: the dependent dimension describes one page.
 Positive coordinate factors are accepted for this layout. F1 PAGE values
 are physical coordinates and are not multiplied by F1 FACTOR; endpoint
@@ -294,7 +294,7 @@ existing supported layouts keep their behavior.
 Explicit ppm calibration of processed 2D spectra
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Development builds accept ``axis_reference`` in ``normalize`` for
+nmrglue-ng 1.5.0 accepts ``axis_reference`` in ``normalize`` for
 ``jcampdx-spectrum-2d`` when both declared axes are in Hz. Supply both axes:
 
 .. code-block:: python
@@ -327,7 +327,7 @@ a Fourier transform of raw 2D FIDs.
 Explicit physical dwell for QF JCAMP FIDs
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Development builds optionally accept ``indirect_dwell_s`` for QF
+nmrglue-ng 1.5.0 optionally accepts ``indirect_dwell_s`` for QF
 normalization. Supply it only from known acquisition provenance when the
 declared T1 grid is not the physical evolution step. Without the option,
 QF retains the declared grid. The input read result and sample values are
