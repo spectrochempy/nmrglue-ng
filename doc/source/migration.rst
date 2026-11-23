@@ -249,7 +249,7 @@ existing QF processing path; no experiment-name inference is needed.
 This profile retains time-domain samples and axes. It applies no digital
 filter correction, FFT, phasing or chemical-shift reference.
 
-nmrglue-ng 1.5.0 additionally normalize declared echo/anti-echo with
+nmrglue-ng 1.5.0 additionally normalizes declared echo/anti-echo with
 simultaneous DQD acquisition. Choose ``quadrature="echo-antiecho"``, confirm
 ``confirm_adjacent_pairs=True`` and supply ``indirect_dwell_s`` from validated
 acquisition provenance. The stored T1 row grid alone does not establish the
@@ -275,8 +275,8 @@ Changing the JCAMP compression does not change that physical scope.
 Real 2D JCAMP-DX spectra exported by TopSpin
 --------------------------------------------
 
-nmrglue-ng 1.5.0 builds of ``jcampdx-spectrum-2d`` additionally accept
-``VAR_DIM=(ny,nx,nx)`` exports: the dependent dimension describes one page.
+nmrglue-ng 1.5.0 accepts ``VAR_DIM=(ny,nx,nx)`` exports in
+``jcampdx-spectrum-2d``: the dependent dimension describes one page.
 Positive coordinate factors are accepted for this layout. F1 PAGE values
 are physical coordinates and are not multiplied by F1 FACTOR; endpoint
 agreement accounts for their written decimal precision. F2 remains the
