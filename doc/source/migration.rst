@@ -372,8 +372,16 @@ uncorrected four-plane FFT is separately qualified in the `plugin workflow
 Its physical dwell is supplied from native TPPI metadata, not inferred by the
 normalizer. The filter descriptor retains its unapplied 76-point delay.
 
-Native indirect-QSEQ acquisitions, absolute experimental phase, filter
-correction and full TPPI/QSEQ vendor processing recipes remain unqualified.
+On these two native TPPI acquisitions, explicit F2 phase compensation of the
+76-point delay is additionally qualified against TopSpin 4.5.0 ``PKNL=yes``
+in the `plugin filter workflow
+<https://www.spectrochempy.fr/projects/nmr/latest/reference/interop.html#tppi-digital-filter-phase-compensation>`_.
+It preserves F2 size and grids and records an applied correction without changing
+the input. This remains a processing step: the normalizer keeps the delay
+unapplied. No correction is inferred during reading.
+
+Native indirect-QSEQ acquisitions, other filters, time-domain TPPI correction,
+absolute experimental phase and full TPPI/QSEQ vendor recipes remain unqualified.
 The automatic native Bruker TPPI/QSEQ processing guards are unchanged.
 
 The acquisition-mode definitions are documented in the Bruker

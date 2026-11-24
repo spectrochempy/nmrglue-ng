@@ -21,6 +21,10 @@ original nmrglue project and are preserved for attribution and continuity.
   indirect dwell and conjugation. Record QSEQ sign alternation and retain the
   declared sampling grid and unapplied filter metadata. (#294)
 
+- Document the separately qualified plugin TPPI phase compensation against
+  TopSpin PKNL on the two public 76-point-delay acquisitions. Keep reading
+  free of implicit correction and distinguish remaining filter/phase limits. (#296)
+
 ## 1.5.0 - 2026-11-23
 
 - Accept an explicit physical indirect dwell for QF JCAMP-DX FID normalization,
