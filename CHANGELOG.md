@@ -12,6 +12,10 @@ original nmrglue project and are preserved for attribution and continuity.
   scores without changing the historical finite objective; adjust initial
   phases or rescale the input when needed. (#297)
 
+- Document the separately qualified plugin TPPI phase compensation against
+  TopSpin PKNL on the two public 76-point-delay acquisitions. Keep reading
+  free of implicit correction and distinguish remaining filter/phase limits.
+
 - Document native experimental TPPI JCAMP decoding checks against two public
   CC0 Bruker NOESY acquisitions and TopSpin 4.5.0 exports. Distinguish exact
   raw/stored-spectrum parity from unapplied filtering, phase and native QSEQ
