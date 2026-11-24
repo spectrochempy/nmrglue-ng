@@ -7,6 +7,11 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Reject a nonfinite initial or fitted ACME score explicitly instead of
+  returning misleading phase angles. Exclude undefined or overflowing trial
+  scores without changing the historical finite objective; adjust initial
+  phases or rescale the input when needed. (#297)
+
 - Document native experimental TPPI JCAMP decoding checks against two public
   CC0 Bruker NOESY acquisitions and TopSpin 4.5.0 exports. Distinguish exact
   raw/stored-spectrum parity from unapplied filtering, phase and native QSEQ

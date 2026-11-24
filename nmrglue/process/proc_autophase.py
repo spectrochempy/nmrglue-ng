@@ -293,6 +293,11 @@ def autops(data, fn, p0=0.0, p1=0.0, return_phases=False, peak_width=100, **kwar
         function's return structure. Only the fitted phase angles are used;
         use return_phases=True to return those angles with the spectrum.
 
+    The built-in ACME score must be finite at the initial and fitted phases.
+    A zero real projection or extreme intensity may require different initial
+    phases or rescaling. Nonfinite trial scores are excluded from optimization.
+    The historical finite score, including its intensity dependence, is unchanged.
+
     Returns
     -------
     ndata : ndarray
@@ -329,9 +334,18 @@ def autops(data, fn, p0=0.0, p1=0.0, return_phases=False, peak_width=100, **kwar
 
     opt = [p0, p1]
 
+    if fn is _ps_acme_score and not np.isfinite(fn(opt, data)):
+        raise ValueError(
+            "acme requires a finite initial score; adjust initial phases "
+            "or rescale the spectrum"
+        )
+
     opt = scipy.optimize.fmin(fn, x0=opt, args=tuple(arguments), **kwargs)
     if isinstance(opt, tuple):
         opt = opt[0]
+
+    if fn is _ps_acme_score and not np.isfinite(fn(opt, data)):
+        raise ValueError("acme optimization did not produce a finite score")
 
     phasedspc = ps(data, p0=opt[0], p1=opt[1])
 
@@ -356,37 +370,41 @@ def _ps_acme_score(ph, data):
     Returns
     -------
     score : float
-        Value of the objective function (phase score)
+        Value of the objective function (phase score), or positive infinity
+        when the real projection makes the historical score undefined.
 
     """
-    stepsize = 1
+    with np.errstate(divide="ignore", invalid="ignore", over="ignore", under="ignore"):
+        stepsize = 1
 
-    phc0, phc1 = ph
+        phc0, phc1 = ph
 
-    s0 = ps(data, p0=phc0, p1=phc1)
-    data = np.real(s0)
+        s0 = ps(data, p0=phc0, p1=phc1)
+        data = np.real(s0)
 
-    # Calculation of first derivatives
-    ds1 = np.abs((data[1:]-data[:-1]) / (stepsize*2))
-    p1 = ds1 / np.sum(ds1)
+        # Calculation of first derivatives
+        ds1 = np.abs((data[1:]-data[:-1]) / (stepsize*2))
+        p1 = ds1 / np.sum(ds1)
 
-    # Calculation of entropy
-    p1[p1 == 0] = 1
+        # Calculation of entropy
+        p1[p1 == 0] = 1
 
-    h1 = -p1 * np.log(p1)
-    h1s = np.sum(h1)
+        h1 = -p1 * np.log(p1)
+        h1s = np.sum(h1)
 
-    # Calculation of penalty
-    pfun = 0.0
-    as_ = data - np.abs(data)
-    sumas = np.sum(as_)
+        # Calculation of penalty
+        pfun = 0.0
+        as_ = data - np.abs(data)
+        sumas = np.sum(as_)
 
-    if sumas < 0:
-        pfun = pfun + np.sum((as_/2) ** 2)
+        if sumas < 0:
+            pfun = pfun + np.sum((as_/2) ** 2)
 
-    p = 1000 * pfun
+        p = 1000 * pfun
 
-    return (h1s + p) / data.shape[-1] / np.max(data)
+        score = (h1s + p) / data.shape[-1] / np.max(data)
+
+    return score if np.isfinite(score) else np.inf
 
 
 def _ps_peak_minima_score(ph, data, peak_width):
