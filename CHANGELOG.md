@@ -9,7 +9,7 @@ original nmrglue project and are preserved for attribution and continuity.
 
 - Accept declared simultaneous QSIM as well as DQD for TPPI/QSEQ JCAMP
   normalization. Preserve JCAMP sample units and keep sequential/unknown modes
-  rejected; native Bruker NC is not an implicit normalization scale. (#TBD)
+  rejected; native Bruker NC is not an implicit normalization scale. (#298)
 
 - Reject a nonfinite initial or fitted ACME score explicitly instead of
   returning misleading phase angles. Exclude undefined or overflowing trial
