@@ -181,7 +181,8 @@ def normalize_jcampdx_fid_2d(
         sensitive. Paired modes require the matching declared scheme,
         simultaneous DQD acquisition, confirmed adjacent pairs and a caller
         supplied physical indirect dwell.
-        TPPI and QSEQ require their matching declaration, direct DQD and an
+        TPPI and QSEQ require their matching declaration, direct simultaneous
+        QSIM or DQD acquisition and an
         explicit physical dwell between successive traces. QSEQ applies its
         ++-- sign pattern to produce the common real-F1 TPPI convention.
     conjugation : {"none", "conjugate"}
@@ -230,8 +231,9 @@ def normalize_jcampdx_fid_2d(
     elif quadrature in ("tppi", "qseq"):
         if scheme != quadrature.upper():
             raise ValueError(f"JCAMP-DX requires declared {quadrature}")
-        if "".join(_label(result.metadata, ".ACQUISITIONMODE").upper().split()) != "SIMULTANEOUS(DQD)":
-            raise ValueError("JCAMP-DX real F1 requires direct simultaneous DQD")
+        if "".join(_label(result.metadata, ".ACQUISITIONMODE").upper().split()) not in (
+                "SIMULTANEOUS", "SIMULTANEOUS(DQD)"):
+            raise ValueError("JCAMP-DX real F1 requires direct simultaneous QSIM or DQD")
         if confirm_adjacent_pairs is not False:
             raise ValueError("JCAMP-DX real F1 does not accept adjacent-pair confirmation")
     else:
@@ -320,7 +322,7 @@ def _normalize_real_f1(result, data, axes, steps, conjugation, dwell, quadrature
         name=f"normalize-jcampdx-{quadrature}-traces", stage="acquisition",
         input_dimensions=("F1", "F2"), output_dimensions=("F1", "F2"),
         axis="F2", conjugation=conjugation,
-        evidence="declared real F1 scheme, direct DQD and caller-established physical dwell",
+        evidence="declared real F1 scheme, direct simultaneous acquisition and caller-established physical dwell",
     )
     operation["time_calibration"] = {
         "declared_indirect_dwell_s": steps[0], "indirect_dwell_s": dwell,

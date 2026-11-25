@@ -340,7 +340,7 @@ Declared TPPI and QSEQ JCAMP FIDs
 ---------------------------------
 
 Development builds accept ``quadrature="tppi"`` or ``"qseq"`` for declared
-real-F1 JCAMP 2D FIDs with direct simultaneous DQD acquisition. Supply
+real-F1 JCAMP 2D FIDs with direct simultaneous QSIM or DQD acquisition. Supply
 ``indirect_dwell_s`` from independent acquisition provenance and choose
 ``conjugation`` explicitly. The exported T1 row interval does not establish
 the physical TPPI/QSEQ dwell; no automatic factor-of-two correction is made.
@@ -352,6 +352,27 @@ processing and records both that operation and the original scheme. TPPI
 samples receive only the requested conjugation. The input read result is
 unchanged. No FFT, phasing, digital-filter correction or ppm reference is
 implicit. Filter delay metadata remains unapplied and can be unknown.
+The accepted direct-mode declarations are ``SIMULTANEOUS`` (QSIM) and
+``SIMULTANEOUS (DQD)``. Missing, sequential or unknown declarations are
+rejected. This extension does not relax the DQD requirement of the separate
+States-family and echo/anti-echo normalizers.
+
+Values remain in the JCAMP sample units, including its explicit NTUPLES
+factors. A Bruker ``NC`` record is retained as metadata without implicitly
+rescaling these samples. A comparison with native TopSpin intensities must
+account for the native raw ``NC`` and processed ``NC_proc`` separately.
+QSIM does not imply a zero filter delay: processing still requires an explicit
+valid filter descriptor.
+
+The QSIM path is additionally checked using a QSEQ pseudo-raw SER generated
+by TopSpin 4.5.0 from a known spectrum, inverse ``iqr`` in F1 and ``iqc`` in
+F2, then ``genser``. All four raw JCAMP codecs decode exactly; the companion
+plugin checks four FFT planes and ppm axes against TopSpin, with the recorded
+integer raw ``NC=2`` accounted for only in the reference comparison. This is
+a synthetic conversion/processing reference, not an experimental QSEQ
+acquisition or a digital-filter qualification. See the
+`QSEQ/QSIM qualification
+<https://www.spectrochempy.fr/projects/nmr/latest/reference/interop.html#qseq-qsim-generated-reference>`_.
 
 The numerical convention is checked with synthetic matrix DFTs and controlled
 TopSpin processing. Experimental TPPI decoding is additionally checked on the

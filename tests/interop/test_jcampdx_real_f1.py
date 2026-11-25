@@ -26,10 +26,12 @@ def _write(path, scheme="TPPI", mode="SIMULTANEOUS (DQD)"):
 
 
 @pytest.mark.parametrize("scheme", ["tppi", "qseq"])
+@pytest.mark.parametrize("mode", ["SIMULTANEOUS (DQD)", "SIMULTANEOUS", " simultaneous "])
 @pytest.mark.parametrize("conjugation", ["none", "conjugate"])
-def test_real_f1_normalization(tmp_path, scheme, conjugation):
+def test_real_f1_normalization(tmp_path, scheme, mode, conjugation):
     path = tmp_path / "real.dx"
-    values = _write(path, scheme.upper())
+    values = _write(path, scheme.upper(), mode)
+    path.write_text(path.read_text().replace("##NTUPLES=", "##$NC=2\n##NTUPLES="))
     stored = interop.read(path, profile="jcampdx-fid-2d")
     result = interop.normalize(stored, quadrature=scheme, conjugation=conjugation,
                                indirect_dwell_s=.000125)
@@ -38,6 +40,8 @@ def test_real_f1_normalization(tmp_path, scheme, conjugation):
         expected[2:] *= -1
     np.testing.assert_array_equal(result.data, expected)
     np.testing.assert_array_equal(stored.data, values)
+    assert result.metadata == stored.metadata
+    assert all(op["scale"] is None for op in result.applied_operations)
     np.testing.assert_array_equal(result.axes[0].values, np.arange(4)*.000125)
     assert result.acquisition["spectral_widths_hz"] == (8000, 8000)
     assert result.acquisition["declared_indirect_dwell_s"] == .00025
@@ -61,7 +65,7 @@ def test_real_f1_requires_representable_physical_dwell(tmp_path, dwell, scheme):
 
 
 @pytest.mark.parametrize("scheme", ["tppi", "qseq"])
-def test_real_f1_requires_matching_scheme_dqd_and_unchanged_storage(tmp_path, scheme):
+def test_real_f1_requires_matching_scheme_mode_and_unchanged_storage(tmp_path, scheme):
     path = tmp_path / "real.dx"
     _write(path, scheme.upper())
     stored = interop.read(path, profile="jcampdx-fid-2d")
@@ -74,3 +78,13 @@ def test_real_f1_requires_matching_scheme_dqd_and_unchanged_storage(tmp_path, sc
         _write(path, declaration, mode)
         with pytest.raises(ValueError, match="declared|DQD"):
             interop.normalize(interop.read(path, profile="jcampdx-fid-2d"), **options)
+
+
+@pytest.mark.parametrize("mode", ["", "SEQUENTIAL", "QSIM", "SIMULTANEOUS (unknown)"])
+@pytest.mark.parametrize("scheme", ["tppi", "qseq"])
+def test_real_f1_rejects_missing_or_unsupported_direct_mode(tmp_path, mode, scheme):
+    path = tmp_path / "unsupported.dx"
+    _write(path, scheme.upper(), mode)
+    with pytest.raises(ValueError, match="simultaneous|ACQUISITIONMODE"):
+        interop.normalize(interop.read(path, profile="jcampdx-fid-2d"),
+                          quadrature=scheme, conjugation="none", indirect_dwell_s=.000125)
