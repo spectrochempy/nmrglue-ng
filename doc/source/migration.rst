@@ -62,6 +62,14 @@ versions. Use the checks below for workflows you rely on, and consult the
   Re-run affected JMOD processing and downstream spectra; nonzero offsets
   and the lower-level ``proc_base.jmod`` window retain their behavior.
 
+* Development builds with the fitting-covariance fix restore
+  ``leastsqbound(full_output=True)`` and lineshape ``error_flag=True`` with
+  current NumPy. Covariance accounts for MINPACK pivot indexing and the bound
+  transformation in external parameter units. Recompute earlier reported
+  uncertainties when comparing environments. A zero transformation derivative
+  at a bound leaves covariance unavailable; the fit parameters remain usable
+  subject to the solver's convergence status.
+
 * Development builds with the HT automatic-mode fix preserve the requested
   ``zf`` value outside mirror mode. ``auto=True`` no longer adds padding
   implicitly, matching NMRPipe 13. Recompute affected Hilbert transforms of

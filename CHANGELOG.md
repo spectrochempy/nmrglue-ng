@@ -17,6 +17,10 @@ original nmrglue project and are preserved for attribution and continuity.
 - Restore the Cholesky method in `lp_model`, which previously rejected the
   valid method name before modeling the signal. (#300)
 
+- Restore complete fitting output and parameter uncertainties with current
+  NumPy, and compute covariance with the correct pivot and parameter scales.
+  Degenerate bound transformations leave covariance unavailable. (#305)
+
 ## 1.6.0 - 2026-11-25
 
 - Accept declared simultaneous QSIM as well as DQD for TPPI/QSEQ JCAMP
