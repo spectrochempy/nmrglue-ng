@@ -2398,6 +2398,8 @@ def gram_schmidt(data):
     channels. Numerically dependent inputs raise ValueError. Balanced orthogonal
     channels are unchanged. This estimates channel imbalance from the supplied
     samples; symmetric signals can violate that assumption.
+    Dependence accounts separately for component storage precision and
+    accumulation error in the promoted calculation precision.
     """
     if not np.iscomplexobj(data) or data.size == 0 or not np.isfinite(data).all():
         raise ValueError("quadrature correction requires finite complex data")
@@ -2413,8 +2415,8 @@ def gram_schmidt(data):
     projection = np.sum(real * imag) / R
     residual = imag - projection * real
     S = np.sum(residual * residual)
-    tolerance = np.finfo(data.real.dtype).eps * data.size * max(
-        np.linalg.norm(imag), np.abs(projection) * np.sqrt(R))
+    error = np.finfo(data.real.dtype).eps + data.size * np.finfo(dtype).eps
+    tolerance = error * (np.linalg.norm(imag) + np.abs(projection) * np.sqrt(R))
     if np.sqrt(S) <= tolerance:
         raise ValueError("quadrature correction requires independent channels")
     gain = np.sqrt(R) / np.sqrt(S)

@@ -60,3 +60,9 @@ def test_automatic_quadrature_rejects_dependence_at_input_precision():
         proc_base.qart_auto(data)
 
     np.testing.assert_array_equal(data, original)
+
+
+def test_large_balanced_channels_are_not_rejected():
+    data = np.resize(np.array([1, 1j, -1, -1j], dtype=np.complex64), 2**23)
+    a, f = proc_base.gram_schmidt(data)
+    np.testing.assert_allclose([a, f], [0., 0.], atol=1e-14)
