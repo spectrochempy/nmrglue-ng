@@ -37,13 +37,11 @@ FID and notebook in :doc:`getting-started/index`.
 Check results affected by fixes
 -------------------------------
 
-* Development builds with the real-input complex-FFT fix promote real
-  arrays to a complex result in ``fft``, ``ifft`` and their positive-exponent
-  and normalized variants. Earlier calls discarded the imaginary component
-  with a warning, so transform/inverse round trips could lose information.
-  Recompute affected transforms and downstream spectra. To select only the
-  real component, use ``.real`` explicitly after the transform. Complex-input
-  behavior and the separately packed real transform ``rft`` are unchanged.
+* Development builds with the bounded analytic-Jacobian fix evaluate the
+  residual and its derivatives in consistent transformed coordinates.
+  Refit models that used ``leastsqbound`` with both ``bounds`` and ``Dfun``;
+  earlier successful convergence codes could accompany incorrect parameters.
+  Numerical-Jacobian fits and fits without bounds retain their behavior.
 
 When comparing results with an older environment, record both package
 versions. Use the checks below for workflows you rely on, and consult the
@@ -58,6 +56,14 @@ versions. Use the checks below for workflows you rely on, and consult the
   short spectra now work. Invalid, masked or wholly signal-classified inputs
   raise ``ValueError``. Broad weak peaks can still be removed as background;
   inspect the estimated baseline before quantitative use.
+
+* Development builds with the real-input complex-FFT fix promote real
+  arrays to a complex result in ``fft``, ``ifft`` and their positive-exponent
+  and normalized variants. Earlier calls discarded the imaginary component
+  with a warning, so transform/inverse round trips could lose information.
+  Recompute affected transforms and downstream spectra. To select only the
+  real component, use ``.real`` explicitly after the transform. Complex-input
+  behavior and the separately packed real transform ``rft`` are unchanged.
 
 * Development builds with the JMOD sine-phase fix rotate complex data by
   -90 degrees when the effective modulation offset is zero, matching NMRPipe.
