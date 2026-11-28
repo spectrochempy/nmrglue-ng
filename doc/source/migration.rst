@@ -37,6 +37,12 @@ FID and notebook in :doc:`getting-started/index`.
 Check results affected by fixes
 -------------------------------
 
+* Development builds with the bounded analytic-Jacobian fix evaluate the
+  residual and its derivatives in consistent transformed coordinates.
+  Refit models that used ``leastsqbound`` with both ``bounds`` and ``Dfun``;
+  earlier successful convergence codes could accompany incorrect parameters.
+  Numerical-Jacobian fits and fits without bounds retain their behavior.
+
 When comparing results with an older environment, record both package
 versions. Use the checks below for workflows you rely on, and consult the
 :doc:`release notes <whats-new>` for all changes between those versions.

@@ -7,6 +7,10 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Fit bounded models with an analytic Jacobian in consistent parameter
+  coordinates, including the derivative of the bound transformation. Earlier
+  calls could announce convergence at an incorrect solution. (#302)
+
 - Restore RNMRTK unit conversion by multiplying the carrier in ppm by the
   observation frequency in MHz, including permuted dictionary axes. (#301)
 
