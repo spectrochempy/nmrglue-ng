@@ -2404,15 +2404,16 @@ def gram_schmidt(data):
     scale = max(np.max(np.abs(data.real)), np.max(np.abs(data.imag)))
     if scale == 0:
         raise ValueError("quadrature correction requires nonzero channels")
-    real = data.real.astype(np.float64) / scale
-    imag = data.imag.astype(np.float64) / scale
+    dtype = np.result_type(data.real.dtype, np.float64)
+    real = data.real.astype(dtype) / scale
+    imag = data.imag.astype(dtype) / scale
     R = np.sum(real * real)
     if R == 0:
         raise ValueError("quadrature correction requires a nonzero real channel")
     projection = np.sum(real * imag) / R
     residual = imag - projection * real
     S = np.sum(residual * residual)
-    tolerance = np.finfo(np.float64).eps * data.size * max(
+    tolerance = np.finfo(dtype).eps * data.size * max(
         np.linalg.norm(imag), np.abs(projection) * np.sqrt(R))
     if np.sqrt(S) <= tolerance:
         raise ValueError("quadrature correction requires independent channels")

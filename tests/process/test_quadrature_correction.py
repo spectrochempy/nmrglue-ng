@@ -4,7 +4,7 @@ import pytest
 from nmrglue.process import proc_base
 
 
-@pytest.mark.parametrize("dtype", [np.complex64, np.complex128])
+@pytest.mark.parametrize("dtype", [np.complex64, np.complex128, np.clongdouble])
 @pytest.mark.parametrize("gain, leakage", [(1., 0.), (2., .5), (.4, -.25)])
 def test_automatic_quadrature_recovers_orthogonal_channels(dtype, gain, leakage):
     real = np.array([1., 0., -1., 0.])
