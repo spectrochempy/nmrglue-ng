@@ -7,12 +7,19 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
-- Restore complete fitting output and parameter uncertainties with current
-  NumPy, and compute covariance with the correct pivot and parameter scales.
-  Degenerate bound transformations leave covariance unavailable. (#305)
+- Fit bounded models with an analytic Jacobian in consistent parameter
+  coordinates, including the derivative of the bound transformation. Earlier
+  calls could announce convergence at an incorrect solution. (#302)
+
+- Restore RNMRTK unit conversion by multiplying the carrier in ppm by the
+  observation frequency in MHz, including permuted dictionary axes. (#301)
 
 - Restore the Cholesky method in `lp_model`, which previously rejected the
   valid method name before modeling the signal. (#300)
+
+- Restore complete fitting output and parameter uncertainties with current
+  NumPy, and compute covariance with the correct pivot and parameter scales.
+  Degenerate bound transformations leave covariance unavailable. (#305)
 
 ## 1.6.0 - 2026-11-25
 
