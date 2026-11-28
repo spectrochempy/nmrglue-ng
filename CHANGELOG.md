@@ -11,6 +11,13 @@ original nmrglue project and are preserved for attribution and continuity.
   amplitude normalization. Preserve balanced signals and reject undefined
   corrections instead of returning invalid coefficients. (#303)
 
+- Fit bounded models with an analytic Jacobian in consistent parameter
+  coordinates, including the derivative of the bound transformation. Earlier
+  calls could announce convergence at an incorrect solution. (#302)
+
+- Restore RNMRTK unit conversion by multiplying the carrier in ppm by the
+  observation frequency in MHz, including permuted dictionary axes. (#301)
+
 - Restore the Cholesky method in `lp_model`, which previously rejected the
   valid method name before modeling the signal. (#300)
 
