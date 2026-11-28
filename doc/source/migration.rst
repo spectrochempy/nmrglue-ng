@@ -37,6 +37,16 @@ FID and notebook in :doc:`getting-started/index`.
 Check results affected by fixes
 -------------------------------
 
+* Development builds with the automatic-quadrature fix preserve the real
+  channel and orthogonalize and balance the imaginary channel using an
+  amplitude gain. Reprocess spectra corrected with ``qart_auto`` or
+  ``pipe_proc.qart(auto=True)``; earlier output could introduce imbalance
+  even for ideal data. Recompute stored ``gram_schmidt`` coefficients, which
+  now match ``qart``'s amplitude/leakage convention. Empty, real-only,
+  nonfinite or dependent channels raise ``ValueError``. Manual ``qart``
+  coefficients retain their meaning. Automatic estimation can still be
+  unsuitable for signals symmetric about the spectral center.
+
 When comparing results with an older environment, record both package
 versions. Use the checks below for workflows you rely on, and consult the
 :doc:`release notes <whats-new>` for all changes between those versions.

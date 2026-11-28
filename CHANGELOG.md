@@ -7,6 +7,10 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Correct automatic quadrature balancing with Gram-Schmidt projection and
+  amplitude normalization. Preserve balanced signals and reject undefined
+  corrections instead of returning invalid coefficients. (#303)
+
 - Restore the Cholesky method in `lp_model`, which previously rejected the
   valid method name before modeling the signal. (#300)
 
