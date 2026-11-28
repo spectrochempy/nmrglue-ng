@@ -577,6 +577,10 @@ def irft(xp):
 
 
 # Fourier transforms
+def _fft_dtype(data):
+    return data.dtype if np.iscomplexobj(data) else np.result_type(data.dtype, np.complex64)
+
+
 def fft(data):
     """
     Fourier transform, NMR ordering of results.
@@ -632,7 +636,7 @@ def fft(data):
 
     """
     return np.fft.fftshift(np.fft.fft(data, axis=-1).astype(
-        np.result_type(data.dtype, np.complex64)), -1)
+        _fft_dtype(data)), -1)
 
 
 def fft_norm(data):
@@ -695,7 +699,7 @@ def fft_positive(data):
     # the 1/N scaling
     s = float(data.shape[-1])
     return (np.fft.fftshift(np.fft.ifft(data, axis=-1).astype(
-        np.result_type(data.dtype, np.complex64)), -1)
+        _fft_dtype(data)), -1)
             * s)
 
 
@@ -724,7 +728,7 @@ def ifft(data):
 
     """
     return np.fft.ifft(np.fft.ifftshift(data, -1), axis=-1).astype(
-        np.result_type(data.dtype, np.complex64))
+        _fft_dtype(data))
 
 
 def ifft_norm(data):
@@ -785,7 +789,7 @@ def ifft_positive(data):
     # same as a FFT with negative exponentials, but with a 1/N scaling factor
     s = 1.0 / float(data.shape[-1])
     return (np.fft.fft(np.fft.ifftshift(data, -1), axis=-1).astype(
-        np.result_type(data.dtype, np.complex64))
+        _fft_dtype(data))
             * s)
 
 
