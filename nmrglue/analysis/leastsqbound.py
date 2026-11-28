@@ -278,10 +278,13 @@ def leastsqbound(func, x0, args=(), bounds=None, Dfun=None, full_output=0,
             maxfev = 100 * (n + 1)
 
         def wDfun(x, *args):  # wrapped Dfun
-            return Dfun(i2e(x), *args)
+            grad = _internal2external_grad(x, bounds)
+            if col_deriv:
+                grad = grad[:, None]
+            return Dfun(i2e(x), *args) * grad
 
         retval = _minpack._lmder(
-            func, wDfun, i0, args, full_output, col_deriv, ftol, xtol, gtol,
+            wfunc, wDfun, i0, args, full_output, col_deriv, ftol, xtol, gtol,
             maxfev, factor, diag)
 
     errors = {0: ["Improper input parameters.", TypeError],
