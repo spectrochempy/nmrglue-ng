@@ -37,6 +37,14 @@ FID and notebook in :doc:`getting-started/index`.
 Check results affected by fixes
 -------------------------------
 
+* Development builds with the fitting-covariance fix restore
+  ``leastsqbound(full_output=True)`` and lineshape ``error_flag=True`` with
+  current NumPy. Covariance accounts for MINPACK pivot indexing and the bound
+  transformation in external parameter units. Recompute earlier reported
+  uncertainties when comparing environments. A zero transformation derivative
+  at a bound leaves covariance unavailable; the fit parameters remain usable
+  subject to the solver's convergence status.
+
 When comparing results with an older environment, record both package
 versions. Use the checks below for workflows you rely on, and consult the
 :doc:`release notes <whats-new>` for all changes between those versions.

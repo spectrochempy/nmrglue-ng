@@ -7,6 +7,10 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Restore complete fitting output and parameter uncertainties with current
+  NumPy, and compute covariance with the correct pivot and parameter scales.
+  Degenerate bound transformations leave covariance unavailable. (#305)
+
 - Restore the Cholesky method in `lp_model`, which previously rejected the
   valid method name before modeling the signal. (#300)
 
