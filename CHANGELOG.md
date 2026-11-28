@@ -8,7 +8,7 @@ original nmrglue project and are preserved for attribution and continuity.
 ## Unreleased
 
 - Add a Codecov badge and branch-aware coverage reporting for the autonomous
-  test profile on Ubuntu with Python 3.13. Coverage checks are informational.
+  test profile on Ubuntu with Python 3.13. Coverage checks are informational. (#308)
 
 - Leave fitting covariance and derived uncertainties unavailable when a
   parameter reaches a bound, including two-sided endpoints whose computed
