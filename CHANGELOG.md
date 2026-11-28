@@ -11,6 +11,9 @@ original nmrglue project and are preserved for attribution and continuity.
   coordinates, including the derivative of the bound transformation. Earlier
   calls could announce convergence at an incorrect solution. (#302)
 
+- Preserve the complete complex Fourier transform of real arrays in FFT,
+  inverse FFT and their positive-exponent and normalized variants. (#304)
+
 - Restore RNMRTK unit conversion by multiplying the carrier in ppm by the
   observation frequency in MHz, including permuted dictionary axes. (#301)
 
