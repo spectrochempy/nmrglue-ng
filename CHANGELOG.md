@@ -7,6 +7,10 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Match RNMRTK array axes to the dimension numbers in their storage layout,
+  and return zero-based inverse mappings. Recompute metadata-derived axes for
+  layouts whose permutation differs from its inverse. (#306)
+
 - Correct automatic quadrature balancing with Gram-Schmidt projection and
   amplitude normalization. Preserve balanced signals and reject undefined
   corrections instead of returning invalid coefficients. (#303)

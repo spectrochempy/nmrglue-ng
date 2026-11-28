@@ -236,9 +236,9 @@ def read(filename, par_file=None):
 
     Notes
     -----
-    The dictionary parameters are ordered opposite the data layout, that is to
-    say the the FIRST parameter in each list corresponds to the LAST axis in
-    the data array.
+    Parameter lists are indexed by dimension number. Array axes follow the
+    slowest-to-fastest order in ``layout``; a label such as F2 selects the
+    second entry in each parameter list, regardless of its array position.
 
     See Also
     --------
@@ -282,9 +282,9 @@ def read_lowmem(filename, par_file=None):
 
     Notes
     -----
-    The dictionary parameters are ordered opposite the data layout, that is to
-    say the the FIRST parameter in each list corresponds to the LAST axis in
-    the data array.
+    Parameter lists are indexed by dimension number. Array axes follow the
+    slowest-to-fastest order in ``layout``; a label such as F2 selects the
+    second entry in each parameter list, regardless of its array position.
 
     See Also
     --------
@@ -658,11 +658,13 @@ def find_dic_dim(dic, dim):
     Returns
     -------
     ddim : int
-        Dimension in dic which corresponds to array dimension, dim.
+        Zero-based dimension in dic corresponding to array dimension, dim.
 
     """
     dic_dims = [int(i[1]) - 1 for i in dic['layout'][1]]
-    return dic_dims.index(dim)
+    if dim < 0 or dim >= len(dic_dims):
+        raise ValueError("array dimension is outside the layout")
+    return dic_dims[dim]
 
 
 def find_array_dim(dic, ddim):
@@ -679,11 +681,11 @@ def find_array_dim(dic, ddim):
     Returns
     -------
     dim : int
-        Dimension in array which corresponds to dictionary dimension, ddim.
+        Zero-based array dimension corresponding to dictionary dimension, ddim.
 
     """
-    dic_dims = [int(i[1]) for i in dic['layout'][1]]
-    return dic_dims[ddim]
+    dic_dims = [int(i[1]) - 1 for i in dic['layout'][1]]
+    return dic_dims.index(ddim)
 
 ############################
 # parameter file functions #
