@@ -14,7 +14,8 @@ def _fit(target, start, bounds, derivative):
                         [start], bounds=[bounds], full_output=True, **kw)
 
 
-@pytest.mark.parametrize("bounds", [(0., 10.), (-10., 0.), (10., 20.), (-20., -10.)])
+@pytest.mark.parametrize("bounds", [(0., 10.), (-10., 0.), (10., 20.), (-20., -10.),
+                                    (-10., .1), (-100., .1)])
 @pytest.mark.parametrize("side", [0, 1])
 @pytest.mark.parametrize("derivative", ['numeric', 'row', 'col'])
 def test_two_sided_endpoint_has_no_covariance(bounds, side, derivative):

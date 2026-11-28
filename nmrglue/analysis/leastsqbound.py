@@ -33,6 +33,21 @@ def _internal2external_grad(xi, bounds):
     return grad
 
 
+def _at_bound(xi, xe, bounds):
+    """Detect transformation endpoints before external reconstruction rounding."""
+    for internal, value, (lower, upper) in zip(xi, xe, bounds):
+        if ((lower is not None and value <= lower) or
+                (upper is not None and value >= upper)):
+            return True
+        if lower is not None and upper is not None:
+            fraction = (sin(internal) + 1.) / 2.
+            if fraction in (0., 1.):
+                return True
+        elif (lower is not None or upper is not None) and sqrt(internal * internal + 1.) == 1.:
+            return True
+    return False
+
+
 def _internal2external_func(bounds):
     """
     Make a function which converts between internal (unconstrained) and
@@ -230,6 +245,7 @@ def leastsqbound(func, x0, args=(), bounds=None, Dfun=None, full_output=0,
     Covariance is unavailable when a fitted parameter reaches a bound.
     The bound transformation is singular there, so its floating-point
     derivative must not be used to infer external parameter uncertainty.
+    Endpoints are detected before rounding in external reconstruction.
     In this case cov_x is None and fjac remains in internal coordinates.
 
     To Do
@@ -337,11 +353,7 @@ def leastsqbound(func, x0, args=(), bounds=None, Dfun=None, full_output=0,
         if pivots.min() == 1:
             pivots -= 1
         cov_x = None
-        at_bound = any(
-            (lower is not None and value <= lower) or
-            (upper is not None and value >= upper)
-            for value, (lower, upper) in zip(x, bounds)
-        )
+        at_bound = _at_bound(retval[0], x, bounds)
         can_transform = not at_bound and (grad != 0).all()
         if can_transform:
             r = triu(transpose(retval[1]['fjac'])[:n, :]) / take(grad, pivots)

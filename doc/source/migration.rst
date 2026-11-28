@@ -40,7 +40,8 @@ Check results affected by fixes
 * Development builds with the endpoint-covariance fix return ``None`` for
   covariance when a fitted parameter reaches a bound. The transformation
   is singular at an endpoint even if its floating-point derivative is
-  nonzero. Reassess earlier uncertainties for such fits: numerical and
+  nonzero. Endpoint detection also covers inward rounding during parameter
+  reconstruction. Reassess earlier uncertainties for such fits: numerical and
   analytic Jacobians could yield misleadingly different covariance values.
   Lineshape parameter errors are also unavailable; fitted values and
   interior covariance calculations retain their behavior. This does not
