@@ -7,6 +7,10 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Leave fitting covariance and derived uncertainties unavailable when a
+  parameter reaches a bound, including two-sided endpoints whose computed
+  transformation derivative is nonzero only because of rounding. (#307)
+
 - Match RNMRTK array axes to the dimension numbers in their storage layout,
   and return zero-based inverse mappings. Recompute metadata-derived axes for
   layouts whose permutation differs from its inverse. (#306)

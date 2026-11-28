@@ -37,6 +37,16 @@ FID and notebook in :doc:`getting-started/index`.
 Check results affected by fixes
 -------------------------------
 
+* Development builds with the endpoint-covariance fix return ``None`` for
+  covariance when a fitted parameter reaches a bound. The transformation
+  is singular at an endpoint even if its floating-point derivative is
+  nonzero. Endpoint detection also covers inward rounding during parameter
+  reconstruction. Reassess earlier uncertainties for such fits: numerical and
+  analytic Jacobians could yield misleadingly different covariance values.
+  Lineshape parameter errors are also unavailable; fitted values and
+  interior covariance calculations retain their behavior. This does not
+  qualify uncertainty estimates arbitrarily close to a bound.
+
 * Development builds with the RNMRTK dimension-mapping fix associate each
   array axis with the numbered dimension in its storage layout. Recompute
   ``make_uc`` axes and ``guess_udic`` metadata for cyclic 3D/4D permutations;
