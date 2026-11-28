@@ -7,6 +7,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Preserve the complete complex Fourier transform of real arrays in FFT,
+  inverse FFT and their positive-exponent and normalized variants. (#304)
+
 - Restore the Cholesky method in `lp_model`, which previously rejected the
   valid method name before modeling the signal. (#300)
 

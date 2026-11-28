@@ -37,6 +37,14 @@ FID and notebook in :doc:`getting-started/index`.
 Check results affected by fixes
 -------------------------------
 
+* Development builds with the real-input complex-FFT fix promote real
+  arrays to a complex result in ``fft``, ``ifft`` and their positive-exponent
+  and normalized variants. Earlier calls discarded the imaginary component
+  with a warning, so transform/inverse round trips could lose information.
+  Recompute affected transforms and downstream spectra. To select only the
+  real component, use ``.real`` explicitly after the transform. Complex-input
+  behavior and the separately packed real transform ``rft`` are unchanged.
+
 When comparing results with an older environment, record both package
 versions. Use the checks below for workflows you rely on, and consult the
 :doc:`release notes <whats-new>` for all changes between those versions.
