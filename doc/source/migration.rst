@@ -67,10 +67,26 @@ versions. Use the checks below for workflows you rely on, and consult the
   raise ``ValueError``. Broad weak peaks can still be removed as background;
   inspect the estimated baseline before quantitative use.
 
+* Development builds with the real-input complex-FFT fix promote real
+  arrays to a complex result in ``fft``, ``ifft`` and their positive-exponent
+  and normalized variants. Earlier calls discarded the imaginary component
+  with a warning, so transform/inverse round trips could lose information.
+  Recompute affected transforms and downstream spectra. To select only the
+  real component, use ``.real`` explicitly after the transform. Complex-input
+  behavior and the separately packed real transform ``rft`` are unchanged.
+
 * Development builds with the JMOD sine-phase fix rotate complex data by
   -90 degrees when the effective modulation offset is zero, matching NMRPipe.
   Re-run affected JMOD processing and downstream spectra; nonzero offsets
   and the lower-level ``proc_base.jmod`` window retain their behavior.
+
+* Development builds with the fitting-covariance fix restore
+  ``leastsqbound(full_output=True)`` and lineshape ``error_flag=True`` with
+  current NumPy. Covariance accounts for MINPACK pivot indexing and the bound
+  transformation in external parameter units. Recompute earlier reported
+  uncertainties when comparing environments. A zero transformation derivative
+  at a bound leaves covariance unavailable; the fit parameters remain usable
+  subject to the solver's convergence status.
 
 * Development builds with the HT automatic-mode fix preserve the requested
   ``zf`` value outside mirror mode. ``auto=True`` no longer adds padding

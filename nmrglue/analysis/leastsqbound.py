@@ -4,6 +4,7 @@ import warnings
 
 from numpy import array, asarray, take, eye, triu, transpose, dot
 from numpy import empty_like, sqrt, cos, sin, arcsin
+from numpy.linalg import inv, LinAlgError
 
 try:
     from scipy.optimize.minpack import _check_func
@@ -327,17 +328,20 @@ def leastsqbound(func, x0, args=(), bounds=None, Dfun=None, full_output=0,
     if full_output:
         # convert fjac from internal params to external
         grad = _internal2external_grad(retval[0], bounds)
-        retval[1]['fjac'] = (retval[1]['fjac'].T / take(grad,
-                             retval[1]['ipvt'] - 1)).T
+        pivots = retval[1]['ipvt'].copy()
+        if pivots.min() == 1:
+            pivots -= 1
         cov_x = None
-        if info in [1, 2, 3, 4]:
-            from numpy.dual import inv
-            from numpy.linalg import LinAlgError
-            perm = take(eye(n), retval[1]['ipvt'] - 1, 0)
-            r = triu(transpose(retval[1]['fjac'])[:n, :])
+        if (grad != 0).all():
+            r = triu(transpose(retval[1]['fjac'])[:n, :]) / take(grad, pivots)
+            for column in range(n):
+                retval[1]['fjac'][column, :column + 1] = r[:column + 1, column]
+        if info in [1, 2, 3, 4] and (grad != 0).all():
+            perm = take(eye(n), pivots, 0)
             R = dot(r, perm)
             try:
-                cov_x = inv(dot(transpose(R), R))
+                inverse_R = inv(R)
+                cov_x = dot(inverse_R, transpose(inverse_R))
             except (LinAlgError, ValueError):
                 pass
         return (x, cov_x) + retval[1:-1] + (mesg, info)
