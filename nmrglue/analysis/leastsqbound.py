@@ -227,6 +227,11 @@ def leastsqbound(func, x0, args=(), bounds=None, Dfun=None, full_output=0,
     These transformations are used in the MINUIT package, and described in
     detail in the section 1.3.1 of the MINUIT User's Guide.
 
+    Covariance is unavailable when a fitted parameter reaches a bound.
+    The bound transformation is singular there, so its floating-point
+    derivative must not be used to infer external parameter uncertainty.
+    In this case cov_x is None and fjac remains in internal coordinates.
+
     To Do
     -----
     Currently the ``factor`` and ``diag`` parameters scale the
@@ -332,11 +337,17 @@ def leastsqbound(func, x0, args=(), bounds=None, Dfun=None, full_output=0,
         if pivots.min() == 1:
             pivots -= 1
         cov_x = None
-        if (grad != 0).all():
+        at_bound = any(
+            (lower is not None and value <= lower) or
+            (upper is not None and value >= upper)
+            for value, (lower, upper) in zip(x, bounds)
+        )
+        can_transform = not at_bound and (grad != 0).all()
+        if can_transform:
             r = triu(transpose(retval[1]['fjac'])[:n, :]) / take(grad, pivots)
             for column in range(n):
                 retval[1]['fjac'][column, :column + 1] = r[:column + 1, column]
-        if info in [1, 2, 3, 4] and (grad != 0).all():
+        if info in [1, 2, 3, 4] and can_transform:
             perm = take(eye(n), pivots, 0)
             R = dot(r, perm)
             try:

@@ -7,6 +7,10 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Leave fitting covariance and derived uncertainties unavailable when a
+  parameter reaches a bound, including two-sided endpoints whose computed
+  transformation derivative is nonzero only because of rounding. (#307)
+
 - Correct automatic quadrature balancing with Gram-Schmidt projection and
   amplitude normalization. Preserve balanced signals and reject undefined
   corrections instead of returning invalid coefficients. (#303)
