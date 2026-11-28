@@ -7,6 +7,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Restore RNMRTK unit conversion by multiplying the carrier in ppm by the
+  observation frequency in MHz, including permuted dictionary axes. (#301)
+
 - Restore the Cholesky method in `lp_model`, which previously rejected the
   valid method name before modeling the signal. (#300)
 
