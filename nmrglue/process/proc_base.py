@@ -2412,7 +2412,9 @@ def gram_schmidt(data):
     projection = np.sum(real * imag) / R
     residual = imag - projection * real
     S = np.sum(residual * residual)
-    if S == 0:
+    tolerance = np.finfo(np.float64).eps * data.size * max(
+        np.linalg.norm(imag), abs(projection) * np.sqrt(R))
+    if np.sqrt(S) <= tolerance:
         raise ValueError("quadrature correction requires independent channels")
     gain = np.sqrt(R) / np.sqrt(S)
     return gain - 1., -gain * projection

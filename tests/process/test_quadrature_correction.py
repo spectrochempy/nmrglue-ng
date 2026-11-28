@@ -40,6 +40,7 @@ def test_automatic_quadrature_is_independent_of_signal_scale(scale):
     np.array([1., 2.]), np.array([1j, 2j]),
     np.array([1+1j, 2+2j]), np.array([1+1j, np.nan+1j]),
     np.array([1+1j, np.inf+1j]),
+    np.array([1+7j, 3+21j, 5+35j]),
 ])
 def test_automatic_quadrature_rejects_undefined_correction(data):
     original = data.copy()
