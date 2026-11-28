@@ -37,6 +37,13 @@ FID and notebook in :doc:`getting-started/index`.
 Check results affected by fixes
 -------------------------------
 
+* Development builds with the RNMRTK dimension-mapping fix associate each
+  array axis with the numbered dimension in its storage layout. Recompute
+  ``make_uc`` axes and ``guess_udic`` metadata for cyclic 3D/4D permutations;
+  earlier mappings could select another dimension's frequency, carrier,
+  width, domain or size. ``find_array_dim`` now returns the zero-based
+  inverse of ``find_dic_dim``. Stored samples and file layout are unchanged.
+
 * Development builds with the automatic-quadrature fix preserve the real
   channel and orthogonalize and balance the imaginary channel using an
   amplitude gain. Reprocess spectra corrected with ``qart_auto`` or
