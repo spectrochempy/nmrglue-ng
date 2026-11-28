@@ -11,6 +11,9 @@ original nmrglue project and are preserved for attribution and continuity.
   coordinates, including the derivative of the bound transformation. Earlier
   calls could announce convergence at an incorrect solution. (#302)
 
+- Restore the Cholesky method in `lp_model`, which previously rejected the
+  valid method name before modeling the signal. (#300)
+
 ## 1.6.0 - 2026-11-25
 
 - Accept declared simultaneous QSIM as well as DQD for TPPI/QSEQ JCAMP

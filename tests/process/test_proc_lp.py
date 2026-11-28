@@ -4,6 +4,24 @@ import pytest
 import nmrglue as ng
 
 
+@pytest.mark.parametrize("mode", ["f", "b"])
+def test_lp_model_cholesky_recovers_exponential(mode):
+    trace = 2.5 * np.exp(0.3j) * np.exp(
+        (-0.04 + 2j * np.pi * 0.12) * np.arange(32)
+    )
+    original = trace.copy()
+
+    damp, freq, amp, phase = ng.proc_lp.lp_model(
+        trace, order=1, mode=mode, method="cholesky", full=True
+    )
+
+    np.testing.assert_allclose(damp, [0.04 / np.pi], rtol=1e-12, atol=1e-14)
+    np.testing.assert_allclose(freq, [0.12], rtol=1e-12, atol=1e-14)
+    np.testing.assert_allclose(amp, [2.5], rtol=1e-12, atol=1e-14)
+    np.testing.assert_allclose(phase, [0.3], rtol=1e-12, atol=1e-14)
+    np.testing.assert_array_equal(trace, original)
+
+
 def test_find_lpc_qr():
     D = np.array(
         [

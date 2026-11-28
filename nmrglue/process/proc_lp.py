@@ -625,7 +625,7 @@ def lp_model(trace, slice=slice(None), order=8, mode="f", mirror=None,
         x = make_mirror(x, mirror)
 
     # calculate LP coefficient and factor to find poles
-    if method in ['svd', 'qr', 'cholseky', 'tls']:
+    if method in ['svd', 'qr', 'cholesky', 'tls']:
         D, d = make_Dd(x, order, mode)   # form the LP equation elements
         a = find_lpc(D, d, method)      # find LP coefficients
         poles = find_roots(a, mode)     # find roots
