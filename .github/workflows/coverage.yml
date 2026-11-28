@@ -1,0 +1,59 @@
+name: Coverage
+
+on:
+  push:
+    branches: master
+  pull_request:
+    branches: master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: coverage-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  coverage:
+    name: Autonomous coverage (3.13)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - name: Install
+        run: python -m pip install ".[test]" coverage
+      - name: Measure autonomous tests
+        env:
+          COVERAGE_FILE: ${{ runner.temp }}/.coverage
+        run: >-
+          python -m coverage run --branch --source=nmrglue
+          -m pytest -m "not dataset and not external_software"
+          --strict-markers --strict-config -ra
+          --junitxml="${{ runner.temp }}/coverage-tests.xml"
+      - name: Report coverage
+        env:
+          COVERAGE_FILE: ${{ runner.temp }}/.coverage
+        run: |
+          python -m coverage report
+          python -m coverage xml -o "${{ runner.temp }}/coverage.xml"
+      - name: Upload coverage to Codecov
+        if: >-
+          github.actor != 'dependabot[bot]' &&
+          (github.event_name != 'pull_request' ||
+          github.event.pull_request.head.repo.full_name == github.repository)
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5
+        with:
+          use_oidc: true
+          files: ${{ runner.temp }}/coverage.xml
+          disable_search: true
+          flags: autonomous
+          fail_ci_if_error: true

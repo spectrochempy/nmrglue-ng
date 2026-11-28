@@ -88,6 +88,31 @@ The test suite distinguishes external requirements with three pytest markers:
 
 ### Self-contained tests
 
+The `Coverage` GitHub Actions workflow measures this profile on Ubuntu with
+Python 3.13 using coverage.py with branch measurement enabled. It installs
+`.[test]` and `coverage`; optional dependencies outside that extra are not
+installed. The README badge links to Codecov's report for `master` under the
+`autonomous` flag. Dataset and external-software tests are excluded.
+
+To reproduce the report in a development environment:
+
+```bash
+python -m pip install coverage
+python -m coverage run --branch --source=nmrglue -m pytest -m "not dataset and not external_software" --strict-markers --strict-config -ra
+python -m coverage report
+python -m coverage xml
+```
+
+Optional packages already installed locally may enable additional tests, so
+compare results from environments with the same dependencies.
+
+Codecov uploads use GitHub OIDC, without a `CODECOV_TOKEN` secret. The Codecov
+GitHub App must have access to this repository. Fork and Dependabot pull
+requests run the measurement and print the report, but do not upload it.
+Coverage status checks are informational and PR comments are disabled.
+An upload failure fails the coverage job rather than silently leaving an
+outdated badge.
+
 Run every test that needs neither external datasets nor external software with:
 
 ```bash

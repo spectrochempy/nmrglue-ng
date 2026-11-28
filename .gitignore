@@ -1,6 +1,12 @@
 # Python bytecode
 *.pyc
 
+# Coverage reports
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
 # vim swap files
 *.swp
 *.*~
