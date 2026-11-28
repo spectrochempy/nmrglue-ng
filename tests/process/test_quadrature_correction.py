@@ -47,3 +47,16 @@ def test_automatic_quadrature_rejects_undefined_correction(data):
     with pytest.raises(ValueError):
         proc_base.qart_auto(data)
     np.testing.assert_array_equal(data, original)
+
+
+def test_automatic_quadrature_rejects_dependence_at_input_precision():
+    real = np.array([1., 3., 5., 7., 11., 13.], dtype=np.float32)
+    data = np.empty(real.shape, dtype=np.complex64)
+    data.real = real
+    data.imag = np.float32(.1) * real
+    original = data.copy()
+
+    with pytest.raises(ValueError, match="independent channels"):
+        proc_base.qart_auto(data)
+
+    np.testing.assert_array_equal(data, original)
