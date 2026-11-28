@@ -2395,7 +2395,7 @@ def gram_schmidt(data):
     ``qart``'s ``(1 + a) * imag + f * real`` convention.
 
     The correction requires finite complex data and nonzero independent
-    channels. Degenerate inputs raise ValueError. Balanced orthogonal
+    channels. Numerically dependent inputs raise ValueError. Balanced orthogonal
     channels are unchanged. This estimates channel imbalance from the supplied
     samples; symmetric signals can violate that assumption.
     """
@@ -2413,7 +2413,7 @@ def gram_schmidt(data):
     residual = imag - projection * real
     S = np.sum(residual * residual)
     tolerance = np.finfo(np.float64).eps * data.size * max(
-        np.linalg.norm(imag), abs(projection) * np.sqrt(R))
+        np.linalg.norm(imag), np.abs(projection) * np.sqrt(R))
     if np.sqrt(S) <= tolerance:
         raise ValueError("quadrature correction requires independent channels")
     gain = np.sqrt(R) / np.sqrt(S)
