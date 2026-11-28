@@ -47,7 +47,7 @@ def make_uc(dic, data, dim=-1):
     cplx = {'R': False, 'C': True}[dic['nptype'][ddim]]
     sw = dic['sw'][ddim]   # Hz
     obs = dic['sf'][ddim]   # MHz
-    car = dic['ppm'][ddim] * dic[obs]   # Hz
+    car = dic['ppm'][ddim] * obs   # Hz
     return fileiobase.unit_conversion(size, cplx, sw, obs, car)
 
 
