@@ -8,7 +8,7 @@ original nmrglue project and are preserved for attribution and continuity.
 ## Unreleased
 
 - Restore the Cholesky method in `lp_model`, which previously rejected the
-  valid method name before modeling the signal.
+  valid method name before modeling the signal. (#300)
 
 ## 1.6.0 - 2026-11-25
 
