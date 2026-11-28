@@ -37,6 +37,16 @@ FID and notebook in :doc:`getting-started/index`.
 Check results affected by fixes
 -------------------------------
 
+* Development builds with the automatic-quadrature fix preserve the real
+  channel and orthogonalize and balance the imaginary channel using an
+  amplitude gain. Reprocess spectra corrected with ``qart_auto`` or
+  ``pipe_proc.qart(auto=True)``; earlier output could introduce imbalance
+  even for ideal data. Recompute stored ``gram_schmidt`` coefficients, which
+  now match ``qart``'s amplitude/leakage convention. Empty, real-only,
+  nonfinite or dependent channels raise ``ValueError``. Manual ``qart``
+  coefficients retain their meaning. Automatic estimation can still be
+  unsuitable for signals symmetric about the spectral center.
+
 * Development builds with the bounded analytic-Jacobian fix evaluate the
   residual and its derivatives in consistent transformed coordinates.
   Refit models that used ``leastsqbound`` with both ``bounds`` and ``Dfun``;

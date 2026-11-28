@@ -2395,27 +2395,40 @@ def qart_auto(data):
 
 def gram_schmidt(data):
     """
-    Calculate Gram-Schmidt orthogonalization parameters.
+    Calculate amplitude and leakage adjustments for :func:`qart`.
+
+    The real channel is preserved. Subtract its projection from the imaginary
+    channel, then scale the orthogonal residual to the real channel's norm.
+    Return ``a = gain - 1`` and ``f = -gain * projection``, matching
+    ``qart``'s ``(1 + a) * imag + f * real`` convention.
+
+    The correction requires finite complex data and nonzero independent
+    channels. Numerically dependent inputs raise ValueError. Balanced orthogonal
+    channels are unchanged. This estimates channel imbalance from the supplied
+    samples; symmetric signals can violate that assumption.
+    Dependence accounts separately for component storage precision and
+    accumulation error in the promoted calculation precision.
     """
-    # method similar to Hock and Stern, "NMR Data Processing" p.61
-    # sum of correlation between data.real and data.imag
-    C = (data.real * data.imag).sum()
-
-    # total power in real channel
-    R = (data.real * data.real).sum()
-
-    # remove correlation from imag channel
-    idata = data.imag - (C / R) * data.real
-
-    # total power in uncorrelated imag channel
-    S = (idata * idata).sum()
-
-    # imag(data'') = R/S*imag(data')
-    # imag(data')  = imag(data)-C/R * real(data)
-    # therefore:
-    # imag(data'') = R/S*imag(data) - R*C/(S*R) * real(data)
-    # so A = R/S, B=-C/(S)
-    return(R / S, -C / S)
+    if not np.iscomplexobj(data) or data.size == 0 or not np.isfinite(data).all():
+        raise ValueError("quadrature correction requires finite complex data")
+    scale = max(np.max(np.abs(data.real)), np.max(np.abs(data.imag)))
+    if scale == 0:
+        raise ValueError("quadrature correction requires nonzero channels")
+    dtype = np.result_type(data.real.dtype, np.float64)
+    real = data.real.astype(dtype) / scale
+    imag = data.imag.astype(dtype) / scale
+    R = np.sum(real * real)
+    if R == 0:
+        raise ValueError("quadrature correction requires a nonzero real channel")
+    projection = np.sum(real * imag) / R
+    residual = imag - projection * real
+    S = np.sum(residual * residual)
+    error = np.finfo(data.real.dtype).eps + data.size * np.finfo(dtype).eps
+    tolerance = error * (np.linalg.norm(imag) + np.abs(projection) * np.sqrt(R))
+    if np.sqrt(S) <= tolerance:
+        raise ValueError("quadrature correction requires independent channels")
+    gain = np.sqrt(R) / np.sqrt(S)
+    return gain - 1., -gain * projection
 
 
 # Complex Mixing
