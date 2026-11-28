@@ -7,6 +7,9 @@ original nmrglue project and are preserved for attribution and continuity.
 
 ## Unreleased
 
+- Restore RNMRTK unit conversion by multiplying the carrier in ppm by the
+  observation frequency in MHz, including permuted dictionary axes. (#301)
+
 ## 1.6.0 - 2026-11-25
 
 - Accept declared simultaneous QSIM as well as DQD for TPPI/QSEQ JCAMP
