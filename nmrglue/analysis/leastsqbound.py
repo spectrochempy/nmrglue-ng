@@ -2,7 +2,7 @@
 
 import warnings
 
-from numpy import array, take, eye, triu, transpose, dot
+from numpy import array, asarray, take, eye, triu, transpose, dot
 from numpy import empty_like, sqrt, cos, sin, arcsin
 
 try:
@@ -281,7 +281,7 @@ def leastsqbound(func, x0, args=(), bounds=None, Dfun=None, full_output=0,
             grad = _internal2external_grad(x, bounds)
             if col_deriv:
                 grad = grad[:, None]
-            return Dfun(i2e(x), *args) * grad
+            return asarray(Dfun(i2e(x), *args)) * grad
 
         retval = _minpack._lmder(
             wfunc, wDfun, i0, args, full_output, col_deriv, ftol, xtol, gtol,

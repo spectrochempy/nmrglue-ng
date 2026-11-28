@@ -5,6 +5,7 @@ from nmrglue.analysis.leastsqbound import leastsqbound
 
 
 @pytest.mark.parametrize("col_deriv", [False, True])
+@pytest.mark.parametrize("container", [np.asarray, np.asmatrix, list])
 @pytest.mark.parametrize("bounds", [
     [(0., None), (0., None)],
     [(None, 10.), (None, 5.)],
@@ -12,7 +13,7 @@ from nmrglue.analysis.leastsqbound import leastsqbound
     [(0., None), (None, 5.)],
     [(None, None), (None, None)],
 ])
-def test_bounded_analytic_jacobian_recovers_known_parameters(bounds, col_deriv):
+def test_bounded_analytic_jacobian_recovers_known_parameters(bounds, col_deriv, container):
     matrix = np.array([[1., 2.], [2., -1.], [1., 3.], [4., .5]])
     truth = np.array([3., 1.])
     observed = matrix @ truth**2
@@ -22,7 +23,7 @@ def test_bounded_analytic_jacobian_recovers_known_parameters(bounds, col_deriv):
 
     def jacobian(p, a, y):
         result = a * (2 * p)
-        return result.T if col_deriv else result
+        return container(result.T if col_deriv else result)
 
     result, ier = leastsqbound(
         residual, [2., .5], args=(matrix, observed), bounds=bounds,
