@@ -2,11 +2,14 @@
 nmrglue-ng
 ==========
 
-|CI| |PyPI| |Conda| |Docs| |License|
+|CI| |Coverage| |PyPI| |Conda| |Docs| |License|
 
 .. |CI| image:: https://github.com/spectrochempy/nmrglue-ng/actions/workflows/ci.yml/badge.svg?branch=master
    :alt: Test status on master
    :target: https://github.com/spectrochempy/nmrglue-ng/actions/workflows/ci.yml?query=branch%3Amaster
+.. |Coverage| image:: https://codecov.io/gh/spectrochempy/nmrglue-ng/branch/master/graph/badge.svg?flag=autonomous
+   :alt: Self-contained test coverage on master
+   :target: https://app.codecov.io/gh/spectrochempy/nmrglue-ng/tree/master
 .. |PyPI| image:: https://img.shields.io/pypi/v/nmrglue-ng
    :alt: PyPI version
    :target: https://pypi.org/project/nmrglue-ng/
@@ -47,6 +50,10 @@ results to recheck; the `release notes
 <https://nmrglue-ng.readthedocs.io/latest/whats-new.html>`_ distinguish released
 fixes from development changes. Existing scripts may produce different,
 corrected values even when their calls stay the same.
+
+The coverage badge measures the self-contained tests on Ubuntu with Python
+3.13, including branch coverage. Tests requiring the external corpus, NMRPipe
+or unavailable optional dependencies are outside this indicator's scope.
 
 Quick start
 ===========
